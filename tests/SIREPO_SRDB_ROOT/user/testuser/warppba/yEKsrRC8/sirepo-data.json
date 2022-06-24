@@ -1,0 +1,118 @@
+{
+    "models": {
+        "animation": {
+            "jobRunMode": "parallel",
+            "sbatchCores": 4,
+            "sbatchHours": 0.4,
+            "sbatchProject": "",
+            "sbatchQueue": "debug"
+        },
+        "beamAnimation": {
+            "colorMap": "viridis",
+            "framesPerSecond": 5,
+            "histogramBins": 91,
+            "notes": "",
+            "x": "z",
+            "y": "x"
+        },
+        "beamPreviewReport": {
+            "histogramBins": 91,
+            "notes": "",
+            "x": "x",
+            "y": "y"
+        },
+        "electronBeam": {
+            "beamBunchLengthMethod": "s",
+            "beamRadiusMethod": "a",
+            "bunchLength": 0,
+            "charge": 1e-08,
+            "energy": 23,
+            "rmsLength": 0,
+            "rmsRadius": 15,
+            "transverseEmittance": 0
+        },
+        "electronPlasma": {
+            "density": 1e+23,
+            "entranceRampLength": 1e-05,
+            "exitRampLength": 1e-05,
+            "length": 1
+        },
+        "fieldAnimation": {
+            "colorMap": "viridis",
+            "coordinate": "z",
+            "field": "E",
+            "framesPerSecond": 5,
+            "mode": "0",
+            "notes": ""
+        },
+        "laserPreviewReport": {
+            "colorMap": "viridis",
+            "coordinate": "x",
+            "field": "E",
+            "mode": "1",
+            "notes": ""
+        },
+        "laserPulse": {
+            "amplitude": 3,
+            "duration": "0.008474604519",
+            "length": 2,
+            "polarizationAngle": 0,
+            "pulseDimensions": "r",
+            "spotSize": 4,
+            "waist": "5.081245038595",
+            "wavelength": 0.8
+        },
+        "particleAnimation": {
+            "colorMap": "viridis",
+            "framesPerSecond": 5,
+            "histogramBins": 90,
+            "notes": "",
+            "uxMax": 0,
+            "uxMin": 0,
+            "uyMax": 0,
+            "uyMin": 0,
+            "uzMax": 0,
+            "uzMin": 0,
+            "x": "z",
+            "xMax": 0,
+            "xMin": 0,
+            "y": "x",
+            "yMax": 50,
+            "yMin": -50,
+            "zMax": 0,
+            "zMin": 0
+        },
+        "simulation": {
+            "documentationUrl": "",
+            "folder": "/Examples",
+            "isExample": true,
+            "name": "Electron Beam",
+            "notes": "",
+            "simulationId": "yEKsrRC8",
+            "simulationSerial": 1629134146295737,
+            "sourceType": "electronBeam"
+        },
+        "simulationGrid": {
+            "gridDimensions": "e",
+            "rCellResolution": 20,
+            "rCellsPerSpotSize": 8,
+            "rCount": 100,
+            "rLength": 264.0501846240597,
+            "rMax": 264.0501846240597,
+            "rMin": 0,
+            "rParticlesPerCell": 2,
+            "rScale": 5,
+            "zCellResolution": 30,
+            "zCellsPerWavelength": 8,
+            "zCount": 90,
+            "zLength": 316.86022154887166,
+            "zMax": 0,
+            "zMin": -316.86022154887166,
+            "zParticlesPerCell": 2,
+            "zScale": 3
+        }
+    },
+    "report": "beamPreviewReport",
+    "simulationType": "warppba",
+    "version": "20210810.193849"
+}

@@ -1,0 +1,150 @@
+{
+    "models": {
+        "beamEvolutionAnimation": {
+            "horizontalOffset": 0.0,
+            "horizontalSize": 0,
+            "notes": "",
+            "plotRangeType": "none",
+            "verticalOffset": 0.0,
+            "verticalSize": 0,
+            "y1": "emitx",
+            "y2": "emity",
+            "y3": "none"
+        },
+        "cooler": {
+            "alpha_x": 0,
+            "alpha_y": 0,
+            "bet_x": 10,
+            "bet_y": 10,
+            "disp_dx": 0,
+            "disp_dy": 0,
+            "disp_x": 0,
+            "disp_y": 0,
+            "length": 3.4,
+            "magnetic_field": 0.039,
+            "section_number": 1
+        },
+        "coolingRatesAnimation": {
+            "horizontalOffset": 0.0,
+            "horizontalSize": 0,
+            "notes": "",
+            "plotRangeType": "none",
+            "verticalOffset": 0.0,
+            "verticalSize": 0,
+            "y1": "rx",
+            "y2": "ry",
+            "y3": "rs"
+        },
+        "electronBeam": {
+            "beam_type": "bunched",
+            "current": 2,
+            "e_number": 100000000,
+            "gamma": "9.526312",
+            "length": 0.2,
+            "radius": 0.004,
+            "rh": 0.004,
+            "rv": 0.004,
+            "shape": "bunched_uniform",
+            "sigma_x": 0.015,
+            "sigma_y": 0.015,
+            "sigma_z": 0.02,
+            "tmp_l": 0.01,
+            "tmp_tr": 0.1
+        },
+        "electronCoolingRate": {
+            "force_formula": "parkhomchuk",
+            "sample_number": 10000
+        },
+        "forceTableAnimation": {
+            "forceScale": "negative",
+            "horizontalOffset": 0.0,
+            "horizontalSize": 0,
+            "notes": "",
+            "plot": "transverse",
+            "plotRangeType": "none",
+            "verticalOffset": 0.0,
+            "verticalSize": 0,
+            "x": "Vtrans",
+            "y1": "fx"
+        },
+        "intrabeamScatteringRate": {
+            "coupling": 0,
+            "log_c": 20.6,
+            "longitudinalMethod": "log_c",
+            "nu": 100,
+            "nv": 100,
+            "nz": 40
+        },
+        "ionBeam": {
+            "beam_type": "bunched",
+            "charge_number": 1,
+            "kinetic_energy": 8000,
+            "mass": 938.272,
+            "momentum_spread": 0.0006,
+            "norm_emit_x": 2.2e-06,
+            "norm_emit_y": 2.2e-06,
+            "particle": "PROTON",
+            "particle_number": 65800000000000,
+            "rms_bunch_length": 7
+        },
+        "panelState": {
+            "hidden": []
+        },
+        "particleAnimation": {
+            "colorMap": "viridis",
+            "colorMax": 10,
+            "colorMin": 0,
+            "colorRangeType": "none",
+            "framesPerSecond": "2",
+            "histogramBins": 200,
+            "horizontalOffset": 0.0,
+            "horizontalSize": 0,
+            "plotRangeType": "fit",
+            "verticalOffset": 0.0,
+            "verticalSize": 0,
+            "x": "x",
+            "y": "xp"
+        },
+        "rateCalculationReport": {},
+        "ring": {
+            "lattice": "Booster.tfs",
+            "latticeSource": "madx"
+        },
+        "runSettings": {},
+        "simulation": {
+            "documentationUrl": "",
+            "folder": "/Examples",
+            "isExample": true,
+            "name": "Booster Ring",
+            "notes": "",
+            "simulationId": "66oVFzLn",
+            "simulationSerial": 1629134146556879
+        },
+        "simulationSettings": {
+            "e_cool": "1",
+            "ibs": "1",
+            "model": "particle",
+            "output_interval": 1,
+            "ref_alf_x": 0,
+            "ref_alf_y": 0,
+            "ref_bet_x": 10,
+            "ref_bet_y": 10,
+            "ref_disp_dx": 0,
+            "ref_disp_dy": 0,
+            "ref_disp_x": 0,
+            "ref_disp_y": 0,
+            "sample_number": 100000,
+            "save_particle_interval": 100,
+            "step_number": 600,
+            "time": 600,
+            "time_step": 1
+        },
+        "twissReport": {
+            "y1": "betx",
+            "y2": "bety",
+            "y3": "dx"
+        }
+    },
+    "simulationType": "jspec",
+    "version": "20210810.193849"
+}

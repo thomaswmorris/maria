@@ -1,0 +1,89 @@
+{
+    "models": {
+        "beamline": [
+            {
+                "focusingError": 1,
+                "icon": "lmirror.svg",
+                "id": 4,
+                "position": 0,
+                "title": "Left Mirror",
+                "type": "mirror"
+            },
+            {
+                "icon": "ti-sapphire-crystal.png",
+                "id": 5,
+                "position": 4,
+                "radius": 0.02,
+                "refractionIndex": 2,
+                "title": "Ti-Sapphire Crystal",
+                "type": "crystal",
+                "width": 2
+            },
+            {
+                "focusingError": 1,
+                "icon": "rmirror.svg",
+                "id": 6,
+                "position": 8,
+                "title": "Right Mirror",
+                "type": "mirror"
+            }
+        ],
+        "crystal3dAnimation": {},
+        "crystalAnimation": {},
+        "crystalCylinder": {
+            "T0": 20,
+            "crystalWidth": 2,
+            "dT": 3.8,
+            "diameter": 7,
+            "diffusionConstant": 0.0565,
+            "supergaussian": 8,
+            "wdT": 1
+        },
+        "crystalSettings": {
+            "meshDensity": 30,
+            "plotInterval": 10,
+            "steps": 100,
+            "time": 1,
+            "tolerance": 0.008
+        },
+        "gaussianBeam": {
+            "energyPerPulse": 0.001,
+            "initialPropagationLength": 15,
+            "photonEnergy": 1.55,
+            "polarization": "1",
+            "rmsSize": 436.9915
+        },
+        "plot2Animation": {},
+        "plotAnimation": {},
+        "simulation": {
+            "documentationUrl": "",
+            "folder": "/Examples",
+            "isExample": true,
+            "name": "Two Mirrors",
+            "notes": "",
+            "simulationId": "2C3l80os",
+            "simulationSerial": 1629134145358868
+        },
+        "simulationSettings": {
+            "cavity_length": 8,
+            "n_reflections": 4,
+            "nslice": 11,
+            "sample_factor": 5,
+            "sig_s": 0.1
+        },
+        "wavefrontAnimation4": {
+            "id": 4
+        },
+        "wavefrontAnimation5": {
+            "id": 5
+        },
+        "wavefrontAnimation6": {
+            "id": 6
+        },
+        "wavefrontSummaryAnimation": {
+            "element": "all"
+        }
+    },
+    "simulationType": "silas",
+    "version": "20210810.193849"
+}

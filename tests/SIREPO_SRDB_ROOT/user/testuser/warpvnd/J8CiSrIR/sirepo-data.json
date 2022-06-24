@@ -1,0 +1,241 @@
+{
+    "models": {
+        "anode": {
+            "reflectorProbability": "0.0",
+            "reflectorType": "none"
+        },
+        "beam": {
+            "anode_voltage": 0,
+            "anode_work_function": 0.1,
+            "beam_current": 0.0025,
+            "cathode_temperature": 1273.15,
+            "cathode_work_function": 2,
+            "currentMode": "3",
+            "species": "Electron",
+            "x_radius": 0.05
+        },
+        "cathode": {
+            "reflectorProbability": "0.0",
+            "reflectorType": "none"
+        },
+        "conductorGridReport": {},
+        "conductorTypes": [
+            {
+                "_super": "conductor",
+                "color": "#6992ff",
+                "id": 2,
+                "isConductor": "1",
+                "name": "grid",
+                "permittivity": 7,
+                "reflectorProbability": "0.0",
+                "reflectorType": "none",
+                "type": "box",
+                "voltage": 16,
+                "voltage_opt": true,
+                "xLength": 0.002,
+                "yLength": 0.01,
+                "zLength": 0.05
+            }
+        ],
+        "conductors": [
+            {
+                "conductorTypeId": 2,
+                "id": 2,
+                "xCenter": "0.020000000",
+                "yCenter": 0,
+                "zCenter": 4.76,
+                "zCenter_opt": true
+            },
+            {
+                "conductorTypeId": 2,
+                "id": 3,
+                "xCenter": 0.04,
+                "yCenter": 0,
+                "zCenter": 4.76,
+                "zCenter_opt": true
+            },
+            {
+                "conductorTypeId": 2,
+                "id": 4,
+                "xCenter": 0,
+                "yCenter": 0,
+                "zCenter": 4.76,
+                "zCenter_opt": true
+            },
+            {
+                "conductorTypeId": 2,
+                "id": 5,
+                "xCenter": -0.02,
+                "yCenter": 0,
+                "zCenter": 4.76,
+                "zCenter_opt": true
+            },
+            {
+                "conductorTypeId": 2,
+                "id": 6,
+                "xCenter": -0.04,
+                "yCenter": 0,
+                "zCenter": 4.76,
+                "zCenter_opt": true
+            }
+        ],
+        "currentAnimation": {
+            "framesPerSecond": "2"
+        },
+        "egunCurrentAnimation": {
+            "framesPerSecond": "2"
+        },
+        "fieldAnimation": {
+            "axes": "xz",
+            "colorMap": "viridis",
+            "field": "phi",
+            "framesPerSecond": "2",
+            "notes": "",
+            "slice": 0.0
+        },
+        "fieldCalcAnimation": {
+            "_super": "fieldReport",
+            "axes": "xz",
+            "colorMap": "viridis",
+            "notes": "",
+            "slice": 0.0
+        },
+        "fieldCalculationAnimation": {},
+        "fieldComparisonAnimation": {
+            "_super": "fieldComparisonReport",
+            "dimension": "x",
+            "notes": "",
+            "xCell1": 0,
+            "xCell2": 10,
+            "xCell3": 20,
+            "yCell1": 0,
+            "yCell2": 0,
+            "yCell3": 0,
+            "zCell1": 0,
+            "zCell2": 125,
+            "zCell3": 250
+        },
+        "fieldComparisonReport": {
+            "dimension": "x",
+            "notes": "",
+            "xCell1": 13,
+            "xCell2": 8,
+            "xCell3": 3,
+            "yCell1": 0,
+            "yCell2": 0,
+            "yCell3": 0,
+            "zCell1": 180,
+            "zCell2": 102,
+            "zCell3": 124
+        },
+        "fieldReport": {
+            "axes": "xz",
+            "colorMap": "viridis",
+            "notes": "",
+            "slice": 0.0
+        },
+        "impactDensityAnimation": {
+            "colorMap": "coolwarm",
+            "notes": ""
+        },
+        "optimizer": {
+            "constraints": [
+                [
+                    "conductorPosition#2.zCenter",
+                    "=",
+                    "conductorPosition#3.zCenter"
+                ],
+                [
+                    "conductorPosition#2.zCenter",
+                    "=",
+                    "conductorPosition#4.zCenter"
+                ],
+                [
+                    "conductorPosition#2.zCenter",
+                    "=",
+                    "conductorPosition#5.zCenter"
+                ],
+                [
+                    "conductorPosition#2.zCenter",
+                    "=",
+                    "conductorPosition#6.zCenter"
+                ]
+            ],
+            "continuousFieldSteps": 20,
+            "enabledFields": {
+                "beam.anode_voltage": true,
+                "beam.cathode_temperature": true,
+                "box#2.voltage": true,
+                "conductorPosition#2.zCenter": true,
+                "conductorPosition#3.zCenter": true,
+                "conductorPosition#4.zCenter": true,
+                "conductorPosition#5.zCenter": true,
+                "conductorPosition#6.zCenter": true
+            },
+            "fields": [
+                {
+                    "field": "conductorPosition#2.zCenter",
+                    "maximum": 6,
+                    "minimum": 4
+                },
+                {
+                    "field": "box#2.voltage",
+                    "maximum": 20,
+                    "minimum": 10
+                }
+            ],
+            "initialSteps": 500,
+            "objective": "transparency",
+            "optimizerSteps": 250,
+            "timeLimit": 120,
+            "tolerance": 0.001
+        },
+        "optimizerAnimation": {
+            "colorMap": "viridis",
+            "notes": "",
+            "x": 0,
+            "y": 1
+        },
+        "optimizerStatus": {},
+        "panelState": {
+            "hidden": []
+        },
+        "particle3d": {
+            "colorMap": "viridis",
+            "impactColorMap": "coolwarm",
+            "renderCount": "10"
+        },
+        "particleAnimation": {
+            "renderCount": "100"
+        },
+        "simulation": {
+            "conductorFile": "",
+            "documentationUrl": "",
+            "egun_mode": "0",
+            "executionMode": "serial",
+            "folder": "/Examples",
+            "isExample": true,
+            "name": "Gridded TEC 2D Opt",
+            "notes": "",
+            "outOfSessionSimulationId": "",
+            "simulationId": "J8CiSrIR",
+            "simulationSerial": 1629134144947314,
+            "useConductorFile": "0"
+        },
+        "simulationGrid": {
+            "channel_height": 0.08,
+            "channel_width": 0.1,
+            "num_steps": 300,
+            "num_x": 20,
+            "num_y": 10,
+            "num_z": 250,
+            "particles_per_step": 200,
+            "plate_spacing": 10,
+            "simulation_mode": "2d",
+            "trace_period": 1,
+            "z_particle_min": 0.005
+        }
+    },
+    "simulationType": "warpvnd",
+    "version": "20210810.193849"
+}

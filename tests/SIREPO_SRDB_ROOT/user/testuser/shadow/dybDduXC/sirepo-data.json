@@ -1,0 +1,192 @@
+{
+    "models": {
+        "beamStatisticsReport": {
+            "driftDivisions": 100,
+            "epsilon": 1e-06,
+            "notes": "",
+            "y1": "sigmax",
+            "y2": "sigmaz",
+            "y3": "none"
+        },
+        "beamline": [
+            {
+                "id": 2,
+                "position": 0,
+                "title": "Watchpoint",
+                "type": "watch"
+            }
+        ],
+        "bendingMagnet": {
+            "calculateFieldMethod": "radius",
+            "fdistr": "4",
+            "magneticField": 0.8002189024183939,
+            "ph1": 8000,
+            "ph2": 8000.001,
+            "r_magnet": 25.1772
+        },
+        "electronBeam": {
+            "bener": 6.04,
+            "epsi_dx": 0,
+            "epsi_dz": 0,
+            "epsi_x": 0,
+            "epsi_z": 0,
+            "f_pol": "3",
+            "sigmax": 0,
+            "sigmaz": 0
+        },
+        "geometricSource": {
+            "cone_max": 0,
+            "cone_min": 0,
+            "f_coher": "0",
+            "f_color": "3",
+            "f_polar": "1",
+            "fdistr": "3",
+            "fsour": "3",
+            "fsource_depth": "3",
+            "ph1": 9998,
+            "ph2": 10002,
+            "pol_angle": 0,
+            "pol_deg": 1,
+            "sigdix": 0.0884999972,
+            "sigdiz": 0.0071999998,
+            "sigmax": 57,
+            "sigmay": 10,
+            "sigmaz": 10.4,
+            "singleEnergyValue": 1000,
+            "wxsou": 1.00000001,
+            "wysou": 2,
+            "wzsou": 2.00000003
+        },
+        "histogramReport": {
+            "column": "6",
+            "distanceFromSource": 0,
+            "histogramBins": 100,
+            "weight": "22"
+        },
+        "initialIntensityReport": {
+            "_super": "_INTENSITY_REPORT",
+            "aspectRatio": "1",
+            "colorMap": "viridis",
+            "histogramBins": 100,
+            "horizontalOffset": 0,
+            "horizontalSize": 10,
+            "notes": "",
+            "overrideSize": "0",
+            "verticalOffset": 0,
+            "verticalSize": 10,
+            "weight": "22",
+            "x": "1",
+            "y": "4"
+        },
+        "panelState": {
+            "hidden": []
+        },
+        "plotXYReport": {
+            "_super": "_INTENSITY_REPORT",
+            "aspectRatio": "1",
+            "colorMap": "viridis",
+            "distanceFromSource": 0,
+            "histogramBins": 100,
+            "horizontalOffset": 0,
+            "horizontalSize": 10,
+            "notes": "",
+            "overrideSize": "0",
+            "verticalOffset": 0,
+            "verticalSize": 10,
+            "weight": "22",
+            "x": "2",
+            "y": "1"
+        },
+        "rayFilter": {
+            "distance": 0.5,
+            "f_bound_sour": "0",
+            "x1": -0.02,
+            "x2": 0.02,
+            "z1": -0.02,
+            "z2": 0.02
+        },
+        "simulation": {
+            "documentationUrl": "",
+            "folder": "/Sources",
+            "isExample": true,
+            "istar1": 5676561,
+            "name": "Wiggler",
+            "notes": "",
+            "npoint": 5000,
+            "outOfSessionSimulationId": "",
+            "simulationId": "dybDduXC",
+            "simulationSerial": 1629134144842069,
+            "sourceType": "wiggler"
+        },
+        "sourceDivergence": {
+            "hdiv1": 0.5,
+            "hdiv2": 0.5,
+            "vdiv1": 1000,
+            "vdiv2": 1000
+        },
+        "undulator": {
+            "emax": 11000.0,
+            "emin": 10000.0,
+            "energy_harmonic": 1,
+            "f_coher": "0",
+            "flag_size": "1",
+            "k_horizontal": 0.0,
+            "k_vertical": 0.0,
+            "length": 3,
+            "maxangle": 50,
+            "ng_e": 11,
+            "ng_j": 20,
+            "ng_p": 21,
+            "ng_t": 31,
+            "period": 20,
+            "photon_energy": 10000.0,
+            "select_energy": "harmonic"
+        },
+        "undulatorBeam": {
+            "alpha_x": 0,
+            "alpha_y": 0,
+            "beta_x": 1.84,
+            "beta_y": 1.17,
+            "current": 0.1,
+            "emittance_x": 0.55,
+            "emittance_y": 0.008,
+            "energy": 1.0,
+            "energy_spread": 0,
+            "eta_x": 0,
+            "eta_y": 0,
+            "etap_x": 0,
+            "etap_y": 0,
+            "number_of_bunches": 1
+        },
+        "watchpointReport2": {
+            "_super": "_INTENSITY_REPORT",
+            "aspectRatio": "1",
+            "colorMap": "viridis",
+            "histogramBins": 100,
+            "horizontalOffset": 0,
+            "horizontalSize": 10,
+            "notes": "",
+            "overrideSize": "0",
+            "verticalOffset": 0,
+            "verticalSize": 10,
+            "weight": "22",
+            "x": "1",
+            "y": "4"
+        },
+        "wiggler": {
+            "b_from": "0",
+            "kValue": 19.6,
+            "nPer": 10,
+            "per": 0.2,
+            "ph1": 9995,
+            "ph2": 10005,
+            "shift_betax_flag": "0",
+            "shift_betax_value": 0,
+            "shift_x_flag": "0",
+            "shift_x_value": 0,
+            "trajFile": "SW_3P.txt"
+        }
+    },
+    "simulationType": "shadow",
+    "version": "20210810.193849"
+}

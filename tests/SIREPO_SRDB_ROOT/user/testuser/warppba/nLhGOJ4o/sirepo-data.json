@@ -1,0 +1,118 @@
+{
+    "models": {
+        "animation": {
+            "jobRunMode": "parallel",
+            "sbatchCores": 4,
+            "sbatchHours": 0.4,
+            "sbatchProject": "",
+            "sbatchQueue": "debug"
+        },
+        "beamAnimation": {
+            "colorMap": "viridis",
+            "framesPerSecond": 5,
+            "histogramBins": 131,
+            "notes": "",
+            "x": "z",
+            "y": "x"
+        },
+        "beamPreviewReport": {
+            "histogramBins": 100,
+            "notes": "",
+            "x": "x",
+            "y": "y"
+        },
+        "electronBeam": {
+            "beamBunchLengthMethod": "s",
+            "beamRadiusMethod": "a",
+            "bunchLength": 0,
+            "charge": 1e-08,
+            "energy": 23,
+            "rmsLength": 0,
+            "rmsRadius": 15,
+            "transverseEmittance": 0
+        },
+        "electronPlasma": {
+            "density": 1.75e+25,
+            "entranceRampLength": 1e-05,
+            "exitRampLength": 1e-05,
+            "length": 0.25
+        },
+        "fieldAnimation": {
+            "colorMap": "viridis",
+            "coordinate": "x",
+            "field": "E",
+            "framesPerSecond": 5,
+            "mode": "1",
+            "notes": ""
+        },
+        "laserPreviewReport": {
+            "colorMap": "viridis",
+            "coordinate": "x",
+            "field": "E",
+            "mode": "1",
+            "notes": ""
+        },
+        "laserPulse": {
+            "amplitude": 3,
+            "duration": "0.008474604519",
+            "length": 2,
+            "polarizationAngle": 0,
+            "pulseDimensions": "r",
+            "spotSize": 4,
+            "waist": "5.081245038595",
+            "wavelength": 0.8
+        },
+        "particleAnimation": {
+            "colorMap": "viridis",
+            "framesPerSecond": 5,
+            "histogramBins": 219,
+            "notes": "",
+            "uxMax": 0,
+            "uxMin": 0,
+            "uyMax": 0,
+            "uyMin": 0,
+            "uzMax": 0,
+            "uzMin": 0,
+            "x": "z",
+            "xMax": 0,
+            "xMin": 0,
+            "y": "x",
+            "yMax": 5,
+            "yMin": -5,
+            "zMax": 0,
+            "zMin": 0
+        },
+        "simulation": {
+            "documentationUrl": "",
+            "folder": "/Examples",
+            "isExample": true,
+            "name": "Laser Pulse",
+            "notes": "",
+            "simulationId": "nLhGOJ4o",
+            "simulationSerial": 1629134146326417,
+            "sourceType": "laserPulse"
+        },
+        "simulationGrid": {
+            "gridDimensions": "s",
+            "rCellResolution": 20,
+            "rCellsPerSpotSize": 8,
+            "rCount": 32,
+            "rLength": "20.324980154380",
+            "rMax": "20.324980154380",
+            "rMin": 0,
+            "rParticlesPerCell": 1,
+            "rScale": 4,
+            "zCellResolution": 20,
+            "zCellsPerWavelength": 8,
+            "zCount": 219,
+            "zLength": "20.324980154631",
+            "zMax": "1.600000000000",
+            "zMin": -20.324980154631,
+            "zParticlesPerCell": 2,
+            "zScale": 2
+        }
+    },
+    "report": "laserPreviewReport",
+    "simulationType": "warppba",
+    "version": "20210810.193849"
+}
