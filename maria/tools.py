@@ -67,7 +67,7 @@ def get_MARA(z): # minimal-area rotation angle
 
     HE = np.imag(HZ).max() - np.imag(HZ).min(); HO = 0
     #for z1,z2 in zip(HZ,np.roll(HZ,1)):
-    for RHO in np.linspace(0,np.pi,256+1)[1:]:
+    for RHO in np.linspace(0,np.pi,1024+1)[1:]:
 
         #RHO = np.angle(z2-z1)
         RHZ = HZ * np.exp(1j*RHO)

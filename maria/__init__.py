@@ -90,10 +90,17 @@ class array():
             if len(self.bands) == 1:      self.bands = np.repeat(self.bands, self.n_det)
             if len(self.bandwidths) == 1: self.bandwidths = np.repeat(self.bandwidths, self.n_det)
 
-            self.nu = np.arange((self.bands - 0.75 * self.bandwidths).min(), (self.bands + 0.75 * self.bandwidths).max(), 2e9)
+            self.nu = np.arange((self.bands - 0.75 * self.bandwidths).min(), (self.bands + 0.75 * self.bandwidths).max(), 1e9)
 
             self.passbands  = np.c_[[tools.get_passband(self.nu, nu_0, nu_w, order=8) for nu_0, nu_w in zip(self.bands, self.bandwidths)]]
+            
+            good_nu = self.passbands.max(axis=0) > 1e-4
+            self.nu = self.nu[good_nu]
+
+            self.passbands  = self.passbands[:,good_nu]
             self.passbands /= self.passbands.sum(axis=1)[:,None]
+
+        
         
 
         # compute beams
@@ -105,6 +112,43 @@ class array():
             gauss_8 = lambda r, r_fwhm : np.exp(np.log(0.5)*np.abs(r/r_fwhm)**8)
 
             self.beam_func = gauss_8
+
+    def make_filter(self, waist, res, func, width_per_waist=1.2):
+    
+        filter_width = width_per_waist * waist
+        n_filter = 2 * int(np.ceil(0.5 * filter_width / res)) + 1
+
+        filter_side = 0.5 * np.linspace(-filter_width, filter_width, n_filter)
+
+        FILTER_X, FILTER_Y = np.meshgrid(filter_side, filter_side, indexing='ij')
+        FILTER_R = np.sqrt(np.square(FILTER_X) + np.square(FILTER_Y))
+
+        FILTER  = func(FILTER_R, 0.5 * waist)
+        FILTER /= FILTER.sum()
+        
+        return FILTER
+    
+    
+    def separate_filter(self, F, tol=1e-2):
+        
+        u, s, v = la.svd(F); eff_filter = 0
+        for m, (_u, _s, _v) in enumerate(zip(u.T, s, v)):
+
+            eff_filter += _s * np.outer(_u, _v)
+            if np.abs(F - eff_filter).sum() < tol: break
+
+        return u.T[:m+1], s[:m+1], v[:m+1]
+
+    def separably_filter(self, M, u, s, v):
+
+        conv = sp.ndimage.filters.convolve1d
+        filt_M = 0
+        for _u, _s, _v in zip(u, s, v):
+
+            filt_M += _s * conv(conv(M.astype(float), _u, axis=0), _v, axis=1)
+
+        return filt_M
+
     
 
 DEFAULT_PLAN_CONFIG = {  'duration' : 120,    # shape of detector arrangement
@@ -210,13 +254,13 @@ class site():
 
     def compute(self):
 
-        self.weather = weathergen.generate(region=self.region, time=self.time_UTC, method='random')
+        self.weather = weathergen.generate(region=self.region, t=self.time_UTC)
 
 
 
 DEFAULT_LAM_CONFIG = {'min_depth' : 1000,
-                      'max_depth' : 2000,
-                       'n_layers' : 2,
+                      'max_depth' : 4000,
+                       'n_layers' : 4,
                        'min_beam_res' : 4,
                        
                        }
@@ -268,9 +312,8 @@ class lam():
         self.wvmd = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['water_density'])
         self.temp = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['temperature'])
         self.var_scaling = np.square(self.wvmd * self.temp)
-        self.rel_scaling = np.sqrt(self.var_scaling / self.var_scaling.sum(axis=0)[None,:])
-        self.lay_scaling = 1e-2 * self.site.weather['pwv'] * self.rel_scaling * self.thicks[:, None] / self.thicks.sum()
-
+        self.layer_scaling = self.site.weather['pwv'] * self.var_scaling * self.thicks[:, None] / self.thicks.sum()
+        self.layer_scaling = np.sqrt(np.square(self.layer_scaling) / np.square(self.layer_scaling).sum(axis=0)[None,:])
 
         self.theta_x = self.array.offset_x[:, None] + self.plan.c_x[None, :] 
         self.theta_y = self.array.offset_y[:, None] + self.plan.c_y[None, :]
@@ -287,7 +330,7 @@ class lam():
         self.w_v_y = (- self.w_e * np.sin(self.plan.c_azim[None,:]) + self.w_n * np.cos(self.plan.c_azim[None,:])) / self.depths[:,None] * np.sin(self.plan.c_elev[None,:])
         
         ### These are empty lists we need to fill with chunky parameters (they won't fit together!) for each layer. 
-        self.para, self.orth, self.X, self.Y, self.P, self.O = [], [], [], [], [], []
+        self.para, self.orth, self.P, self.O, self.X, self.Y = [], [], [], [], [], []
         self.n_para, self.n_orth, self.lay_ang_res, self.genz, self.AR_samples = [], [], [], [], []
 
         #self.rel_theta_z = self.theta_x + np.cumsum(self.w_v_x * self.plan.dt) + 1j# * (self.theta_y + np.cumsum(self.w_v_y * self.plan.dt))
@@ -295,9 +338,8 @@ class lam():
         self.rel_c_x = self.plan.c_x[None,:] + np.cumsum(self.w_v_x * self.plan.dt, axis=1) 
         self.rel_c_y = self.plan.c_y[None,:] + np.cumsum(self.w_v_y * self.plan.dt, axis=1) 
         
-        self.zop = np.zeros((self.theta_x.shape),dtype=complex)
-        self.p   = np.zeros((self.theta_x.shape))
-        self.o   = np.zeros((self.theta_x.shape))
+        self.p   = np.zeros((self.n_layers, *self.theta_x.shape))
+        self.o   = np.zeros((self.n_layers, *self.theta_x.shape))
 
         self.MARA = []
         self.outer_scale = 1e2
@@ -310,55 +352,69 @@ class lam():
 
         max_layer_beam_radii = 0.5 * self.angular_waists.max(axis=1)
 
-        self.padded_radius = (radius_sample_prop + beam_tol) * max_layer_beam_radii + self.array.offset_r.max()
+        self.padding = (radius_sample_prop + beam_tol) * max_layer_beam_radii #+ self.array.offset_r.max()
         
         for i_l, depth in enumerate(self.depths):
 
             hull = sp.spatial.qhull.ConvexHull(np.c_[self.rel_c_x[i_l], self.rel_c_y[i_l]])
             h_x, h_y = hull.points[hull.vertices].T; h_z = h_x + 1j * h_y
-            layer_hull_theta_z = h_z * (np.abs(h_z) + self.padded_radius[i_l]) / np.abs(h_z)
+            layer_hull_theta_z = h_z * (np.abs(h_z) + self.padding[i_l]) / np.abs(h_z)
 
             self.MARA.append(tools.get_MARA(layer_hull_theta_z.ravel()))
-                        
+
+            rel_theta_x = self.array.offset_x[:, None] + self.rel_c_x[i_l][None, :]
+            rel_theta_y = self.array.offset_y[:, None] + self.rel_c_y[i_l][None, :]
+            
+            zop = (rel_theta_x + 1j * rel_theta_y) * np.exp(1j*self.MARA[-1]) 
+            self.p[i_l], self.o[i_l] = np.real(zop), np.imag(zop)
+
+            res = self.min_ang_res[i_l].min()
+            #lay_ang_res = np.minimum(self.min_ang_res[i_l].min(), 2 * orth_radius / (n_orth_min - 1))
+            #lay_ang_res = np.maximum(lay_ang_res, 2 * orth_radius / (n_orth_max - 1))
+
+            para_ = np.arange(self.p[i_l].min() - self.padding[i_l] - res, self.p[i_l].max() + self.padding[i_l] + res, res)
+            orth_ = np.arange(self.o[i_l].min() - self.padding[i_l] - res, self.o[i_l].max() + self.padding[i_l] + res, res)
+
+            n_para, n_orth = len(para_), len(orth_)
+            self.lay_ang_res.append(res)
+
             # an efficient way to compute the minimal observing area that we need to generate
-            self.theta_edge_z.append(layer_hull_theta_z)
+            #self.theta_edge_z.append(layer_hull_theta_z)
 
-            RZ = layer_hull_theta_z * np.exp(1j*self.MARA[-1])
+            #RZ = layer_hull_theta_z * np.exp(1j*self.MARA[-1])
             
-            para_min, para_max = np.real(RZ).min(), np.real(RZ).max()
-            orth_min, orth_max = np.imag(RZ).min(), np.imag(RZ).max()
+            #para_min, para_max = np.real(RZ).min(), np.real(RZ).max()
+            #orth_min, orth_max = np.imag(RZ).min(), np.imag(RZ).max()
             
-            para_center, orth_center = (para_min + para_max)/2, (orth_min + orth_max)/2
-            para_radius, orth_radius = (para_max - para_min)/2, (orth_max - orth_min)/2
+            #para_center, orth_center = (para_min + para_max)/2, (orth_min + orth_max)/2
+            #para_radius, orth_radius = (para_max - para_min)/2, (orth_max - orth_min)/2
     
-            n_orth_min = 64
-            n_orth_max = 1024
-
-            lay_ang_res = np.minimum(self.min_ang_res[i_l].min(), 2 * orth_radius / (n_orth_min - 1))
-            lay_ang_res = np.maximum(lay_ang_res, 2 * orth_radius / (n_orth_max - 1))
+            #n_orth_min = 64
+            #n_orth_max = 1024
 
             
-            self.lay_ang_res.append(lay_ang_res)
+        
+
+
+            #lay_ang_res = np.minimum(self.min_ang_res[i_l].min(), 2 * orth_radius / (n_orth_min - 1))
+            #lay_ang_res = np.maximum(lay_ang_res, 2 * orth_radius / (n_orth_max - 1))
+
             
-            para_ = para_center + np.arange(-para_radius,para_radius+.5*lay_ang_res,lay_ang_res)
-            orth_ = orth_center + np.arange(-orth_radius,orth_radius+.5*lay_ang_res,lay_ang_res)
             
+         
             self.PARA_SPACING = np.gradient(para_).mean()
             self.para.append(para_), self.orth.append(orth_)
             self.n_para.append(len(para_)), self.n_orth.append(len(orth_))
         
-            ORTH_,PARA_ = np.meshgrid(orth_,para_)
+            ORTH_, PARA_ = np.meshgrid(orth_, para_)
             
-            self.genz.append(np.exp(-1j*self.MARA[-1]) * (PARA_[0] + 1j*ORTH_[0] - self.PARA_SPACING) )
-            layer_ZOP = np.exp(-1j*self.MARA[-1]) * (PARA_ + 1j*ORTH_) 
+            self.genz.append(np.exp(-1j*self.MARA[-1]) * (PARA_[0] + 1j*ORTH_[0] - res) )
+            XYZ = np.exp(-1j*self.MARA[-1]) * (PARA_ + 1j*ORTH_) 
             
-            self.X.append(np.real(layer_ZOP)), self.Y.append(np.imag(layer_ZOP))
-            self.O.append(ORTH_), self.P.append(PARA_)
+            self.X.append(np.real(XYZ)), self.Y.append(np.imag(XYZ))
+            #self.O.append(ORTH_), self.P.append(PARA_)
             
-            
-            
-            self.zop[i_l] = self.theta_z[i_l] * np.exp(1j*self.MARA[-1]) 
-            self.p[i_l], self.o[i_l] = np.real(self.zop[i_l]), np.imag(self.zop[i_l])
+            del rel_theta_x, rel_theta_y, zop
 
             cov_args = (1,1)
             
@@ -383,6 +439,8 @@ class lam():
             
 
         self.prec, self.csam, self.cgen, self.A, self.B = [], [], [], [], []
+
+        self.data_type = np.float16
         
         with tqdm(total=len(self.depths),desc='Computing weights') as prog:
             for i_l, (depth, LX, LY, AR, GZ) in enumerate(zip(self.depths,self.X,self.Y,self.AR_samples,self.genz)):
@@ -395,8 +453,8 @@ class lam():
                 
                 self.csam.append(tools.make_2d_covariance_matrix(tools.matern,cov_args,np.real(GZ),np.imag(GZ),LX[AR],LY[AR],auto=False)) 
                 
-                self.A.append(np.matmul(self.csam[i_l],self.prec[i_l])) 
-                self.B.append(tools.msqrt(self.cgen[i_l]-np.matmul(self.A[i_l],self.csam[i_l].T)))
+                self.A.append(np.matmul(self.csam[i_l],self.prec[i_l]).astype(self.data_type)) 
+                self.B.append(tools.msqrt(self.cgen[i_l]-np.matmul(self.A[i_l],self.csam[i_l].T)).astype(self.data_type))
                 
                 prog.update(1)
 
@@ -407,7 +465,7 @@ class lam():
                 
                 row_string  = f'{i_l+1:2} | {depth:9.01f} | {self.waists[i_l].min():8.02f} | {60*np.degrees(self.angular_waists[i_l].min()):8.02f} | '
                 row_string += f'{depth*self.lay_ang_res[i_l]:7.02f} | {60*np.degrees(self.lay_ang_res[i_l]):7.02f} | '
-                row_string += f'{1e3*self.lay_scaling[i_l].mean():11.02f} | {len(self.AR_samples[i_l][0]):5} | {self.n_orth[i_l]:4} | '
+                row_string += f'{1e3*self.layer_scaling[i_l].mean():11.02f} | {len(self.AR_samples[i_l][0]):5} | {self.n_orth[i_l]:4} | '
                 row_string += f'{self.n_para[i_l]:4} | {1e3*self.wvmd[i_l].mean():11.02f} | {self.temp[i_l].mean():8.02f} | '
                 row_string += f'{self.w_s[i_l].mean():8.02f} | {np.degrees(self.w_b[i_l].mean()+np.pi):8.02f} |'
                 print(row_string)
@@ -418,11 +476,11 @@ class lam():
     def atmosphere_timestep(self,i): # iterate the i-th layer of atmosphere by one step
         
         self.vals[i] = np.r_[(np.matmul(self.A[i],self.vals[i][self.AR_samples[i]])
-                            + np.matmul(self.B[i],np.random.standard_normal(self.B[i].shape[0])))[None,:],self.vals[i][:-1]]
+                            + np.matmul(self.B[i],np.random.standard_normal(self.B[i].shape[0]).astype(self.data_type)))[None,:],self.vals[i][:-1]]
 
-    def generate_atmosphere(self,blurred=False):
+    def initialize_atmosphere(self,blurred=False):
 
-        self.vals = [np.zeros(lx.shape, dtype=np.float16) for lx in self.X]
+        self.vals = [np.zeros(lx.shape, dtype=self.data_type) for lx in self.X]
         n_init_   = [n_para for n_para in self.n_para]
         n_ts_     = [n_para for n_para in self.n_para]
         tot_n_init, tot_n_ts = np.sum(n_init_), np.sum(n_ts_)
@@ -437,52 +495,41 @@ class lam():
                     prog.update(1)
                 
         
-    def sim(self, do_atmosphere=True, 
-                  units='mK_CMB', 
-                  do_noise=True,
-                  split_layers=False,
-                  split_bands=False):
+    def simulate_atmosphere(self, do_atmosphere=True, ):
         
         self.sim_start = ttime.time()
-        self.generate_atmosphere()
+        self.initialize_atmosphere()
         
-        #print(self.array.band_weights.shape)
-        #temp_data = np.zeros((len(self.atmosphere.depths),self.array.n,self.pointing.nt))
-        
-        self.epwv = self.site.weather['pwv'] + np.zeros((self.array.n,self.pointing.nt))
-        
-        self.n_bf, self.beam_filters, self.beam_filter_sides = [], [], []
-        
-        with tqdm(total=len(self.atmosphere.depths) + len(self.array.nom_band_list),
-                  desc='Sampling atmosphere') as prog:
+        self.rel_flucs = np.zeros(self.o.shape, dtype=self.data_type)    
             
+        multichromatic_beams = False
+
+        from scipy.interpolate import RegularGridInterpolator as rgi
+
+        for i_d, d in enumerate(self.depths):
             
-            for i_l, depth in enumerate(self.atmosphere.depths): 
+            if multichromatic_beams:
+            
+                filtered_vals   = np.zeros((len(self.array.nu), *self.vals[i_d].shape), dtype=self.data_type)
+                angular_res = self.lay_ang_res[i_d]
+
+                for i_f, f in enumerate(self.array.nu):
+
+                    angular_waist = self.angular_waists[i_d, i_f]
+
+                    F = self.array.make_filter(angular_waist, angular_res, self.array.beam_func)
+                    u, s, v = self.array.separate_filter(F)
+
+                    filtered_vals[i_f] = self.array.separably_filter(self.vals[i_d], u, s, v).astype(self.data_type)
+                    
+            else:
                 
-                waist_samples, which_sample = tools.smallest_max_error_sample(self.ang_waists[i_l],max_error=1e-1)
-                
-                wv_data = np.zeros((self.array.n,self.pointing.nt))
-                
-                for i_w, w in enumerate(waist_samples):
-                #for i_ba, nom_band in enumerate(self.array.nom_band_list):
-                    
-                    # band-waist mask : which detectors observe bands that are most effectively modeled by this waist?
-                    bm = np.isin(self.array.nom_bands,self.array.nom_band_list[which_sample == i_w])
-                    
-                    # filter the angular atmospheric emission, to account for beams
-                    self.n_bf.append(int(np.ceil(.6 * w / self.lay_ang_res[i_l])))
-                    self.beam_filter_sides.append(self.lay_ang_res[i_l] * np.arange(-self.n_bf[-1],self.n_bf[-1]+1))
-                    self.beam_filters.append(tools.make_beam_filter(self.beam_filter_sides[-1],self.beams.get_window,[w/2]))
-                
-                    
-                    filtered_vals = sp.signal.convolve2d(self.vals[i_l], self.beam_filters[-1], boundary='symm', mode='same')
-                    #sigma = .5 * w / self.lay_ang_res[i_l]
-                    #print(sigma)
-                    #filtered_vals = sp.ndimage.gaussian_filter(self.vals[i_l], sigma=sigma)
-                    
-                    FRGI = sp.interpolate.RegularGridInterpolator((self.para[i_l],self.orth[i_l]), self.lay_scaling[i_l] * filtered_vals)
-                    wv_data[bm] = FRGI((self.pointing.p[i_l][bm],self.pointing.o[i_l][bm]))
-                   
-                    
-                self.epwv += wv_data
-                prog.update(1)
+                angular_res   = self.lay_ang_res[i_d]
+                angular_waist = self.angular_waists[i_d].mean()
+
+                F = self.array.make_filter(angular_waist, angular_res, self.array.beam_func)
+                u, s, v = self.array.separate_filter(F)
+
+                filtered_vals = self.array.separably_filter(self.vals[i_d], u, s, v).astype(self.data_type)
+                self.rel_flucs[i_d] = rgi((self.para[i_d], self.orth[i_d]), filtered_vals)((self.p[i_d], self.o[i_d]))
+
