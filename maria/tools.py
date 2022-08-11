@@ -1,10 +1,90 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import numpy.linalg as la
 import scipy as sp
+import astropy as ap
+
+from numpy import linalg as la
 from scipy import cluster
+from astropy import time, coordinates
+
+
+# COORDINATE TRANSFORM UTILS
+
+class coordinator():
+
+
+    
+
+    # what three-dimensional rotation matrix takes (frame 1) to (frame 2) ? 
+    # we can brute-force this for a few test points, and then use it to efficiently broadcast very big arrays
+
+    def __init__(self, time, lon, lat):
+
+        #if frame is None:
+        #    raise ValueError('Please provide a frame')
+
+        self.fid_t = np.radians(np.array([0,0,90]))
+        self.fid_p = np.radians(np.array([90,89,89]))
+
+        self.epoch = time.mean()
+        self.rel_t = time - self.epoch
+
+        self.ot = ap.time.Time(self.epoch, format='unix')
+        self.lc = ap.coordinates.EarthLocation.from_geodetic(lon=lon,lat=lat)
+
+        self.fid_xyz = np.c_[np.sin(self.fid_t) * np.cos(self.fid_p), np.cos(self.fid_t) * np.cos(self.fid_p), np.sin(self.fid_p)] 
+
+        # you are standing a the north pole looking toward lon = -90 (+x)
+        # you are standing a the north pole looking toward lon = 0 (+y)
+        # you are standing a the north pole looking up (+z)
+
+    def transform(self, theta, phi, frames):
+
+        frame1, frame2 = frames.split('>')
+
+        if frame1 == 'ae': self.c = ap.coordinates.SkyCoord(az = self.fid_t * ap.units.rad, alt = self.fid_p * ap.units.rad, obstime = self.ot, frame = 'altaz', location = self.lc)
+        if frame1 == 'rd': self.c = ap.coordinates.SkyCoord(ra = self.fid_t * ap.units.rad, dec = self.fid_p * ap.units.rad, obstime = self.ot, frame = 'icrs',  location = self.lc)
+
+        if frame2 == 'rd':
+
+            self._c = self.c.icrs
+            self.rot_t, self.rot_p = self._c.ra.rad, self._c.dec.rad
+
+        if frame2 == 'ae':
+
+            self._c = self.c.altaz
+            self.rot_t, self.rot_p = self._c.az.rad, self._c.alt.rad
+
+        self.rot_xyz = np.c_[np.sin(self.rot_t) * np.cos(self.rot_p), np.cos(self.rot_t) * np.cos(self.rot_p), np.sin(self.rot_p)] 
+
+
+        # we want to find T in the equation [ T x1 = x2 ] for our test points (T is a rotation, with maybe a reflection)
+        # A x = B
+
+        self.R = la.lstsq(self.fid_xyz, self.rot_xyz, rcond=None)[0]
+
+        #self.R = np.matmul(self.fid_xyz_2.T, la.inv(self.fid_xyz_1.T))
+
+        #self.R
+
+        if frame1 == 'rd': theta -= self.rel_t * (2*np.pi/86163.0905)
+
+        #print(np.concatenate([(np.sin(theta) * np.cos(phi))[:,:,None], (np.cos(theta) * np.cos(phi))[:,:,None], np.sin(phi)[:,:,None]],axis=-1).shape)
+        #print(self.R.shape)
+
+        xyz = np.matmul(np.concatenate([(np.sin(theta) * np.cos(phi))[:,:,None], (np.cos(theta) * np.cos(phi))[:,:,None], np.sin(phi)[:,:,None]],axis=-1), self.R)
+
+        _theta, _phi = np.arctan2(xyz[:,:,0], xyz[:,:,1]), np.arcsin(xyz[:,:,2])
+
+        if frame2 == 'rd': _theta += self.rel_t * (2*np.pi/86163.0905)
+
+        return _theta % (2 * np.pi), _phi 
+
+
 
 # ================ ARRAY ================
+
+
 
 def get_passband(nu, nu_0, nu_w, order=4):
     return np.exp(-np.abs(2*(nu-nu_0)/nu_w)**order)
@@ -14,6 +94,9 @@ def baf_pointing(phase, az, el, az_throw, el_throw):
 
 def box_pointing(phase, az, el, az_throw, el_throw):
     return az + az_throw * np.interp(phase,np.linspace(0,2*np.pi,5),[-1,-1,+1,+1,-1]), el + el_throw * np.interp(phase,np.linspace(0,2*np.pi,5),[-1,+1,+1,-1,-1])
+
+def rose_pointing(phase, az, el, az_throw, el_throw, k):
+    return az + az_throw * np.sin(k * phase) * np.cos(phase), el + el_throw * np.sin(k * phase) * np.sin(phase)
 
 def make_array(array_shape, max_fov, n_det):
 
