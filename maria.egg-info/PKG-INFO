@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: maria
+Version: 0.0.10
+Summary: Simulates atmospheric emission for ground-based telescopes
+Home-page: https://github.com/tomachito/maria
+Author: Thomas Morris
+Author-email: thomasmorris@princeton.edu
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.6
+License-File: LICENSE
+
+maria (this is supposed to be the long readme)
+

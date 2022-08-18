@@ -73,22 +73,17 @@ class array():
             self.fov = np.sqrt(np.sum([np.square(np.subtract.outer(e, e)) for e in self.offsets.T])).max()
 
         self.offsets *= np.pi / 180
-        # compute passbands
 
         self.hull = sp.spatial.qhull.ConvexHull(self.offsets)
 
-        self.offset_x, self.offset_y = self.offsets.T
-        self.offset_z = self.offset_x + 1j * self.offset_y
-        self.offset_r, self.offset_p = np.abs(self.offset_z), np.angle(self.offset_z)
+        self.x, self.y = self.offsets.T
+        self.r, self.p = np.abs(self.x + 1j * self.y), np.angle(self.x + 1j * self.y)
 
         if self.passband_mode == 'auto':
 
             self.bands      = np.array([self.bands]).ravel()
             self.bandwidths = np.array([self.bandwidths]).ravel()
             self.ubands     = np.unique(self.bands)
-
-            #if not self.bands.shape == self.n_det:
-            #    raise Exception('bands ')
 
             if len(self.bands) == 1:      self.bands = np.repeat(self.bands, self.n_det)
             if len(self.bandwidths) == 1: self.bandwidths = np.repeat(self.bandwidths, self.n_det)
@@ -102,9 +97,6 @@ class array():
 
             self.passbands  = self.passbands[:,good_nu]
             self.passbands /= self.passbands.sum(axis=1)[:,None]
-
-        
-
 
         # compute beams
 
@@ -145,11 +137,10 @@ class array():
 
         u, s, v = self.separate_filter(F, tol=tol)
 
-        conv = sp.ndimage.filters.convolve1d
         filt_M = 0
         for _u, _s, _v in zip(u, s, v):
 
-            filt_M += _s * conv(conv(M.astype(float), _u, axis=0), _v, axis=1)
+            filt_M += _s * sp.ndimage.filters.convolve1d(sp.ndimage.filters.convolve1d(M.astype(float), _u, axis=0), _v, axis=1)
 
         return filt_M
 
@@ -158,7 +149,8 @@ class array():
 DEFAULT_PLAN_CONFIG = {  'duration' : 120,    # shape of detector arrangement
                       'sample_rate' : 20,     # number of detectors
                       'scan_period' : 30,     # maximum detector separation [degrees]
-                        'scan_type' : 'BAF', 
+                        'plan_type' : 'baf', 
+                     'plan_options' : {},
                         'az_center' : 0,
                         'el_center' : 45,
                          'az_throw' : 10,
@@ -169,7 +161,7 @@ DEFAULT_PLAN_CONFIG = {  'duration' : 120,    # shape of detector arrangement
 class plan():
 
     '''
-    'BAF'       : back-and-forth 
+    'baf'       : back-and-forth 
     'box'       : box scan           
     'lissajous' : lissajous box
     'rose_3'    : three-petaled rose  
@@ -207,29 +199,12 @@ class plan():
         
         if self.pointing_mode == 'auto':
 
-            self.time  = np.arange(0, self.duration, self.dt)            
-            self.phase = 2 * np.pi * ((self.time / self.scan_period) % 1)
-
-            if self.scan_type == 'BAF': 
-
-                self.deg_azim, self.deg_elev = tools.baf_pointing(self.phase, self.az_center, self.el_center, self.az_throw, self.el_throw)
-
-            if self.scan_type == 'box': 
-
-                self.deg_azim, self.deg_elev = tools.box_pointing(self.phase, self.az_center, self.el_center, self.az_throw, self.el_throw)
-
-            if self.scan_type == 'rose_3': 
-
-                self.deg_azim, self.deg_elev = tools.rose_pointing(self.phase, self.az_center, self.el_center, self.az_throw, self.el_throw, k=3)
-
-            if self.scan_type == 'rose_12': 
-
-                self.deg_azim, self.deg_elev = tools.rose_pointing(self.phase, self.az_center, self.el_center, self.az_throw, self.el_throw, k=6)
-
-            self.c_azim, self.c_elev = np.radians(self.deg_azim), np.radians(self.deg_elev)
-
+            self.time  = np.arange(0, self.duration, self.dt)  
             
+            self.deg_c_azim, self.deg_c_elev = tools.get_pointing(self.time, self.scan_period, self.az_center, self.az_throw, self.el_center, self.el_throw, 
+                                                                  self.plan_type, self.plan_options)
 
+            self.c_azim, self.c_elev = np.radians(self.deg_c_azim), np.radians(self.deg_c_elev)
         
         self.c_x, self.c_y = tools.to_xy(self.c_azim, self.c_elev, self.c_azim.mean(), self.c_elev.mean())
 
@@ -324,19 +299,19 @@ class LAM():
         self.array.am_passbands  = sp.interpolate.interp1d(self.array.nu, self.array.passbands, bounds_error=False, fill_value=0, kind='cubic')(1e9*self.am['freq'])
         self.array.am_passbands /= self.array.am_passbands.sum(axis=1)[:,None]
 
-
-        #
-
         self.depths = np.linspace(self.min_depth, self.max_depth, self.n_layers)
         self.thicks = np.gradient(self.depths)
 
         self.waists = self.array.get_beam_waist(self.depths[:,None], self.array.primary_size, self.array.nu[None,:])
 
-        self.azim, self.elev = tools.from_xy(self.array.offset_x[:,None], self.array.offset_y[:,None], self.plan.c_azim, self.plan.c_elev)
+        self.azim, self.elev = tools.from_xy(self.array.x[:,None], self.array.y[:,None], self.plan.c_azim, self.plan.c_elev)
+        
+        self.unix = self.site.epoch + self.plan.time
 
-        self.coordinator = tools.coordinator(time=self.site.epoch + self.plan.time, lon=self.site.longitude, lat=self.site.latitude)
+        self.coordinator  = tools.coordinator(lon=self.site.longitude, lat=self.site.latitude)
 
-        self.ra, self.dec = self.coordinator.transform(self.azim, self.elev, frames='ae>rd')
+        self.ra, self.dec = self.coordinator.transform(self.unix, self.azim, self.elev, in_frame='az_el',  out_frame='ra_dec')    
+        self.l, self.b    = self.coordinator.transform(self.unix, self.ra,   self.dec,  in_frame='ra_dec', out_frame='l_b')
 
         self.angular_waists = self.waists / self.depths[:,None]
 
@@ -349,8 +324,8 @@ class LAM():
         self.norm_scaling  = np.sqrt(np.square(self.rel_scaling) / np.square(self.rel_scaling).sum(axis=0))
         self.layer_scaling = np.exp(0.5 * self.site.weather['lbsd']) * self.norm_scaling 
 
-        self.theta_x = self.array.offset_x[:, None] + self.plan.c_x[None, :] 
-        self.theta_y = self.array.offset_y[:, None] + self.plan.c_y[None, :]
+        self.theta_x = self.array.x[:, None] + self.plan.c_x[None, :] 
+        self.theta_y = self.array.y[:, None] + self.plan.c_y[None, :]
 
         self.theta_z = self.theta_x + 1j * self.theta_y
 
@@ -386,7 +361,7 @@ class LAM():
 
         max_layer_beam_radii = 0.5 * self.angular_waists.max(axis=1)
 
-        self.padding = (radius_sample_prop + beam_tol) * max_layer_beam_radii #+ self.array.offset_r.max()
+        self.padding = (radius_sample_prop + beam_tol) * max_layer_beam_radii
         
         for i_l, depth in enumerate(self.depths):
 
@@ -399,8 +374,8 @@ class LAM():
 
             self.MARA.append(tools.get_MARA(layer_hull_theta_z.ravel()))
 
-            rel_theta_x = self.array.offset_x[:, None] + self.rel_c_x[i_l][None, :]
-            rel_theta_y = self.array.offset_y[:, None] + self.rel_c_y[i_l][None, :]
+            rel_theta_x = self.array.x[:, None] + self.rel_c_x[i_l][None, :]
+            rel_theta_y = self.array.y[:, None] + self.rel_c_y[i_l][None, :]
             
             zop = (rel_theta_x + 1j * rel_theta_y) * np.exp(1j*self.MARA[-1]) 
             self.p[i_l], self.o[i_l] = np.real(zop), np.imag(zop)
@@ -599,5 +574,5 @@ class LAM():
 
                 prog.update(1)
 
-        self.atm_trj_data = 1e7 * self.atm_power_data
+
 

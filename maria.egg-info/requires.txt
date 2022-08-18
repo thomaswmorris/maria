@@ -1,0 +1,7 @@
+astropy
+matplotlib
+numpy
+pandas
+scipy
+tqdm
+weathergen

@@ -10,75 +10,99 @@ from astropy import time, coordinates
 
 # COORDINATE TRANSFORM UTILS
 
-class coordinator():
-
-
     
+def validate_args(DICT, necessary_args):
+    missing_args = []
+    for arg in necessary_args: 
+        if not arg in DICT:
+            missing_args.append(arg)
+    if not len(missing_args) == 0: 
+        raise Exception(f'missing arguments {missing_args}')
+
+def baf_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}):
+
+    validate_args(plan_options, [])                                                        
+    p = 2 * np.pi * time / period
+    return az_center+az_throw*sp.signal.sawtooth(p, width=0.5), el_center+el_throw*sp.signal.sawtooth(p, width=0.5)
+
+def box_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}):
+
+    validate_args(plan_options, [])                                                        
+    p = 2 * np.pi * time / period
+    return az_center+az_throw*np.interp(p % (2*np.pi),np.linspace(0,2*np.pi,5),[-1,-1,+1,+1,-1]), el_center+el_throw*np.interp(p,np.linspace(0,2*np.pi,5),[-1,+1,+1,-1,-1])
+
+def rose_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}): 
+
+    validate_args(plan_options, ['k'])                                                        
+    p = 2 * np.pi * time / period
+    return az_center+az_throw*np.sin(plan_options['k']*p)*np.cos(p), el_center+el_throw*np.sin(plan_options['k']*p)*np.sin(p)
+
+def lissajous_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}): 
+
+    validate_args(plan_options, ['k_az', 'k_el'])                                                        
+    p = 2 * np.pi * time / period
+    return az_center+az_throw*np.sin(plan_options['k_az']*p), el_center+el_throw*np.sin(plan_options['k_el']*p)
+
+def get_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_type, plan_options):
+
+    if plan_type == 'baf' :       plan_func = baf_pointing
+    if plan_type == 'box' :       plan_func = box_pointing
+    if plan_type == 'rose' :      plan_func = rose_pointing
+    if plan_type == 'lissajous' : plan_func = lissajous_pointing
+
+    return plan_func(time, period, az_center, az_throw, el_center, el_throw, plan_options)
+
+class coordinator():
 
     # what three-dimensional rotation matrix takes (frame 1) to (frame 2) ? 
     # we can brute-force this for a few test points, and then use it to efficiently broadcast very big arrays
 
-    def __init__(self, time, lon, lat):
+    def __init__(self, lon, lat):
 
         #if frame is None:
         #    raise ValueError('Please provide a frame')
 
-        self.fid_t = np.radians(np.array([0,0,90]))
-        self.fid_p = np.radians(np.array([90,89,89]))
+        self.fid_p = np.radians(np.array([0,0,90]))
+        self.fid_t = np.radians(np.array([90,89,89]))
 
-        self.epoch = time.mean()
-        self.rel_t = time - self.epoch
-
-        self.ot = ap.time.Time(self.epoch, format='unix')
         self.lc = ap.coordinates.EarthLocation.from_geodetic(lon=lon,lat=lat)
 
-        self.fid_xyz = np.c_[np.sin(self.fid_t) * np.cos(self.fid_p), np.cos(self.fid_t) * np.cos(self.fid_p), np.sin(self.fid_p)] 
+        self.fid_xyz = np.c_[np.sin(self.fid_p) * np.cos(self.fid_t), np.cos(self.fid_p) * np.cos(self.fid_t), np.sin(self.fid_t)] 
 
         # you are standing a the north pole looking toward lon = -90 (+x)
         # you are standing a the north pole looking toward lon = 0 (+y)
         # you are standing a the north pole looking up (+z)
 
-    def transform(self, theta, phi, frames):
+    def transform(self, unix, phi, theta, in_frame, out_frame):
+        
+        epoch = unix.mean()
+        ot    = ap.time.Time(epoch, format='unix')
+        rad   = ap.units.rad
+        
+        if in_frame == 'az_el':  self.c = ap.coordinates.SkyCoord(az = self.fid_p * rad, alt = self.fid_t * rad, obstime = ot, frame = 'altaz',    location = self.lc)
+        if in_frame == 'ra_dec': self.c = ap.coordinates.SkyCoord(ra = self.fid_p * rad, dec = self.fid_t * rad, obstime = ot, frame = 'icrs',     location = self.lc)
+        if in_frame == 'l_b':    self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot, frame = 'galactic', location = self.lc)
 
-        frame1, frame2 = frames.split('>')
-
-        if frame1 == 'ae': self.c = ap.coordinates.SkyCoord(az = self.fid_t * ap.units.rad, alt = self.fid_p * ap.units.rad, obstime = self.ot, frame = 'altaz', location = self.lc)
-        if frame1 == 'rd': self.c = ap.coordinates.SkyCoord(ra = self.fid_t * ap.units.rad, dec = self.fid_p * ap.units.rad, obstime = self.ot, frame = 'icrs',  location = self.lc)
-
-        if frame2 == 'rd':
-
-            self._c = self.c.icrs
-            self.rot_t, self.rot_p = self._c.ra.rad, self._c.dec.rad
-
-        if frame2 == 'ae':
-
-            self._c = self.c.altaz
-            self.rot_t, self.rot_p = self._c.az.rad, self._c.alt.rad
-
-        self.rot_xyz = np.c_[np.sin(self.rot_t) * np.cos(self.rot_p), np.cos(self.rot_t) * np.cos(self.rot_p), np.sin(self.rot_p)] 
-
+        if out_frame == 'ra_dec': self._c = self.c.icrs;     self.rot_p, self.rot_t = self._c.ra.rad, self._c.dec.rad
+        if out_frame == 'az_el':  self._c = self.c.altaz;    self.rot_p, self.rot_t = self._c.az.rad, self._c.alt.rad
+        if out_frame == 'l_b':    self._c = self.c.galactic; self.rot_p, self.rot_t = self._c.l.rad,  self._c.b.rad
+            
+        self.rot_xyz = np.c_[np.sin(self.rot_p) * np.cos(self.rot_t), np.cos(self.rot_p) * np.cos(self.rot_t), np.sin(self.rot_t)] 
 
         # we want to find T in the equation [ T x1 = x2 ] for our test points (T is a rotation, with maybe a reflection)
         # A x = B
 
         self.R = la.lstsq(self.fid_xyz, self.rot_xyz, rcond=None)[0]
 
-        #self.R = np.matmul(self.fid_xyz_2.T, la.inv(self.fid_xyz_1.T))
+        if (in_frame, out_frame) == ('ra_dec', 'az_el'): phi -= (unix - epoch) * (2*np.pi/86163.0905)
 
-        #self.R
+        xyz = np.matmul(np.concatenate([(np.sin(phi) * np.cos(theta))[:,:,None], (np.cos(phi) * np.cos(theta))[:,:,None], np.sin(theta)[:,:,None]],axis=-1), self.R)
 
-        if frame1 == 'rd': theta -= self.rel_t * (2*np.pi/86163.0905)
+        _phi, _theta = np.arctan2(xyz[:,:,0], xyz[:,:,1]), np.arcsin(xyz[:,:,2])
 
-        #print(np.concatenate([(np.sin(theta) * np.cos(phi))[:,:,None], (np.cos(theta) * np.cos(phi))[:,:,None], np.sin(phi)[:,:,None]],axis=-1).shape)
-        #print(self.R.shape)
+        if (in_frame, out_frame) == ('az_el', 'ra_dec'): _phi += (unix - epoch) * (2*np.pi/86163.0905)
 
-        xyz = np.matmul(np.concatenate([(np.sin(theta) * np.cos(phi))[:,:,None], (np.cos(theta) * np.cos(phi))[:,:,None], np.sin(phi)[:,:,None]],axis=-1), self.R)
-
-        _theta, _phi = np.arctan2(xyz[:,:,0], xyz[:,:,1]), np.arcsin(xyz[:,:,2])
-
-        if frame2 == 'rd': _theta += self.rel_t * (2*np.pi/86163.0905)
-
-        return _theta % (2 * np.pi), _phi 
+        return _phi % (2 * np.pi), _theta
 
 
 
@@ -89,14 +113,6 @@ class coordinator():
 def get_passband(nu, nu_0, nu_w, order=4):
     return np.exp(-np.abs(2*(nu-nu_0)/nu_w)**order)
 
-def baf_pointing(phase, az, el, az_throw, el_throw):
-    return az + az_throw * sp.signal.sawtooth(phase, width=0.5), el + el_throw * sp.signal.sawtooth(phase, width=0.5)
-
-def box_pointing(phase, az, el, az_throw, el_throw):
-    return az + az_throw * np.interp(phase,np.linspace(0,2*np.pi,5),[-1,-1,+1,+1,-1]), el + el_throw * np.interp(phase,np.linspace(0,2*np.pi,5),[-1,+1,+1,-1,-1])
-
-def rose_pointing(phase, az, el, az_throw, el_throw, k):
-    return az + az_throw * np.sin(k * phase) * np.cos(phase), el + el_throw * np.sin(k * phase) * np.sin(phase)
 
 def make_array(array_shape, max_fov, n_det):
 
@@ -230,24 +246,13 @@ def get_brightness_temperature(f_pb,pb,f_spec,spec):
 
 # ================ POINTING ================
 
-def to_xy(az, el, c_az, c_el):
-    ground_X, ground_Y, ground_Z = np.sin(az-c_az)*np.cos(el), np.cos(az-c_az)*np.cos(el), np.sin(el)
-    return np.arcsin(ground_X), np.arcsin(-np.real((ground_Y+1j*ground_Z)*np.exp(1j*(np.pi/2-c_el))))
+def to_xy(p, t, c_p, c_t):
+    ground_X, ground_Y, ground_Z = np.sin(p-c_p)*np.cos(t), np.cos(p-c_p)*np.cos(t), np.sin(t)
+    return np.arcsin(ground_X), np.arcsin(-np.real((ground_Y+1j*ground_Z)*np.exp(1j*(np.pi/2-c_t))))
 
-def from_xy(dx, dy, c_az, c_el):
+def from_xy(dx, dy, c_p, c_t):
     ground_X, Y, Z = np.sin(dx+1e-16), -np.sin(dy+1e-16), np.cos(np.sqrt(dx**2+dy**2))
-    gyz = (Y+1j*Z)*np.exp(-1j*(np.pi/2-c_el))
+    gyz = (Y+1j*Z)*np.exp(-1j*(np.pi/2-c_t))
     ground_Y, ground_Z = np.real(gyz), np.imag(gyz)
-    return (np.angle(ground_Y+1j*ground_X) + c_az) % (2*np.pi), np.arcsin(ground_Z)
+    return (np.angle(ground_Y+1j*ground_X) + c_p) % (2*np.pi), np.arcsin(ground_Z)
 
-def ae_to_rd(az, el, lst, lat):
-    NP_X, NP_Y, NP_Z = np.sin(az)*np.cos(el), np.cos(az)*np.cos(el), np.sin(el)
-    lat_rot_YZ = (NP_Y + 1j*NP_Z)*np.exp(1j*(np.pi/2-lat))
-    lat_rot_Y, globe_Z = np.real(lat_rot_YZ), np.imag(lat_rot_YZ)
-    return np.arctan2(NP_X,-lat_rot_Y) + lst, np.arcsin(globe_Z)
-    
-def rd_to_ae(ra, de, lst, lat):
-    NP_X, globe_Y, globe_Z = np.sin(ra-lst)*np.cos(de), -np.cos(ra-lst)*np.cos(de), np.sin(de)
-    lat_rot_YZ = (globe_Y + 1j*globe_Z)*np.exp(-1j*(np.pi/2-lat))
-    NP_Y, NP_Z = np.real(lat_rot_YZ), np.imag(lat_rot_YZ)
-    return np.arctan2(NP_X,NP_Y), np.arcsin(NP_Z)
