@@ -19,6 +19,12 @@ from . import tools
 import weathergen
 
 
+from os import path
+
+
+
+
+
 
 DEFAULT_ARRAY_CONFIG = {'shape' : 'hex',      # shape of detector arrangement
                         'n_det' : 64,         # number of detectors
@@ -294,7 +300,10 @@ class LAM():
 
         # AM stuff, which takes us from physical atmosphere to detector powers
 
-        self.am = np.load('am.npy',allow_pickle=True)[()]
+        #self.am = np.load('am.npy',allow_pickle=True)[()]
+
+            
+        self.am = np.load(path.join(path.abspath(path.dirname(__file__)), 'am.npy'),allow_pickle=True)[()]
 
         self.array.am_passbands  = sp.interpolate.interp1d(self.array.nu, self.array.passbands, bounds_error=False, fill_value=0, kind='cubic')(1e9*self.am['freq'])
         self.array.am_passbands /= self.array.am_passbands.sum(axis=1)[:,None]
@@ -574,5 +583,5 @@ class LAM():
 
                 prog.update(1)
 
-        self.atm_trj_data = 1e7 * self.atm_power_data
+
 

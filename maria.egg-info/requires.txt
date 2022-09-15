@@ -1,4 +1,5 @@
 astropy
+healpy
 matplotlib
 numpy
 pandas

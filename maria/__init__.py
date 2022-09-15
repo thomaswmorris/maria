@@ -11,12 +11,10 @@ from scipy import signal, spatial
 from numpy import linalg as la
 
 from importlib import resources
-
 import time as ttime
-
 from . import tools
-
 import weathergen
+from os import path
 
 
 
@@ -30,6 +28,10 @@ DEFAULT_ARRAY_CONFIG = {'shape' : 'hex',      # shape of detector arrangement
                    'bandwidths' : 10e9,
                 
                        }
+
+
+# how do we do the bands? this is a great question. 
+# because all practical telescope instrumentation assume a constant 
 
 class array():
 
@@ -168,7 +170,6 @@ class plan():
     'rose_12'   : twelve-petaled rose
     '''
 
-
     def __init__(self, config={}):
 
         self.config = {}
@@ -185,7 +186,6 @@ class plan():
         if verbose: print(self.pointing_mode)
 
         # Overwrite new values
-
         for key, val in config.items(): 
             self.config[key] = val
             setattr(self, key, val)
@@ -294,7 +294,9 @@ class LAM():
 
         # AM stuff, which takes us from physical atmosphere to detector powers
 
-        self.am = np.load('am.npy',allow_pickle=True)[()]
+        #self.am = np.load('am.npy',allow_pickle=True)[()]
+            
+        self.am = np.load(path.join(path.abspath(path.dirname(__file__)), 'am.npy'), allow_pickle=True)[()]
 
         self.array.am_passbands  = sp.interpolate.interp1d(self.array.nu, self.array.passbands, bounds_error=False, fill_value=0, kind='cubic')(1e9*self.am['freq'])
         self.array.am_passbands /= self.array.am_passbands.sum(axis=1)[:,None]
@@ -486,9 +488,6 @@ class LAM():
                 row_string += f'{self.n_para[i_l]:4} | {1e3*self.wvmd[i_l].mean():11.02f} | {self.temp[i_l].mean():8.02f} | '
                 row_string += f'{self.w_s[i_l].mean():8.02f} | {np.degrees(self.w_b[i_l].mean()+np.pi):8.02f} |'
                 print(row_string)
-
-        
-
 
     def atmosphere_timestep(self,i): # iterate the i-th layer of atmosphere by one step
         
