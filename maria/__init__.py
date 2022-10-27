@@ -16,99 +16,105 @@ from . import tools
 import weathergen
 from os import path
 
+from datetime import datetime
 
 
-DEFAULT_ARRAY_CONFIG = {'shape' : 'hex',      # shape of detector arrangement
-                        'n_det' : 64,         # number of detectors
-                          'fov' : 2,          # maximum detector separation [degrees]
-                 'primary_size' : 5,          # size of primary mirror [meters]
-                  'white_noise' : 0,          # maximum span of array
-                'optical_model' : 'diff_lim', # 
-                        'bands' : 150e9,
-                   'bandwidths' : 10e9,
-                
-                       }
 
 
 # how do we do the bands? this is a great question. 
 # because all practical telescope instrumentation assume a constant 
 
-class array():
 
-    def __init__(self, config={}):
 
-        self.config = {}
-        self.put(DEFAULT_ARRAY_CONFIG)
-        self.put(config)
 
-    def put(self, config, verbose=False):
+# there are a few ways to define an array. 
+# first, we need to determine the bands:
 
-        # select an offset mode
-        self.offset_mode = 'auto'
-        if np.isin(['offsets'], list(config.keys())).all(): self.offset_mode = 'manual'
-        else: pass # raise error here
+# the AUTO method requires you to pass:
+#
+# 'bands' is a list of bands genuses in Hz (e.g. [90e9, 150e9, 220e9])
+# 'band_widths' has the same shape and determines the FWHM of the band
+# 'dets_per_band' determines how many detectors there will be per band
 
-        if verbose: print(self.offset_mode)
+# the MANUAL method requires you to pass:
+#
+# 
+#
+#
+sites = weathergen.sites
+
+def is_isoformat(x):
+    try: datetime.fromisoformat(x); return True
+    except: return False
+
+class PointingError(Exception):
+    pass
+
+
+# this is the default array_config, which will be instantiated if another array_config is not passed to maria.Array()
+
+DEFAULT_ARRAY_CONFIG = {        'site' : 'chajnantor',
+                               'bands' : [(27e9, 10e9, 50), (39e9, 10e9, 50), (93e9, 10e9, 50), (145e9, 10e9, 50), (225e9, 10e9, 50), (280e9, 10e9, 50)],     # [Hz]  band centers
+                            'geometry' : 'hex',     # [.]   type of detector distribution
+                       'field_of_view' : 0.5,       # [deg] maximum det separation
+                        'primary_size' : 12,         # [m]   size of the primary mirror
+                       'band_grouping' : 'randomized', 
+                    }
+
+class Array():
+
+    def __init__(self, config=DEFAULT_ARRAY_CONFIG, verbose=False):
+
+        self.config = config
+
+        # these are the minimal 
+        #required_args_auto = ['bands', 'field_of_view', 'geometry']
+        #if np.isin(required_args_auto, list(config.keys())).all():
+
+        self.field_of_view = self.config['field_of_view']
+        self.primary_size  = self.config['primary_size']
+       
+        self.bands, self.bandwidths, self.n_det = np.empty(0), np.empty(0), 0
+        for nu_0, nu_w, n in self.config['bands']:
+            self.bands, self.bandwidths = np.r_[self.bands, np.repeat(nu_0, n)], np.r_[self.bandwidths, np.repeat(nu_w, n)]
+            self.n_det += n
+
+        self.offsets  = tools.make_array(self.config['geometry'], self.field_of_view, self.n_det)
+        self.offsets *= np.pi / 180 # put these in radians
         
-        # select a passband mode
-        self.passband_mode = 'auto'
-        if np.isin(['passbands'], list(config.keys())).all(): self.passband_mode = 'manual'
-        else: pass # raise error here
-
-        for key, val in config.items(): 
-            self.config[key] = val
-            setattr(self, key, val)
-            if verbose: print(f'set {key} to {val}')
-
-        self.compute()
-
-    def compute(self):
-
         # compute detector offsets
-
-        if self.offset_mode == 'auto':
-            self.offsets = tools.make_array(self.shape, self.fov, self.n_det)
-
-        else:
-            self.array_shape = 'custom'
-            self.n_det = len(self.offsets)
-            self.fov = np.sqrt(np.sum([np.square(np.subtract.outer(e, e)) for e in self.offsets.T])).max()
-
-        self.offsets *= np.pi / 180
-
+        
         self.hull = sp.spatial.qhull.ConvexHull(self.offsets)
 
-        self.x, self.y = self.offsets.T
-        self.r, self.p = np.abs(self.x + 1j * self.y), np.angle(self.x + 1j * self.y)
+        # scramble up the locations of the bands 
+        if self.config['band_grouping'] == 'random':
+            random_index = np.random.choice(np.arange(self.n_det),self.n_det,replace=False)
+            self.offsets = self.offsets[random_index]
 
-        if self.passband_mode == 'auto':
+        self.offset_x, self.offset_y = self.offsets.T
+        self.r, self.p = np.sqrt(np.square(self.offsets).sum(axis=1)), np.arctan2(*self.offsets.T)
 
-            self.bands      = np.array([self.bands]).ravel()
-            self.bandwidths = np.array([self.bandwidths]).ravel()
-            self.ubands     = np.unique(self.bands)
+        self.ubands = np.unique(self.bands)
+        self.nu = np.arange(0, 1e12, 1e9)
+        
+        self.passbands  = np.c_[[tools.get_passband(self.nu, nu_0, nu_w, order=16) for nu_0, nu_w in zip(self.bands, self.bandwidths)]]
 
-            if len(self.bands) == 1:      self.bands = np.repeat(self.bands, self.n_det)
-            if len(self.bandwidths) == 1: self.bandwidths = np.repeat(self.bandwidths, self.n_det)
+        nu_mask = (self.passbands > 1e-4).any(axis=0)
+        self.nu, self.passbands = self.nu[nu_mask], self.passbands[:, nu_mask]
 
-            self.nu = np.arange((self.bands - 0.75 * self.bandwidths).min(), (self.bands + 0.75 * self.bandwidths).max(), 1e9)
-
-            self.passbands  = np.c_[[tools.get_passband(self.nu, nu_0, nu_w, order=8) for nu_0, nu_w in zip(self.bands, self.bandwidths)]]
-            
-            good_nu = self.passbands.max(axis=0) > 1e-4
-            self.nu = self.nu[good_nu]
-
-            self.passbands  = self.passbands[:,good_nu]
-            self.passbands /= self.passbands.sum(axis=1)[:,None]
+        self.passbands /= self.passbands.sum(axis=1)[:,None]
 
         # compute beams
-
+        self.optical_model = 'diff_lim'
         if self.optical_model == 'diff_lim':
 
-            self.get_beam_waist = lambda z, w_0, f : w_0 * np.sqrt(1 + np.square(2.998e8 * z) / np.square(f * np.pi * np.square(w_0)))
+            self.get_beam_waist   = lambda z, w_0, f : w_0 * np.sqrt(1 + np.square(2.998e8 * z) / np.square(f * np.pi * np.square(w_0)))
+            self.get_beam_profile = lambda r, r_fwhm : np.exp(np.log(0.5)*np.abs(r/r_fwhm)**8)
+            self.beam_func = self.get_beam_profile
 
-            gauss_8 = lambda r, r_fwhm : np.exp(np.log(0.5)*np.abs(r/r_fwhm)**8)
-
-            self.beam_func = gauss_8
+        # position detectors:
+        self.site = self.config['site']
+        self.lat, self.lon, self.alt = sites.loc[sites.tag == self.site, ['lat', 'lon', 'alt']].values[0]
 
     def make_filter(self, waist, res, func, width_per_waist=1.2):
     
@@ -146,211 +152,170 @@ class array():
 
         return filt_M
 
-    
 
-DEFAULT_PLAN_CONFIG = {  'duration' : 120,    # shape of detector arrangement
-                      'sample_rate' : 20,     # number of detectors
-                      'scan_period' : 30,     # maximum detector separation [degrees]
-                        'plan_type' : 'baf', 
-                     'plan_options' : {},
-                        'az_center' : 0,
-                        'el_center' : 45,
-                         'az_throw' : 10,
-                         'el_throw' : 0,
+# the 'site' inherits from the weathergen site  
+
+DEFAULT_PLAN_CONFIG = {    'start_time' : '2022-07-01T08:00:00',
+                             'end_time' : '2022-07-01T08:10:00',
+                         'scan_pattern' : 'daisy',      # [.]   the type of scan strategy (SS)
+                         'scan_options' : {'k' : 3.1416}, # 
+                         'coord_center' : (45, 45),
+                          'coord_throw' : (2, 2),
+                          'coord_frame' : 'azel',
+                          'scan_period' : 120,        # [s]   how often the scan pattern repeats
+                          'sample_rate' : 20,        # [Hz]  how fast to sample
                       }
 
-
-class plan():
+class Plan():
 
     '''
-    'baf'       : back-and-forth 
-    'box'       : box scan           
-    'lissajous' : lissajous box
-    'rose_3'    : three-petaled rose  
-    'rose_12'   : twelve-petaled rose
+    'back_and_forth' : back-and-forth        
+    'daisy'          : lissajous daisy
     '''
 
-    def __init__(self, config={}):
+    def __init__(self, config=DEFAULT_PLAN_CONFIG):
 
-        self.config = {}
-        self.put(DEFAULT_PLAN_CONFIG, verbose=False)
-        if not config == {}: self.put(config)
+        self.config = config
+        self.put(config)
 
     def put(self, config, verbose=False):
 
-        self.pointing_mode = 'auto'
-
-        if np.isin(['time', 'azim', 'elev'], list(config.keys())).all(): self.offset_mode = 'manual'
-        else: pass # raise error here
-
-        if verbose: print(self.pointing_mode)
-
-        # Overwrite new values
         for key, val in config.items(): 
-            self.config[key] = val
             setattr(self, key, val)
             if verbose: print(f'set {key} to {val}')
+
+        self.start_time = datetime.fromisoformat(self.start_time)
+        self.end_time   = datetime.fromisoformat(self.end_time)
 
         self.compute()
 
     def compute(self):
 
         self.dt = 1 / self.sample_rate
-        
-        if self.pointing_mode == 'auto':
 
-            self.time  = np.arange(0, self.duration, self.dt)  
-            
-            self.deg_c_azim, self.deg_c_elev = tools.get_pointing(self.time, self.scan_period, self.az_center, self.az_throw, self.el_center, self.el_throw, 
-                                                                  self.plan_type, self.plan_options)
+        self.t_min = self.start_time.timestamp()
+        self.t_max = self.end_time.timestamp()
 
-            self.c_azim, self.c_elev = np.radians(self.deg_c_azim), np.radians(self.deg_c_elev)
-        
-        self.c_x, self.c_y = tools.to_xy(self.c_azim, self.c_elev, self.c_azim.mean(), self.c_elev.mean())
-
-        self.c_x_v = np.gradient(self.c_x) / self.dt
-        self.c_y_v = np.gradient(self.c_y) / self.dt
-
-
-DEFAULT_SITE_CONFIG = {'time_UTC' : 0,
-                       'latitude' : -23.5,
-                      'longitude' : -67.5,
-                       'altitude' : 5e3,
-                         'region' : 'chajnantor',
-                          'epoch' : ttime.time(),
-                        }
-
-class site():
-
-    def __init__(self, config={}):
-
-        self.config = {}
-        self.put(DEFAULT_SITE_CONFIG)
-        self.put(config)
-
-    def put(self, config, verbose=False):
-
-        self.site_mode = 'auto'
-
-        if np.isin(['latitude', 'longitude', 'altitude'], list(config.keys())).all(): self.site_mode = 'manual'
-        else: pass # raise error here
-
-        if verbose: print(self.pointing_mode)
-        # Overwrite new values
-
-        for key, val in config.items(): 
-            self.config[key] = val
-            setattr(self, key, val)
-            if verbose: print(f'set {key} to {val}')
-
-        self.compute()
-
-    def compute(self):
-
-        self.weather = weathergen.generate(region=self.region, t=self.time_UTC)
-
+        self.unix   = np.arange(self.t_min, self.t_max, self.dt)  
+        self.coords = tools.get_pointing(self.unix, self.scan_period, self.coord_center, self.coord_throw, self.scan_pattern, self.scan_options)
 
 
 DEFAULT_LAM_CONFIG = {'min_depth' : 500,
-                      'max_depth' : 2500,
-                       'n_layers' : 5,
-                       'min_beam_res' : 2,
+                      'max_depth' : 5000,
+                       'n_layers' : 3,
+                       'min_beam_res' : 4,
                        }
 
 class LAM():
     
-    def __init__(self, array, plan, site, config={}, verbose=False):
+    def __init__(self, array, plan, config=DEFAULT_LAM_CONFIG, **kwargs):
 
-        self.array, self.plan, self.site = array, plan, site
-
+        self.array, self.plan = array, plan
         self.config = {}
-        self.put(DEFAULT_LAM_CONFIG)
-        self.put(config)
         
         for key, val in config.items(): 
             self.config[key] = val
             setattr(self, key, val)
-            if verbose: print(f'set {key} to {val}')
 
-    def put(self, config, verbose=False):
+        self.initialize(**kwargs)
 
-        self.site_mode = 'auto'
-
-        if np.isin(['latitude', 'longitude', 'altitude'], list(config.keys())).all(): self.site_mode = 'manual'
-        else: pass # raise error here
-
-        if verbose: print(self.pointing_mode)
-        # Overwrite new values
-
-        for key, val in config.items(): 
-            self.config[key] = val
-            setattr(self, key, val)
-            if verbose: print(f'set {key} to {val}')
-
-        #self.initialize()
-
-    def initialize(self, verbose=False):
+    def initialize(self, verbose):
 
 
-        # AM stuff, which takes us from physical atmosphere to detector powers
+        #### COMPUTE POINTING ####
+        self.coordinator  = tools.coordinator(lat=self.array.lat, lon=self.array.lon)
 
-        #self.am = np.load('am.npy',allow_pickle=True)[()]
+        if self.plan.coord_frame == 'az_el': 
+
+            self.c_az, self.c_el  = np.radians(self.plan.coords[0]), np.radians(self.plan.coords[1])
+            self.c_ra, self.c_dec = self.coordinator.transform(self.plan.unix, self.c_az.copy(), self.c_el.copy(), in_frame='az_el', out_frame='ra_dec') 
+
+        if self.plan.coord_frame == 'ra_dec': 
             
+            self.c_ra, self.c_dec = np.radians(self.plan.coords[0]), np.radians(self.plan.coords[1])
+            self.c_az, self.c_el  = self.coordinator.transform(self.plan.unix, self.c_ra.copy(), self.c_dec.copy(), in_frame='ra_dec', out_frame='az_el') 
+
+
+        self.c_x, self.c_y = tools.to_xy(self.c_az, self.c_el, self.c_az.mean(), self.c_el.mean())
+
+        self.X = self.array.offset_x[:, None] + self.c_x[None, :] 
+        self.Y = self.array.offset_y[:, None] + self.c_y[None, :]
+
+        self.AZ, self.EL = tools.from_xy(self.X, self.Y, self.c_az.mean(), self.c_el.mean()) # get the 
+
+        self.az_vel = np.gradient(self.c_az)   / np.gradient(self.plan.unix)
+        self.az_acc = np.gradient(self.az_vel) / np.gradient(self.plan.unix)
+
+        self.el_vel = np.gradient(self.c_el)   / np.gradient(self.plan.unix)
+        self.el_acc = np.gradient(self.el_vel) / np.gradient(self.plan.unix)
+
+        self.azim, self.elev = tools.from_xy(self.array.offset_x[:,None], self.array.offset_y[:,None], self.c_az, self.c_el)
+
+        if self.elev.min() < np.radians(20):
+            warnings.warn(f'Some detectors come within 20 degrees of the horizon, atmospheric model may be inaccurate (el_min = {np.degrees(self.elev.min()):.01f}°)')
+        if self.elev.min() <= 0:
+            raise PointingError(f'Some detectors are pointing below the horizon! (el_min = {np.degrees(self.elev.min()):.01f}°)')
+
+        #### COMPUTE SPECTRA ####
+
         self.am = np.load(path.join(path.abspath(path.dirname(__file__)), 'am.npy'), allow_pickle=True)[()]
 
         self.array.am_passbands  = sp.interpolate.interp1d(self.array.nu, self.array.passbands, bounds_error=False, fill_value=0, kind='cubic')(1e9*self.am['freq'])
         self.array.am_passbands /= self.array.am_passbands.sum(axis=1)[:,None]
+
+        #### COMPUTE ATMOSPHERIC LAYERS ####
 
         self.depths = np.linspace(self.min_depth, self.max_depth, self.n_layers)
         self.thicks = np.gradient(self.depths)
 
         self.waists = self.array.get_beam_waist(self.depths[:,None], self.array.primary_size, self.array.nu[None,:])
 
-        self.azim, self.elev = tools.from_xy(self.array.x[:,None], self.array.y[:,None], self.plan.c_azim, self.plan.c_elev)
-        
-        self.unix = self.site.epoch + self.plan.time
-
-        self.coordinator  = tools.coordinator(lon=self.site.longitude, lat=self.site.latitude)
-
-        self.ra, self.dec = self.coordinator.transform(self.unix, self.azim, self.elev, in_frame='az_el',  out_frame='ra_dec')    
-        self.l, self.b    = self.coordinator.transform(self.unix, self.ra,   self.dec,  in_frame='ra_dec', out_frame='l_b')
-
         self.angular_waists = self.waists / self.depths[:,None]
 
         self.min_ang_res = self.angular_waists / self.min_beam_res
 
-        self.heights = self.depths[:,None] * np.sin(self.plan.c_elev[None,:])
-        self.wvmd = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['water_density'])
-        self.temp = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['temperature'])
-        self.rel_scaling   = self.wvmd * self.temp * self.thicks[:, None]
-        self.norm_scaling  = np.sqrt(np.square(self.rel_scaling) / np.square(self.rel_scaling).sum(axis=0))
-        self.layer_scaling = np.exp(0.5 * self.site.weather['lbsd']) * self.norm_scaling 
+        self.heights = self.depths[:,None,None] * np.sin(self.EL)[None]
 
-        self.theta_x = self.array.x[:, None] + self.plan.c_x[None, :] 
-        self.theta_y = self.array.y[:, None] + self.plan.c_y[None, :]
+        #### GENERATE WEATHER ####
+        self.weather = weathergen.generate(site=self.array.site, time=np.arange(self.plan.t_min - 60, self.plan.t_max + 60, 60))
+        for attr in ['abs_hum', 'air_temp', 'pressure', 'wind_north', 'wind_east']:
 
-        self.theta_z = self.theta_x + 1j * self.theta_y
-
-        self.w_e = np.interp(self.depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_east'])
-        self.w_n = np.interp(self.depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_north'])
-
-        self.w_b = np.arctan2(self.w_e, self.w_n)
-        self.w_s = np.sqrt(np.square(self.w_e) + np.square(self.w_n))
-
-        self.w_v_x = (+ self.w_e * np.cos(self.plan.c_azim[None,:]) - self.w_n * np.sin(self.plan.c_azim[None,:])) / self.depths[:,None]
-        self.w_v_y = (- self.w_e * np.sin(self.plan.c_azim[None,:]) + self.w_n * np.cos(self.plan.c_azim[None,:])) / self.depths[:,None] * np.sin(self.plan.c_elev[None,:])
+            #setattr(self, attr, sp.interpolate.RegularGridInterpolator((self.weather.time, self.weather.height - self.array.alt), \
+            #                                                            getattr(self.weather, attr).T)((self.plan.unix, self.heights)))
+            setattr(self, attr, sp.interpolate.interp1d((self.weather.height - self.array.alt), getattr(self.weather, attr).mean(axis=1))(self.heights))
         
+        #self.wvmd = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['water_density'])
+        #self.temp = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['temperature'])
+        self.relative_scaling   = self.abs_hum * self.air_temp * self.thicks[:, None, None]
+        self.layer_scaling      = np.sqrt(np.square(self.relative_scaling) / np.square(self.relative_scaling).sum(axis=0))
+
+
+        
+
+        #self.theta_z = self.THETA_X
+
+        #self.w_e = np.interp(self.depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_east'])
+        #self.w_n = np.interp(self.depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_north'])
+
+        self.wind_bearing = np.arctan2(self.wind_east, self.wind_north)
+        self.wind_speed = np.sqrt(np.square(self.wind_east) + np.square(self.wind_north))
+
+        self.AWV_X = (+ self.wind_east * np.cos(self.AZ[None]) - self.wind_north * np.sin(self.AZ[None])) / self.depths[:,None,None]
+        self.AWV_Y = (- self.wind_east * np.sin(self.AZ[None]) + self.wind_north * np.cos(self.AZ[None])) / self.depths[:,None,None] * np.sin(self.EL[None])
+        
+        self.REL_X = self.X[None] + np.cumsum(self.AWV_X * self.plan.dt, axis=-1)
+        self.REL_Y = self.Y[None] + np.cumsum(self.AWV_Y * self.plan.dt, axis=-1) 
+
+        self.rel_c_x, self.rel_c_y = self.REL_X.mean(axis=1), self.REL_Y.mean(axis=1)
+
         ### These are empty lists we need to fill with chunky parameters (they won't fit together!) for each layer. 
         self.para, self.orth, self.P, self.O, self.X, self.Y = [], [], [], [], [], []
         self.n_para, self.n_orth, self.lay_ang_res, self.genz, self.AR_samples = [], [], [], [], []
 
         #self.rel_theta_z = self.theta_x + np.cumsum(self.w_v_x * self.plan.dt) + 1j# * (self.theta_y + np.cumsum(self.w_v_y * self.plan.dt))
-
-        self.rel_c_x = self.plan.c_x[None,:] + np.cumsum(self.w_v_x * self.plan.dt, axis=1) 
-        self.rel_c_y = self.plan.c_y[None,:] + np.cumsum(self.w_v_y * self.plan.dt, axis=1) 
         
-        self.p   = np.zeros((self.n_layers, *self.theta_x.shape))
-        self.o   = np.zeros((self.n_layers, *self.theta_x.shape))
+        self.p = np.zeros((self.REL_X.shape))
+        self.o = np.zeros((self.REL_X.shape))
 
         self.MARA = []
         self.outer_scale = 5e2
@@ -359,7 +324,7 @@ class LAM():
         self.theta_edge_z = []
 
         radius_sample_prop = 1.5
-        beam_tol = 1e-1
+        beam_tol = 1e-2
 
         max_layer_beam_radii = 0.5 * self.angular_waists.max(axis=1)
 
@@ -376,8 +341,8 @@ class LAM():
 
             self.MARA.append(tools.get_MARA(layer_hull_theta_z.ravel()))
 
-            rel_theta_x = self.array.x[:, None] + self.rel_c_x[i_l][None, :]
-            rel_theta_y = self.array.y[:, None] + self.rel_c_y[i_l][None, :]
+            rel_theta_x = self.array.offset_x[:, None] + self.rel_c_x[i_l][None, :]
+            rel_theta_y = self.array.offset_y[:, None] + self.rel_c_y[i_l][None, :]
             
             zop = (rel_theta_x + 1j * rel_theta_y) * np.exp(1j*self.MARA[-1]) 
             self.p[i_l], self.o[i_l] = np.real(zop), np.imag(zop)
@@ -454,8 +419,6 @@ class LAM():
 
         self.prec, self.csam, self.cgen, self.A, self.B = [], [], [], [], []
 
-        
-
         self.data_type = np.float32
 
 
@@ -478,15 +441,15 @@ class LAM():
                 prog.update(1)
 
         if verbose:
-            print('\n # | depth (m) | beam (m) | beam (\') | sim (m) | sim (\') | rms (mg/m2) | n_cov | orth | para | h2o (mg/m3) | temp (K) | ws (m/s) | wb (deg) |')
+            print('\n # | depth (m) | beam (m) | beam (\') | sim (m) | sim (\') | rms (mg/m2) | n_cov | orth | para | h2o (g/m3) | temp (K) | ws (m/s) | wb (deg) |')
             
             for i_l, depth in enumerate(self.depths):
                 
                 row_string  = f'{i_l+1:2} | {depth:9.01f} | {self.waists[i_l].min():8.02f} | {60*np.degrees(self.angular_waists[i_l].min()):8.02f} | '
                 row_string += f'{depth*self.lay_ang_res[i_l]:7.02f} | {60*np.degrees(self.lay_ang_res[i_l]):7.02f} | '
                 row_string += f'{1e3*self.layer_scaling[i_l].mean():11.02f} | {len(self.AR_samples[i_l][0]):5} | {self.n_orth[i_l]:4} | '
-                row_string += f'{self.n_para[i_l]:4} | {1e3*self.wvmd[i_l].mean():11.02f} | {self.temp[i_l].mean():8.02f} | '
-                row_string += f'{self.w_s[i_l].mean():8.02f} | {np.degrees(self.w_b[i_l].mean()+np.pi):8.02f} |'
+                row_string += f'{self.n_para[i_l]:4} | {1e3*self.abs_hum[i_l].mean():11.02f} | {self.air_temp[i_l].mean():8.02f} | '
+                row_string += f'{self.wind_speed[i_l].mean():8.02f} | {np.degrees(self.wind_bearing[i_l].mean()+np.pi):8.02f} |'
                 print(row_string)
 
     def atmosphere_timestep(self,i): # iterate the i-th layer of atmosphere by one step
@@ -521,7 +484,6 @@ class LAM():
 
         from scipy.interpolate import RegularGridInterpolator as rgi
 
-        
         with tqdm(total=self.n_layers, desc='Sampling layers') as prog:
 
             for i_d, d in enumerate(self.depths):
@@ -556,9 +518,12 @@ class LAM():
 
         # Convert PWV fluctuations to detector powers
 
-        self.epwv = self.site.weather['pwv'] + (self.rel_flucs * self.layer_scaling[:,None,:]).sum(axis=0)
+        self.epwv = (self.rel_flucs * self.layer_scaling).sum(axis=0)
 
-        self.atm_power_data = np.zeros(self.epwv.shape)
+        self.epwv *= 5e1 / self.epwv.std()
+        self.epwv += self.weather.pwv.mean()
+
+        self.atm_power = np.zeros(self.epwv.shape)
 
         with tqdm(total=len(self.array.ubands), desc='Integrating spectra') as prog:
             for b in self.array.ubands:
@@ -569,7 +534,7 @@ class LAM():
 
                 BA_TRJ_RGI = sp.interpolate.RegularGridInterpolator((self.am['zpwv'], self.am['temp'], np.radians(self.am['elev'])), ba_am_trj)
 
-                self.atm_power_data[bm] = BA_TRJ_RGI((self.epwv[bm], self.temp[0].mean(), self.elev[bm]))
+                self.atm_power[bm] = BA_TRJ_RGI((self.epwv[bm], self.air_temp[0].mean(), self.elev[bm]))
 
                 prog.update(1)
 

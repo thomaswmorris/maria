@@ -25,90 +25,97 @@ def validate_args(DICT, necessary_args):
     if not len(missing_args) == 0: 
         raise Exception(f'missing arguments {missing_args}')
 
-def baf_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}):
+def baf_pointing(time, period, centers, throws, options={}):
 
-    validate_args(plan_options, [])                                                        
+    validate_args(options, [])                                                        
     p = 2 * np.pi * time / period
-    return az_center+az_throw*sp.signal.sawtooth(p, width=0.5), el_center+el_throw*sp.signal.sawtooth(p, width=0.5)
+    return centers[0]+throws[0]*sp.signal.sawtooth(p, width=0.5), centers[1]+throws[1]*sp.signal.sawtooth(p, width=0.5)
 
-def box_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}):
+def box_pointing(time, period, centers, throws, options={}):
 
-    validate_args(plan_options, [])                                                        
+    validate_args(options, [])                                                        
     p = 2 * np.pi * time / period
-    return az_center+az_throw*np.interp(p % (2*np.pi),np.linspace(0,2*np.pi,5),[-1,-1,+1,+1,-1]), el_center+el_throw*np.interp(p,np.linspace(0,2*np.pi,5),[-1,+1,+1,-1,-1])
+    return centers[0]+throws[0]*np.interp(p % (2*np.pi),np.linspace(0,2*np.pi,5),[-1,-1,+1,+1,-1]), centers[1]+throws[1]*np.interp(p,np.linspace(0,2*np.pi,5),[-1,+1,+1,-1,-1])
 
-def rose_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}): 
+def daisy_pointing(time, period, centers, throws, options={}): 
 
-    validate_args(plan_options, ['k'])                                                        
+    validate_args(options, ['k'])                                                        
+    p = 2 * np.pi * time / period# green 
+    return centers[0]+throws[0]*np.sin(options['k']*p)*np.cos(p), centers[1]+throws[1]*np.sin(options['k']*p)*np.sin(p)
+
+def lissajous_pointing(time, period, centers, throws, options={}): 
+
+    validate_args(options, ['k_az', 'k_el'])                                                        
     p = 2 * np.pi * time / period
-    return az_center+az_throw*np.sin(plan_options['k']*p)*np.cos(p), el_center+el_throw*np.sin(plan_options['k']*p)*np.sin(p)
+    return centers[0]+throws[0]*np.sin(options['k_az']*p), centers[1]+throws[1]*np.sin(options['k_el']*p)
 
-def lissajous_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_options={}): 
+def get_pointing(time, period, centers, throws, plan_type, options):
 
-    validate_args(plan_options, ['k_az', 'k_el'])                                                        
-    p = 2 * np.pi * time / period
-    return az_center+az_throw*np.sin(plan_options['k_az']*p), el_center+el_throw*np.sin(plan_options['k_el']*p)
-
-def get_pointing(time, period, az_center, az_throw, el_center, el_throw, plan_type, plan_options):
-
-    if plan_type == 'baf' :       plan_func = baf_pointing
+    if plan_type == 'back-and-forth' :       plan_func = baf_pointing
     if plan_type == 'box' :       plan_func = box_pointing
-    if plan_type == 'rose' :      plan_func = rose_pointing
+    if plan_type == 'daisy' :     plan_func = daisy_pointing
     if plan_type == 'lissajous' : plan_func = lissajous_pointing
 
-    return plan_func(time, period, az_center, az_throw, el_center, el_throw, plan_options)
+    return plan_func(time, period, centers, throws, options)
 
 class coordinator():
 
     # what three-dimensional rotation matrix takes (frame 1) to (frame 2) ? 
-    # we can brute-force this for a few test points, and then use it to efficiently broadcast very big arrays
+    # we use astropy to compute this for a few test points, and then use the answer it to efficiently broadcast very big arrays
 
     def __init__(self, lon, lat):
 
-        #if frame is None:
-        #    raise ValueError('Please provide a frame')
-
-        self.fid_p = np.radians(np.array([0,0,90]))
-        self.fid_t = np.radians(np.array([90,89,89]))
+        
 
         self.lc = ap.coordinates.EarthLocation.from_geodetic(lon=lon,lat=lat)
 
-        self.fid_xyz = np.c_[np.sin(self.fid_p) * np.cos(self.fid_t), np.cos(self.fid_p) * np.cos(self.fid_t), np.sin(self.fid_t)] 
+        self.fid_p   = np.radians(np.array([0,0,90]))
+        self.fid_t   = np.radians(np.array([90,0,0]))
+        self.fid_xyz = np.c_[np.sin(self.fid_p) * np.cos(self.fid_t), np.cos(self.fid_p) * np.cos(self.fid_t), np.sin(self.fid_t)] # the XYZ coordinates of our fiducial test points on the unit sphere
+
+
+        # in order for this to be efficient, we need to use time-invariant frames 
+        # 
 
         # you are standing a the north pole looking toward lon = -90 (+x)
         # you are standing a the north pole looking toward lon = 0 (+y)
         # you are standing a the north pole looking up (+z)
 
     def transform(self, unix, phi, theta, in_frame, out_frame):
-        
-        epoch = unix.mean()
-        ot    = ap.time.Time(epoch, format='unix')
-        rad   = ap.units.rad
-        
-        if in_frame == 'az_el':  self.c = ap.coordinates.SkyCoord(az = self.fid_p * rad, alt = self.fid_t * rad, obstime = ot, frame = 'altaz',    location = self.lc)
-        if in_frame == 'ra_dec': self.c = ap.coordinates.SkyCoord(ra = self.fid_p * rad, dec = self.fid_t * rad, obstime = ot, frame = 'icrs',     location = self.lc)
-        if in_frame == 'l_b':    self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot, frame = 'galactic', location = self.lc)
 
-        if out_frame == 'ra_dec': self._c = self.c.icrs;     self.rot_p, self.rot_t = self._c.ra.rad, self._c.dec.rad
-        if out_frame == 'az_el':  self._c = self.c.altaz;    self.rot_p, self.rot_t = self._c.az.rad, self._c.alt.rad
-        if out_frame == 'l_b':    self._c = self.c.galactic; self.rot_p, self.rot_t = self._c.l.rad,  self._c.b.rad
+        _unix  = np.atleast_2d(unix)
+        _phi   = np.atleast_2d(phi)
+        _theta = np.atleast_2d(theta)
+
+        if not _phi.shape == _theta.shape: raise ValueError('\'phi\' and \'theta\' must be the same shape')
+        if not 1 <= len(_phi.shape) == len(_theta.shape) <= 2: raise ValueError('\'phi\' and \'theta\' must be either 1- or 2-dimensional')
+        if not unix.shape[-1] == _phi.shape[-1] == _theta.shape[-1]: ('\'unix\', \'phi\' and \'theta\' must have the same shape in their last axis')
+        
+        epoch   = _unix.mean()
+        obstime = ap.time.Time(epoch, format='unix')
+        rad     = ap.units.rad
+
+        if in_frame == 'az_el':  self.c = ap.coordinates.SkyCoord(az = self.fid_p * rad, alt = self.fid_t * rad, obstime = obstime, frame = 'altaz', location = self.lc)
+        if in_frame == 'ra_dec': self.c = ap.coordinates.SkyCoord(ra = self.fid_p * rad, dec = self.fid_t * rad, obstime = obstime, frame = 'icrs',  location = self.lc)
+        #if in_frame == 'galactic': self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot, frame = 'galactic', location = self.lc)
+
+        if out_frame == 'ra_dec': self._c = self.c.icrs;  self.rot_p, self.rot_t = self._c.ra.rad, self._c.dec.rad
+        if out_frame == 'az_el':  self._c = self.c.altaz; self.rot_p, self.rot_t = self._c.az.rad, self._c.alt.rad
+        #if out_frame == 'galactic': self._c = self.c.galactic; self.rot_p, self.rot_t = self._c.l.rad,  self._c.b.rad
             
-        self.rot_xyz = np.c_[np.sin(self.rot_p) * np.cos(self.rot_t), np.cos(self.rot_p) * np.cos(self.rot_t), np.sin(self.rot_t)] 
+        self.rot_xyz = np.c_[np.sin(self.rot_p) * np.cos(self.rot_t), np.cos(self.rot_p) * np.cos(self.rot_t), np.sin(self.rot_t)] # the XYZ coordinates of our rotated test points on the unit sphere
 
-        # we want to find T in the equation [ T x1 = x2 ] for our test points (T is a rotation, with maybe a reflection)
-        # A x = B
+        self.R = la.lstsq(self.fid_xyz, self.rot_xyz, rcond=None)[0] # what matrix takes us (fid_xyz -> rot_xyz)?
 
-        self.R = la.lstsq(self.fid_xyz, self.rot_xyz, rcond=None)[0]
+        if (in_frame, out_frame) == ('ra_dec', 'az_el'): _phi -= (_unix - epoch) * (2 * np.pi / 86163.0905)
 
-        if (in_frame, out_frame) == ('ra_dec', 'az_el'): phi -= (unix - epoch) * (2*np.pi/86163.0905)
+        trans_xyz = np.swapaxes(np.matmul(np.swapaxes(np.concatenate([(np.sin(_phi) * np.cos(_theta))[None], (np.cos(_phi) * np.cos(_theta))[None], np.sin(_theta)[None]],axis=0),0,-1),self.R),0,-1)
 
-        xyz = np.matmul(np.concatenate([(np.sin(phi) * np.cos(theta))[:,:,None], (np.cos(phi) * np.cos(theta))[:,:,None], np.sin(theta)[:,:,None]],axis=-1), self.R)
+        trans_phi, trans_theta = np.arctan2(trans_xyz[0], trans_xyz[1]), np.arcsin(trans_xyz[2])
 
-        _phi, _theta = np.arctan2(xyz[:,:,0], xyz[:,:,1]), np.arcsin(xyz[:,:,2])
+        if (in_frame, out_frame) == ('az_el', 'ra_dec'): trans_phi += (_unix - epoch) * (2 * np.pi / 86163.0905)
 
-        if (in_frame, out_frame) == ('az_el', 'ra_dec'): _phi += (unix - epoch) * (2*np.pi/86163.0905)
-
-        return _phi % (2 * np.pi), _theta
+        return np.reshape(trans_phi % (2 * np.pi), phi.shape), np.reshape(trans_theta, theta.shape)
 
 
 
@@ -117,7 +124,7 @@ class coordinator():
 
 
 def get_passband(nu, nu_0, nu_w, order=4):
-    return np.exp(-np.abs(2*(nu-nu_0)/nu_w)**order)
+    return np.exp(-np.abs((nu-nu_0)/(nu_w/2))**order)
 
 
 def make_array(array_shape, max_fov, n_det):
