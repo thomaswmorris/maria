@@ -6,13 +6,7 @@ a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
 
 maria is a python-based package that simulates turbulent atmospheric
 emission using a auto-regressive Gaussian process framework, for
-applications in observational astronomy. Below: a distribution of
-turbulent water vapor moves through the field of view of the observer.
-
-.. figure:: https://user-images.githubusercontent.com/41275226/117068746-acbf8980-acf9-11eb-8016-64fa01e12a77.mp4
-   :alt: Watch the video
-
-   Watch the video
+applications in observational astronomy. 
 
 Background
 ----------
