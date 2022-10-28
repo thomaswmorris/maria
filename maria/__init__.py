@@ -22,7 +22,7 @@ from datetime import datetime
 
 
 # how do we do the bands? this is a great question. 
-# because all practical telescope instrumentation assume a constant 
+# because all practical telescope instrumentation assume a constant band
 
 
 
@@ -66,6 +66,8 @@ class Array():
     def __init__(self, config=DEFAULT_ARRAY_CONFIG, verbose=False):
 
         self.config = config
+
+        for k, v in config.items(): setattr(self, k, v)
 
         # these are the minimal 
         #required_args_auto = ['bands', 'field_of_view', 'geometry']
@@ -115,6 +117,8 @@ class Array():
         # position detectors:
         self.site = self.config['site']
         self.lat, self.lon, self.alt = sites.loc[sites.tag == self.site, ['lat', 'lon', 'alt']].values[0]
+
+        self.coordinator  = tools.coordinator(lat=self.lat, lon=self.lon)
 
     def make_filter(self, waist, res, func, width_per_waist=1.2):
     
@@ -184,8 +188,8 @@ class Plan():
             setattr(self, key, val)
             if verbose: print(f'set {key} to {val}')
 
-        self.start_time = datetime.fromisoformat(self.start_time)
-        self.end_time   = datetime.fromisoformat(self.end_time)
+        self.start_time = tools.datetime_handler(self.start_time)
+        self.end_time   = tools.datetime_handler(self.end_time)
 
         self.compute()
 
@@ -203,7 +207,7 @@ class Plan():
 DEFAULT_LAM_CONFIG = {'min_depth' : 500,
                       'max_depth' : 5000,
                        'n_layers' : 3,
-                       'min_beam_res' : 4,
+                       'min_beam_res' : 8,
                        }
 
 class LAM():
@@ -223,17 +227,16 @@ class LAM():
 
 
         #### COMPUTE POINTING ####
-        self.coordinator  = tools.coordinator(lat=self.array.lat, lon=self.array.lon)
 
         if self.plan.coord_frame == 'az_el': 
 
             self.c_az, self.c_el  = np.radians(self.plan.coords[0]), np.radians(self.plan.coords[1])
-            self.c_ra, self.c_dec = self.coordinator.transform(self.plan.unix, self.c_az.copy(), self.c_el.copy(), in_frame='az_el', out_frame='ra_dec') 
+            self.c_ra, self.c_dec = self.array.coordinator.transform(self.plan.unix, self.c_az.copy(), self.c_el.copy(), in_frame='az_el', out_frame='ra_dec') 
 
         if self.plan.coord_frame == 'ra_dec': 
             
             self.c_ra, self.c_dec = np.radians(self.plan.coords[0]), np.radians(self.plan.coords[1])
-            self.c_az, self.c_el  = self.coordinator.transform(self.plan.unix, self.c_ra.copy(), self.c_dec.copy(), in_frame='ra_dec', out_frame='az_el') 
+            self.c_az, self.c_el  = self.array.coordinator.transform(self.plan.unix, self.c_ra.copy(), self.c_dec.copy(), in_frame='ra_dec', out_frame='az_el') 
 
 
         self.c_x, self.c_y = tools.to_xy(self.c_az, self.c_el, self.c_az.mean(), self.c_el.mean())

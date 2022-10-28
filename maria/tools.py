@@ -7,15 +7,51 @@ from numpy import linalg as la
 from scipy import cluster
 from astropy import time, coordinates
 
+import pytz
+from datetime import datetime
 
 
-
-
-
-
+def datetime_handler(time):
+    '''
+    Accepts any time format you can think of, spits out datetime object
+    '''
+    if isinstance(time, (int, float)): return datetime.fromtimestamp(time).astimezone(pytz.utc)
+    if isinstance(time, str): return datetime.fromisoformat(time).replace(tzinfo=pytz.utc)
 
 # COORDINATE TRANSFORM UTILS
-
+class Planner():
+    
+    def __init__(self, Array):
+        
+        self.array = Array
+    
+    def make_plans(self, start, end, ra, dec, chunk_time, static_config):
+        
+        start_time = datetime.fromisoformat(start).replace(tzinfo=pytz.utc).timestamp()
+        end_time   = datetime.fromisoformat(end).replace(tzinfo=pytz.utc).timestamp()
+        
+        _unix = np.arange(start_time, end_time, chunk_time)
+        _ra   = np.radians(np.linspace(ra, ra, len(_unix)))
+        _dec  = np.radians(np.linspace(dec, dec, len(_unix)))
+        
+        _az, _el = self.array.coordinator.transform(_unix, _ra, _dec, 
+                                                    in_frame='ra_dec', out_frame='az_el')
+        
+        min_el = np.degrees(np.minimum(_el[1:], _el[:-1]))
+        
+        ok = (min_el > self.array.el_bounds[0]) & (min_el < self.array.el_bounds[1])
+        
+        self.unix, self.az, self.el = _unix[1:][ok], _az[1:][ok], _el[1:][ok]
+        
+        for start_time in _unix[:-1][ok]:
+            
+            yield dict({
+                       'start_time' : start_time,
+                         'end_time' : start_time + chunk_time,
+                     'coord_center' : (ra, dec),
+                      'coord_throw' : (2, 2),
+                      'coord_frame' : 'ra_dec'
+                       }, **static_config)
     
 def validate_args(DICT, necessary_args):
     missing_args = []
@@ -40,8 +76,9 @@ def box_pointing(time, period, centers, throws, options={}):
 def daisy_pointing(time, period, centers, throws, options={}): 
 
     validate_args(options, ['k'])                                                        
-    p = 2 * np.pi * time / period# green 
-    return centers[0]+throws[0]*np.sin(options['k']*p)*np.cos(p), centers[1]+throws[1]*np.sin(options['k']*p)*np.sin(p)
+    p = 2 * np.pi * time / period # green 
+    r = 1.01 * np.sin(options['k'] * p) - 0.01
+    return centers[0]+throws[0]*r*np.cos(p), centers[1]+throws[1]*r*np.sin(p)
 
 def lissajous_pointing(time, period, centers, throws, options={}): 
 
