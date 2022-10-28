@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setuptools.setup(
     name='maria',
-    version='0.0.11',
+    version='0.0.12',
     description="Simulates atmospheric emission for ground-based telescopes",
     long_description=long_description,
     author="Thomas Morris",
