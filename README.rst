@@ -4,7 +4,7 @@ Modular Auto-Regressive Integrated Atmosphere (maria)
 `Oh, maria blows the stars around / and sends the clouds
 a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
 
-maria is a python-based package that simulates turbulent atmospheric
+``maria`` is a python-based package that simulates turbulent atmospheric
 emission using a auto-regressive Gaussian process framework, for
 applications in observational astronomy. 
 
