@@ -44,7 +44,7 @@ sky concurrently, at resolutions as fine as one arcminute. The
 atmospheric model used is detailed
 `here <https://arxiv.org/abs/2111.01319>`_.
 
-The atmospheric simulation portion of this package is built on (weathergen) <https://github.com/thomaswmorris/weathergen>`_` (which simulates time-ordered vertical weather profiles) and ``am`` (which simulates the resulting emission spectrum of atmospheric species).
+The atmospheric simulation portion of this package is built on `weathergen <https://github.com/thomaswmorris/weathergen>`_` (which simulates time-ordered vertical weather profiles) and `am <https://lweb.cfa.harvard.edu/~spaine/am/>`_` (which simulates the resulting emission spectrum of atmospheric species).
 
 Examples and Usage
 ------------------
