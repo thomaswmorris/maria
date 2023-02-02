@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy as sp
+import pandas as pd
 
 from tqdm import tqdm
 
@@ -12,7 +13,7 @@ from numpy import linalg as la
 
 from importlib import resources
 import time as ttime
-from . import tools
+from . import utils
 import weathergen
 from os import path
 
@@ -50,7 +51,6 @@ def is_isoformat(x):
 class PointingError(Exception):
     pass
 
-
 # this is the default array_config, which will be instantiated if another array_config is not passed to maria.Array()
 
 DEFAULT_ARRAY_CONFIG = {        'site' : 'chajnantor',
@@ -81,12 +81,12 @@ class Array():
             self.bands, self.bandwidths = np.r_[self.bands, np.repeat(nu_0, n)], np.r_[self.bandwidths, np.repeat(nu_w, n)]
             self.n_det += n
 
-        self.offsets  = tools.make_array(self.config['geometry'], self.field_of_view, self.n_det)
+        self.offsets  = utils.make_array(self.config['geometry'], self.field_of_view, self.n_det)
         self.offsets *= np.pi / 180 # put these in radians
         
         # compute detector offsets
         
-        self.hull = sp.spatial.qhull.ConvexHull(self.offsets)
+        self.hull = sp.spatial.ConvexHull(self.offsets)
 
         # scramble up the locations of the bands 
         if self.config['band_grouping'] == 'random':
@@ -99,7 +99,7 @@ class Array():
         self.ubands = np.unique(self.bands)
         self.nu = np.arange(0, 1e12, 1e9)
         
-        self.passbands  = np.c_[[tools.get_passband(self.nu, nu_0, nu_w, order=16) for nu_0, nu_w in zip(self.bands, self.bandwidths)]]
+        self.passbands  = np.c_[[utils.get_passband(self.nu, nu_0, nu_w, order=16) for nu_0, nu_w in zip(self.bands, self.bandwidths)]]
 
         nu_mask = (self.passbands > 1e-4).any(axis=0)
         self.nu, self.passbands = self.nu[nu_mask], self.passbands[:, nu_mask]
@@ -116,9 +116,9 @@ class Array():
 
         # position detectors:
         self.site = self.config['site']
-        self.lat, self.lon, self.alt = sites.loc[sites.tag == self.site, ['lat', 'lon', 'alt']].values[0]
+        self.latitude, self.longitude, self.altitude = sites.loc[sites.index == self.site, ['latitude', 'longitude', 'altitude']].values[0]
 
-        self.coordinator  = tools.coordinator(lat=self.lat, lon=self.lon)
+        self.coordinator  = utils.coordinator(lat=self.latitude, lon=self.longitude)
 
     def make_filter(self, waist, res, func, width_per_waist=1.2):
     
@@ -152,7 +152,7 @@ class Array():
         filt_M = 0
         for _u, _s, _v in zip(u, s, v):
 
-            filt_M += _s * sp.ndimage.filters.convolve1d(sp.ndimage.filters.convolve1d(M.astype(float), _u, axis=0), _v, axis=1)
+            filt_M += _s * sp.ndimage.convolve1d(sp.ndimage.convolve1d(M.astype(float), _u, axis=0), _v, axis=1)
 
         return filt_M
 
@@ -188,8 +188,8 @@ class Plan():
             setattr(self, key, val)
             if verbose: print(f'set {key} to {val}')
 
-        self.start_time = tools.datetime_handler(self.start_time)
-        self.end_time   = tools.datetime_handler(self.end_time)
+        self.start_time = utils.datetime_handler(self.start_time)
+        self.end_time   = utils.datetime_handler(self.end_time)
 
         self.compute()
 
@@ -201,7 +201,7 @@ class Plan():
         self.t_max = self.end_time.timestamp()
 
         self.unix   = np.arange(self.t_min, self.t_max, self.dt)  
-        self.coords = tools.get_pointing(self.unix, self.scan_period, self.coord_center, self.coord_throw, self.scan_pattern, self.scan_options)
+        self.coords = utils.get_pointing(self.unix, self.scan_period, self.coord_center, self.coord_throw, self.scan_pattern, self.scan_options)
 
 
 DEFAULT_LAM_CONFIG = {'min_depth' : 500,
@@ -239,12 +239,12 @@ class LAM():
             self.c_az, self.c_el  = self.array.coordinator.transform(self.plan.unix, self.c_ra.copy(), self.c_dec.copy(), in_frame='ra_dec', out_frame='az_el') 
 
 
-        self.c_x, self.c_y = tools.to_xy(self.c_az, self.c_el, self.c_az.mean(), self.c_el.mean())
+        self.c_x, self.c_y = utils.to_xy(self.c_az, self.c_el, self.c_az.mean(), self.c_el.mean())
 
         self.X = self.array.offset_x[:, None] + self.c_x[None, :] 
         self.Y = self.array.offset_y[:, None] + self.c_y[None, :]
 
-        self.AZ, self.EL = tools.from_xy(self.X, self.Y, self.c_az.mean(), self.c_el.mean()) # get the 
+        self.AZ, self.EL = utils.from_xy(self.X, self.Y, self.c_az.mean(), self.c_el.mean()) # get the 
 
         self.az_vel = np.gradient(self.c_az)   / np.gradient(self.plan.unix)
         self.az_acc = np.gradient(self.az_vel) / np.gradient(self.plan.unix)
@@ -252,7 +252,7 @@ class LAM():
         self.el_vel = np.gradient(self.c_el)   / np.gradient(self.plan.unix)
         self.el_acc = np.gradient(self.el_vel) / np.gradient(self.plan.unix)
 
-        self.azim, self.elev = tools.from_xy(self.array.offset_x[:,None], self.array.offset_y[:,None], self.c_az, self.c_el)
+        self.azim, self.elev = utils.from_xy(self.array.offset_x[:,None], self.array.offset_y[:,None], self.c_az, self.c_el)
 
         if self.elev.min() < np.radians(20):
             warnings.warn(f'Some detectors come within 20 degrees of the horizon, atmospheric model may be inaccurate (el_min = {np.degrees(self.elev.min()):.01f}°)')
@@ -281,15 +281,15 @@ class LAM():
 
         #### GENERATE WEATHER ####
         self.weather = weathergen.generate(site=self.array.site, time=np.arange(self.plan.t_min - 60, self.plan.t_max + 60, 60))
-        for attr in ['abs_hum', 'air_temp', 'pressure', 'wind_north', 'wind_east']:
+        for attr in ['water_vapor', 'temperature', 'pressure', 'wind_north', 'wind_east']:
 
             #setattr(self, attr, sp.interpolate.RegularGridInterpolator((self.weather.time, self.weather.height - self.array.alt), \
             #                                                            getattr(self.weather, attr).T)((self.plan.unix, self.heights)))
-            setattr(self, attr, sp.interpolate.interp1d((self.weather.height - self.array.alt), getattr(self.weather, attr).mean(axis=1))(self.heights))
+            setattr(self, attr, sp.interpolate.interp1d((self.weather.height - self.array.altitude), getattr(self.weather, attr).mean(axis=1))(self.heights))
         
         #self.wvmd = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['water_density'])
         #self.temp = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['temperature'])
-        self.relative_scaling   = self.abs_hum * self.air_temp * self.thicks[:, None, None]
+        self.relative_scaling   = self.water_vapor * self.temperature * self.thicks[:, None, None]
         self.layer_scaling      = np.sqrt(np.square(self.relative_scaling) / np.square(self.relative_scaling).sum(axis=0))
 
 
@@ -338,11 +338,11 @@ class LAM():
             rel_c  = np.c_[self.rel_c_x[i_l], self.rel_c_y[i_l]]
             rel_c += 1e-12 * np.random.standard_normal(size=rel_c.shape)
 
-            hull = sp.spatial.qhull.ConvexHull(rel_c)
+            hull = sp.spatial.ConvexHull(rel_c)
             h_x, h_y = hull.points[hull.vertices].T; h_z = h_x + 1j * h_y
             layer_hull_theta_z = h_z * (np.abs(h_z) + self.padding[i_l]) / np.abs(h_z)
 
-            self.MARA.append(tools.get_MARA(layer_hull_theta_z.ravel()))
+            self.MARA.append(utils.get_MARA(layer_hull_theta_z.ravel()))
 
             rel_theta_x = self.array.offset_x[:, None] + self.rel_c_x[i_l][None, :]
             rel_theta_y = self.array.offset_y[:, None] + self.rel_c_y[i_l][None, :]
@@ -432,14 +432,14 @@ class LAM():
                 
                 cov_args  = (self.outer_scale / depth, 5/6)
                 
-                self.prec.append(la.inv(tools.make_2d_covariance_matrix(tools.matern,cov_args,LX[AR],LY[AR])))
+                self.prec.append(la.inv(utils.make_2d_covariance_matrix(utils.matern,cov_args,LX[AR],LY[AR])))
 
-                self.cgen.append(tools.make_2d_covariance_matrix(tools.matern,cov_args,np.real(GZ),np.imag(GZ)))
+                self.cgen.append(utils.make_2d_covariance_matrix(utils.matern,cov_args,np.real(GZ),np.imag(GZ)))
                 
-                self.csam.append(tools.make_2d_covariance_matrix(tools.matern,cov_args,np.real(GZ),np.imag(GZ),LX[AR],LY[AR],auto=False)) 
+                self.csam.append(utils.make_2d_covariance_matrix(utils.matern,cov_args,np.real(GZ),np.imag(GZ),LX[AR],LY[AR],auto=False)) 
                 
                 self.A.append(np.matmul(self.csam[i_l],self.prec[i_l]).astype(self.data_type)) 
-                self.B.append(tools.msqrt(self.cgen[i_l]-np.matmul(self.A[i_l],self.csam[i_l].T)).astype(self.data_type))
+                self.B.append(utils.msqrt(self.cgen[i_l]-np.matmul(self.A[i_l],self.csam[i_l].T)).astype(self.data_type))
                 
                 prog.update(1)
 
@@ -451,7 +451,7 @@ class LAM():
                 row_string  = f'{i_l+1:2} | {depth:9.01f} | {self.waists[i_l].min():8.02f} | {60*np.degrees(self.angular_waists[i_l].min()):8.02f} | '
                 row_string += f'{depth*self.lay_ang_res[i_l]:7.02f} | {60*np.degrees(self.lay_ang_res[i_l]):7.02f} | '
                 row_string += f'{1e3*self.layer_scaling[i_l].mean():11.02f} | {len(self.AR_samples[i_l][0]):5} | {self.n_orth[i_l]:4} | '
-                row_string += f'{self.n_para[i_l]:4} | {1e3*self.abs_hum[i_l].mean():11.02f} | {self.air_temp[i_l].mean():8.02f} | '
+                row_string += f'{self.n_para[i_l]:4} | {1e3*self.water_vapor[i_l].mean():11.02f} | {self.temperature[i_l].mean():8.02f} | '
                 row_string += f'{self.wind_speed[i_l].mean():8.02f} | {np.degrees(self.wind_bearing[i_l].mean()+np.pi):8.02f} |'
                 print(row_string)
 
@@ -524,7 +524,7 @@ class LAM():
         self.epwv = (self.rel_flucs * self.layer_scaling).sum(axis=0)
 
         self.epwv *= 5e1 / self.epwv.std()
-        self.epwv += self.weather.pwv.mean()
+        self.epwv += 1e3 * self.weather.column_water_vapor.mean()
 
         self.atm_power = np.zeros(self.epwv.shape)
 
@@ -537,7 +537,7 @@ class LAM():
 
                 BA_TRJ_RGI = sp.interpolate.RegularGridInterpolator((self.am['zpwv'], self.am['temp'], np.radians(self.am['elev'])), ba_am_trj)
 
-                self.atm_power[bm] = BA_TRJ_RGI((self.epwv[bm], self.air_temp[0].mean(), self.elev[bm]))
+                self.atm_power[bm] = BA_TRJ_RGI((self.epwv[bm], self.temperature[0].mean(), self.elev[bm]))
 
                 prog.update(1)
 

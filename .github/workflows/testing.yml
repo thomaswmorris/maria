@@ -1,0 +1,57 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  run_tests:
+    name: Test maria simulations
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+        pylon-version: ["5.2.0.13457-deb0_amd64"]
+      fail-fast: false
+    env:
+      TZ: America/New_York
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Set env vars
+        run: |
+
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }} with conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: ${{ env.REPOSITORY_NAME }}-py${{ matrix.python-version }}
+          auto-update-conda: true
+          miniconda-version: "latest"
+          python-version: ${{ matrix.python-version }}
+          mamba-version: "*"
+          channels: conda-forge
+
+      - name: Install the package and its dependencies
+        run: |
+          set -vxeo pipefail
+          conda env list
+          mamba install -c conda-forge -y numpy matplotlib
+          pip install -v .
+          pip list
+          conda list
+
+      - name: Test the code
+        run: |
+          set -vxuo pipefail
+          pytest -s -vv
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: test-artifacts
+          path: /tmp/test_emulated_basler_camera_exposure_ms*.png

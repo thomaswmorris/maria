@@ -1,0 +1,8 @@
+# List required packages in this file, one per line.
+numpy
+scipy
+pandas
+tqdm
+weathergen >= 2.1.4
+tables
+h5py
