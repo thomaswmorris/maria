@@ -4,7 +4,7 @@ Modular Auto-Regressive Integrated Atmosphere (maria)
 `Oh, maria blows the stars around / and sends the clouds
 a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
 
-maria is a python-based package that simulates turbulent atmospheric
+``maria`` is a python-based package that simulates turbulent atmospheric
 emission using a auto-regressive Gaussian process framework, for
 applications in observational astronomy. 
 
@@ -35,7 +35,7 @@ evolution.
 Methodology
 -----------
 
-maria auto-regressively simulates an multi-layeed two-dimensional
+``maria`` auto-regressively simulates an multi-layeed two-dimensional
 “integrated” atmospheric model that is much cheaper to compute than a
 three-dimensional model, which can effectively describe time-evolving
 atmospheric emission. maria can thus effectively simulate correlated
@@ -43,6 +43,8 @@ atmospheric emission for in excess of 100,000 detectors observing the
 sky concurrently, at resolutions as fine as one arcminute. The
 atmospheric model used is detailed
 `here <https://arxiv.org/abs/2111.01319>`_.
+
+The atmospheric simulation portion of this package is built on `weathergen <https://github.com/thomaswmorris/weathergen>`_ (which simulates time-ordered vertical weather profiles) and `am <https://lweb.cfa.harvard.edu/~spaine/am/>`_ (which simulates the resulting emission spectrum of atmospheric species).
 
 Examples and Usage
 ------------------
@@ -52,3 +54,5 @@ To install MARIA with PyPi, run
 .. code:: console
 
    pip install maria
+
+This also installs and compiles the ``am`` atmospheric model, 
