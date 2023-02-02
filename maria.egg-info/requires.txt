@@ -1,8 +1,0 @@
-astropy
-healpy
-matplotlib
-numpy
-pandas
-scipy
-tqdm
-weathergen
