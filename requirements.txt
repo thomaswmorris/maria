@@ -6,3 +6,5 @@ tqdm
 weathergen >= 2.1.4
 tables
 h5py
+pytest
+astropy
