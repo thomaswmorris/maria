@@ -494,7 +494,7 @@ class LAM():
                     prog.update(1)
                 
         
-    def simulate(self, do_atmosphere=True, verbose=False):
+    def simulate_atmosphere(self, do_atmosphere=True, verbose=False):
         
         self.sim_start = ttime.time()
         self.initialize_atmosphere()

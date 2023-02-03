@@ -47,4 +47,4 @@ plan = maria.Plan(plan_config_list[0])
 def test_linear_angular_model():
     
     lam = maria.LAM(AtLAST, plan, verbose=True) 
-    lam.simulate()
+    lam.simulate_atmosphere()
