@@ -3,6 +3,8 @@
 import numpy as np
 import scipy as sp
 import pandas as pd
+import os
+import h5py
 
 from tqdm import tqdm
 
@@ -26,7 +28,7 @@ from datetime import datetime
 # because all practical telescope instrumentation assume a constant band
 
 
-
+base, this_filename = os.path.split(__file__)
 
 # there are a few ways to define an array. 
 # first, we need to determine the bands:
@@ -114,14 +116,18 @@ class Array():
             self.get_beam_profile = lambda r, r_fwhm : np.exp(np.log(0.5)*np.abs(r/r_fwhm)**8)
             self.beam_func = self.get_beam_profile
 
-        # position detectors:
         self.site = self.config['site']
-        self.latitude, self.longitude, self.altitude = sites.loc[sites.index == self.site, ['latitude', 'longitude', 'altitude']].values[0]
 
-        self.coordinator  = utils.coordinator(lat=self.latitude, lon=self.longitude)
+        # use weathergen convention for site data
+        self.site_data   = weathergen.sites.loc[self.site]
+        self.latitude    = self.site_data.latitude
+        self.longitude   = self.site_data.longitude
+        self.altitude    = self.site_data.altitude
+        self.coordinator = utils.coordinator(lat=self.latitude, lon=self.longitude)
 
+    # filtering utilities
     def make_filter(self, waist, res, func, width_per_waist=1.2):
-    
+
         filter_width = width_per_waist * waist
         n_filter = 2 * int(np.ceil(0.5 * filter_width / res)) + 1
 
@@ -134,7 +140,7 @@ class Array():
         FILTER /= FILTER.sum()
         
         return FILTER
-    
+
     def separate_filter(self, F, tol=1e-2):
         
         u, s, v = la.svd(F); eff_filter = 0
@@ -158,7 +164,6 @@ class Array():
 
 
 # the 'site' inherits from the weathergen site  
-
 DEFAULT_PLAN_CONFIG = {    'start_time' : '2022-07-01T08:00:00',
                              'end_time' : '2022-07-01T08:10:00',
                          'scan_pattern' : 'daisy',      # [.]   the type of scan strategy (SS)
@@ -261,23 +266,36 @@ class LAM():
 
         #### COMPUTE SPECTRA ####
 
-        self.am = np.load(path.join(path.abspath(path.dirname(__file__)), 'am.npy'), allow_pickle=True)[()]
+        class AM():
+            def __init__(self):
+                '''
+                A dummy class to hold AM spectra as attributes
+                '''
+                pass
 
-        self.array.am_passbands  = sp.interpolate.interp1d(self.array.nu, self.array.passbands, bounds_error=False, fill_value=0, kind='cubic')(1e9*self.am['freq'])
+        self.am = AM()
+        self.am.filepath = f'{base}/am/{self.array.site}.h5'
+        with h5py.File(self.am.filepath, 'r') as f:
+            self.am.nu = f['nu'][:] # frequency axis of the spectrum, in GHz
+            self.am.tcwv = f['tcwv'][:] # total column water vapor, in mm
+            self.am.elev = f['elev'][:] # elevation, in degrees
+            self.am.t_rj = f['t_rj'][:] # Rayleigh-Jeans temperature, in Kelvin
+
+        self.array.am_passbands  = sp.interpolate.interp1d(self.array.nu, self.array.passbands, bounds_error=False, fill_value=0, kind='cubic')(1e9*self.am.nu)
         self.array.am_passbands /= self.array.am_passbands.sum(axis=1)[:,None]
 
         #### COMPUTE ATMOSPHERIC LAYERS ####
 
-        self.depths = np.linspace(self.min_depth, self.max_depth, self.n_layers)
-        self.thicks = np.gradient(self.depths)
+        self.layer_depths = np.linspace(self.min_depth, self.max_depth, self.n_layers)
+        self.layer_thicks = np.gradient(self.layer_depths)
 
-        self.waists = self.array.get_beam_waist(self.depths[:,None], self.array.primary_size, self.array.nu[None,:])
+        self.waists = self.array.get_beam_waist(self.layer_depths[:,None], self.array.primary_size, self.array.nu[None,:])
 
-        self.angular_waists = self.waists / self.depths[:,None]
+        self.angular_waists = self.waists / self.layer_depths[:,None]
 
         self.min_ang_res = self.angular_waists / self.min_beam_res
 
-        self.heights = self.depths[:,None,None] * np.sin(self.EL)[None]
+        self.heights = self.layer_depths[:,None,None] * np.sin(self.EL)[None]
 
         #### GENERATE WEATHER ####
         self.weather = weathergen.generate(site=self.array.site, time=np.arange(self.plan.t_min - 60, self.plan.t_max + 60, 60))
@@ -289,7 +307,7 @@ class LAM():
         
         #self.wvmd = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['water_density'])
         #self.temp = np.interp(self.heights, self.site.weather['height'] - self.site.altitude, self.site.weather['temperature'])
-        self.relative_scaling   = self.water_vapor * self.temperature * self.thicks[:, None, None]
+        self.relative_scaling   = self.water_vapor * self.temperature * self.layer_thicks[:, None, None]
         self.layer_scaling      = np.sqrt(np.square(self.relative_scaling) / np.square(self.relative_scaling).sum(axis=0))
 
 
@@ -297,14 +315,14 @@ class LAM():
 
         #self.theta_z = self.THETA_X
 
-        #self.w_e = np.interp(self.depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_east'])
-        #self.w_n = np.interp(self.depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_north'])
+        #self.w_e = np.interp(self.layer_depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_east'])
+        #self.w_n = np.interp(self.layer_depths[:,None] * np.sin(self.plan.c_elev)[None,:], self.site.weather['height'] - self.site.altitude, self.site.weather['wind_north'])
 
         self.wind_bearing = np.arctan2(self.wind_east, self.wind_north)
         self.wind_speed = np.sqrt(np.square(self.wind_east) + np.square(self.wind_north))
 
-        self.AWV_X = (+ self.wind_east * np.cos(self.AZ[None]) - self.wind_north * np.sin(self.AZ[None])) / self.depths[:,None,None]
-        self.AWV_Y = (- self.wind_east * np.sin(self.AZ[None]) + self.wind_north * np.cos(self.AZ[None])) / self.depths[:,None,None] * np.sin(self.EL[None])
+        self.AWV_X = (+ self.wind_east * np.cos(self.AZ[None]) - self.wind_north * np.sin(self.AZ[None])) / self.layer_depths[:,None,None]
+        self.AWV_Y = (- self.wind_east * np.sin(self.AZ[None]) + self.wind_north * np.cos(self.AZ[None])) / self.layer_depths[:,None,None] * np.sin(self.EL[None])
         
         self.REL_X = self.X[None] + np.cumsum(self.AWV_X * self.plan.dt, axis=-1)
         self.REL_Y = self.Y[None] + np.cumsum(self.AWV_Y * self.plan.dt, axis=-1) 
@@ -320,9 +338,9 @@ class LAM():
         self.p = np.zeros((self.REL_X.shape))
         self.o = np.zeros((self.REL_X.shape))
 
-        self.MARA = []
+        self.layer_rotation_angles = []
         self.outer_scale = 5e2
-        self.ang_outer_scale = self.outer_scale / self.depths
+        self.ang_outer_scale = self.outer_scale / self.layer_depths
         
         self.theta_edge_z = []
 
@@ -333,7 +351,7 @@ class LAM():
 
         self.padding = (radius_sample_prop + beam_tol) * max_layer_beam_radii
         
-        for i_l, depth in enumerate(self.depths):
+        for i_l, depth in enumerate(self.layer_depths):
 
             rel_c  = np.c_[self.rel_c_x[i_l], self.rel_c_y[i_l]]
             rel_c += 1e-12 * np.random.standard_normal(size=rel_c.shape)
@@ -342,12 +360,12 @@ class LAM():
             h_x, h_y = hull.points[hull.vertices].T; h_z = h_x + 1j * h_y
             layer_hull_theta_z = h_z * (np.abs(h_z) + self.padding[i_l]) / np.abs(h_z)
 
-            self.MARA.append(utils.get_MARA(layer_hull_theta_z.ravel()))
+            self.layer_rotation_angles.append(utils.get_minimal_bounding_rotation_angle(layer_hull_theta_z.ravel()))
 
             rel_theta_x = self.array.offset_x[:, None] + self.rel_c_x[i_l][None, :]
             rel_theta_y = self.array.offset_y[:, None] + self.rel_c_y[i_l][None, :]
             
-            zop = (rel_theta_x + 1j * rel_theta_y) * np.exp(1j*self.MARA[-1]) 
+            zop = (rel_theta_x + 1j * rel_theta_y) * np.exp(1j*self.layer_rotation_angles[-1]) 
             self.p[i_l], self.o[i_l] = np.real(zop), np.imag(zop)
 
             res = self.min_ang_res[i_l].min()
@@ -390,8 +408,8 @@ class LAM():
         
             ORTH_, PARA_ = np.meshgrid(orth_, para_)
             
-            self.genz.append(np.exp(-1j*self.MARA[-1]) * (PARA_[0] + 1j*ORTH_[0] - res) )
-            XYZ = np.exp(-1j*self.MARA[-1]) * (PARA_ + 1j*ORTH_) 
+            self.genz.append(np.exp(-1j*self.layer_rotation_angles[-1]) * (PARA_[0] + 1j*ORTH_[0] - res) )
+            XYZ = np.exp(-1j*self.layer_rotation_angles[-1]) * (PARA_ + 1j*ORTH_) 
             
             self.X.append(np.real(XYZ)), self.Y.append(np.imag(XYZ))
             #self.O.append(ORTH_), self.P.append(PARA_)
@@ -427,8 +445,8 @@ class LAM():
 
 
         
-        with tqdm(total=len(self.depths),desc='Computing weights') as prog:
-            for i_l, (depth, LX, LY, AR, GZ) in enumerate(zip(self.depths,self.X,self.Y,self.AR_samples,self.genz)):
+        with tqdm(total=len(self.layer_depths),desc='Computing weights') as prog:
+            for i_l, (depth, LX, LY, AR, GZ) in enumerate(zip(self.layer_depths,self.X,self.Y,self.AR_samples,self.genz)):
                 
                 cov_args  = (self.outer_scale / depth, 5/6)
                 
@@ -446,7 +464,7 @@ class LAM():
         if verbose:
             print('\n # | depth (m) | beam (m) | beam (\') | sim (m) | sim (\') | rms (mg/m2) | n_cov | orth | para | h2o (g/m3) | temp (K) | ws (m/s) | wb (deg) |')
             
-            for i_l, depth in enumerate(self.depths):
+            for i_l, depth in enumerate(self.layer_depths):
                 
                 row_string  = f'{i_l+1:2} | {depth:9.01f} | {self.waists[i_l].min():8.02f} | {60*np.degrees(self.angular_waists[i_l].min()):8.02f} | '
                 row_string += f'{depth*self.lay_ang_res[i_l]:7.02f} | {60*np.degrees(self.lay_ang_res[i_l]):7.02f} | '
@@ -476,7 +494,7 @@ class LAM():
                     prog.update(1)
                 
         
-    def simulate_atmosphere(self, do_atmosphere=True, verbose=False):
+    def simulate(self, do_atmosphere=True, verbose=False):
         
         self.sim_start = ttime.time()
         self.initialize_atmosphere()
@@ -489,7 +507,7 @@ class LAM():
 
         with tqdm(total=self.n_layers, desc='Sampling layers') as prog:
 
-            for i_d, d in enumerate(self.depths):
+            for i_d, d in enumerate(self.layer_depths):
 
                 # Compute the filtered line-of-sight pwv corresponding to each layer
                 
@@ -523,8 +541,8 @@ class LAM():
 
         self.epwv = (self.rel_flucs * self.layer_scaling).sum(axis=0)
 
-        self.epwv *= 5e1 / self.epwv.std()
-        self.epwv += 1e3 * self.weather.column_water_vapor.mean()
+        self.epwv *= 5e-2 / self.epwv.std()
+        self.epwv += self.weather.column_water_vapor.mean()
 
         self.atm_power = np.zeros(self.epwv.shape)
 
@@ -533,11 +551,11 @@ class LAM():
 
                 bm = self.array.bands == b
 
-                ba_am_trj = (self.am['trj'] * self.array.am_passbands[bm].mean(axis=0)[None,None,None,:]).sum(axis=-1)
+                ba_am_trj = (self.am.t_rj * self.array.am_passbands[bm].mean(axis=0)[None,None,:]).sum(axis=-1)
 
-                BA_TRJ_RGI = sp.interpolate.RegularGridInterpolator((self.am['zpwv'], self.am['temp'], np.radians(self.am['elev'])), ba_am_trj)
+                BA_TRJ_RGI = sp.interpolate.RegularGridInterpolator((self.am.tcwv, np.radians(self.am.elev)), ba_am_trj)
 
-                self.atm_power[bm] = BA_TRJ_RGI((self.epwv[bm], self.temperature[0].mean(), self.elev[bm]))
+                self.atm_power[bm] = BA_TRJ_RGI((self.epwv[bm], self.elev[bm]))
 
                 prog.update(1)
 

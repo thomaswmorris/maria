@@ -11,6 +11,7 @@ import pytz
 from datetime import datetime
 
 
+
 def datetime_handler(time):
     '''
     Accepts any time format you can think of, spits out datetime object
@@ -209,7 +210,7 @@ matern = lambda r,r0,nu : 2**(1-nu)/sp.special.gamma(nu)*sp.special.kv(nu,r/r0+1
     
 gaussian_beam = lambda z, w0, l, n : np.sqrt(1/np.square(z) + np.square(l) / np.square(w0 * np.pi * n))
 
-def get_MARA(z): # minimal-area rotation angle 
+def get_minimal_bounding_rotation_angle(z): # minimal-area rotation angle 
 
     H  = sp.spatial.ConvexHull(points=np.vstack([np.real(z).ravel(),np.imag(z).ravel()]).T)
     HZ = z.ravel()[H.vertices]
