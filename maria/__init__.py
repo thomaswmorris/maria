@@ -21,7 +21,6 @@ from datetime import datetime
 
 
 
-
 # how do we do the bands? this is a great question. 
 # because all practical telescope instrumentation assume a constant band
 
