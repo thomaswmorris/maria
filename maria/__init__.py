@@ -114,10 +114,10 @@ class Weobserve():
         y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)
 
         true_map = sp.stats.binned_statistic_2d(map_X.ravel(), 
-                                map_Y.ravel(),
-                                self.im.ravel(),
-                                statistic='mean',
-                                bins=(x_bins, y_bins))[0]
+                          map_Y.ravel(),
+                          self.im.ravel(),
+                          statistic='mean',
+                          bins=(x_bins, y_bins))[0]
 
         filtered_map = sp.stats.binned_statistic_2d(lam_x.ravel(), 
                                 lam_y.ravel(),
@@ -137,6 +137,7 @@ class Weobserve():
                           statistic='mean',
                           bins=(x_bins, y_bins))[0]     
         
+        self.truesky      = true_map
         self.noisemap     = noise_map
         self.filteredmap  = filtered_map
         self.mockobs      = total_map
@@ -154,17 +155,16 @@ class Weobserve():
         if not os.path.exists(self.file_save + '/analyzes'):
             os.mkdir(self.file_save + '/analyzes')
 
+        #visualize scanning patern
         fig, axes = plt.subplots(1,2,figsize=(6,3),dpi=256, tight_layout=True)
-
         axes[0].plot(np.degrees(self.lam.c_az), np.degrees(self.lam.c_el), lw=5e-1)
         axes[0].set_xlabel('az (deg)'), axes[0].set_ylabel('el (deg)')
-
         axes[1].plot(np.degrees(self.lam.c_ra), np.degrees(self.lam.c_dec), lw=5e-1)
         axes[1].set_xlabel('ra (deg)'), axes[1].set_ylabel('dec (deg)')
-
-        plt.savefig(self.file_save + '/analyzes/scanpattern.png')
+        plt.savefig(self.file_save + '/analyzes/scanpattern_'+self.file_name.replace('.fits','').split('/')[-1]+'.png')
         plt.close()
 
+        #visualize powerspectrum
         f, ps = sp.signal.periodogram(self.lam.atm_power, fs=self.lam.plan.sample_rate, window='tukey')
         plt.figure()
         plt.plot(f[1:], ps.mean(axis=0)[1:], label = 'atmosphere')
@@ -173,5 +173,27 @@ class Weobserve():
         plt.xlabel('l')
         plt.ylabel('PS')
         plt.legend()
-        plt.savefig(self.file_save + '/analyzes/Noise_ps.png')
+        plt.savefig(self.file_save + '/analyzes/Noise_ps_'+self.file_name.replace('.fits','').split('/')[-1]+'.png')
+        plt.close()
+
+        #visualize fits files
+        fig, (true_ax, signal_ax, noise_ax, total_ax) = plt.subplots(1,4,figsize=(9,3),sharex=True, sharey=True, constrained_layout=True)
+        
+        total_plt = true_ax.imshow(self.truesky)
+        true_ax.set_title('True map')
+        fig.colorbar(total_plt, ax=true_ax, location='bottom', shrink=0.8)
+
+        true_plt = signal_ax.imshow(self.filteredmap)
+        signal_ax.set_title('Filtered map')
+        fig.colorbar(true_plt, ax=signal_ax, location='bottom', shrink=0.8)
+        
+        signal_plt = noise_ax.imshow(self.noisemap)
+        noise_ax.set_title('Noise map')
+        fig.colorbar(signal_plt, ax=noise_ax, location='bottom', shrink=0.8)
+        
+        total_plt = total_ax.imshow(self.mockobs)
+        total_ax.set_title('Synthetic Observation')
+        fig.colorbar(total_plt, ax=total_ax, location='bottom', shrink=0.8)
+        
+        plt.savefig(self.file_save + '/analyzes/maps_'+self.file_name.replace('.fits','').split('/')[-1]+'.png')
         plt.close()
