@@ -29,5 +29,10 @@ SCANNINGPATTERNS = {
 
     'lissajous': {
         ...
+    },
+    
+    'rose': {
+        ...
     }
+
 }

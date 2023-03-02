@@ -12,7 +12,7 @@ import weathergen
 sites = weathergen.sites
 
 DEFAULT_LAM_CONFIG = {'min_depth' : 500,
-                      'max_depth' : 5000,
+                      'max_depth' : 2000,
                        'n_layers' : 3,
                        'min_beam_res' : 8,
                        }

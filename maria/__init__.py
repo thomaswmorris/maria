@@ -41,6 +41,7 @@ class Weobserve():
         self._run_atmos()
 
         #get the CMB?
+        ...
 
         #Get the astronomical signal
         self._get_skyconfig(**kwargs)
