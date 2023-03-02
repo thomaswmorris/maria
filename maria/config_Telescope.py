@@ -1,12 +1,12 @@
 OBSERVATORIES = {
     'AtLAST': {
         'site'           : 'chajnantor',
-        'bands'          : [(27e9, 5e9, 50),      # (band center, bandwidth, dets per band) [GHz, GHz, .]
-                            (39e9, 5e9, 50), 
-                            (93e9, 10e9, 50), 
-                            (145e9, 10e9, 50), 
-                            (225e9, 30e9, 50), 
-                            (280e9, 40e9, 50)],     
+        'bands'          : [(27e9, 5e9, 100),      # (band center, bandwidth, dets per band) [GHz, GHz, .]
+                            (39e9, 5e9, 100), 
+                            (93e9, 10e9, 100), 
+                            (145e9, 10e9, 100), 
+                            (225e9, 30e9, 100), 
+                            (280e9, 40e9, 100)],     
         'geometry'      : 'hex',                   # [.]   type of detector distribution
         'field_of_view' : 1.3,                     # [deg] maximum det separation
         'primary_size'  : 50,                      # [m]   size of the primary mirror

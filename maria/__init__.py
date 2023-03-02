@@ -94,21 +94,22 @@ class Weobserve():
     #need to rewrite this
     def _get_sky(self,):
 
-        map_res = np.radians(self.sky_data['incell']) #changed to the hyper parameter
+        map_res = np.radians(self.sky_data['incell']) 
         map_nx, map_ny = self.im.shape
 
         map_x = map_res * map_nx * np.linspace(-0.5, 0.5, map_nx)
         map_y = map_res * map_ny * np.linspace(-0.5, 0.5, map_ny)
 
         map_X, map_Y = np.meshgrid(map_x, map_y, indexing='ij')
-        map_azim, map_elev = utils.from_xy(map_X, map_Y, self.lam.azim.mean(), self.lam.elev.mean()) #performed the lam.l to lam. elev and lam.b to lam.azim change here
+        map_azim, map_elev = utils.from_xy(map_X, map_Y, self.lam.azim.mean(), self.lam.elev.mean())
 
-        map_im = np.zeros(hp.pixelfunc.nside2npix(2048)) #### hard coded something
-        map_im[hp.pixelfunc.ang2pix(2048, np.pi/2 - map_elev, map_azim)] = self.im 
+
+        # map_im = np.zeros(hp.pixelfunc.nside2npix(2048)) #### hard coded something
+        # map_im[hp.pixelfunc.ang2pix(2048, np.pi/2 - map_elev, map_azim)] = self.im 
 
         lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
         map_data = sp.interpolate.RegularGridInterpolator((map_x, map_y), self.im, bounds_error=False, fill_value=0)((lam_x, lam_y))
-        map_data = hp.get_interp_val(map_im, np.pi/2 - self.lam.elev, self.lam.azim)
+        # map_data = hp.get_interp_val(map_im, np.pi/2 - self.lam.elev, self.lam.azim)
 
         #what is this?
         x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
@@ -128,7 +129,7 @@ class Weobserve():
         
         total_map = sp.stats.binned_statistic_2d(lam_x.ravel(), 
                           lam_y.ravel(),
-                          (map_data + self.lam.atm_power).ravel(), #should add CMB here, changed atm_power_data to chagned atm_power
+                          (map_data + self.lam.atm_power).ravel(),
                           statistic='mean',
                           bins=(x_bins, y_bins))[0]    
 
