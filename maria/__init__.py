@@ -1,5 +1,6 @@
 
 # -- General packages --
+import os
 import numpy as np
 import scipy as sp
 import healpy as hp
@@ -41,17 +42,10 @@ class Weobserve():
 
         #get the CMB?
 
-
         #Get the astronomical signal
         self._get_skyconfig(**kwargs)
         self._get_sky()
         self._savesky()
-        
-        # save relevant files
-        #   Noise map
-        #   Model map without noise
-        #   Model map with Noise
-        #   observation details?
 
     def _get_configs(self, **kwargs):
 
@@ -108,8 +102,8 @@ class Weobserve():
         map_X, map_Y = np.meshgrid(map_x, map_y, indexing='ij')
         map_azim, map_elev = utils.from_xy(map_X, map_Y, self.lam.azim.mean(), self.lam.elev.mean()) #performed the lam.l to lam. elev and lam.b to lam.azim change here
 
-        map_im = np.zeros(hp.pixelfunc.nside2npix(len(self.im))) #### hard coded imsize --> changed to len(self.im)
-        map_im[hp.pixelfunc.ang2pix(2048, np.pi/2 - map_elev, map_azim)] = self.im
+        map_im = np.zeros(hp.pixelfunc.nside2npix(2048)) #### hard coded something
+        map_im[hp.pixelfunc.ang2pix(2048, np.pi/2 - map_elev, map_azim)] = self.im 
 
         lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
         map_data = sp.interpolate.RegularGridInterpolator((map_x, map_y), self.im, bounds_error=False, fill_value=0)((lam_x, lam_y))
@@ -118,7 +112,7 @@ class Weobserve():
         #what is this?
         x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
         y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)
-        
+
         true_map = sp.stats.binned_statistic_2d(map_X.ravel(), 
                                 map_Y.ravel(),
                                 self.im.ravel(),
@@ -139,7 +133,7 @@ class Weobserve():
 
         noise_map = sp.stats.binned_statistic_2d(lam_x.ravel(), 
                           lam_y.ravel(),
-                          self.lam.atm_power.ravel(), #should add CMB here, changed atm_power_data to chagned atm_power
+                          self.lam.atm_power.ravel(), #should add CMB here
                           statistic='mean',
                           bins=(x_bins, y_bins))[0]     
         
@@ -147,27 +141,37 @@ class Weobserve():
         self.filteredmap  = filtered_map
         self.mockobs      = total_map
 
-        plt.figure()
-        plt.imshow(true_map)
-        plt.colorbar(location='bottom', shrink=0.8)
-        plt.show()
-
-        plt.figure()
-        plt.imshow(self.noisemap)
-        plt.colorbar(location='bottom', shrink=0.8)
-        plt.show()
-
-        plt.figure()
-        plt.imshow(self.filteredmap)
-        plt.colorbar(location='bottom', shrink=0.8)
-        plt.show()
-
-        plt.figure()
-        plt.imshow(self.mockobs)
-        plt.colorbar(location='bottom', shrink=0.8)
-        plt.show()
-
-        
     def _savesky(self,):
-        ...
 
+        if not os.path.exists(self.file_save):
+            os.mkdir(self.file_save)
+
+        #update header with the kwargs
+        fits.writeto(self.file_save + '/' + self.file_name.replace('.fits','_noisemap.fits').split('/')[-1], self.noisemap, header = self.he, overwrite = True)
+        fits.writeto(self.file_save + '/' + self.file_name.replace('.fits','_filtered.fits').split('/')[-1], self.filteredmap, header = self.he, overwrite = True)
+        fits.writeto(self.file_save + '/' + self.file_name.replace('.fits','_synthetic.fits').split('/')[-1], self.mockobs, header = self.he, overwrite = True)
+
+        if not os.path.exists(self.file_save + '/analyzes'):
+            os.mkdir(self.file_save + '/analyzes')
+
+        fig, axes = plt.subplots(1,2,figsize=(6,3),dpi=256, tight_layout=True)
+
+        axes[0].plot(np.degrees(self.lam.c_az), np.degrees(self.lam.c_el), lw=5e-1)
+        axes[0].set_xlabel('az (deg)'), axes[0].set_ylabel('el (deg)')
+
+        axes[1].plot(np.degrees(self.lam.c_ra), np.degrees(self.lam.c_dec), lw=5e-1)
+        axes[1].set_xlabel('ra (deg)'), axes[1].set_ylabel('dec (deg)')
+
+        plt.savefig(self.file_save + '/analyzes/scanpattern.png')
+        plt.close()
+
+        f, ps = sp.signal.periodogram(self.lam.atm_power, fs=self.lam.plan.sample_rate, window='tukey')
+        plt.figure()
+        plt.plot(f[1:], ps.mean(axis=0)[1:], label = 'atmosphere')
+        plt.plot(f[1:], f[1:] ** (-8/3), label = 'y = f^-(8/3)')
+        plt.loglog()
+        plt.xlabel('l')
+        plt.ylabel('PS')
+        plt.legend()
+        plt.savefig(self.file_save + '/analyzes/Noise_ps.png')
+        plt.close()
