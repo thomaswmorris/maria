@@ -21,7 +21,7 @@ AtLAST_config = {           'site' : 'chajnantor',
                 }
 
 static_config = { 'coord_throw' : (2, 0),
-                 'scan_options' : {'k' : 3.1416}, # 
+                 'scan_options' : {}, # 
                  'scan_pattern' : 'back-and-forth',
                   'scan_period' : 120,        # [s]   how often the scan pattern repeats
                   'sample_rate' : 20,        # [Hz]  how fast to sample
@@ -29,7 +29,7 @@ static_config = { 'coord_throw' : (2, 0),
 
 from maria.utils import Planner 
 
-AtLAST  = maria.Array(AtLAST_config)
+AtLAST = maria.Array(AtLAST_config)
 
 planner = Planner(AtLAST)
 plan_configs = planner.make_plans(start='2023-08-01', 

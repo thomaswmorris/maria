@@ -11,6 +11,50 @@ import pytz
 from datetime import datetime
 
 
+def _beam_sigma(z, primary_size, nu):
+    
+    c  = 2.998e8
+    n  = 1
+    w0 = primary_size / np.sqrt(2*np.log(2))
+    zR = np.pi * w0 ** 2 * n * nu / c
+    
+    return 0.5 * w0 * np.sqrt(1 + (z/zR) ** 2)
+    
+
+
+def normalized_matern(r, r0, nu):
+
+    nu    = 5/6
+    d_eff = np.abs(r)/r0
+
+    return 2**(1-nu)*sp.special.kv(nu, np.sqrt(2*nu)*d_eff+1e-6)*(np.sqrt(2*nu)*d_eff+1e-6)**nu/sp.special.gamma(nu)
+
+def _approximate_normalized_matern(r, r0, nu, n_test_points=1024):
+    '''
+    Computing BesselK[nu,z] for arbitrary nu is expensive. This is good for casting over huge matrices.
+    '''
+    
+    _r = np.atleast_1d(np.abs(r))
+    
+    r_min = np.minimum(1e-6*r0, _r[_r>0].min())
+    r_max = np.maximum(1e02*r0, _r.max())
+    
+    rrel = np.cumsum(np.linspace(0, 1, n_test_points) ** 4)
+    r_test = rrel * (r_max - r_min) / rrel.max() + r_min
+
+    return np.exp(np.interp(np.abs(r), r_test, np.log(normalized_matern(r_test, r0, 1/3))))
+
+
+def _fast_psd_inverse(M):
+    '''
+    About twice as fast as np.linalg.inv for large, PSD matrices.
+    '''
+
+    cholesky, dpotrf_info = sp.linalg.lapack.dpotrf(M)
+    invM, dpotri_info = sp.linalg.lapack.dpotri(cholesky)
+    return np.where(invM, invM, invM.T)
+
+
 
 def datetime_handler(time):
     '''
@@ -62,39 +106,35 @@ def validate_args(DICT, necessary_args):
     if not len(missing_args) == 0: 
         raise Exception(f'missing arguments {missing_args}')
 
-def baf_pointing(time, period, centers, throws, options={}):
-
-    validate_args(options, [])                                                        
+def baf_pointing(time, period, centers, throws):
+                                                     
     p = 2 * np.pi * time / period
     return centers[0]+throws[0]*sp.signal.sawtooth(p, width=0.5), centers[1]+throws[1]*sp.signal.sawtooth(p, width=0.5)
 
-def box_pointing(time, period, centers, throws, options={}):
-
-    validate_args(options, [])                                                        
+def box_pointing(time, period, centers, throws):
+                                               
     p = 2 * np.pi * time / period
     return centers[0]+throws[0]*np.interp(p % (2*np.pi),np.linspace(0,2*np.pi,5),[-1,-1,+1,+1,-1]), centers[1]+throws[1]*np.interp(p,np.linspace(0,2*np.pi,5),[-1,+1,+1,-1,-1])
 
-def daisy_pointing(time, period, centers, throws, options={}): 
-
-    validate_args(options, ['k'])                                                        
+def daisy_pointing(time, period, centers, throws, k=np.pi, center_offset=1e-1): 
+                                                    
     p = 2 * np.pi * time / period # green 
-    r = 1.01 * np.sin(options['k'] * p) - 0.01
+    r = (1 + center_offset) * np.sin(k * p) - center_offset
     return centers[0]+throws[0]*r*np.cos(p), centers[1]+throws[1]*r*np.sin(p)
 
-def lissajous_pointing(time, period, centers, throws, options={}): 
-
-    validate_args(options, ['k_az', 'k_el'])                                                        
+def lissajous_pointing(time, period, centers, throws, **kwargs): 
+                                                     
     p = 2 * np.pi * time / period
     return centers[0]+throws[0]*np.sin(options['k_az']*p), centers[1]+throws[1]*np.sin(options['k_el']*p)
 
-def get_pointing(time, period, centers, throws, plan_type, options):
+def get_pointing(time, period, centers, throws, plan_type, kwargs_dict):
 
     if plan_type == 'back-and-forth' :       plan_func = baf_pointing
     if plan_type == 'box' :       plan_func = box_pointing
     if plan_type == 'daisy' :     plan_func = daisy_pointing
     if plan_type == 'lissajous' : plan_func = lissajous_pointing
 
-    return plan_func(time, period, centers, throws, options)
+    return plan_func(time, period, centers, throws, **kwargs_dict)
 
 class coordinator():
 
