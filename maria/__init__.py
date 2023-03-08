@@ -14,12 +14,8 @@ sites = weathergen.sites
 
 # -- Specific packages --
 from . import utils
-from .config_ScanPattern import *
-from .config_Telescope import *
-
-from .object_PLAN import *
-from .object_ARRAY import *
-from .object_LAM import *
+from .configs import *
+from .objects import *
 
 # -- Don't know what to do with this --
 def is_isoformat(x):
