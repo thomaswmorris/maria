@@ -61,6 +61,7 @@ SCANNINGPATTERNS = {
         'coord_frame'   : 'ra_dec',            # ra_dec or az_el
         'scan_period'   : 120,                 # [s]   how often the scan pattern repeats
         'sample_rate'   : 20,                  # [Hz]  how fast to sample
+        'seed'          : 42
     },
 
     'box': {
@@ -77,6 +78,7 @@ SCANNINGPATTERNS = {
         'coord_frame'  : 'ra_dec',
         'scan_period'  : 60,               # [s]   how often the scan pattern repeats
         'sample_rate'  : 20,               # [Hz]  how fast to sample
+        'seed'         : 42
     },
 
     'lissajous': {

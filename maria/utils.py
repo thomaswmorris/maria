@@ -3,6 +3,8 @@ import pytz
 import numpy as np
 import scipy as sp
 import astropy as ap
+import astropy.constants as const
+from astropy import units as u
 
 from numpy import linalg as la
 from datetime import datetime
@@ -286,3 +288,31 @@ def from_xy(dx, dy, c_p, c_t):
     gyz = (Y+1j*Z)*np.exp(-1j*(np.pi/2-c_t))
     ground_Y, ground_Z = np.real(gyz), np.imag(gyz)
     return (np.angle(ground_Y+1j*ground_X) + c_p) % (2*np.pi), np.arcsin(ground_Z)
+
+
+
+# Kelvin CMB to Jy/pixel
+# ----------------------------------------------------------------------
+global Tcmb; Tcmb = 2.7255
+def getJynorm():
+    factor  = 2e26
+    factor *= (const.k_B*Tcmb*u.Kelvin)**3 # (kboltz*Tcmb)**3.0
+    factor /= (const.h*const.c)**2         # (hplanck*clight)**2.0
+    return factor.value
+
+def getx(freq):
+    factor = const.h*freq*u.Hz/const.k_B/(Tcmb*u.Kelvin)
+    return factor.to(u.dimensionless_unscaled).value
+
+def KcmbToJyPix(freq,ipix,jpix):
+    x = getx(freq)
+    factor  = getJynorm()/Tcmb
+    factor *= (x**4)*np.exp(x)/(np.expm1(x)**2)
+    factor *= np.abs(ipix*jpix)*(np.pi/1.8e2)*(np.pi/1.8e2)
+    return factor
+
+def KcmbToJy(freq):
+    x = getx(freq)
+    factor  = getJynorm()/Tcmb
+    factor *= (x**4)*np.exp(x)/(np.expm1(x)**2)
+    return factor
