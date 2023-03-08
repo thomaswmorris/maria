@@ -5,6 +5,8 @@ import numpy as np
 import scipy as sp
 import healpy as hp
 
+import camb
+
 from datetime import datetime
 from matplotlib import pyplot as plt
 from astropy.io import fits
@@ -37,7 +39,7 @@ class Weobserve():
         self._run_atmos()
 
         #get the CMB?
-        ...
+        self._get_cmb()
 
         #Get the astronomical signal
         self._get_skyconfig(**kwargs)
@@ -74,13 +76,27 @@ class Weobserve():
 
             self.lam.simulate_atmosphere()
 
+    def _get_cmb(self, ):
+
+        pars = camb.CAMBparams()
+        pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06)
+        pars.InitPower.set_params(As=2e-9, ns=0.965, r=0)
+        pars.set_for_lmax(5000, lens_potential_accuracy=0)
+        
+        results = camb.get_results(pars)
+        powers = results.get_cmb_power_spectra(pars, CMB_unit='muK')
+        self.CMB_PS = powers['total'][:,0] 
+
+
+        
+
     def _get_skyconfig(self, **kwargs):
         hudl = fits.open(self.file_name)
         self.im = hudl[0].data
         self.he = hudl[0].header
 
         self.sky_data = {
-            'inbright':     kwargs.get('inbright', None), #assuming written in Jy/pixel
+            'inbright':     kwargs.get('inbright', None), #assuming something
             'incell':       kwargs.get('incell',   self.he['CDELT1']), #assuming written in degree
             'inwidth':      kwargs.get('inwidth',  None), #assuming written in Hz --> for the spectograph...
         }
@@ -99,12 +115,11 @@ class Weobserve():
         map_X, map_Y = np.meshgrid(map_x, map_y, indexing='ij')
         map_azim, map_elev = utils.from_xy(map_X, map_Y, self.lam.azim.mean(), self.lam.elev.mean())
 
-
-        # map_im = np.zeros(hp.pixelfunc.nside2npix(2048)) #### hard coded something
-        # map_im[hp.pixelfunc.ang2pix(2048, np.pi/2 - map_elev, map_azim)] = self.im 
-
         lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
         map_data = sp.interpolate.RegularGridInterpolator((map_x, map_y), self.im, bounds_error=False, fill_value=0)((lam_x, lam_y))
+
+        # map_im = np.zeros(hp.pixelfunc.nside2npix(2048)) #### hard coded something
+        # map_im[hp.pixelfunc.ang2pix(2048, np.pi/2 - map_elev, map_azim)] = CMB...
         # map_data = hp.get_interp_val(map_im, np.pi/2 - self.lam.elev, self.lam.azim)
 
         #what is this?
