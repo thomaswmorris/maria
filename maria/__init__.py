@@ -42,7 +42,6 @@ class Weobserve():
 
         #get the CMB?
         self._get_CMBPS()
-        
 
         #Get the astronomical signal
         self._get_skyconfig(**kwargs)
@@ -70,7 +69,6 @@ class Weobserve():
             
         #   integration time --> integration
         #   pwv --> 0.5 mm
-        #   direction --> indirection
 
     def _run_atmos(self):
             self.lam = LAM(Array(self.ARRAY_CONFIG), 
@@ -134,6 +132,7 @@ class Weobserve():
         lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
         
 
+
         #MAP  MAKING STUFF
         map_data = sp.interpolate.RegularGridInterpolator((map_x, map_y), self.im, bounds_error=False, fill_value=0)((lam_x, lam_y))
         
@@ -156,7 +155,6 @@ class Weobserve():
                                 statistic='mean',
                                 bins=(x_bins, y_bins)
                                 )[0]
-        
         
         total_map = sp.stats.binned_statistic_2d(lam_x.ravel(), 
                           lam_y.ravel(),
