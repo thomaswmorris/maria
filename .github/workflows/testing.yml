@@ -17,9 +17,13 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
+      - name: Install dependencies with pip
         run: |
           pip install -r requirements.txt
+
+      - name: Install dependencies with conda
+        run: |
+          conda install -c conda-forge namaster
 
       - name: Test the code
         run: |
