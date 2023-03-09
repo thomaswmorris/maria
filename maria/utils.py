@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
+import pytz
 import numpy as np
 import scipy as sp
 import astropy as ap
+import astropy.constants as const
+from astropy import units as u
 
 from numpy import linalg as la
-from scipy import cluster
-from astropy import time, coordinates
-
-import pytz
 from datetime import datetime
-
 
 def _beam_sigma(z, primary_size, nu):
     
@@ -53,8 +51,6 @@ def _fast_psd_inverse(M):
     cholesky, dpotrf_info = sp.linalg.lapack.dpotrf(M)
     invM, dpotri_info = sp.linalg.lapack.dpotri(cholesky)
     return np.where(invM, invM, invM.T)
-
-
 
 def datetime_handler(time):
     '''
@@ -142,15 +138,11 @@ class coordinator():
     # we use astropy to compute this for a few test points, and then use the answer it to efficiently broadcast very big arrays
 
     def __init__(self, lon, lat):
-
-        
-
         self.lc = ap.coordinates.EarthLocation.from_geodetic(lon=lon,lat=lat)
 
         self.fid_p   = np.radians(np.array([0,0,90]))
         self.fid_t   = np.radians(np.array([90,0,0]))
         self.fid_xyz = np.c_[np.sin(self.fid_p) * np.cos(self.fid_t), np.cos(self.fid_p) * np.cos(self.fid_t), np.sin(self.fid_t)] # the XYZ coordinates of our fiducial test points on the unit sphere
-
 
         # in order for this to be efficient, we need to use time-invariant frames 
         # 
@@ -195,15 +187,10 @@ class coordinator():
 
         return np.reshape(trans_phi % (2 * np.pi), phi.shape), np.reshape(trans_theta, theta.shape)
 
-
-
 # ================ ARRAY ================
-
-
 
 def get_passband(nu, nu_0, nu_w, order=4):
     return np.exp(-np.abs((nu-nu_0)/(nu_w/2))**order)
-
 
 def make_array(array_shape, max_fov, n_det):
 
@@ -226,7 +213,6 @@ def make_array(array_shape, max_fov, n_det):
     
     raise ValueError('Please specify a valid array type. Valid array types are:\n'+
               '\n'.join(valid_array_types))
-    
     
 def make_hex(n,d):
     
@@ -292,7 +278,6 @@ def make_beam_filter(side,window_func,args):
     
     return beam_W / beam_W.sum()
 
-
 def make_2d_covariance_matrix(C,args,x0,y0,x1=None,y1=None,auto=True):
     if auto:
         n = len(x0); i,j = np.triu_indices(n,1)
@@ -304,8 +289,6 @@ def make_2d_covariance_matrix(C,args,x0,y0,x1=None,y1=None,auto=True):
         c = C(np.sqrt(np.square(np.subtract.outer(x0,x1))
                     + np.square(np.subtract.outer(y0,y1))),*args)
     return c
-
-
 
 def get_sub_splits(time_,xvel_,durations=[]):
 
@@ -329,8 +312,6 @@ def get_sub_splits(time_,xvel_,durations=[]):
 
     return sub_splits
     
-
-    
 def get_brightness_temperature(f_pb,pb,f_spec,spec):
 
     return sp.integrate.trapz(sp.interpolate.interp1d(f_spec, spec, axis=-1)(f_pb)*pb,f_pb,axis=-1) / sp.integrate.trapz(pb,f_pb)
@@ -347,3 +328,30 @@ def from_xy(dx, dy, c_p, c_t):
     ground_Y, ground_Z = np.real(gyz), np.imag(gyz)
     return (np.angle(ground_Y+1j*ground_X) + c_p) % (2*np.pi), np.arcsin(ground_Z)
 
+
+
+# Kelvin CMB to Jy/pixel
+# ----------------------------------------------------------------------
+global Tcmb; Tcmb = 2.7255
+def getJynorm():
+    factor  = 2e26
+    factor *= (const.k_B*Tcmb*u.Kelvin)**3 # (kboltz*Tcmb)**3.0
+    factor /= (const.h*const.c)**2         # (hplanck*clight)**2.0
+    return factor.value
+
+def getx(freq):
+    factor = const.h*freq*u.Hz/const.k_B/(Tcmb*u.Kelvin)
+    return factor.to(u.dimensionless_unscaled).value
+
+def KcmbToJyPix(freq,ipix,jpix):
+    x = getx(freq)
+    factor  = getJynorm()/Tcmb
+    factor *= (x**4)*np.exp(x)/(np.expm1(x)**2)
+    factor *= np.abs(ipix*jpix)*(np.pi/1.8e2)*(np.pi/1.8e2)
+    return factor
+
+def KcmbToJy(freq):
+    x = getx(freq)
+    factor  = getJynorm()/Tcmb
+    factor *= (x**4)*np.exp(x)/(np.expm1(x)**2)
+    return factor

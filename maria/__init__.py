@@ -1,7 +1,9 @@
 
-
+# -- General packages --
+import os
 import numpy as np
 import scipy as sp
+
 import pandas as pd
 import os
 import h5py
@@ -9,19 +11,15 @@ import h5py
 from tqdm import tqdm
 
 import warnings
+import healpy as hp
 
-from scipy import signal, spatial
-from numpy import linalg as la
-
-from importlib import resources
-import time as ttime
-from . import utils
-import weathergen
-from os import path
+#CMB stuff
+import camb
+import pymaster as nmt
 
 from datetime import datetime
-
-
+from matplotlib import pyplot as plt
+from astropy.io import fits
 
 
 # how do we do the bands? this is a great question. 
@@ -44,47 +42,53 @@ base, this_filename = os.path.split(__file__)
 # 
 #
 #
+
+import weathergen
+
 sites = weathergen.sites
 
+# -- Specific packages --
+from . import utils
+from .configs import *
+from .objects import *
+
+# -- Don't know what to do with this --
 def is_isoformat(x):
     try: datetime.fromisoformat(x); return True
     except: return False
 
-class PointingError(Exception):
-    pass
+# -- The "Call this class to get your mock-ob" part --
+class Weobserve():
+    def __init__(self, project, skymodel, verbose=True, **kwargs):
 
-# this is the default array_config, which will be instantiated if another array_config is not passed to maria.Array()
+        self.verbose = verbose
+        self.file_name = skymodel
+        self.file_save = project
 
-DEFAULT_ARRAY_CONFIG = {        'site' : 'chajnantor',
-                               'bands' : [(27e9, 10e9, 50), (39e9, 10e9, 50), (93e9, 10e9, 50), (145e9, 10e9, 50), (225e9, 10e9, 50), (280e9, 10e9, 50)],     # [Hz]  band centers
-                            'geometry' : 'hex',     # [.]   type of detector distribution
-                       'field_of_view' : 0.5,       # [deg] maximum det separation
-                        'primary_size' : 12,         # [m]   size of the primary mirror
-                       'band_grouping' : 'randomized', 
-                    }
+        # get proper telescope
+        self._get_configs(**kwargs)
 
-class Array():
+        #get the atmosphere --> Should do something with the pwv
+        self._run_atmos()
 
-    def __init__(self, config=DEFAULT_ARRAY_CONFIG, verbose=False):
+        #get the CMB?
+        self._get_CMBPS()
 
-        self.config = config
+        #Get the astronomical signal
+        self._get_skyconfig(**kwargs)
+        self._get_sky()
+        self._savesky()
 
-        for k, v in config.items(): setattr(self, k, v)
+    def _get_configs(self, **kwargs):
 
-        # these are the minimal 
-        #required_args_auto = ['bands', 'field_of_view', 'geometry']
-        #if np.isin(required_args_auto, list(config.keys())).all():
+        self.meta_data = {   
+            'Observatory':     kwargs.get('Observatory', 'AtLAST'),
+            'Scanning_patern': kwargs.get('Scanning_patern', 'daisy')
+        }
 
-        self.field_of_view = self.config['field_of_view']
-        self.primary_size  = self.config['primary_size']
-       
-        self.bands, self.bandwidths, self.n_det = np.empty(0), np.empty(0), 0
-        for nu_0, nu_w, n in self.config['bands']:
-            self.bands, self.bandwidths = np.r_[self.bands, np.repeat(nu_0, n)], np.r_[self.bandwidths, np.repeat(nu_w, n)]
-            self.n_det += n
-
-        self.offsets  = utils.make_array(self.config['geometry'], self.field_of_view, self.n_det)
-        self.offsets *= np.pi / 180 # put these in radians
+        #get your defaults
+        self.ARRAY_CONFIG = OBSERVATORIES[self.meta_data['Observatory']]
+        self.PLAN_CONFIG  = SCANNINGPATTERNS[self.meta_data['Scanning_patern']]
         
         # compute detector offsets
         
@@ -221,50 +225,6 @@ class LAM():
 
         self.array, self.plan = array, plan
         self.config = {}
-        
-        for key, val in config.items(): 
-            self.config[key] = val
-            setattr(self, key, val)
-
-        self.initialize(**kwargs)
-
-    def initialize(self, verbose):
-
-
-        #### COMPUTE POINTING ####
-
-        if self.plan.coord_frame == 'az_el': 
-
-            self.c_az, self.c_el  = np.radians(self.plan.coords[0]), np.radians(self.plan.coords[1])
-            self.c_ra, self.c_dec = self.array.coordinator.transform(self.plan.unix, self.c_az.copy(), self.c_el.copy(), in_frame='az_el', out_frame='ra_dec') 
-
-        if self.plan.coord_frame == 'ra_dec': 
-            
-            self.c_ra, self.c_dec = np.radians(self.plan.coords[0]), np.radians(self.plan.coords[1])
-            self.c_az, self.c_el  = self.array.coordinator.transform(self.plan.unix, self.c_ra.copy(), self.c_dec.copy(), in_frame='ra_dec', out_frame='az_el') 
-
-
-        self.c_x, self.c_y = utils.to_xy(self.c_az, self.c_el, self.c_az.mean(), self.c_el.mean())
-
-        self.X = self.array.offset_x[:, None] + self.c_x[None, :] 
-        self.Y = self.array.offset_y[:, None] + self.c_y[None, :]
-
-        self.AZ, self.EL = utils.from_xy(self.X, self.Y, self.c_az.mean(), self.c_el.mean()) # get the 
-
-        self.az_vel = np.gradient(self.c_az)   / np.gradient(self.plan.unix)
-        self.az_acc = np.gradient(self.az_vel) / np.gradient(self.plan.unix)
-
-        self.el_vel = np.gradient(self.c_el)   / np.gradient(self.plan.unix)
-        self.el_acc = np.gradient(self.el_vel) / np.gradient(self.plan.unix)
-
-        self.azim, self.elev = utils.from_xy(self.array.offset_x[:,None], self.array.offset_y[:,None], self.c_az, self.c_el)
-
-        if self.elev.min() < np.radians(20):
-            warnings.warn(f'Some detectors come within 20 degrees of the horizon, atmospheric model may be inaccurate (el_min = {np.degrees(self.elev.min()):.01f}°)')
-        if self.elev.min() <= 0:
-            raise PointingError(f'Some detectors are pointing below the horizon! (el_min = {np.degrees(self.elev.min()):.01f}°)')
-
-        #### COMPUTE SPECTRA ####
 
         class AM():
             def __init__(self):
@@ -341,110 +301,70 @@ class LAM():
         self.layer_rotation_angles = []
         self.outer_scale = 5e2
         self.ang_outer_scale = self.outer_scale / self.layer_depths
+
+        self.layer_rotation_angles.append(utils.get_minimal_bounding_rotation_angle(layer_hull_theta_z.ravel()))
+
+        rel_theta_x = self.array.offset_x[:, None] + self.rel_c_x[i_l][None, :]
+        rel_theta_y = self.array.offset_y[:, None] + self.rel_c_y[i_l][None, :]
         
-        self.theta_edge_z = []
+        zop = (rel_theta_x + 1j * rel_theta_y) * np.exp(1j*self.layer_rotation_angles[-1]) 
+        self.p[i_l], self.o[i_l] = np.real(zop), np.imag(zop)
 
-        radius_sample_prop = 1.5
-        beam_tol = 1e-2
+        res = self.min_ang_res[i_l].min()
+        #lay_ang_res = np.minimum(self.min_ang_res[i_l].min(), 2 * orth_radius / (n_orth_min - 1))
+        #lay_ang_res = np.maximum(lay_ang_res, 2 * orth_radius / (n_orth_max - 1))
 
-        max_layer_beam_radii = 0.5 * self.angular_waists.max(axis=1)
+        para_ = np.arange(self.p[i_l].min() - self.padding[i_l] - res, self.p[i_l].max() + self.padding[i_l] + res, res)
+        orth_ = np.arange(self.o[i_l].min() - self.padding[i_l] - res, self.o[i_l].max() + self.padding[i_l] + res, res)
 
-        self.padding = (radius_sample_prop + beam_tol) * max_layer_beam_radii
-        
-        for i_l, depth in enumerate(self.layer_depths):
-
-            rel_c  = np.c_[self.rel_c_x[i_l], self.rel_c_y[i_l]]
-            rel_c += 1e-12 * np.random.standard_normal(size=rel_c.shape)
-
-            hull = sp.spatial.ConvexHull(rel_c)
-            h_x, h_y = hull.points[hull.vertices].T; h_z = h_x + 1j * h_y
-            layer_hull_theta_z = h_z * (np.abs(h_z) + self.padding[i_l]) / np.abs(h_z)
-
-            self.layer_rotation_angles.append(utils.get_minimal_bounding_rotation_angle(layer_hull_theta_z.ravel()))
-
-            rel_theta_x = self.array.offset_x[:, None] + self.rel_c_x[i_l][None, :]
-            rel_theta_y = self.array.offset_y[:, None] + self.rel_c_y[i_l][None, :]
-            
-            zop = (rel_theta_x + 1j * rel_theta_y) * np.exp(1j*self.layer_rotation_angles[-1]) 
-            self.p[i_l], self.o[i_l] = np.real(zop), np.imag(zop)
-
-            res = self.min_ang_res[i_l].min()
-            #lay_ang_res = np.minimum(self.min_ang_res[i_l].min(), 2 * orth_radius / (n_orth_min - 1))
-            #lay_ang_res = np.maximum(lay_ang_res, 2 * orth_radius / (n_orth_max - 1))
-
-            para_ = np.arange(self.p[i_l].min() - self.padding[i_l] - res, self.p[i_l].max() + self.padding[i_l] + res, res)
-            orth_ = np.arange(self.o[i_l].min() - self.padding[i_l] - res, self.o[i_l].max() + self.padding[i_l] + res, res)
-
-            n_para, n_orth = len(para_), len(orth_)
-            self.lay_ang_res.append(res)
-
-            # an efficient way to compute the minimal observing area that we need to generate
-            #self.theta_edge_z.append(layer_hull_theta_z)
-
-            #RZ = layer_hull_theta_z * np.exp(1j*self.MARA[-1])
-            
-            #para_min, para_max = np.real(RZ).min(), np.real(RZ).max()
-            #orth_min, orth_max = np.imag(RZ).min(), np.imag(RZ).max()
-            
-            #para_center, orth_center = (para_min + para_max)/2, (orth_min + orth_max)/2
-            #para_radius, orth_radius = (para_max - para_min)/2, (orth_max - orth_min)/2
+        ORTH_, PARA_ = np.meshgrid(orth_, para_)
     
-            #n_orth_min = 64
-            #n_orth_max = 1024
+        self.genz.append(np.exp(-1j*self.layer_rotation_angles[-1]) * (PARA_[0] + 1j*ORTH_[0] - res) )
+        XYZ = np.exp(-1j*self.layer_rotation_angles[-1]) * (PARA_ + 1j*ORTH_) 
+        
+        self.X.append(np.real(XYZ)), self.Y.append(np.imag(XYZ))
+        #self.O.append(ORTH_), self.P.append(PARA_)
+        
+        del rel_theta_x, rel_theta_y, zop
 
+        cov_args = (1,1)
+        
+        para_i, orth_i = [],[]
+        for ii,i in enumerate(np.r_[0,2**np.arange(np.ceil(np.log(self.n_para[-1])/np.log(2))),self.n_para[-1]-1]):
             
+            #if i * self.ang_res[i_l] > 2 * self.ang_outer_scale[i_l]:
+            #    continue
+            
+            #orth_i.append(np.unique(np.linspace(0,self.n_orth[-1]-1,int(np.maximum(self.n_orth[-1]/(i+1),16))).astype(int)))
+            orth_i.append(np.unique(np.linspace(0,self.n_orth[-1]-1,int(np.maximum(self.n_orth[-1]/(4**ii),4))).astype(int)))
+            para_i.append(np.repeat(i,len(orth_i[-1])).astype(int))
+            
+        self.AR_samples.append((np.concatenate(para_i),np.concatenate(orth_i)))
+        
+        n_cm = len(self.AR_samples[-1][0])
+        
+        if n_cm > 5000 and show_warnings:
+            
+            warning_message = f'A very large covariance matrix for layer {i_l+1} (n_side = {n_cm})'
+            warnings.warn(warning_message)
+        
+        map_res = np.radians(self.sky_data['incell']) 
+        map_nx, map_ny = self.im.shape
+
+        map_x = map_res * map_nx * np.linspace(-0.5, 0.5, map_nx)
+        map_y = map_res * map_ny * np.linspace(-0.5, 0.5, map_ny)
+
+        map_X, map_Y = np.meshgrid(map_x, map_y, indexing='ij')
+        map_azim, map_elev = utils.from_xy(map_X, map_Y, self.lam.azim.mean(), self.lam.elev.mean())
+
+        lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
         
 
 
-            #lay_ang_res = np.minimum(self.min_ang_res[i_l].min(), 2 * orth_radius / (n_orth_min - 1))
-            #lay_ang_res = np.maximum(lay_ang_res, 2 * orth_radius / (n_orth_max - 1))
-
-            
-            
-         
-            self.PARA_SPACING = np.gradient(para_).mean()
-            self.para.append(para_), self.orth.append(orth_)
-            self.n_para.append(len(para_)), self.n_orth.append(len(orth_))
+        #MAP  MAKING STUFF
+        map_data = sp.interpolate.RegularGridInterpolator((map_x, map_y), self.im, bounds_error=False, fill_value=0)((lam_x, lam_y))
         
-            ORTH_, PARA_ = np.meshgrid(orth_, para_)
-            
-            self.genz.append(np.exp(-1j*self.layer_rotation_angles[-1]) * (PARA_[0] + 1j*ORTH_[0] - res) )
-            XYZ = np.exp(-1j*self.layer_rotation_angles[-1]) * (PARA_ + 1j*ORTH_) 
-            
-            self.X.append(np.real(XYZ)), self.Y.append(np.imag(XYZ))
-            #self.O.append(ORTH_), self.P.append(PARA_)
-            
-            del rel_theta_x, rel_theta_y, zop
 
-            cov_args = (1,1)
-            
-            para_i, orth_i = [],[]
-            for ii,i in enumerate(np.r_[0,2**np.arange(np.ceil(np.log(self.n_para[-1])/np.log(2))),self.n_para[-1]-1]):
-                
-                #if i * self.ang_res[i_l] > 2 * self.ang_outer_scale[i_l]:
-                #    continue
-                
-                #orth_i.append(np.unique(np.linspace(0,self.n_orth[-1]-1,int(np.maximum(self.n_orth[-1]/(i+1),16))).astype(int)))
-                orth_i.append(np.unique(np.linspace(0,self.n_orth[-1]-1,int(np.maximum(self.n_orth[-1]/(4**ii),4))).astype(int)))
-                para_i.append(np.repeat(i,len(orth_i[-1])).astype(int))
-                
-            self.AR_samples.append((np.concatenate(para_i),np.concatenate(orth_i)))
-            
-            n_cm = len(self.AR_samples[-1][0])
-            
-            if n_cm > 5000 and show_warnings:
-                
-                warning_message = f'A very large covariance matrix for layer {i_l+1} (n_side = {n_cm})'
-                warnings.warn(warning_message)
-            
-
-        self.prec, self.csam, self.cgen, self.A, self.B = [], [], [], [], []
-
-        self.data_type = np.float32
-
-
-
-        
         with tqdm(total=len(self.layer_depths),desc='Computing weights') as prog:
             for i_l, (depth, LX, LY, AR, GZ) in enumerate(zip(self.layer_depths,self.X,self.Y,self.AR_samples,self.genz)):
                 
@@ -560,4 +480,206 @@ class LAM():
                 prog.update(1)
 
 
+class Weobserve():
+    def __init__(self, project, skymodel, verbose=True, **kwargs):
 
+        self.verbose = verbose
+        self.file_name = skymodel
+        self.file_save = project
+
+        # get proper telescope
+        self._get_configs(**kwargs)
+
+        #get the atmosphere --> Should do something with the pwv
+        self._run_atmos()
+
+        #get the CMB?
+        self._get_CMBPS()
+
+        #Get the astronomical signal
+        self._get_skyconfig(**kwargs)
+        self._get_sky()
+        self._savesky()
+
+    def _get_configs(self, **kwargs):
+
+        self.meta_data = {   
+            'Observatory':     kwargs.get('Observatory', 'AtLAST'),
+            'Scanning_patern': kwargs.get('Scanning_patern', 'daisy')
+        }
+
+        #get your defaults
+        self.ARRAY_CONFIG = OBSERVATORIES[self.meta_data['Observatory']]
+        self.PLAN_CONFIG  = SCANNINGPATTERNS[self.meta_data['Scanning_patern']]
+        
+        #additional telescope request like:
+        for k in self.ARRAY_CONFIG.keys():
+            if k in kwargs: self.ARRAY_CONFIG[k] = kwargs.get(k)
+        
+        #additional observational request like:
+        for k in self.PLAN_CONFIG.keys():
+            if k in kwargs: self.PLAN_CONFIG[k] = kwargs.get(k)
+            
+        #   integration time --> integration
+        #   pwv --> 0.5 mm
+
+    def _run_atmos(self):
+            self.lam = LAM(Array(self.ARRAY_CONFIG), 
+                            Plan(self.PLAN_CONFIG), 
+                            verbose=self.verbose) 
+
+            self.lam.simulate_atmosphere()
+
+    def _get_CMBPS(self, ):
+
+        pars = camb.CAMBparams()
+        pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06)
+        pars.InitPower.set_params(As=2e-9, ns=0.965, r=0)
+        pars.set_for_lmax(5000, lens_potential_accuracy=0)
+        
+        results = camb.get_results(pars)
+        powers = results.get_cmb_power_spectra(pars, CMB_unit='K')['total'][:,0]
+
+        #HMMMM there is a frequency dependance
+        self.CMB_PS = np.empty((len(self.ARRAY_CONFIG['bands']), len(powers)))
+        for i in range(len(self.ARRAY_CONFIG['bands'])):
+            self.CMB_PS[i] =  powers
+
+    def _cmb_imager(self, bandnumber = 0):
+        
+        nx, ny = self.im.shape
+        Lx = nx * np.deg2rad(self.sky_data['incell'])
+        Ly = ny * np.deg2rad(self.sky_data['incell'])
+
+        self.CMB_map = nmt.synfast_flat(nx, ny, Lx, Ly,
+                                 np.array([self.CMB_PS[bandnumber]]),
+                                 [0],
+                                 beam = None, 
+                                 seed = self.PLAN_CONFIG['seed'])[0]
+
+    def _get_skyconfig(self, **kwargs):
+        hudl = fits.open(self.file_name)
+        self.im = hudl[0].data
+        self.he = hudl[0].header
+
+        self.sky_data = {
+            'inbright':     kwargs.get('inbright', None), #assuming something: Jy/pix?
+            'incell':       kwargs.get('incell',   self.he['CDELT1']), #assuming written in degree
+            'inwidth':      kwargs.get('inwidth',  None), #assuming written in Hz --> for the spectograph...
+        }
+
+        if self.sky_data['inbright'] != None: self.im = self.im/np.nanmax(self.im) * self.sky_data['inbright']
+
+    #need to rewrite this
+    def _get_sky(self,):
+        
+        map_res = np.radians(self.sky_data['incell']) 
+        map_nx, map_ny = self.im.shape
+
+        map_x = map_res * map_nx * np.linspace(-0.5, 0.5, map_nx)
+        map_y = map_res * map_ny * np.linspace(-0.5, 0.5, map_ny)
+
+        map_X, map_Y = np.meshgrid(map_x, map_y, indexing='ij')
+        map_azim, map_elev = utils.from_xy(map_X, map_Y, self.lam.azim.mean(), self.lam.elev.mean())
+
+        lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
+        
+
+
+        #MAP  MAKING STUFF
+        map_data = sp.interpolate.RegularGridInterpolator((map_x, map_y), self.im, bounds_error=False, fill_value=0)((lam_x, lam_y))
+        
+        self._cmb_imager()        
+        cmb_data = sp.interpolate.RegularGridInterpolator((map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0)((lam_x, lam_y))
+
+        x_bins = np.arange(map_X.min(), map_X.max(), 8*map_res)
+        y_bins = np.arange(map_Y.min(), map_Y.max(), 8*map_res)
+
+        true_map = sp.stats.binned_statistic_2d(map_X.ravel(), 
+                          map_Y.ravel(),
+                          self.im.ravel(),
+                          statistic='mean',
+                          bins=(x_bins, y_bins)
+                          )[0]
+        
+        filtered_map = sp.stats.binned_statistic_2d(lam_x.ravel(), 
+                                lam_y.ravel(),
+                                map_data.ravel(),
+                                statistic='mean',
+                                bins=(x_bins, y_bins)
+                                )[0]
+        
+        total_map = sp.stats.binned_statistic_2d(lam_x.ravel(), 
+                          lam_y.ravel(),
+                          (map_data + self.lam.atm_power + cmb_data).ravel(),
+                          statistic='mean',
+                          bins=(x_bins, y_bins)
+                          )[0]    
+
+        noise_map = sp.stats.binned_statistic_2d(lam_x.ravel(), 
+                          lam_y.ravel(),
+                          (self.lam.atm_power +cmb_data).ravel(),
+                          statistic='mean',
+                          bins=(x_bins, y_bins)
+                          )[0]     
+        
+        self.truesky      = true_map
+        self.noisemap     = noise_map
+        self.filteredmap  = filtered_map
+        self.mockobs      = total_map
+
+    def _savesky(self,):
+
+        if not os.path.exists(self.file_save):
+            os.mkdir(self.file_save)
+
+        #update header with the kwargs
+        fits.writeto(self.file_save + '/' + self.file_name.replace('.fits','_noisemap.fits').split('/')[-1], self.noisemap, header = self.he, overwrite = True)
+        fits.writeto(self.file_save + '/' + self.file_name.replace('.fits','_filtered.fits').split('/')[-1], self.filteredmap, header = self.he, overwrite = True)
+        fits.writeto(self.file_save + '/' + self.file_name.replace('.fits','_synthetic.fits').split('/')[-1], self.mockobs, header = self.he, overwrite = True)
+
+        if not os.path.exists(self.file_save + '/analyzes'):
+            os.mkdir(self.file_save + '/analyzes')
+
+        #visualize scanning patern
+        fig, axes = plt.subplots(1,2,figsize=(6,3),dpi=256, tight_layout=True)
+        axes[0].plot(np.degrees(self.lam.c_az), np.degrees(self.lam.c_el), lw=5e-1)
+        axes[0].set_xlabel('az (deg)'), axes[0].set_ylabel('el (deg)')
+        axes[1].plot(np.degrees(self.lam.c_ra), np.degrees(self.lam.c_dec), lw=5e-1)
+        axes[1].set_xlabel('ra (deg)'), axes[1].set_ylabel('dec (deg)')
+        plt.savefig(self.file_save + '/analyzes/scanpattern_'+self.file_name.replace('.fits','').split('/')[-1]+'.png')
+        plt.close()
+
+        #visualize powerspectrum
+        f, ps = sp.signal.periodogram(self.lam.atm_power, fs=self.lam.plan.sample_rate, window='tukey')
+        plt.figure()
+        plt.plot(f[1:], ps.mean(axis=0)[1:], label = 'atmosphere')
+        plt.plot(f[1:], f[1:] ** (-8/3), label = 'y = f^-(8/3)')
+        plt.loglog()
+        plt.xlabel('l')
+        plt.ylabel('PS')
+        plt.legend()
+        plt.savefig(self.file_save + '/analyzes/Noise_ps_'+self.file_name.replace('.fits','').split('/')[-1]+'.png')
+        plt.close()
+
+        #visualize fits files
+        fig, (true_ax, signal_ax, noise_ax, total_ax) = plt.subplots(1,4,figsize=(9,3),sharex=True, sharey=True, constrained_layout=True)
+        
+        total_plt = true_ax.imshow(self.truesky)
+        true_ax.set_title('True map')
+        fig.colorbar(total_plt, ax=true_ax, location='bottom', shrink=0.8)
+
+        true_plt = signal_ax.imshow(self.filteredmap)
+        signal_ax.set_title('Filtered map')
+        fig.colorbar(true_plt, ax=signal_ax, location='bottom', shrink=0.8)
+        
+        signal_plt = noise_ax.imshow(self.noisemap)
+        noise_ax.set_title('Noise map')
+        fig.colorbar(signal_plt, ax=noise_ax, location='bottom', shrink=0.8)
+        
+        total_plt = total_ax.imshow(self.mockobs)
+        total_ax.set_title('Synthetic Observation')
+        fig.colorbar(total_plt, ax=total_ax, location='bottom', shrink=0.8)
+        
+        plt.savefig(self.file_save + '/analyzes/maps_'+self.file_name.replace('.fits','').split('/')[-1]+'.png')
+        plt.close()
