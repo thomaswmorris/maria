@@ -3,6 +3,8 @@ numpy
 scipy
 pandas
 tqdm
+healpy
+camb
 weathergen >= 2.1.4
 tables
 h5py

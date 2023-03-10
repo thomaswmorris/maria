@@ -1,10 +1,16 @@
 .DS_Store
 **/.DS_Store
 
+
 *.png
+*.mp4
+
 *.fits
 !maps/*.fits
+
 *.ipynb
+!docs/*.ipynb
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
