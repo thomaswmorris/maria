@@ -39,7 +39,7 @@
 
     "MUSTANG2": {
         "bands": [
-            [93e9, 10e9, 50]
+            [93e9, 10e9, 250]
         ],   
         "geometry": "hex",   
         "field_of_view": 0.07,   

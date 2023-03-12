@@ -3,7 +3,7 @@ import maria
 from maria import models
 
 @pytest.mark.atmosphere
-def ACT_LAM():
+def test_ACT_PA5_LAM():
 
     lam = models.LinearAngularModel(array=maria.get_array('ACT_PA5'), 
                                     pointing=maria.get_pointing('DAISY_5deg_45az_45el_60s'), 
@@ -15,7 +15,7 @@ def ACT_LAM():
     assert (lam.integrated_water_vapor > 0).all()
 
 @pytest.mark.atmosphere
-def GBT_LAM():
+def test_GBT_MUSTANG2_LAM():
 
     lam = models.LinearAngularModel(array=maria.get_array('MUSTANG2'), 
                                     pointing=maria.get_pointing('DAISY_5deg_45az_45el_60s'), 
