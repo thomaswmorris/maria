@@ -1,11 +1,14 @@
-from maria.mock_obs import WeObserve
+import pytest
 
+@pytest.mark.mock_obs
 def test_we_observe():
+
+    from maria.mock_obs import WeObserve
 
     for file in ["./maps/tsz.fits"]:
         obs = WeObserve(
             array_name='AtLAST',
-            pointing_name='DAISY_2deg_4ra_10.5dec_600s',
+            pointing_name='DAISY_5deg_45az_45el_60s',
             site_name='APEX',
             project="./Mock_obs",
             skymodel=file,

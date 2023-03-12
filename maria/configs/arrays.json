@@ -1,6 +1,5 @@
 {
     "AtLAST": {
-        "site": "chajnantor",
         "bands": [
             [27e9, 5e9, 100], 
             [39e9, 5e9, 100],
@@ -21,19 +20,30 @@
         "max_el_acc": 0.25
     },
 
-    "ACT": {
-        "site": "chajnantor",
+    "ACT_PA5": {
         "bands": [
-            [27e9, 10e9, 50],
-            [39e9, 10e9, 50],
-            [93e9, 10e9, 50],
-            [145e9, 10e9, 50],
-            [225e9, 10e9, 50],
-            [280e9, 10e9, 50]
+            [90e9, 10e9, 750],
+            [150e9, 10e9, 750]
         ],   
         "geometry": "hex",   
-        "field_of_view": 0.5,   
-        "primary_size": 12,  
+        "field_of_view": 0.8,   
+        "primary_size": 6,  
+        "band_grouping": "randomized",
+        "az_bounds": [0, 360],  
+        "el_bounds": [20, 90],
+        "max_az_vel": 3,
+        "max_el_vel": 2,
+        "max_az_acc": 1,
+        "max_el_acc": 0.25
+    },
+
+    "MUSTANG2": {
+        "bands": [
+            [93e9, 10e9, 50]
+        ],   
+        "geometry": "hex",   
+        "field_of_view": 0.07,   
+        "primary_size": 100,  
         "band_grouping": "randomized",
         "az_bounds": [0, 360],  
         "el_bounds": [20, 90],
