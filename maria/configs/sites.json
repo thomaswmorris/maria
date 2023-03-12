@@ -1,0 +1,23 @@
+{
+    "APEX" : {
+        "region" : "chajnantor",
+        "latitude" : -23.0058,
+        "longitude" : -67.7592,
+        "altitude" : 5064
+    },
+
+    "ACT" : {
+        "region" : "chajnantor",
+        "latitude" : -22.958567282386465,
+        "longitude" : -67.7878496702156,
+        "altitude" : 5190
+    },
+
+    "GBT" : {
+        "region" : "green_bank",
+        "latitude" : 38.433121, 
+        "longitude" : -79.839835,
+        "altitude" : 818
+    }
+
+}
