@@ -21,7 +21,6 @@ ACT_config = {
         'max_el_acc'    : 0.25,
              }
 
-
 daisy_config =  {
         'start_time'   : '2022-07-01T08:00:00',
         'end_time'     : '2022-07-01T08:05:00',

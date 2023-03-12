@@ -7,9 +7,11 @@ import scipy as sp
 import astropy as ap
 
 import pandas as pd
-import os
 import h5py
+import glob
+import re
 
+import weathergen
 from tqdm import tqdm
 
 import warnings
@@ -56,9 +58,12 @@ base, this_filename = os.path.split(__file__)
 #
 #
 
-import weathergen
 
-regions = weathergen.regions
+
+prefix = '/users/tom/desktop/maria/maria/am'
+
+supported_regions = [re.findall(fr'{prefix}/(.+).h5', filepath)[0] for filepath in glob.glob(f'{prefix}/*.h5')]
+regions = weathergen.regions.loc[supported_regions].sort_index()
 
 # -- Specific packages --
 from . import utils

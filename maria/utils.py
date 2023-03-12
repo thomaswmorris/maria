@@ -29,7 +29,7 @@ def normalized_matern(r, r0, nu):
 
     return 2**(1-nu)*sp.special.kv(nu, np.sqrt(2*nu)*d_eff+1e-6)*(np.sqrt(2*nu)*d_eff+1e-6)**nu/sp.special.gamma(nu)
 
-def _approximate_normalized_matern(r, r0, nu, n_test_points=1024):
+def _approximate_normalized_matern(r, r0, nu, n_test_points=4096):
     '''
     Computing BesselK[nu,z] for arbitrary nu is expensive. This is good for casting over huge matrices.
     '''

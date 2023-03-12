@@ -155,30 +155,6 @@ class LinearAngularModel(AtmosphericModel):
 
             n_para, n_orth = len(para_), len(orth_)
             self.lay_ang_res.append(res)
-
-            # an efficient way to compute the minimal observing area that we need to generate
-            #self.theta_edge_z.append(layer_hull_theta_z)
-
-            #RZ = layer_hull_theta_z * np.exp(1j*self.MARA[-1])
-            
-            #para_min, para_max = np.real(RZ).min(), np.real(RZ).max()
-            #orth_min, orth_max = np.imag(RZ).min(), np.imag(RZ).max()
-            
-            #para_center, orth_center = (para_min + para_max)/2, (orth_min + orth_max)/2
-            #para_radius, orth_radius = (para_max - para_min)/2, (orth_max - orth_min)/2
-    
-            #n_orth_min = 64
-            #n_orth_max = 1024
-
-            
-        
-
-
-            #lay_ang_res = np.minimum(self.min_ang_res[i_l].min(), 2 * orth_radius / (n_orth_min - 1))
-            #lay_ang_res = np.maximum(lay_ang_res, 2 * orth_radius / (n_orth_max - 1))
-
-            
-            
          
             self.PARA_SPACING = np.gradient(para_).mean()
             self.para.append(para_), self.orth.append(orth_)

@@ -1,4 +1,4 @@
-Modular Auto-Regressive Integrated Atmosphere (maria)
+maria (modular auto-regressive integrated atmosphere)
 =====================================================
 
 `Oh, maria blows the stars around / and sends the clouds
