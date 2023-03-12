@@ -5,7 +5,7 @@ pandas
 tqdm
 healpy
 camb
-weathergen >= 2.1.4
+weathergen >= 2.2.1
 tables
 h5py
 pytest

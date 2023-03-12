@@ -1,13 +1,12 @@
-from maria import * 
+from maria import *
 import matplotlib.pyplot as plt
 
-for file in ['./maps/tsz.fits']:
+for file in ["./maps/tsz.fits"]:
     obs = Weobserve(
-        project       = './Mock_obs',
-        skymodel      = file, 
-        verbose       = True,
-        
-        bands         = [(27e9, 5e9, 100)],      # (band center, bandwidth, dets per band) [GHz, GHz, .]
-        inbright      = -5.37  * 1e3 * 0.00011347448463627645,
-        incell        = 0.5/360 #degree
-        )
+        project="./Mock_obs",
+        skymodel=file,
+        verbose=True,
+        bands=[(27e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
+        inbright=-5.37 * 1e3 * 0.00011347448463627645,
+        incell=0.5 / 360,  # degree
+    )

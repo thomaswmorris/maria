@@ -1,0 +1,27 @@
+{
+    "STARE_0az_45el_600s": {
+        "start_time": "2022-07-01T08:00:00",
+        "end_time": "2022-07-01T08:10:00",
+        "scan_pattern": "back-and-forth",
+        "coord_center": [0, 45], 
+        "coord_throws": [0, 0],
+        "coord_frame": "az_el", 
+        "coord_units": "degrees", 
+        "scan_period": 120, 
+        "sample_rate": 20,  
+        "seed": 42
+    },
+    "DAISY_2deg_4ra_10.5dec_600s": {
+        "start_time": "2022-07-01T08:00:00",
+        "end_time": "2022-07-01T08:10:00",
+        "scan_pattern": "daisy",  
+        "scan_options": {"k": 3.1416},
+        "coord_center": [4, 10.5],
+        "coord_throws": [2, 2],
+        "coord_frame": "ra_dec",
+        "coord_units": "degrees", 
+        "scan_period": 60,  
+        "sample_rate": 20, 
+        "seed": 42
+    }
+}
