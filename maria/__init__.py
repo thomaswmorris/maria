@@ -24,7 +24,7 @@ from matplotlib import pyplot as plt
 from astropy.io import fits
 
 here, this_filename = os.path.split(__file__)
-supported_regions = [re.findall(rf"{here}/am/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/am/*.h5")]
+supported_regions = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
 regions = weathergen.regions.loc[supported_regions].sort_index()
 
 # -- Specific packages --
@@ -56,6 +56,16 @@ class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         region_string = regions.to_string(columns=['location', 'country', 'latitude', 'longitude', 'altitude'])
         super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{region_string}")
+
+class PointingError(Exception):
+    pass
+
+def validate_pointing(azim, elev):
+    el_min = np.atleast_1d(elev).min()
+    if el_min < np.radians(10):
+        warnings.warn(f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)")
+    if el_min <= 0:
+        raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
 
 
 def get_array(array_name):
@@ -376,7 +386,7 @@ class AtmosphericModel:
     def __init__(self, array, pointing, site):
 
         self.array, self.pointing, self.site = array, pointing, site
-        self.spectrum = AtmosphericSpectrum(filepath=f"{here}/am/{self.site.region}.h5")
+        self.spectrum = AtmosphericSpectrum(filepath=f"{here}/spectra/{self.site.region}.h5")
         self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
 
         if self.pointing.coord_frame == "az_el":
@@ -416,15 +426,7 @@ class AtmosphericModel:
             self.pointing.el,
         )
 
-        if self.elev.min() < np.radians(10):
-            warnings.warn(
-                f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(self.elev.min()):.01f}°)"
-            )
-        if self.elev.min() <= 0:
-            raise PointingError(
-                f"Some detectors are pointing below the horizon (el_min = {np.degrees(self.elev.min()):.01f}°). Please refer to:"
-                "https://1.bp.blogspot.com/-dXMlsHE-rUI/UbWXQcc8aVI/AAAAAAAAEHw/fHwfk_zjVNQ/s1600"
-            )
+        validate_pointing(self.azim, self.elev)
 
-
+        
 

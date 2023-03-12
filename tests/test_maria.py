@@ -2,7 +2,7 @@ import maria
 from maria import models
 
 
-def test_linear_angular_model():
+def ACT_daisy_scan():
 
     lam = models.LinearAngularModel(array=maria.get_array('ACT'), 
                                     pointing=maria.get_pointing('DAISY_2deg_4ra_10.5dec_600s'), 
