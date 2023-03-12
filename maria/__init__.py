@@ -4,6 +4,8 @@ import os
 import numpy as np
 import scipy as sp
 
+import astropy as ap
+
 import pandas as pd
 import os
 import h5py
@@ -13,9 +15,17 @@ from tqdm import tqdm
 import warnings
 import healpy as hp
 
-#CMB stuff
-import camb
-import pymaster as nmt
+try:
+    import camb
+except Exception as e:
+    warnings.warn(str(e))
+    #warnings.warn(f'Could not import CAMB')
+
+try:
+    import pymaster as nmt
+except Exception as e:
+    warnings.warn(str(e))
+    #warnings.warn(f'Could not import namaster')
 
 from datetime import datetime
 from matplotlib import pyplot as plt
@@ -24,6 +34,9 @@ from astropy.io import fits
 
 # how do we do the bands? this is a great question. 
 # because all practical telescope instrumentation assume a constant band
+
+
+# AVE MARIA, GRATIA PLENA, DOMINUS TECUM
 
 
 base, this_filename = os.path.split(__file__)
@@ -45,17 +58,14 @@ base, this_filename = os.path.split(__file__)
 
 import weathergen
 
-sites = weathergen.sites
+regions = weathergen.regions
 
 # -- Specific packages --
 from . import utils
 from .configs import *
-from .objects import *
 
 # -- Don't know what to do with this --
-def is_isoformat(x):
-    try: datetime.fromisoformat(x); return True
-    except: return False
+
 
 # -- The "Call this class to get your mock-ob" part --
 class Weobserve():
@@ -90,81 +100,7 @@ class Weobserve():
         self.ARRAY_CONFIG = OBSERVATORIES[self.meta_data['Observatory']]
         self.PLAN_CONFIG  = SCANNINGPATTERNS[self.meta_data['Scanning_patern']]
         
-        # compute detector offsets
         
-        self.hull = sp.spatial.ConvexHull(self.offsets)
-
-        # scramble up the locations of the bands 
-        if self.config['band_grouping'] == 'random':
-            random_index = np.random.choice(np.arange(self.n_det),self.n_det,replace=False)
-            self.offsets = self.offsets[random_index]
-
-        self.offset_x, self.offset_y = self.offsets.T
-        self.r, self.p = np.sqrt(np.square(self.offsets).sum(axis=1)), np.arctan2(*self.offsets.T)
-
-        self.ubands = np.unique(self.bands)
-        self.nu = np.arange(0, 1e12, 1e9)
-        
-        self.passbands  = np.c_[[utils.get_passband(self.nu, nu_0, nu_w, order=16) for nu_0, nu_w in zip(self.bands, self.bandwidths)]]
-
-        nu_mask = (self.passbands > 1e-4).any(axis=0)
-        self.nu, self.passbands = self.nu[nu_mask], self.passbands[:, nu_mask]
-
-        self.passbands /= self.passbands.sum(axis=1)[:,None]
-
-        # compute beams
-        self.optical_model = 'diff_lim'
-        if self.optical_model == 'diff_lim':
-
-            self.get_beam_waist   = lambda z, w_0, f : w_0 * np.sqrt(1 + np.square(2.998e8 * z) / np.square(f * np.pi * np.square(w_0)))
-            self.get_beam_profile = lambda r, r_fwhm : np.exp(np.log(0.5)*np.abs(r/r_fwhm)**8)
-            self.beam_func = self.get_beam_profile
-
-        self.site = self.config['site']
-
-        # use weathergen convention for site data
-        self.site_data   = weathergen.sites.loc[self.site]
-        self.latitude    = self.site_data.latitude
-        self.longitude   = self.site_data.longitude
-        self.altitude    = self.site_data.altitude
-        self.coordinator = utils.coordinator(lat=self.latitude, lon=self.longitude)
-
-    # filtering utilities
-    def make_filter(self, waist, res, func, width_per_waist=1.2):
-
-        filter_width = width_per_waist * waist
-        n_filter = 2 * int(np.ceil(0.5 * filter_width / res)) + 1
-
-        filter_side = 0.5 * np.linspace(-filter_width, filter_width, n_filter)
-
-        FILTER_X, FILTER_Y = np.meshgrid(filter_side, filter_side, indexing='ij')
-        FILTER_R = np.sqrt(np.square(FILTER_X) + np.square(FILTER_Y))
-
-        FILTER  = func(FILTER_R, 0.5 * waist)
-        FILTER /= FILTER.sum()
-        
-        return FILTER
-
-    def separate_filter(self, F, tol=1e-2):
-        
-        u, s, v = la.svd(F); eff_filter = 0
-        for m, (_u, _s, _v) in enumerate(zip(u.T, s, v)):
-
-            eff_filter += _s * np.outer(_u, _v)
-            if np.abs(F - eff_filter).sum() < tol: break
-
-        return u.T[:m+1], s[:m+1], v[:m+1]
-
-    def separably_filter(self, M, F, tol=1e-2):
-
-        u, s, v = self.separate_filter(F, tol=tol)
-
-        filt_M = 0
-        for _u, _s, _v in zip(u, s, v):
-
-            filt_M += _s * sp.ndimage.convolve1d(sp.ndimage.convolve1d(M.astype(float), _u, axis=0), _v, axis=1)
-
-        return filt_M
 
 
 # the 'site' inherits from the weathergen site  
@@ -179,39 +115,6 @@ DEFAULT_PLAN_CONFIG = {    'start_time' : '2022-07-01T08:00:00',
                           'sample_rate' : 20,        # [Hz]  how fast to sample
                       }
 
-class Plan():
-
-    '''
-    'back_and_forth' : back-and-forth        
-    'daisy'          : lissajous daisy
-    '''
-
-    def __init__(self, config=DEFAULT_PLAN_CONFIG):
-
-        self.config = config
-        self.put(config)
-
-    def put(self, config, verbose=False):
-
-        for key, val in config.items(): 
-            setattr(self, key, val)
-            if verbose: print(f'set {key} to {val}')
-
-        self.start_time = utils.datetime_handler(self.start_time)
-        self.end_time   = utils.datetime_handler(self.end_time)
-
-        self.compute()
-
-    def compute(self):
-
-        self.dt = 1 / self.sample_rate
-
-        self.t_min = self.start_time.timestamp()
-        self.t_max = self.end_time.timestamp()
-
-        self.unix   = np.arange(self.t_min, self.t_max, self.dt)  
-        self.coords = utils.get_pointing(self.unix, self.scan_period, self.coord_center, self.coord_throw, self.scan_pattern, self.scan_options)
-
 
 DEFAULT_LAM_CONFIG = {'min_depth' : 500,
                       'max_depth' : 5000,
@@ -222,27 +125,6 @@ DEFAULT_LAM_CONFIG = {'min_depth' : 500,
 class LAM():
     
     def __init__(self, array, plan, config=DEFAULT_LAM_CONFIG, **kwargs):
-
-        self.array, self.plan = array, plan
-        self.config = {}
-
-        class AM():
-            def __init__(self):
-                '''
-                A dummy class to hold AM spectra as attributes
-                '''
-                pass
-
-        self.am = AM()
-        self.am.filepath = f'{base}/am/{self.array.site}.h5'
-        with h5py.File(self.am.filepath, 'r') as f:
-            self.am.nu = f['nu'][:] # frequency axis of the spectrum, in GHz
-            self.am.tcwv = f['tcwv'][:] # total column water vapor, in mm
-            self.am.elev = f['elev'][:] # elevation, in degrees
-            self.am.t_rj = f['t_rj'][:] # Rayleigh-Jeans temperature, in Kelvin
-
-        self.array.am_passbands  = sp.interpolate.interp1d(self.array.nu, self.array.passbands, bounds_error=False, fill_value=0, kind='cubic')(1e9*self.am.nu)
-        self.array.am_passbands /= self.array.am_passbands.sum(axis=1)[:,None]
 
         #### COMPUTE ATMOSPHERIC LAYERS ####
 
@@ -272,6 +154,10 @@ class LAM():
 
 
         
+
+        self.X = self.array.offset_x[:, None] + self.c_x[None, :] 
+        self.Y = self.array.offset_y[:, None] + self.c_y[None, :]
+
 
         #self.theta_z = self.THETA_X
 
@@ -370,7 +256,7 @@ class LAM():
                 
                 cov_args  = (self.outer_scale / depth, 5/6)
                 
-                self.prec.append(la.inv(utils.make_2d_covariance_matrix(utils.matern,cov_args,LX[AR],LY[AR])))
+                self.prec.append(np.linalg.inv(utils.make_2d_covariance_matrix(utils.matern,cov_args,LX[AR],LY[AR])))
 
                 self.cgen.append(utils.make_2d_covariance_matrix(utils.matern,cov_args,np.real(GZ),np.imag(GZ)))
                 
@@ -683,3 +569,262 @@ class Weobserve():
         
         plt.savefig(self.file_save + '/analyzes/maps_'+self.file_name.replace('.fits','').split('/')[-1]+'.png')
         plt.close()
+
+
+
+class AtmosphericSpectrum():
+    def __init__(self, filepath):
+        '''
+        A class to hold spectra as attributes
+        '''
+        with h5py.File(filepath, 'r') as f:
+            self.nu   = f['nu'][:]   # frequency axis of the spectrum, in GHz
+            self.tcwv = f['tcwv'][:] # total column water vapor, in mm
+            self.elev = f['elev'][:] # elevation, in degrees
+            self.t_rj = f['t_rj'][:] # Rayleigh-Jeans temperature, in Kelvin
+
+
+
+
+class Coordinator():
+
+    # what three-dimensional rotation matrix takes (frame 1) to (frame 2) ? 
+    # we use astropy to compute this for a few test points, and then use the answer it to efficiently broadcast very big arrays
+
+    def __init__(self, lon, lat):
+        self.lc = ap.coordinates.EarthLocation.from_geodetic(lon=lon,lat=lat)
+
+        self.fid_p   = np.radians(np.array([0,0,90]))
+        self.fid_t   = np.radians(np.array([90,0,0]))
+        self.fid_xyz = np.c_[np.sin(self.fid_p) * np.cos(self.fid_t), np.cos(self.fid_p) * np.cos(self.fid_t), np.sin(self.fid_t)] # the XYZ coordinates of our fiducial test points on the unit sphere
+
+        # in order for this to be efficient, we need to use time-invariant frames 
+        # 
+
+        # you are standing a the north pole looking toward lon = -90 (+x)
+        # you are standing a the north pole looking toward lon = 0 (+y)
+        # you are standing a the north pole looking up (+z)
+
+    def transform(self, unix, phi, theta, in_frame, out_frame):
+
+        _unix  = np.atleast_2d(unix)
+        _phi   = np.atleast_2d(phi)
+        _theta = np.atleast_2d(theta)
+
+        if not _phi.shape == _theta.shape: raise ValueError('\'phi\' and \'theta\' must be the same shape')
+        if not 1 <= len(_phi.shape) == len(_theta.shape) <= 2: raise ValueError('\'phi\' and \'theta\' must be either 1- or 2-dimensional')
+        if not unix.shape[-1] == _phi.shape[-1] == _theta.shape[-1]: ('\'unix\', \'phi\' and \'theta\' must have the same shape in their last axis')
+        
+        epoch   = _unix.mean()
+        obstime = ap.time.Time(epoch, format='unix')
+        rad     = ap.units.rad
+
+        if in_frame == 'az_el':  self.c = ap.coordinates.SkyCoord(az = self.fid_p * rad, alt = self.fid_t * rad, obstime = obstime, frame = 'altaz', location = self.lc)
+        if in_frame == 'ra_dec': self.c = ap.coordinates.SkyCoord(ra = self.fid_p * rad, dec = self.fid_t * rad, obstime = obstime, frame = 'icrs',  location = self.lc)
+        #if in_frame == 'galactic': self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot, frame = 'galactic', location = self.lc)
+
+        if out_frame == 'ra_dec': self._c = self.c.icrs;  self.rot_p, self.rot_t = self._c.ra.rad, self._c.dec.rad
+        if out_frame == 'az_el':  self._c = self.c.altaz; self.rot_p, self.rot_t = self._c.az.rad, self._c.alt.rad
+        #if out_frame == 'galactic': self._c = self.c.galactic; self.rot_p, self.rot_t = self._c.l.rad,  self._c.b.rad
+            
+        self.rot_xyz = np.c_[np.sin(self.rot_p) * np.cos(self.rot_t), np.cos(self.rot_p) * np.cos(self.rot_t), np.sin(self.rot_t)] # the XYZ coordinates of our rotated test points on the unit sphere
+
+        self.R = np.linalg.lstsq(self.fid_xyz, self.rot_xyz, rcond=None)[0] # what matrix takes us (fid_xyz -> rot_xyz)?
+
+        if (in_frame, out_frame) == ('ra_dec', 'az_el'): _phi -= (_unix - epoch) * (2 * np.pi / 86163.0905)
+
+        trans_xyz = np.swapaxes(np.matmul(np.swapaxes(np.concatenate([(np.sin(_phi) * np.cos(_theta))[None], (np.cos(_phi) * np.cos(_theta))[None], np.sin(_theta)[None]],axis=0),0,-1),self.R),0,-1)
+
+        trans_phi, trans_theta = np.arctan2(trans_xyz[0], trans_xyz[1]), np.arcsin(trans_xyz[2])
+
+        if (in_frame, out_frame) == ('az_el', 'ra_dec'): trans_phi += (_unix - epoch) * (2 * np.pi / 86163.0905)
+
+        return np.reshape(trans_phi % (2 * np.pi), phi.shape), np.reshape(trans_theta, theta.shape)
+
+
+
+class Array():
+    def __init__(self, config, verbose=False):
+
+        self.config = config
+
+        for k, v in config.items(): setattr(self, k, v)
+
+        self.field_of_view = self.config['field_of_view']
+        self.primary_size  = self.config['primary_size']
+       
+        self.bands, self.bandwidths, self.n_det = np.empty(0), np.empty(0), 0
+        for nu_0, nu_w, n in self.config['bands']:
+            self.bands, self.bandwidths = np.r_[self.bands, np.repeat(nu_0, n)], np.r_[self.bandwidths, np.repeat(nu_w, n)]
+            self.n_det += n
+
+        self.offsets  = utils.make_array(self.config['geometry'], self.field_of_view, self.n_det)
+        self.offsets *= np.pi / 180 # put these in radians
+        
+        # compute detector offsets
+        self.hull = sp.spatial.ConvexHull(self.offsets)
+
+        # scramble up the locations of the bands 
+        if self.config['band_grouping'] == 'random':
+            random_index = np.random.choice(np.arange(self.n_det),self.n_det,replace=False)
+            self.offsets = self.offsets[random_index]
+
+        self.offset_x, self.offset_y = self.offsets.T
+        self.r, self.p = np.sqrt(np.square(self.offsets).sum(axis=1)), np.arctan2(*self.offsets.T)
+
+        self.ubands = np.unique(self.bands)
+        self.nu = np.arange(0, 1e12, 1e9)
+        
+        self.passbands  = np.c_[[utils.get_passband(self.nu, nu_0, nu_w, order=16) for nu_0, nu_w in zip(self.bands, self.bandwidths)]]
+
+        nu_mask = (self.passbands > 1e-4).any(axis=0)
+        self.nu, self.passbands = self.nu[nu_mask], self.passbands[:, nu_mask]
+
+        self.passbands /= self.passbands.sum(axis=1)[:,None]
+
+        # compute beams
+        self.optical_model = 'diff_lim'
+        if self.optical_model == 'diff_lim':
+
+            self.get_beam_waist   = lambda z, w_0, f : w_0 * np.sqrt(1 + np.square(2.998e8 * z) / np.square(f * np.pi * np.square(w_0)))
+            self.get_beam_profile = lambda r, r_fwhm : np.exp(np.log(0.5)*np.abs(r/r_fwhm)**8)
+            self.beam_func = self.get_beam_profile
+
+
+
+    def make_filter(self, waist, res, func, width_per_waist=1.2):
+    
+        filter_width = width_per_waist * waist
+        n_filter = 2 * int(np.ceil(0.5 * filter_width / res)) + 1
+
+        filter_side = 0.5 * np.linspace(-filter_width, filter_width, n_filter)
+
+        FILTER_X, FILTER_Y = np.meshgrid(filter_side, filter_side, indexing='ij')
+        FILTER_R = np.sqrt(np.square(FILTER_X) + np.square(FILTER_Y))
+
+        FILTER  = func(FILTER_R, 0.5 * waist)
+        FILTER /= FILTER.sum()
+        
+        return FILTER
+    
+    def separate_filter(self, F, tol=1e-2):
+        
+        u, s, v = np.linalg.svd(F); eff_filter = 0
+        for m, (_u, _s, _v) in enumerate(zip(u.T, s, v)):
+
+            eff_filter += _s * np.outer(_u, _v)
+            if np.abs(F - eff_filter).sum() < tol: break
+
+        return u.T[:m+1], s[:m+1], v[:m+1]
+
+    def separably_filter(self, M, F, tol=1e-2):
+
+        u, s, v = self.separate_filter(F, tol=tol)
+
+        filt_M = 0
+        for _u, _s, _v in zip(u, s, v):
+
+            filt_M += _s * sp.ndimage.convolve1d(sp.ndimage.convolve1d(M.astype(float), _u, axis=0), _v, axis=1)
+
+        return filt_M
+
+
+class Pointing():
+
+    '''
+    A class containing time-ordered pointing data.
+    '''
+
+    def __init__(self, config, verbose=False):
+
+        self.config = config
+        for key, val in config.items(): 
+            setattr(self, key, val)
+            if verbose: print(f'set {key} to {val}')
+
+        self.compute()
+
+    def compute(self):
+
+        self.dt = 1 / self.sample_rate
+
+        self.start_time = utils.datetime_handler(self.start_time)
+        self.end_time   = utils.datetime_handler(self.end_time)
+
+        self.t_min = self.start_time.timestamp()
+        self.t_max = self.end_time.timestamp()
+
+        if self.coord_units == 'degrees':
+            self.coord_center = np.radians(self.coord_center)
+            self.coord_throws = np.radians(self.coord_throws)
+
+        self.unix   = np.arange(self.t_min, self.t_max, self.dt)  
+        self.coords = utils.get_pointing(self.unix, self.scan_period, self.coord_center, self.coord_throws, self.scan_pattern)
+
+        if self.coord_frame == 'ra_dec':
+            self.ra, self.dec = self.coords
+
+        if self.coord_frame == 'az_el':
+            self.az, self.el = self.coords
+
+        if self.coord_frame == 'dx_dy':
+            self.dx, self.dy = self.coords
+
+
+class Site():
+
+    '''
+    A class containing time-ordered pointing data. Pass a supported site (found at weathergen.sites), 
+    and a height correction if needed.
+    '''
+
+    def __init__(self, region=None, latitude=None, longitude=None, altitude=None):
+
+        self.region = region
+
+        self.longitude = longitude if longitude is not None else weathergen.regions.loc[region].longitude
+        self.latitude = latitude if latitude is not None else weathergen.regions.loc[region].latitude
+        self.altitude = altitude if altitude is not None else weathergen.regions.loc[region].altitude
+        
+
+class AtmosphericModel():
+    '''
+    The base class for modeling atmospheric fluctuations. 
+    
+    A model needs to have the functionality to generate spectra for any pointing data we supply it with. 
+
+
+    '''
+
+    def __init__(self, array, pointing, site):
+
+        self.array, self.pointing, self.site = array, pointing, site
+        self.spectrum = AtmosphericSpectrum(filepath=f'{base}/am/{self.site.region}.h5')
+        self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
+
+        if self.pointing.coord_frame == 'az_el': 
+            self.pointing.ra, self.pointing.dec = self.coordinator.transform(self.pointing.unix, self.pointing.az, self.pointing.el, in_frame='az_el', out_frame='ra_dec') 
+            self.pointing.dx, self.pointing.dy = utils.to_xy(self.pointing.az, self.pointing.el, self.pointing.az.mean(), self.pointing.el.mean())
+
+        if self.pointing.coord_frame == 'ra_dec': 
+            self.pointing.az, self.pointing.el = self.coordinator.transform(self.pointing.unix, self.pointing.ra, self.pointing.dec, in_frame='ra_dec', out_frame='az_el') 
+            self.pointing.dx, self.pointing.dy = utils.to_xy(self.pointing.az, self.pointing.el, self.pointing.az.mean(), self.pointing.el.mean())
+
+        self.azim, self.elev = utils.from_xy(self.array.offset_x[:,None], self.array.offset_y[:,None], self.pointing.az, self.pointing.el)
+
+        if self.elev.min() < np.radians(10):
+            warnings.warn(f'Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(self.elev.min()):.01f}°)')
+        if self.elev.min() <= 0:
+            raise PointingError(f'Some detectors are pointing below the horizon (el_min = {np.degrees(self.elev.min()):.01f}°). Please refer to:'
+            'https://1.bp.blogspot.com/-dXMlsHE-rUI/UbWXQcc8aVI/AAAAAAAAEHw/fHwfk_zjVNQ/s1600')
+
+
+class ArrayError(Exception):
+    pass
+
+class PointingError(Exception):
+    pass
+
+class SiteError(Exception):
+    pass
+
