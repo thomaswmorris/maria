@@ -3,25 +3,16 @@ import os
 import numpy as np
 import scipy as sp
 
-import warnings
+import camb
+import pymaster as nmt
 
-try:
-    import camb
-except Exception as e:
-    warnings.warn(f'Could not import CAMB')
-try:
-    import pymaster as nmt
-except Exception as e:
-    warnings.warn(f'Could not import namaster')
-
-from datetime import datetime
 from matplotlib import pyplot as plt
 from astropy.io import fits
 
 from . import get_array, get_site, get_pointing
-import models
+from . import models
 
-class Weobserve:
+class WeObserve:
     def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='DAISY_2deg_4ra_10.5dec_600s', site_name='APEX', verbose=True, **kwargs):
 
         self.verbose = verbose
