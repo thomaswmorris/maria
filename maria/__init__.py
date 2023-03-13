@@ -428,5 +428,20 @@ class AtmosphericModel:
 
         validate_pointing(self.azim, self.elev)
 
+
+    def simulate_integrated_water_vapor(self):
+        raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
+
         
+    def simulate_temperature_rayleigh_jeans(self, NU=150e9):
+
+        self.simulate_integrated_water_vapor() # this is elevation-corrected by default
+        TRJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
+                                                                   self.spectrum.tcwv,
+                                                                   self.spectrum.nu,),
+                                                                   self.spectrum.t_rj)
+
+        self.temperature_rayleigh_jeans = TRJ_interpolator((np.degrees(self.elev)[None], 
+                                                            self.integrated_water_vapor[None], 
+                                                            np.atleast_1d(NU)[:,None,None]))
 

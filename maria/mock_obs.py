@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from astropy.io import fits
 
 from . import get_array, get_site, get_pointing
-from . import models
+from . import models, utils
 
 class WeObserve:
     def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='DAISY_2deg_4ra_10.5dec_600s', site_name='APEX', verbose=True, **kwargs):
@@ -38,7 +38,7 @@ class WeObserve:
     def _run_atmos(self):
 
         self.lam = models.LinearAngularModel(self.array, self.pointing, self.site, verbose=self.verbose)
-        self.lam.simulate_integrated_water_vapor()
+        self.lam.simulate_temperature_rayleigh_jeans()
 
     def _get_CMBPS(
         self,
@@ -136,7 +136,7 @@ class WeObserve:
         total_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (map_data + self.lam.atm_power + cmb_data).ravel(),
+            (map_data + self.lam.temperature_rayleigh_jeans + cmb_data).ravel(),
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
@@ -144,7 +144,7 @@ class WeObserve:
         noise_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (self.lam.atm_power + cmb_data).ravel(),
+            (self.lam.temperature_rayleigh_jeans + cmb_data).ravel(),
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
@@ -196,7 +196,7 @@ class WeObserve:
         plt.close()
 
         # visualize powerspectrum
-        f, ps = sp.signal.periodogram(self.lam.atm_power, fs=self.lam.plan.sample_rate, window="tukey")
+        f, ps = sp.signal.periodogram(self.lam.temperature_rayleigh_jeans, fs=self.lam.pointing.sample_rate, window="tukey")
         plt.figure()
         plt.plot(f[1:], ps.mean(axis=0)[1:], label="atmosphere")
         plt.plot(f[1:], f[1:] ** (-8 / 3), label="y = f^-(8/3)")
