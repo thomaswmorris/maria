@@ -38,7 +38,7 @@ class WeObserve:
     def _run_atmos(self):
 
         self.lam = models.LinearAngularModel(self.array, self.pointing, self.site, verbose=self.verbose)
-        self.lam.simulate_temperature_rayleigh_jeans()
+        self.lam.simulate_temperature(NU=[90e9, 150e9, 280e9], units='K_RJ')
 
     def _get_CMBPS(
         self,

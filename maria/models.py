@@ -337,7 +337,7 @@ class LinearAngularModel(AtmosphericModel):
 
         self.effective_zenith_water_vapor = (self.rel_flucs * self.layer_scaling[:, None]).sum(axis=0)
 
-        self.effective_zenith_water_vapor *= 5e-2 / self.effective_zenith_water_vapor.std()
+        self.effective_zenith_water_vapor *= 2e-2 * self.weather.column_water_vapor / self.effective_zenith_water_vapor.std()
         self.effective_zenith_water_vapor += self.weather.column_water_vapor.mean()
 
         self.integrated_water_vapor = self.effective_zenith_water_vapor / np.sin(self.elev)

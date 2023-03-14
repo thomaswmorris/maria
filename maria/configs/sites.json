@@ -18,6 +18,13 @@
         "latitude" : 38.433121, 
         "longitude" : -79.839835,
         "altitude" : 818
+    },
+
+    "JCMT" : {
+        "region" : "mauna_kea",
+        "latitude" : 19.8228, 
+        "longitude" : -155.477,
+        "altitude" : 4092
     }
 
 }
