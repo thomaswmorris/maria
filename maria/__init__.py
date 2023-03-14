@@ -428,5 +428,30 @@ class AtmosphericModel:
 
         validate_pointing(self.azim, self.elev)
 
+
+    def simulate_integrated_water_vapor(self):
+        raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
+
+        
+    def simulate_temperature(self, NU=150e9, units='K_RJ'):
+
+        self.simulate_integrated_water_vapor() # this is elevation-corrected by default
+
+        if units == 'K_RJ':
+
+            TRJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
+                                                                    self.spectrum.tcwv,
+                                                                    self.spectrum.nu,),
+                                                                    self.spectrum.t_rj)
+
+            self.temperature = TRJ_interpolator((np.degrees(self.elev)[None], 
+                                                 self.integrated_water_vapor[None], 
+                                                 np.atleast_1d(NU)[:,None,None]))
+
+        if units == 'F_RJ': # honestly it just feels more natural
+            self.simulate_temperature(self, NU=NU, units='K_RJ')
+            self.temperature = 1.8 * (self.temperature - 273.15) + 32
+
+
         
 
