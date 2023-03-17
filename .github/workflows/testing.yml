@@ -26,4 +26,4 @@ jobs:
       - name: Test the code
         run: |
           set -vxuo pipefail
-          pytest -s -vv 
+          pytest -s -vv

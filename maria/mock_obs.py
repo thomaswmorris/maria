@@ -41,7 +41,7 @@ class WeObserve:
                                              self.site, 
                                              verbose=self.verbose)
 
-        self.lam.simulate_temperature(NU=np.unique(self.array.bands), units='K_RJ')
+        self.lam.simulate_temperature(nu=np.unique(self.array.bands), units='K_RJ')
 
     def _get_CMBPS(self):
 
@@ -175,6 +175,7 @@ class WeObserve:
             header=self.he,
             overwrite=True,
         )
+        
         fits.writeto(
             self.file_save + "/" + self.file_name.replace(".fits", "_synthetic.fits").split("/")[-1],
             self.mockobs,

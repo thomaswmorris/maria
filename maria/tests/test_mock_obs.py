@@ -14,6 +14,7 @@ def test_we_observe():
             skymodel=file,
             verbose=True,
             bands=[(27e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
+           
             inbright=-5.37 * 1e3 * 0.00011347448463627645,
             incell=0.5 / 360,  # degree
         )
