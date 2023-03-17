@@ -10,7 +10,7 @@ def test_ACT_PA4_LAM():
                                     site=maria.get_site('ACT'), 
                                     verbose=True)
 
-    lam.simulate_temperature(NU=[150e9, 220e9], units='K_RJ')
+    lam.simulate_temperature(nu=[150e9, 220e9], units='K_RJ')
     assert (lam.temperature > 0).all()
 
 @pytest.mark.atmosphere
@@ -21,7 +21,7 @@ def test_GBT_MUSTANG2_LAM():
                                     site=maria.get_site('GBT'), 
                                     verbose=True)
 
-    lam.simulate_temperature(NU=[90e9], units='K_RJ')
+    lam.simulate_temperature(nu=[90e9], units='K_RJ')
     assert (lam.temperature > 0).all()
 
 
@@ -33,5 +33,5 @@ def test_JCMT_SCUBA2_LAM():
                                     site=maria.get_site('JCMT'), 
                                     verbose=True)
 
-    lam.simulate_temperature(NU=[350e9, 650e9], units='K_RJ')
+    lam.simulate_temperature(nu=[350e9, 650e9], units='K_RJ')
     assert (lam.temperature > 0).all()

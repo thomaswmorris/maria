@@ -42,15 +42,18 @@ with open(f'{here}/configs/sites.json', 'r+') as f:
 
 class InvalidArrayError(Exception):
     def __init__(self, invalid_array):
-        super().__init__(f"The array \'{invalid_array}\' is not in the database of default arrays. Default arrays are:\n\n{DEFAULT_ARRAY_CONFIGS.keys()}")
+        super().__init__(f"The array \'{invalid_array}\' is not in the database of default arrays. "
+        f"Default arrays are:\n\n{sorted(list(DEFAULT_ARRAY_CONFIGS.keys()))}")
 
 class InvalidPointingError(Exception):
     def __init__(self, invalid_pointing):
-        super().__init__(f"The site \'{invalid_pointing}\' is not in the database of default pointings. Default pointings are:\n\n{DEFAULT_POINTING_CONFIGS.keys()}")
+        super().__init__(f"The site \'{invalid_pointing}\' is not in the database of default pointings. "
+        f"Default pointings are:\n\n{sorted(list(DEFAULT_POINTING_CONFIGS.keys()))}")
 
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
-        super().__init__(f"The site \'{invalid_site}\' is not in the database of default sites. Default sites are:\n\n{DEFAULT_SITE_CONFIGS.keys()}")
+        super().__init__(f"The site \'{invalid_site}\' is not in the database of default sites. "
+        f"Default sites are:\n\n{sorted(list(DEFAULT_SITE_CONFIGS.keys()))}")
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
@@ -68,20 +71,30 @@ def validate_pointing(azim, elev):
         raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
 
 
-def get_array(array_name):
+def get_array_config(array_name):
     if not array_name in DEFAULT_ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
-    return Array(config=DEFAULT_ARRAY_CONFIGS[array_name])
+    return DEFAULT_ARRAY_CONFIGS[array_name]
 
-def get_pointing(pointing_name):
+def get_pointing_config(pointing_name):
     if not pointing_name in DEFAULT_POINTING_CONFIGS.keys():
         raise InvalidPointingError(pointing_name)
-    return Pointing(config=DEFAULT_POINTING_CONFIGS[pointing_name])
+    return DEFAULT_POINTING_CONFIGS[pointing_name]
 
-def get_site(site_name):
+def get_site_config(site_name):
     if not site_name in DEFAULT_SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
-    return Site(config=DEFAULT_SITE_CONFIGS[site_name])
+    return DEFAULT_SITE_CONFIGS[site_name]
+
+
+def get_array(array_name):
+    return Array(get_array_config(array_name))
+
+def get_pointing(pointing_name):
+    return Pointing(get_pointing_config(pointing_name))
+
+def get_site(site_name):
+    return Site(get_site_config(site_name))
 
 
 class AtmosphericSpectrum:
@@ -354,6 +367,10 @@ class Site:
 
     def __init__(self, config, verbose=False):
 
+        self.seasonal = True
+        self.diurnal = True
+        self.fixed_quantiles = {}
+
         self.config = config
         for key, val in config.items():
             setattr(self, key, val)
@@ -428,12 +445,18 @@ class AtmosphericModel:
 
         validate_pointing(self.azim, self.elev)
 
+        self.weather = weathergen.Weather(
+            region=self.site.region,
+            seasonal=self.site.seasonal,
+            diurnal=self.site.diurnal,
+        )
+
 
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
 
         
-    def simulate_temperature(self, NU=150e9, units='K_RJ'):
+    def simulate_temperature(self, nu=150e9, units='K_RJ'):
 
         self.simulate_integrated_water_vapor() # this is elevation-corrected by default
 
@@ -446,10 +469,10 @@ class AtmosphericModel:
 
             self.temperature = TRJ_interpolator((np.degrees(self.elev)[None], 
                                                  self.integrated_water_vapor[None], 
-                                                 np.atleast_1d(NU)[:,None,None]))
+                                                 np.atleast_1d(nu)[:,None,None]))
 
         if units == 'F_RJ': # honestly it just feels more natural
-            self.simulate_temperature(self, NU=NU, units='K_RJ')
+            self.simulate_temperature(self, nu=nu, units='K_RJ')
             self.temperature = 1.8 * (self.temperature - 273.15) + 32
 
 
