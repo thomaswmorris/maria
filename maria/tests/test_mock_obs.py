@@ -7,9 +7,9 @@ def test_we_observe():
 
     for file in ["./maps/tsz.fits"]:
         obs = WeObserve(
-            array_name='AtLAST',
+            array_name='MUSTANG-2',
             pointing_name='DAISY_5deg_45az_45el_60s',
-            site_name='APEX',
+            site_name='GBT',
             project="./Mock_obs",
             skymodel=file,
             verbose=True,
