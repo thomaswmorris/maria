@@ -70,7 +70,6 @@ def validate_pointing(azim, elev):
     if el_min <= 0:
         raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
 
-
 def get_array_config(array_name):
     if not array_name in DEFAULT_ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)

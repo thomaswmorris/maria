@@ -26,8 +26,4 @@ jobs:
       - name: Test the code
         run: |
           set -vxuo pipefail
-<<<<<<< HEAD
-          pytest -s -vv
-=======
-          pytest -s -vv 
->>>>>>> 53963821ecf692424db42ec9e1b4765cb3f5909c
+          pytest -s -vv -m atmosphere
