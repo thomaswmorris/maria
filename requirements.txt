@@ -9,3 +9,4 @@ weathergen >= 2.2.2
 tables
 h5py
 astropy
+pymaster
