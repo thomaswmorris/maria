@@ -1,10 +1,11 @@
 # -- General packages --
 import os
 import numpy as np
+import scipy.signal
 import scipy as sp
 
-import camb
-import pymaster as nmt
+# import camb
+# import pymaster as nmt
 
 from matplotlib import pyplot as plt
 from astropy.io import fits
@@ -27,7 +28,7 @@ class WeObserve:
         self._run_atmos()
 
         # get the CMB
-        self._get_CMBPS()
+        # self._get_CMBPS()
 
         # Get the astronomical signal
         self._get_skyconfig(**kwargs)
@@ -110,10 +111,10 @@ class WeObserve:
             (map_x, map_y), self.im, bounds_error=False, fill_value=0
         )((lam_x, lam_y))
 
-        self._cmb_imager()
-        cmb_data = sp.interpolate.RegularGridInterpolator(
-            (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
-        )((lam_x, lam_y))
+        # self._cmb_imager()
+        # cmb_data = sp.interpolate.RegularGridInterpolator(
+        #     (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
+        # )((lam_x, lam_y))
 
         x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
         y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)
@@ -137,7 +138,7 @@ class WeObserve:
         total_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (map_data + self.lam.temperature + cmb_data).ravel(),
+            (map_data + self.lam.temperature).ravel(),  #+ cmb_dat
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
@@ -145,7 +146,7 @@ class WeObserve:
         noise_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (self.lam.temperature + cmb_data).ravel(),
+            (self.lam.temperature).ravel(), # + cmb_data
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
@@ -198,18 +199,18 @@ class WeObserve:
         plt.close()
 
         # visualize powerspectrum
-        f, ps = sp.signal.periodogram(self.lam.temperature[0], fs=self.lam.pointing.sample_rate, window="tukey")
-        plt.figure()
-        plt.plot(f[1:], ps.mean(axis=0)[1:], label="atmosphere")
-        plt.plot(f[1:], f[1:] ** (-8 / 3), label="y = f^-(8/3)")
-        plt.loglog()
-        plt.xlabel("l")
-        plt.ylabel("PS")
-        plt.legend()
-        plt.savefig(
-            self.file_save + "/analyzes/Noise_ps_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png"
-        )
-        plt.close()
+        # f, ps = sp.signal.periodogram(self.lam.temperature[0], fs=self.lam.pointing.sample_rate, window="tukey")
+        # plt.figure()
+        # plt.plot(f[1:], ps.mean(axis=0)[1:], label="atmosphere")
+        # plt.plot(f[1:], f[1:] ** (-8 / 3), label="y = f^-(8/3)")
+        # plt.loglog()
+        # plt.xlabel("l")
+        # plt.ylabel("PS")
+        # plt.legend()
+        # plt.savefig(
+        #     self.file_save + "/analyzes/Noise_ps_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png"
+        # )
+        # plt.close()
 
         # visualize fits files
         fig, (true_ax, signal_ax, noise_ax, total_ax) = plt.subplots(

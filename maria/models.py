@@ -1,4 +1,7 @@
 import numpy as np
+import scipy.interpolate
+import scipy.ndimage
+import scipy.stats
 import scipy as sp
 import pandas as pd
 import os
