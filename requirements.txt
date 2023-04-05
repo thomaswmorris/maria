@@ -1,12 +1,12 @@
 # List required packages in this file, one per line.
-numpy
-scipy
-pandas
-tqdm
-healpy
-camb
-weathergen >= 2.2.2
-tables
-h5py
+
 astropy
-pymaster
+camb
+h5py
+healpy
+numpy
+pandas
+scipy
+tables
+tqdm
+weathergen >= 2.2.2
