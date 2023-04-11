@@ -1,10 +1,11 @@
 # -- General packages --
 import os
 import numpy as np
+import scipy.signal
 import scipy as sp
 
-import camb
-import pymaster as nmt
+# import camb
+# import pymaster as nmt
 
 from matplotlib import pyplot as plt
 from astropy.io import fits
@@ -19,15 +20,15 @@ class WeObserve:
         self.file_name = skymodel
         self.file_save = project
 
-        self.array = get_array(array_name)
+        self.array    = get_array(array_name)
         self.pointing = get_pointing(pointing_name)
-        self.site = get_site(site_name)
+        self.site     = get_site(site_name)
 
         # get the atmosphere --> Should do something with the pwv
         self._run_atmos()
 
-        # get the CMB?
-        self._get_CMBPS()
+        # get the CMB
+        # self._get_CMBPS()
 
         # Get the astronomical signal
         self._get_skyconfig(**kwargs)
@@ -36,25 +37,26 @@ class WeObserve:
 
 
     def _run_atmos(self):
+        self.lam = models.LinearAngularModel(self.array, 
+                                             self.pointing, 
+                                             self.site, 
+                                             verbose=self.verbose)
 
-        self.lam = models.LinearAngularModel(self.array, self.pointing, self.site, verbose=self.verbose)
-        self.lam.simulate_temperature(NU=[90e9, 150e9, 280e9], units='K_RJ')
+        self.lam.simulate_temperature(nu=np.unique(self.array.bands), units='K_RJ')
 
-    def _get_CMBPS(
-        self,
-    ):
+    def _get_CMBPS(self):
 
         pars = camb.CAMBparams()
         pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06)
         pars.InitPower.set_params(As=2e-9, ns=0.965, r=0)
-        pars.set_for_lmax(5000, lens_potential_accuracy=0)
+        pars.set_for_lmax(5000, lens_potential_accuracy=0) # correct mode would l=129600 for 5"
 
         results = camb.get_results(pars)
         powers = results.get_cmb_power_spectra(pars, CMB_unit="K")["total"][:, 0]
 
         # HMMMM there is a frequency dependance
-        self.CMB_PS = np.empty((len(self.ARRAY_CONFIG["bands"]), len(powers)))
-        for i in range(len(self.ARRAY_CONFIG["bands"])):
+        self.CMB_PS = np.empty((len(np.unique(self.array.bands)), len(powers)))
+        for i in range(len(np.unique(self.array.bands))):
             self.CMB_PS[i] = powers
 
     def _cmb_imager(self, bandnumber=0):
@@ -71,7 +73,7 @@ class WeObserve:
             np.array([self.CMB_PS[bandnumber]]),
             [0],
             beam=None,
-            seed=self.PLAN_CONFIG["seed"],
+            seed=self.pointing.seed,
         )[0]
 
     def _get_skyconfig(self, **kwargs):
@@ -81,8 +83,8 @@ class WeObserve:
 
         self.sky_data = {
             "inbright": kwargs.get("inbright", None),  # assuming something: Jy/pix?
-            "incell": kwargs.get("incell", self.he["CDELT1"]),  # assuming written in degree
-            "inwidth": kwargs.get("inwidth", None),  # assuming written in Hz --> for the spectograph...
+            "incell":   kwargs.get("incell", self.he["CDELT1"]),  # assuming written in degree
+            "inwidth":  kwargs.get("inwidth", None),  # assuming written in Hz --> for the spectograph...
         }
 
         if self.sky_data["inbright"] != None:
@@ -109,10 +111,10 @@ class WeObserve:
             (map_x, map_y), self.im, bounds_error=False, fill_value=0
         )((lam_x, lam_y))
 
-        self._cmb_imager()
-        cmb_data = sp.interpolate.RegularGridInterpolator(
-            (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
-        )((lam_x, lam_y))
+        # self._cmb_imager()
+        # cmb_data = sp.interpolate.RegularGridInterpolator(
+        #     (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
+        # )((lam_x, lam_y))
 
         x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
         y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)
@@ -136,7 +138,7 @@ class WeObserve:
         total_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (map_data + self.lam.temperature_rayleigh_jeans + cmb_data).ravel(),
+            (map_data + self.lam.temperature).ravel(),  #+ cmb_dat
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
@@ -144,7 +146,7 @@ class WeObserve:
         noise_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (self.lam.temperature_rayleigh_jeans + cmb_data).ravel(),
+            (self.lam.temperature).ravel(), # + cmb_data
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
@@ -174,6 +176,7 @@ class WeObserve:
             header=self.he,
             overwrite=True,
         )
+
         fits.writeto(
             self.file_save + "/" + self.file_name.replace(".fits", "_synthetic.fits").split("/")[-1],
             self.mockobs,
@@ -186,9 +189,9 @@ class WeObserve:
 
         # visualize scanning patern
         fig, axes = plt.subplots(1, 2, figsize=(6, 3), dpi=256, tight_layout=True)
-        axes[0].plot(np.degrees(self.lam.c_az), np.degrees(self.lam.c_el), lw=5e-1)
+        axes[0].plot(np.degrees(self.lam.pointing.az), np.degrees(self.lam.pointing.el), lw=5e-1)
         axes[0].set_xlabel("az (deg)"), axes[0].set_ylabel("el (deg)")
-        axes[1].plot(np.degrees(self.lam.c_ra), np.degrees(self.lam.c_dec), lw=5e-1)
+        axes[1].plot(np.degrees(self.lam.pointing.ra), np.degrees(self.lam.pointing.dec), lw=5e-1)
         axes[1].set_xlabel("ra (deg)"), axes[1].set_ylabel("dec (deg)")
         plt.savefig(
             self.file_save + "/analyzes/scanpattern_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png"
@@ -196,18 +199,18 @@ class WeObserve:
         plt.close()
 
         # visualize powerspectrum
-        f, ps = sp.signal.periodogram(self.lam.temperature_rayleigh_jeans, fs=self.lam.pointing.sample_rate, window="tukey")
-        plt.figure()
-        plt.plot(f[1:], ps.mean(axis=0)[1:], label="atmosphere")
-        plt.plot(f[1:], f[1:] ** (-8 / 3), label="y = f^-(8/3)")
-        plt.loglog()
-        plt.xlabel("l")
-        plt.ylabel("PS")
-        plt.legend()
-        plt.savefig(
-            self.file_save + "/analyzes/Noise_ps_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png"
-        )
-        plt.close()
+        # f, ps = sp.signal.periodogram(self.lam.temperature[0], fs=self.lam.pointing.sample_rate, window="tukey")
+        # plt.figure()
+        # plt.plot(f[1:], ps.mean(axis=0)[1:], label="atmosphere")
+        # plt.plot(f[1:], f[1:] ** (-8 / 3), label="y = f^-(8/3)")
+        # plt.loglog()
+        # plt.xlabel("l")
+        # plt.ylabel("PS")
+        # plt.legend()
+        # plt.savefig(
+        #     self.file_save + "/analyzes/Noise_ps_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png"
+        # )
+        # plt.close()
 
         # visualize fits files
         fig, (true_ax, signal_ax, noise_ax, total_ax) = plt.subplots(

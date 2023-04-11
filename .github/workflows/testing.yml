@@ -23,10 +23,6 @@ jobs:
           pip install -r requirements-dev.txt
           pip list
 
-      - name: Install dependencies with conda
-        run: |
-          conda install -c conda-forge namaster
-
       - name: Test the code
         run: |
           set -vxuo pipefail
