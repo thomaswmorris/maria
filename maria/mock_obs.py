@@ -4,9 +4,6 @@ import numpy as np
 import scipy.signal
 import scipy as sp
 
-# import camb
-# import pymaster as nmt
-
 from matplotlib import pyplot as plt
 from astropy.io import fits
 
@@ -14,11 +11,12 @@ from . import get_array, get_site, get_pointing
 from . import models, utils
 
 class WeObserve:
-    def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='DAISY_2deg_4ra_10.5dec_600s', site_name='APEX', verbose=True, **kwargs):
+    def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='DAISY_2deg_4ra_10.5dec_600s', site_name='APEX', verbose=True, cmb = False, **kwargs):
 
         self.verbose = verbose
         self.file_name = skymodel
         self.file_save = project
+        self.add_cmb = cmb
 
         self.array    = get_array(array_name)
         self.pointing = get_pointing(pointing_name)
@@ -28,13 +26,13 @@ class WeObserve:
         self._run_atmos()
 
         # get the CMB
-        # self._get_CMBPS()
+        if self.add_cmb:
+            self._get_CMBPS()
 
         # Get the astronomical signal
         self._get_skyconfig(**kwargs)
         self._get_sky()
         self._savesky()
-
 
     def _run_atmos(self):
         self.lam = models.LinearAngularModel(self.array, 
@@ -45,11 +43,14 @@ class WeObserve:
         self.lam.simulate_temperature(nu=np.unique(self.array.bands), units='K_RJ')
 
     def _get_CMBPS(self):
+        import camb
 
         pars = camb.CAMBparams()
         pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06)
         pars.InitPower.set_params(As=2e-9, ns=0.965, r=0)
-        pars.set_for_lmax(5000, lens_potential_accuracy=0) # correct mode would l=129600 for 5"
+        
+        # correct mode would l=129600 for 5"
+        pars.set_for_lmax(5000, lens_potential_accuracy=0) 
 
         results = camb.get_results(pars)
         powers = results.get_cmb_power_spectra(pars, CMB_unit="K")["total"][:, 0]
@@ -60,6 +61,8 @@ class WeObserve:
             self.CMB_PS[i] = powers
 
     def _cmb_imager(self, bandnumber=0):
+
+        import pymaster as nmt
 
         nx, ny = self.im.shape
         Lx = nx * np.deg2rad(self.sky_data["incell"])
@@ -94,7 +97,7 @@ class WeObserve:
     def _get_sky(
         self,
     ):
-
+        
         map_res = np.radians(self.sky_data["incell"])
         map_nx, map_ny = self.im.shape
 
@@ -111,10 +114,14 @@ class WeObserve:
             (map_x, map_y), self.im, bounds_error=False, fill_value=0
         )((lam_x, lam_y))
 
-        # self._cmb_imager()
-        # cmb_data = sp.interpolate.RegularGridInterpolator(
-        #     (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
-        # )((lam_x, lam_y))
+        if self.add_cmb:
+            self._cmb_imager()
+            cmb_data = sp.interpolate.RegularGridInterpolator(
+                        (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
+                        )((lam_x, lam_y))
+            self.noise = self.lam.temperature.ravel() + cmb_data
+        else:
+            self.noise = self.lam.temperature.ravel()
 
         x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
         y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)
@@ -138,7 +145,7 @@ class WeObserve:
         total_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (map_data + self.lam.temperature).ravel(),  #+ cmb_dat
+            map_data.ravel() + self.noise,
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
@@ -146,7 +153,7 @@ class WeObserve:
         noise_map = sp.stats.binned_statistic_2d(
             lam_x.ravel(),
             lam_y.ravel(),
-            (self.lam.temperature).ravel(), # + cmb_data
+            self.noise,
             statistic="mean",
             bins=(x_bins, y_bins),
         )[0]
