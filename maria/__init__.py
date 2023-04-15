@@ -43,6 +43,10 @@ with open(f'{here}/configs/pointings.json', 'r+') as f:
 with open(f'{here}/configs/sites.json', 'r+') as f:
     DEFAULT_SITE_CONFIGS = json.load(f)
 
+DEFAULT_ARRAYS = list((DEFAULT_ARRAY_CONFIGS.keys()))
+DEFAULT_POINTINGS = list((DEFAULT_POINTING_CONFIGS.keys()))
+DEFAULT_SITES = list((DEFAULT_SITE_CONFIGS.keys()))
+
 
 class InvalidArrayError(Exception):
     def __init__(self, invalid_array):
@@ -74,21 +78,21 @@ def validate_pointing(azim, elev):
     if el_min <= 0:
         raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
 
+
 def get_array_config(array_name):
     if not array_name in DEFAULT_ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
-    return DEFAULT_ARRAY_CONFIGS[array_name]
+    return DEFAULT_ARRAY_CONFIGS[array_name].copy()
 
 def get_pointing_config(pointing_name):
     if not pointing_name in DEFAULT_POINTING_CONFIGS.keys():
         raise InvalidPointingError(pointing_name)
-    return DEFAULT_POINTING_CONFIGS[pointing_name]
+    return DEFAULT_POINTING_CONFIGS[pointing_name].copy()
 
 def get_site_config(site_name):
     if not site_name in DEFAULT_SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
-    return DEFAULT_SITE_CONFIGS[site_name]
-
+    return DEFAULT_SITE_CONFIGS[site_name].copy()
 
 def get_array(array_name):
     return Array(get_array_config(array_name))
