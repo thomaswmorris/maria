@@ -6,6 +6,7 @@ coverage
 flake8
 isort
 nbstripout
+nbsphinx
 pre-commit
 pre-commit-hooks
 pytest
