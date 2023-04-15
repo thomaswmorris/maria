@@ -70,30 +70,45 @@ def validate_pointing(azim, elev):
     if el_min <= 0:
         raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
 
-def get_array_config(array_name):
+def get_array_config(array_name, **kwargs):
     if not array_name in DEFAULT_ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
-    return DEFAULT_ARRAY_CONFIGS[array_name]
+    ARRAY_CONFIG = DEFAULT_ARRAY_CONFIGS[array_name]
+    
+    for k in ARRAY_CONFIG.keys():
+        if k in kwargs: ARRAY_CONFIG[k] = kwargs.get(k)
 
-def get_pointing_config(pointing_name):
+    return ARRAY_CONFIG
+
+def get_pointing_config(pointing_name, **kwargs):
     if not pointing_name in DEFAULT_POINTING_CONFIGS.keys():
         raise InvalidPointingError(pointing_name)
-    return DEFAULT_POINTING_CONFIGS[pointing_name]
+    POINTING_CONFIG = DEFAULT_POINTING_CONFIGS[pointing_name]
+    
+    for k in POINTING_CONFIG.keys():
+        if k in kwargs: POINTING_CONFIG[k] = kwargs.get(k)
+    
+    return POINTING_CONFIG
 
-def get_site_config(site_name):
+def get_site_config(site_name, **kwargs):
     if not site_name in DEFAULT_SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
-    return DEFAULT_SITE_CONFIGS[site_name]
+    SITE_CONFIG = DEFAULT_SITE_CONFIGS[site_name]
+
+    for k in SITE_CONFIG.keys():
+        if k in kwargs: SITE_CONFIG[k] = kwargs.get(k)
+    
+    return SITE_CONFIG
 
 
-def get_array(array_name):
-    return Array(get_array_config(array_name))
+def get_array(array_name, **kwargs):
+    return Array(get_array_config(array_name, **kwargs))
 
-def get_pointing(pointing_name):
-    return Pointing(get_pointing_config(pointing_name))
+def get_pointing(pointing_name, **kwargs):
+    return Pointing(get_pointing_config(pointing_name, **kwargs))
 
-def get_site(site_name):
-    return Site(get_site_config(site_name))
+def get_site(site_name, **kwargs):
+    return Site(get_site_config(site_name, **kwargs))
 
 
 class AtmosphericSpectrum:
@@ -470,7 +485,7 @@ class AtmosphericModel:
                                                  self.integrated_water_vapor[None], 
                                                  np.atleast_1d(nu)[:,None,None]))
 
-        if units == 'F_RJ': # honestly it just feels more natural
+        if units == 'F_RJ': # honestly it just feels more natural --> I think we should do C_RJ... ^.^
             self.simulate_temperature(self, nu=nu, units='K_RJ')
             self.temperature = 1.8 * (self.temperature - 273.15) + 32
 

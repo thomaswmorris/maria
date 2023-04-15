@@ -18,9 +18,9 @@ class WeObserve:
         self.file_save = project
         self.add_cmb = cmb
 
-        self.array    = get_array(array_name)
-        self.pointing = get_pointing(pointing_name)
-        self.site     = get_site(site_name)
+        self.array    = get_array(array_name, **kwargs)
+        self.pointing = get_pointing(pointing_name, **kwargs)
+        self.site     = get_site(site_name, **kwargs)
 
         # get the atmosphere --> Should do something with the pwv
         self._run_atmos()
@@ -119,7 +119,7 @@ class WeObserve:
             cmb_data = sp.interpolate.RegularGridInterpolator(
                         (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
                         )((lam_x, lam_y))
-            self.noise = self.lam.temperature.ravel() + cmb_data
+            self.noise = (self.lam.temperature + cmb_data).ravel()
         else:
             self.noise = self.lam.temperature.ravel()
 
@@ -206,18 +206,18 @@ class WeObserve:
         plt.close()
 
         # visualize powerspectrum
-        # f, ps = sp.signal.periodogram(self.lam.temperature[0], fs=self.lam.pointing.sample_rate, window="tukey")
-        # plt.figure()
-        # plt.plot(f[1:], ps.mean(axis=0)[1:], label="atmosphere")
-        # plt.plot(f[1:], f[1:] ** (-8 / 3), label="y = f^-(8/3)")
-        # plt.loglog()
-        # plt.xlabel("l")
-        # plt.ylabel("PS")
-        # plt.legend()
-        # plt.savefig(
-        #     self.file_save + "/analyzes/Noise_ps_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png"
-        # )
-        # plt.close()
+        f, ps = sp.signal.periodogram(self.lam.temperature[0], fs=self.lam.pointing.sample_rate, window="tukey")
+        plt.figure()
+        plt.plot(f[1:], ps.mean(axis=0)[1:], label="atmosphere")
+        plt.plot(f[1:], f[1:] ** (-8 / 3), label="y = f^-(8/3)")
+        plt.loglog()
+        plt.xlabel("l")
+        plt.ylabel("PS")
+        plt.legend()
+        plt.savefig(
+            self.file_save + "/analyzes/Noise_ps_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png"
+        )
+        plt.close()
 
         # visualize fits files
         fig, (true_ax, signal_ax, noise_ax, total_ax) = plt.subplots(

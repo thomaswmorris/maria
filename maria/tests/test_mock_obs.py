@@ -13,8 +13,10 @@ def test_we_observe():
             project="./Mock_obs",
             skymodel=file,
             verbose=True,
-            bands=[(27e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
             cmb = False,
+
+            bands=[(27e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
+            
             inbright=-5.37 * 1e3 * 0.000113,
             incell=0.5 / 360,  # degree
         )
