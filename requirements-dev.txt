@@ -6,6 +6,7 @@ flake8
 isort
 nbstripout
 nbsphinx
+pandoc
 pre-commit
 pre-commit-hooks
 pytest
