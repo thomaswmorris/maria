@@ -56,7 +56,7 @@ jobs:
         if: github.repository_owner == 'thomaswmorris' && github.ref_name == 'master'
         # We pin to the SHA, not the tag, for security reasons.
         # https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
-        uses: peaceiris/actions-gh-pages  # v3.7.3
+        uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501  # v3.7.3
         with:
           deploy_key: ${{ secrets.MARIA_DOCUMENTATION_DEPLOY_KEY }}
           publish_branch: master
