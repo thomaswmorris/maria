@@ -4,5 +4,12 @@ include LICENSE
 include README.rst
 include requirements.txt
 
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-include docs *.rst conf.py Makefile make.bat
+
+include versioneer.py
+include maria/_version.py
 include maria/spectra/*
 include maria/configs/*

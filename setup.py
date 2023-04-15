@@ -1,5 +1,6 @@
 from os import path
 import setuptools
+import versioneer
 
 here = path.abspath(path.dirname(__file__))
 
@@ -7,15 +8,15 @@ with open(path.join(here, "README.rst"), encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 with open(path.join(here, "requirements.txt")) as requirements_file:
-    # Parse requirements.txt, ignoring any commented-out lines.
     requirements = [line for line in requirements_file.read().splitlines() if not line.startswith("#")]
 
 setuptools.setup(
     name="maria",
-    version="0.0.12",
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description="Simulates atmospheric emission for ground-based telescopes",
     long_description=readme,
-    author="Thomas Morris",
+    author="Thomas W. Morris",
     author_email="thomasmorris@princeton.edu",
     url="https://github.com/thomaswmorris/maria",
     python_requires=">=3.7",
