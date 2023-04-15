@@ -47,21 +47,9 @@ jobs:
       - name: Build Docs
         run: make -C docs/ html
 
-      - uses: actions/upload-artifact@v3
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
-          name: ${{ env.REPOSITORY_NAME }}-docs
-          path: docs/build/html/
-
-      - name: Deploy documentation
-        if: github.repository_owner == 'thomaswmorris' && github.ref_name == 'master'
-        # We pin to the SHA, not the tag, for security reasons.
-        # https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
-        uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501  # v3.7.3
-        with:
-          deploy_key: ${{ secrets.MARIA_DOCUMENTATION_DEPLOY_KEY }}
-          publish_branch: master
+          github_token: ${{ secrets.MARIA_PUBLISH_DOCS_TOKEN }}
           publish_dir: ./docs/build/html
-          external_repository: thomaswmorris/thomaswmorris.github.io
-          destination_dir: ${{ env.REPOSITORY_NAME }}
-          keep_files: true  # Keep old files.
-          force_orphan: false  # Keep git history.
