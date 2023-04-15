@@ -28,8 +28,19 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
+      - name: Set up Python ${{ matrix.python-version }} with conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: ${{ env.REPOSITORY_NAME }}-py${{ matrix.python-version }}
+          auto-update-conda: true
+          miniconda-version: "latest"
+          python-version: ${{ matrix.python-version }}
+          mamba-version: "*"
+          channels: conda-forge
+
       - name: Install dependencies with pip
         run: |
+          mamba install -c conda-forge pandoc
           pip install .
           pip install -r requirements-dev.txt
           pip list
