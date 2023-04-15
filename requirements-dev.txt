@@ -3,6 +3,7 @@
 black
 coverage
 flake8
+furo
 isort
 nbstripout
 nbsphinx
