@@ -8,7 +8,7 @@
 !maps/*.fits
 
 *.ipynb
-!docs/*.ipynb
+!docs/source/notebooks/*.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

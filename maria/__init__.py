@@ -1,6 +1,10 @@
-# AVE MARIA, GRATIA PLENA, DOMINUS TECUM
+# Ave, María, grátia plena, Dóminus tecum
 
-# -- General packages --
+from ._version import get_versions
+__version__ = get_versions()["version"]
+
+del get_versions
+
 import os
 import numpy as np
 import scipy as sp
@@ -454,12 +458,12 @@ class AtmosphericModel:
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
 
-        
+
     def simulate_temperature(self, nu=150e9, units='K_RJ'):
 
-        self.simulate_integrated_water_vapor() # this is elevation-corrected by default
+        if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
-        if units == 'K_RJ':
+            self.simulate_integrated_water_vapor() # this is elevation-corrected by default
 
             TRJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
                                                                     self.spectrum.tcwv,
@@ -470,7 +474,8 @@ class AtmosphericModel:
                                                  self.integrated_water_vapor[None], 
                                                  np.atleast_1d(nu)[:,None,None]))
 
-        if units == 'F_RJ': # honestly it just feels more natural
+        if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans (honestly it just feels more natural)
+
             self.simulate_temperature(self, nu=nu, units='K_RJ')
             self.temperature = 1.8 * (self.temperature - 273.15) + 32
 
