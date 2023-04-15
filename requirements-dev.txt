@@ -4,6 +4,7 @@ black
 coverage
 flake8
 furo
+ipykernel
 isort
 nbstripout
 nbsphinx
