@@ -78,6 +78,9 @@ class WeObserve:
             seed=self.pointing.seed,
         )[0]
 
+        self.CMB_map += utils.Tcmb
+        self.CMB_map *= utils.KcmbToKbright(np.unique(self.array.bands)[bandnumber])
+
     def _get_skyconfig(self, **kwargs):
         hudl = fits.open(self.file_name)
         self.im = hudl[0].data
@@ -89,14 +92,15 @@ class WeObserve:
             self.im = self.im.reshape(1,self.im.shape[0], self.im.shape[1])
 
         self.sky_data = {
-            "inbright": kwargs.get("inbright", None),  # assuming something: Jy/pix?
-            "incell":   kwargs.get("incell", self.he["CDELT1"]),  # assuming written in degree
-            "inwidth":  kwargs.get("inwidth", None),  # assuming written in Hz --> for the spectograph...
+            "inbright": kwargs.get("inbright", None),             # assuming something: Jy/pix?
+            "incell":   kwargs.get("incell", self.he["CDELT1"]),  # assuming units in degree
+            "inwidth":  kwargs.get("inwidth", None),              # assuming written in Hz --> for the spectograph...
+            "units":    kwargs.get("units", 'KRJ'),               # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel            
         }
 
         if self.sky_data["inbright"] != None:
             self.im = self.im / np.nanmax(self.im) * self.sky_data["inbright"]
-
+        
     def _get_sky(
         self,
     ):
@@ -135,6 +139,9 @@ class WeObserve:
             idx = 0
         else:
             idx = i
+
+        if self.sky_data['units'] == 'Jy/pixel':
+            self.im[idx] = self.im[idx]/utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
 
         self.map_data = sp.interpolate.RegularGridInterpolator(
             (map_x, map_y), self.im[idx], bounds_error=False, fill_value=0
@@ -187,6 +194,13 @@ class WeObserve:
         self.noisemap[i]    = noise_map
         self.filteredmap[i] = filtered_map
         self.mockobs[i]     = total_map
+
+        if self.sky_data['units'] == 'Jy/pixel':
+            self.truesky[i]     *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.noisemap[i]    *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.filteredmap[i] *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.mockobs[i]     *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
+
 
     def _savesky(
         self,
