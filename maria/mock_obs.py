@@ -94,12 +94,19 @@ class WeObserve:
         self.sky_data = {
             "inbright": kwargs.get("inbright", None),             # assuming something: Jy/pix?
             "incell":   kwargs.get("incell", self.he["CDELT1"]),  # assuming units in degree
-            "inwidth":  kwargs.get("inwidth", None),              # assuming written in Hz --> for the spectograph...
             "units":    kwargs.get("units", 'KRJ'),               # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel            
         }
 
+        #updating header info
+        self.he['HISTORY'] = 'History_WeOBSERVE 1'
+        self.he[''] = 'Changed CDELT1 and CDELT2'
+        self.he['CDELT1'] = self.sky_data['incell']
+        self.he['CDELT2'] = self.sky_data['incell']
+        self.he[''] = 'Changed units to ' + self.sky_data['units']
+
         if self.sky_data["inbright"] != None:
             self.im = self.im / np.nanmax(self.im) * self.sky_data["inbright"]
+            self.he[''] = 'Amplitude is rescaled.'
         
     def _get_sky(
         self,
