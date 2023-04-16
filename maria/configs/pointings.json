@@ -1,7 +1,7 @@
 {
     "STARE_0az_90el_60s": {
         "start_time": "2022-07-01T08:00:00",
-        "end_time": "2022-07-01T08:10:00",
+        "integration_time": 60,
         "scan_pattern": "back-and-forth",
         "coord_center": [0, 90], 
         "coord_throws": [0, 0],
@@ -14,7 +14,7 @@
 
     "DAISY_2deg_4ra_10.5dec_600s": {
         "start_time": "2022-07-01T08:00:00",
-        "end_time": "2022-07-01T08:10:00",
+        "integration_time": 600,
         "scan_pattern": "daisy",  
         "scan_options": {"k": 3.1416},
         "coord_center": [4, 10.5],
@@ -28,7 +28,7 @@
 
     "BAF_5deg_45az_45el_60s": {
         "start_time": "2022-07-01T08:00:00",
-        "end_time": "2022-07-01T08:01:00",
+        "integration_time": 60,
         "scan_pattern": "back-and-forth",  
         "scan_options": {"k": 3.1416},
         "coord_center": [45, 45],

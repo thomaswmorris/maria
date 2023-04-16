@@ -16,6 +16,7 @@ import h5py
 import glob
 import re
 import json
+import time
 
 import weathergen
 from tqdm import tqdm
@@ -23,7 +24,7 @@ from tqdm import tqdm
 import warnings
 import healpy as hp
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from astropy.io import fits
 
@@ -35,33 +36,32 @@ regions = weathergen.regions.loc[supported_regions].sort_index()
 from . import utils
 
 with open(f'{here}/configs/arrays.json', 'r+') as f:
-    DEFAULT_ARRAY_CONFIGS = json.load(f)
+    ARRAY_CONFIGS = json.load(f)
 
 with open(f'{here}/configs/pointings.json', 'r+') as f:
-    DEFAULT_POINTING_CONFIGS = json.load(f)
+    POINTING_CONFIGS = json.load(f)
 
 with open(f'{here}/configs/sites.json', 'r+') as f:
-    DEFAULT_SITE_CONFIGS = json.load(f)
+    SITE_CONFIGS = json.load(f)
 
-DEFAULT_ARRAYS = list((DEFAULT_ARRAY_CONFIGS.keys()))
-DEFAULT_POINTINGS = list((DEFAULT_POINTING_CONFIGS.keys()))
-DEFAULT_SITES = list((DEFAULT_SITE_CONFIGS.keys()))
-
+ARRAYS = list((ARRAY_CONFIGS.keys()))
+POINTINGS = list((POINTING_CONFIGS.keys()))
+SITES = list((SITE_CONFIGS.keys()))
 
 class InvalidArrayError(Exception):
     def __init__(self, invalid_array):
         super().__init__(f"The array \'{invalid_array}\' is not in the database of default arrays. "
-        f"Default arrays are:\n\n{sorted(list(DEFAULT_ARRAY_CONFIGS.keys()))}")
+        f"Default arrays are:\n\n{sorted(list(ARRAY_CONFIGS.keys()))}")
 
 class InvalidPointingError(Exception):
     def __init__(self, invalid_pointing):
         super().__init__(f"The site \'{invalid_pointing}\' is not in the database of default pointings. "
-        f"Default pointings are:\n\n{sorted(list(DEFAULT_POINTING_CONFIGS.keys()))}")
+        f"Default pointings are:\n\n{sorted(list(POINTING_CONFIGS.keys()))}")
 
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(f"The site \'{invalid_site}\' is not in the database of default sites. "
-        f"Default sites are:\n\n{sorted(list(DEFAULT_SITE_CONFIGS.keys()))}")
+        f"Default sites are:\n\n{sorted(list(SITE_CONFIGS.keys()))}")
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
@@ -79,27 +79,27 @@ def validate_pointing(azim, elev):
         raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
 
 def get_array_config(array_name, **kwargs):
-    if not array_name in DEFAULT_ARRAY_CONFIGS.keys():
+    if not array_name in ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
-    ARRAY_CONFIG = DEFAULT_ARRAY_CONFIGS[array_name].copy()
+    ARRAY_CONFIG = ARRAY_CONFIGS[array_name].copy()
     for k, v in kwargs.items():
         ARRAY_CONFIG[k] = v
     return ARRAY_CONFIG
 
 
 def get_pointing_config(pointing_name, **kwargs):
-    if not pointing_name in DEFAULT_POINTING_CONFIGS.keys():
+    if not pointing_name in POINTING_CONFIGS.keys():
         raise InvalidPointingError(pointing_name)
-    POINTING_CONFIG = DEFAULT_POINTING_CONFIGS[pointing_name].copy()
+    POINTING_CONFIG = POINTING_CONFIGS[pointing_name].copy()
     for k, v in kwargs.items():
         POINTING_CONFIG[k] = v
     return POINTING_CONFIG
 
 
 def get_site_config(site_name, **kwargs):
-    if not site_name in DEFAULT_SITE_CONFIGS.keys():
+    if not site_name in SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
-    SITE_CONFIG = DEFAULT_SITE_CONFIGS[site_name].copy()
+    SITE_CONFIG = SITE_CONFIGS[site_name].copy()
     for k, v in kwargs.items():
         SITE_CONFIG[k] = v
     return SITE_CONFIG
@@ -326,37 +326,49 @@ class Array:
         return filt_M
 
 
+
 class Pointing:
 
     """
     A class containing time-ordered pointing data.
     """
 
-    def __init__(self, config, verbose=False):
+    @staticmethod
+    def validate_pointing_config(config):
+        """
+        Make sure that we have all the ingredients to produce the pointing data.
+        """
+        if ('end_time' not in config.keys()) and ('integration_time' not in config.keys()):
+            raise ValueError('One of "end_time" or "integration_time" must be in the pointing config.')
+
+    def __init__(self, config):
+
+        self.validate_pointing_config(config)
 
         self.config = config
         for key, val in config.items():
             setattr(self, key, val)
-            if verbose:
-                print(f"set {key} to {val}")
 
-        self.compute()
+        # make sure that self.start_datetime exists, and that it's a datetime.datetime object
+        if not hasattr(self, 'start_time'):
+            self.start_time = time.time()
+        self.start_datetime = utils.datetime_handler(self.start_time)
 
-    def compute(self):
-
+        # make self.end_datetime
+        if hasattr(self, 'end_time'): 
+            self.end_datetime = utils.datetime_handler(self.end_time)
+        else:
+            self.end_datetime = self.start_datetime + timedelta(seconds=self.integration_time)
+        
+        self.unix_min = self.start_datetime.timestamp()
+        self.unix_max = self.end_datetime.timestamp()
         self.dt = 1 / self.sample_rate
-
-        self.start_time = utils.datetime_handler(self.start_time)
-        self.end_time = utils.datetime_handler(self.end_time)
-
-        self.t_min = self.start_time.timestamp()
-        self.t_max = self.end_time.timestamp()
 
         if self.coord_units == "degrees":
             self.coord_center = np.radians(self.coord_center)
             self.coord_throws = np.radians(self.coord_throws)
 
-        self.unix = np.arange(self.t_min, self.t_max, self.dt)
+        self.unix = np.arange(self.unix_min, self.unix_max, self.dt)
         self.coords = utils.get_pointing(
             self.unix,
             self.scan_period,
