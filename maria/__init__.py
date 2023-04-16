@@ -73,31 +73,25 @@ def validate_pointing(azim, elev):
 def get_array_config(array_name, **kwargs):
     if not array_name in DEFAULT_ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
-    ARRAY_CONFIG = DEFAULT_ARRAY_CONFIGS[array_name]
-    
-    for k in ARRAY_CONFIG.keys():
-        if k in kwargs: ARRAY_CONFIG[k] = kwargs.get(k)
-
+    ARRAY_CONFIG = DEFAULT_ARRAY_CONFIGS[array_name].copy()
+    for k in kwargs:
+        ARRAY_CONFIG[k] = kwargs.get(k)
     return ARRAY_CONFIG
 
 def get_pointing_config(pointing_name, **kwargs):
     if not pointing_name in DEFAULT_POINTING_CONFIGS.keys():
         raise InvalidPointingError(pointing_name)
-    POINTING_CONFIG = DEFAULT_POINTING_CONFIGS[pointing_name]
-    
-    for k in POINTING_CONFIG.keys():
-        if k in kwargs: POINTING_CONFIG[k] = kwargs.get(k)
-    
+    POINTING_CONFIG = DEFAULT_POINTING_CONFIGS[pointing_name].copy()
+    for k in kwargs: 
+        POINTING_CONFIG[k] = kwargs.get(k)
     return POINTING_CONFIG
 
 def get_site_config(site_name, **kwargs):
     if not site_name in DEFAULT_SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
-    SITE_CONFIG = DEFAULT_SITE_CONFIGS[site_name]
-
-    for k in SITE_CONFIG.keys():
-        if k in kwargs: SITE_CONFIG[k] = kwargs.get(k)
-    
+    SITE_CONFIG = DEFAULT_SITE_CONFIGS[site_name].copy()
+    for k in kwargs: 
+        SITE_CONFIG[k] = kwargs.get(k)
     return SITE_CONFIG
 
 
@@ -474,7 +468,7 @@ class AtmosphericModel:
 
         self.simulate_integrated_water_vapor() # this is elevation-corrected by default
 
-        if units == 'K_RJ':
+        if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
             TRJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
                                                                     self.spectrum.tcwv,
@@ -485,10 +479,7 @@ class AtmosphericModel:
                                                  self.integrated_water_vapor[None], 
                                                  np.atleast_1d(nu)[:,None,None]))
 
-        if units == 'F_RJ': # honestly it just feels more natural --> I think we should do C_RJ... ^.^
+        if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
             self.simulate_temperature(self, nu=nu, units='K_RJ')
             self.temperature = 1.8 * (self.temperature - 273.15) + 32
-
-
-        
-
+                    
