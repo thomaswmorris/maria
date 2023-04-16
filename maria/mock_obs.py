@@ -215,7 +215,6 @@ class WeObserve:
         if not os.path.exists(self.file_save):
             os.mkdir(self.file_save)
 
-        # update header with the kwargs
         fits.writeto(
             self.file_save + "/" + self.file_name.replace(".fits", "_noisemap.fits").split("/")[-1],
             self.noisemap,

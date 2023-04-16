@@ -18,7 +18,7 @@ def test_we_observe():
             bands = [(27e9, 5e9, 100),
                      (35e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
             
-            units    = 'KRJ',                   # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel            
+            units    = 'Jy/pixel',                   # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel            
             inbright = -5.37 * 1e3 * 0.000113,  # In units of key units 
             incell   = 0.5 / 360,               # degree
         )
