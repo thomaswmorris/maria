@@ -74,24 +74,24 @@ def get_array_config(array_name, **kwargs):
     if not array_name in DEFAULT_ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
     ARRAY_CONFIG = DEFAULT_ARRAY_CONFIGS[array_name].copy()
-    for k in kwargs:
-        ARRAY_CONFIG[k] = kwargs.get(k)
+    for k, v in kwargs.items():
+        ARRAY_CONFIG[k] = v
     return ARRAY_CONFIG
 
 def get_pointing_config(pointing_name, **kwargs):
     if not pointing_name in DEFAULT_POINTING_CONFIGS.keys():
         raise InvalidPointingError(pointing_name)
     POINTING_CONFIG = DEFAULT_POINTING_CONFIGS[pointing_name].copy()
-    for k in kwargs: 
-        POINTING_CONFIG[k] = kwargs.get(k)
+    for k, v in kwargs.items():
+        POINTING_CONFIG[k] = v
     return POINTING_CONFIG
 
 def get_site_config(site_name, **kwargs):
     if not site_name in DEFAULT_SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
     SITE_CONFIG = DEFAULT_SITE_CONFIGS[site_name].copy()
-    for k in kwargs: 
-        SITE_CONFIG[k] = kwargs.get(k)
+    for k, v in kwargs.items():
+        SITE_CONFIG[k] = v
     return SITE_CONFIG
 
 
