@@ -6,7 +6,8 @@ a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
 
 ``maria`` is a python-based package that simulates turbulent atmospheric
 emission using a auto-regressive Gaussian process framework, for
-applications in observational astronomy.
+applications in observational astronomy. Tutorials for installation and 
+usage can be found in the `documentation <https://www.thomaswmorris.com/maria>`_.
 
 Background
 ----------
@@ -43,16 +44,3 @@ atmospheric emission for in excess of 100,000 detectors observing the
 sky concurrently, at resolutions as fine as one arcminute. The
 atmospheric model used is detailed
 `here <https://arxiv.org/abs/2111.01319>`_.
-
-The atmospheric simulation portion of this package is built on `weathergen <https://github.com/thomaswmorris/weathergen>`_ (which simulates time-ordered vertical weather profiles) and `am <https://lweb.cfa.harvard.edu/~spaine/am/>`_ (which simulates the resulting emission spectrum of atmospheric species).
-
-Examples and Usage
-------------------
-
-To install MARIA with PyPi, run
-
-.. code:: console
-
-   pip install maria
-
-This also installs and compiles the ``am`` atmospheric model,

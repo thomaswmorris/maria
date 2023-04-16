@@ -25,6 +25,13 @@
         "latitude" : 19.8228, 
         "longitude" : -155.477,
         "altitude" : 4092
+    },
+
+    "SPT" : {
+        "region" : "south_pole",
+        "latitude" : 0, 
+        "longitude" : -90,
+        "altitude" : 2800
     }
 
 }

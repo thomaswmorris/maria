@@ -15,7 +15,7 @@ setuptools.setup(
     version="0.0.12",
     description="Simulates atmospheric emission for ground-based telescopes",
     long_description=readme,
-    author="Thomas Morris",
+    author="Thomas W. Morris",
     author_email="thomasmorris@princeton.edu",
     url="https://github.com/thomaswmorris/maria",
     python_requires=">=3.7",

@@ -1,6 +1,10 @@
-# AVE MARIA, GRATIA PLENA, DOMINUS TECUM
+# Ave, María, grátia plena, Dóminus tecum
 
-# -- General packages --
+from ._version import get_versions
+__version__ = get_versions()["version"]
+
+del get_versions
+
 import os
 import numpy as np
 import scipy as sp
@@ -38,6 +42,10 @@ with open(f'{here}/configs/pointings.json', 'r+') as f:
 
 with open(f'{here}/configs/sites.json', 'r+') as f:
     DEFAULT_SITE_CONFIGS = json.load(f)
+
+DEFAULT_ARRAYS = list((DEFAULT_ARRAY_CONFIGS.keys()))
+DEFAULT_POINTINGS = list((DEFAULT_POINTING_CONFIGS.keys()))
+DEFAULT_SITES = list((DEFAULT_SITE_CONFIGS.keys()))
 
 
 class InvalidArrayError(Exception):
@@ -78,6 +86,7 @@ def get_array_config(array_name, **kwargs):
         ARRAY_CONFIG[k] = v
     return ARRAY_CONFIG
 
+
 def get_pointing_config(pointing_name, **kwargs):
     if not pointing_name in DEFAULT_POINTING_CONFIGS.keys():
         raise InvalidPointingError(pointing_name)
@@ -86,6 +95,7 @@ def get_pointing_config(pointing_name, **kwargs):
         POINTING_CONFIG[k] = v
     return POINTING_CONFIG
 
+
 def get_site_config(site_name, **kwargs):
     if not site_name in DEFAULT_SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
@@ -93,7 +103,6 @@ def get_site_config(site_name, **kwargs):
     for k, v in kwargs.items():
         SITE_CONFIG[k] = v
     return SITE_CONFIG
-
 
 def get_array(array_name, **kwargs):
     return Array(get_array_config(array_name, **kwargs))
@@ -463,12 +472,12 @@ class AtmosphericModel:
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
 
-        
+
     def simulate_temperature(self, nu=150e9, units='K_RJ'):
 
-        self.simulate_integrated_water_vapor() # this is elevation-corrected by default
-
         if units == 'K_RJ': # Kelvin Rayleigh-Jeans
+
+            self.simulate_integrated_water_vapor() # this is elevation-corrected by default
 
             TRJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
                                                                     self.spectrum.tcwv,
@@ -480,6 +489,7 @@ class AtmosphericModel:
                                                  np.atleast_1d(nu)[:,None,None]))
 
         if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
+
             self.simulate_temperature(self, nu=nu, units='K_RJ')
             self.temperature = 1.8 * (self.temperature - 273.15) + 32
                     
