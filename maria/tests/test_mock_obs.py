@@ -15,8 +15,9 @@ def test_we_observe():
             verbose=True,
             cmb = False,
 
-            bands=[(27e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
+            bands=[(27e9, 5e9, 100),
+                   (35e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
             
             inbright=-5.37 * 1e3 * 0.000113,
-            incell=0.5 / 360,  # degree
+            incell= 0.5 / 360,  # degree
         )
