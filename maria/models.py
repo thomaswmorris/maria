@@ -59,7 +59,7 @@ class LinearAngularModel(AtmosphericModel):
 
         self.min_ang_res = self.angular_waists / self.min_beam_res
 
-        self.weather.generate(time=self.pointing.unix, fixed_quantiles=self.site.fixed_quantiles)
+        self.weather.generate(time=self.pointing.unix, fixed_quantiles=self.site.quantiles)
 
         self.heights = self.site.altitude + self.layer_depths[:, None] * np.sin(self.pointing.el)[None, :]
 
