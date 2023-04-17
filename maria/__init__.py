@@ -369,6 +369,8 @@ class Pointing:
             self.coord_throws = np.radians(self.coord_throws)
 
         self.unix = np.arange(self.unix_min, self.unix_max, self.dt)
+        self.n_t = len(self.unix)
+
         self.coords = utils.get_pointing(
             self.unix,
             self.scan_period,
@@ -398,7 +400,7 @@ class Site:
 
         self.seasonal = True
         self.diurnal = True
-        self.fixed_quantiles = {}
+        self.quantiles = {}
 
         self.config = config
         for key, val in config.items():
@@ -485,23 +487,29 @@ class AtmosphericModel:
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
 
 
-    def simulate_temperature(self, nu=150e9, units='K_RJ'):
+    def simulate_temperature(self, units='K_RJ'):
 
         if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
-            self.simulate_integrated_water_vapor() # this is elevation-corrected by default
+            self.simulate_integrated_water_vapor() 
 
-            TRJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
-                                                                    self.spectrum.tcwv,
-                                                                    self.spectrum.nu,),
-                                                                    self.spectrum.t_rj)
+            self.temperature = np.empty((self.array.n_det, self.pointing.n_t))
 
-            self.temperature = TRJ_interpolator((np.degrees(self.elev)[None], 
-                                                 self.integrated_water_vapor[None], 
-                                                 np.atleast_1d(nu)[:,None,None]))
+            for uib, uband in enumerate(np.unique(self.array.bands)):
+
+                band_mask = self.array.bands == uband
+
+                passband  = (np.abs(self.spectrum.nu - self.array.bands[band_mask].mean()) < self.array.bandwidths[band_mask].mean()).astype(float)
+                passband /= passband.sum()
+
+                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
+                                                                                self.spectrum.tcwv),
+                                                                                (self.spectrum.t_rj * passband).sum(axis=-1))
+
+                self.temperature[band_mask] = band_T_RJ_interpolator((np.degrees(self.elev[band_mask]), self.integrated_water_vapor[band_mask]))
 
         if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
 
-            self.simulate_temperature(self, nu=nu, units='K_RJ')
+            self.simulate_temperature(self, units='K_RJ')
             self.temperature = 1.8 * (self.temperature - 273.15) + 32
                     
