@@ -427,8 +427,6 @@ class AtmosphericModel:
     The base class for modeling atmospheric fluctuations.
 
     A model needs to have the functionality to generate spectra for any pointing data we supply it with.
-
-
     """
 
     def __init__(self, array, pointing, site):
