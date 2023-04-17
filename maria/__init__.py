@@ -398,7 +398,7 @@ class Site:
 
         self.seasonal = True
         self.diurnal = True
-        self.fixed_quantiles = {}
+        self.quantiles = {}
 
         self.config = config
         for key, val in config.items():
@@ -425,8 +425,6 @@ class AtmosphericModel:
     The base class for modeling atmospheric fluctuations.
 
     A model needs to have the functionality to generate spectra for any pointing data we supply it with.
-
-
     """
 
     def __init__(self, array, pointing, site):

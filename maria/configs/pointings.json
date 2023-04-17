@@ -12,6 +12,17 @@
         "seed": 42
     },
 
+    "DAISY_2deg": {
+        "start_time": "2022-07-01T08:00:00",
+        "scan_pattern": "daisy",  
+        "scan_options": {"k": 3.1416},
+        "coord_throws": [2, 2],
+        "coord_units": "degrees", 
+        "scan_period": 60,  
+        "sample_rate": 20, 
+        "seed": 42
+    },
+
     "DAISY_2deg_4ra_10.5dec_600s": {
         "start_time": "2022-07-01T08:00:00",
         "integration_time": 600,
