@@ -78,6 +78,7 @@ def validate_pointing(azim, elev):
     if el_min <= 0:
         raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
 
+
 def get_array_config(array_name, **kwargs):
     if not array_name in ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
@@ -105,13 +106,13 @@ def get_site_config(site_name, **kwargs):
     return SITE_CONFIG
 
 def get_array(array_name, **kwargs):
-    return Array(get_array_config(array_name, **kwargs))
+    return Array(**get_array_config(array_name, **kwargs))
 
 def get_pointing(pointing_name, **kwargs):
-    return Pointing(get_pointing_config(pointing_name, **kwargs))
+    return Pointing(**get_pointing_config(pointing_name, **kwargs))
 
 def get_site(site_name, **kwargs):
-    return Site(get_site_config(site_name, **kwargs))
+    return Site(**get_site_config(site_name, **kwargs))
 
 
 class AtmosphericSpectrum:
@@ -233,49 +234,63 @@ class Coordinator:
 
 
 class Array:
-    def __init__(self, config, verbose=False):
+    def __init__(self, **kwargs):
 
-        self.config = config
+        DEFAULT_ARRAY_CONFIG = {
+        "detectors": [
+            [150e9, 10e9, 100], 
+        ],
+        "geometry": "hex", 
+        "field_of_view": 1.3, 
+        "primary_size": 50,   
+        "band_grouping": "randomized",   
+        "az_bounds": [0, 360],  
+        "el_bounds": [20, 90],
+        "max_az_vel": 3,
+        "max_el_vel": 2,
+        "max_az_acc": 1,
+        "max_el_acc": 0.25
+        }
 
-        for k, v in config.items():
+        for k, v in kwargs.items():
             setattr(self, k, v)
+        
+        if type(self.detectors) == pd.DataFrame:
 
-        self.field_of_view = self.config["field_of_view"]
-        self.primary_size = self.config["primary_size"]
+            self.offset_x  = self.detectors.offset_x.values
+            self.offset_y  = self.detectors.offset_y.values
+            self.band      = self.detectors.band.values
+            self.bandwidth = self.detectors.bandwidth.values
+            self.offsets   = np.c_[self.offset_x, self.offset_y]
+            self.n_det     = len(self.detectors)
+                
+        else:    
+            self.band, self.bandwidth, self.n_det = np.empty(0), np.empty(0), 0
+            for nu_0, nu_w, n in self.detectors:
+                self.band, self.bandwidth = (
+                    np.r_[self.band, np.repeat(nu_0, n)],
+                    np.r_[self.bandwidth, np.repeat(nu_w, n)],
+                )
+                self.n_det += n
 
-        self.bands, self.bandwidths, self.n_det = np.empty(0), np.empty(0), 0
-        for nu_0, nu_w, n in self.config["bands"]:
-            self.bands, self.bandwidths = (
-                np.r_[self.bands, np.repeat(nu_0, n)],
-                np.r_[self.bandwidths, np.repeat(nu_w, n)],
-            )
-            self.n_det += n
+            self.offsets = utils.make_array(self.geometry, self.field_of_view, self.n_det)
+            self.offsets *= np.pi / 180  # put these in radians
 
-        self.offsets = utils.make_array(self.config["geometry"], self.field_of_view, self.n_det)
-        self.offsets *= np.pi / 180  # put these in radians
+            # scramble up the locations of the bands
+            if self.band_grouping == "random":
+                random_index = np.random.choice(np.arange(self.n_det), self.n_det, replace=False)
+                self.offsets = self.offsets[random_index]
+
+            self.offset_x, self.offset_y = self.offsets.T
+            self.r, self.p = np.sqrt(np.square(self.offsets).sum(axis=1)), np.arctan2(*self.offsets.T)
+
+        
+
+        self.ubands = np.unique(self.band)
+
 
         # compute detector offsets
         self.hull = sp.spatial.ConvexHull(self.offsets)
-
-        # scramble up the locations of the bands
-        if self.config["band_grouping"] == "random":
-            random_index = np.random.choice(np.arange(self.n_det), self.n_det, replace=False)
-            self.offsets = self.offsets[random_index]
-
-        self.offset_x, self.offset_y = self.offsets.T
-        self.r, self.p = np.sqrt(np.square(self.offsets).sum(axis=1)), np.arctan2(*self.offsets.T)
-
-        self.ubands = np.unique(self.bands)
-        self.nu = np.arange(0, 1e12, 1e9)
-
-        self.passbands = np.c_[
-            [utils.get_passband(self.nu, nu_0, nu_w, order=16) for nu_0, nu_w in zip(self.bands, self.bandwidths)]
-        ]
-
-        nu_mask = (self.passbands > 1e-4).any(axis=0)
-        self.nu, self.passbands = self.nu[nu_mask], self.passbands[:, nu_mask]
-
-        self.passbands /= self.passbands.sum(axis=1)[:, None]
 
         # compute beams
         self.optical_model = "diff_lim"
@@ -334,19 +349,18 @@ class Pointing:
     """
 
     @staticmethod
-    def validate_pointing_config(config):
+    def validate_pointing_kwargs(kwargs):
         """
         Make sure that we have all the ingredients to produce the pointing data.
         """
-        if ('end_time' not in config.keys()) and ('integration_time' not in config.keys()):
-            raise ValueError('One of "end_time" or "integration_time" must be in the pointing config.')
+        if ('end_time' not in kwargs.keys()) and ('integration_time' not in kwargs.keys()):
+            raise ValueError('One of "end_time" or "integration_time" must be in the pointing kwargs.')
 
-    def __init__(self, config):
+    def __init__(self, **kwargs):
 
-        self.validate_pointing_config(config)
+        self.validate_pointing_kwargs(kwargs)
 
-        self.config = config
-        for key, val in config.items():
+        for key, val in kwargs.items():
             setattr(self, key, val)
 
         # make sure that self.start_datetime exists, and that it's a datetime.datetime object
@@ -396,17 +410,10 @@ class Site:
     and a height correction if needed.
     """
 
-    def __init__(self, config, verbose=False):
+    def __init__(self, **kwargs):
 
-        self.seasonal = True
-        self.diurnal = True
-        self.quantiles = {}
-
-        self.config = config
-        for key, val in config.items():
+        for key, val in kwargs.items():
             setattr(self, key, val)
-            if verbose:
-                print(f"set {key} to {val}")
 
         if not self.region in regions.index.values:
             raise InvalidRegionError(self.region)
@@ -493,11 +500,11 @@ class AtmosphericModel:
 
             self.temperature = np.empty((self.array.n_det, self.pointing.n_t))
 
-            for uib, uband in enumerate(np.unique(self.array.bands)):
+            for uib, uband in enumerate(np.unique(self.array.band)):
 
-                band_mask = self.array.bands == uband
+                band_mask = self.array.band == uband
 
-                passband  = (np.abs(self.spectrum.nu - self.array.bands[band_mask].mean()) < self.array.bandwidths[band_mask].mean()).astype(float)
+                passband  = (np.abs(self.spectrum.nu - self.array.band[band_mask].mean()) < self.array.bandwidth[band_mask].mean()).astype(float)
                 passband /= passband.sum()
 
                 band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 

@@ -23,9 +23,9 @@ from . import AtmosphericModel
 
 DEFAULT_LAM_CONFIG = {
     "min_depth": 500,
-    "max_depth": 5000,
-    "n_layers": 3,
-    "min_beam_res": 8,
+    "max_depth": 4000,
+    "n_layers": 8,
+    "min_beam_res": 4,
 }
 
 
@@ -126,7 +126,7 @@ class LinearAngularModel(AtmosphericModel):
         self.o = np.zeros((self.REL_X.shape))
 
         self.layer_rotation_angles = []
-        self.outer_scale = 5e2
+        self.outer_scale = 3e2
         self.ang_outer_scale = self.outer_scale / self.layer_depths
 
         self.theta_edge_z = []

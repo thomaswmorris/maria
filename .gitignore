@@ -7,6 +7,9 @@
 *.fits
 !maps/*.fits
 
+*.ipynb
+!docs/**.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
