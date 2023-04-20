@@ -68,16 +68,6 @@ class InvalidRegionError(Exception):
         region_string = regions.to_string(columns=['location', 'country', 'latitude', 'longitude', 'altitude'])
         super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{region_string}")
 
-class PointingError(Exception):
-    pass
-
-def validate_pointing(azim, elev):
-    el_min = np.atleast_1d(elev).min()
-    if el_min < np.radians(10):
-        warnings.warn(f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)")
-    if el_min <= 0:
-        raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
-
 
 def get_array_config(array_name, **kwargs):
     if not array_name in ARRAY_CONFIGS.keys():
@@ -151,9 +141,9 @@ class Coordinator:
 
     def transform(self, unix, phi, theta, in_frame, out_frame):
 
-        _unix = np.atleast_2d(unix)
-        _phi = np.atleast_2d(phi)
-        _theta = np.atleast_2d(theta)
+        _unix = np.atleast_2d(unix).copy()
+        _phi = np.atleast_2d(phi).copy()
+        _theta = np.atleast_2d(theta).copy()
 
         if not _phi.shape == _theta.shape:
             raise ValueError("'phi' and 'theta' must be the same shape")
@@ -273,7 +263,7 @@ class Array:
                 )
                 self.n_det += n
 
-            self.offsets = utils.make_array(self.geometry, self.field_of_view, self.n_det)
+            self.offsets  = utils.make_array(self.geometry, self.field_of_view, self.n_det)
             self.offsets *= np.pi / 180  # put these in radians
 
             # scramble up the locations of the bands
@@ -285,9 +275,7 @@ class Array:
             self.r, self.p = np.sqrt(np.square(self.offsets).sum(axis=1)), np.arctan2(*self.offsets.T)
 
         
-
         self.ubands = np.unique(self.band)
-
 
         # compute detector offsets
         self.hull = sp.spatial.ConvexHull(self.offsets)
@@ -358,10 +346,24 @@ class Pointing:
 
     def __init__(self, **kwargs):
 
-        self.validate_pointing_kwargs(kwargs)
+        # these are all required kwargs. if they aren't in the passed kwargs, get them from here.
+        DEFAULT_POINTING_CONFIG = {
+        "integration_time": 600,
+        "coord_center": [0, 90],
+        "coord_frame": "az_el",
+        "scan_pattern": "back-and-forth",  
+        "scan_period": 60,  
+        "sample_rate": 20, 
+        }
 
         for key, val in kwargs.items():
             setattr(self, key, val)
+
+        for key, val in DEFAULT_POINTING_CONFIG.items():
+            if not key in kwargs.keys():
+                setattr(self, key, val)
+
+        #self.validate_pointing_kwargs(kwargs)
 
         # make sure that self.start_datetime exists, and that it's a datetime.datetime object
         if not hasattr(self, 'start_time'):
@@ -428,93 +430,3 @@ class Site:
             self.altitude = regions.loc[self.region].altitude
 
         
-
-class AtmosphericModel:
-    """
-    The base class for modeling atmospheric fluctuations.
-
-    A model needs to have the functionality to generate spectra for any pointing data we supply it with.
-    """
-
-    def __init__(self, array, pointing, site):
-
-        self.array, self.pointing, self.site = array, pointing, site
-        self.spectrum = AtmosphericSpectrum(filepath=f"{here}/spectra/{self.site.region}.h5")
-        self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
-
-        if self.pointing.coord_frame == "az_el":
-            self.pointing.ra, self.pointing.dec = self.coordinator.transform(
-                self.pointing.unix,
-                self.pointing.az,
-                self.pointing.el,
-                in_frame="az_el",
-                out_frame="ra_dec",
-            )
-            self.pointing.dx, self.pointing.dy = utils.to_xy(
-                self.pointing.az,
-                self.pointing.el,
-                self.pointing.az.mean(),
-                self.pointing.el.mean(),
-            )
-
-        if self.pointing.coord_frame == "ra_dec":
-            self.pointing.az, self.pointing.el = self.coordinator.transform(
-                self.pointing.unix,
-                self.pointing.ra,
-                self.pointing.dec,
-                in_frame="ra_dec",
-                out_frame="az_el",
-            )
-            self.pointing.dx, self.pointing.dy = utils.to_xy(
-                self.pointing.az,
-                self.pointing.el,
-                self.pointing.az.mean(),
-                self.pointing.el.mean(),
-            )
-
-        self.azim, self.elev = utils.from_xy(
-            self.array.offset_x[:, None],
-            self.array.offset_y[:, None],
-            self.pointing.az,
-            self.pointing.el,
-        )
-
-        validate_pointing(self.azim, self.elev)
-
-        self.weather = weathergen.Weather(
-            region=self.site.region,
-            seasonal=self.site.seasonal,
-            diurnal=self.site.diurnal,
-        )
-
-
-    def simulate_integrated_water_vapor(self):
-        raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
-
-
-    def simulate_temperature(self, units='K_RJ'):
-
-        if units == 'K_RJ': # Kelvin Rayleigh-Jeans
-
-            self.simulate_integrated_water_vapor() 
-
-            self.temperature = np.empty((self.array.n_det, self.pointing.n_t))
-
-            for uib, uband in enumerate(np.unique(self.array.band)):
-
-                band_mask = self.array.band == uband
-
-                passband  = (np.abs(self.spectrum.nu - self.array.band[band_mask].mean()) < self.array.bandwidth[band_mask].mean()).astype(float)
-                passband /= passband.sum()
-
-                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
-                                                                                self.spectrum.tcwv),
-                                                                                (self.spectrum.t_rj * passband).sum(axis=-1))
-
-                self.temperature[band_mask] = band_T_RJ_interpolator((np.degrees(self.elev[band_mask]), self.integrated_water_vapor[band_mask]))
-
-        if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
-
-            self.simulate_temperature(self, units='K_RJ')
-            self.temperature = 1.8 * (self.temperature - 273.15) + 32
-                    

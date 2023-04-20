@@ -19,7 +19,7 @@ from datetime import datetime
 
 here, this_filename = os.path.split(__file__)
 
-from . import AtmosphericModel
+from . import AtmosphericSpectrum, Coordinator
 
 DEFAULT_LAM_CONFIG = {
     "min_depth": 500,
@@ -27,6 +27,96 @@ DEFAULT_LAM_CONFIG = {
     "n_layers": 8,
     "min_beam_res": 4,
 }
+
+
+class AtmosphericModel:
+    """
+    The base class for modeling atmospheric fluctuations.
+
+    A model needs to have the functionality to generate spectra for any pointing data we supply it with.
+    """
+
+    def __init__(self, array, pointing, site):
+
+        self.array, self.pointing, self.site = array, pointing, site
+        self.spectrum = AtmosphericSpectrum(filepath=f"{here}/spectra/{self.site.region}.h5")
+        self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
+
+        if self.pointing.coord_frame == "az_el":
+            self.pointing.ra, self.pointing.dec = self.coordinator.transform(
+                self.pointing.unix,
+                self.pointing.az,
+                self.pointing.el,
+                in_frame="az_el",
+                out_frame="ra_dec",
+            )
+            self.pointing.dx, self.pointing.dy = utils.to_xy(
+                self.pointing.az,
+                self.pointing.el,
+                self.pointing.az.mean(),
+                self.pointing.el.mean(),
+            )
+
+        if self.pointing.coord_frame == "ra_dec":
+            self.pointing.az, self.pointing.el = self.coordinator.transform(
+                self.pointing.unix,
+                self.pointing.ra,
+                self.pointing.dec,
+                in_frame="ra_dec",
+                out_frame="az_el",
+            )
+            self.pointing.dx, self.pointing.dy = utils.to_xy(
+                self.pointing.az,
+                self.pointing.el,
+                self.pointing.az.mean(),
+                self.pointing.el.mean(),
+            )
+
+        self.azim, self.elev = utils.from_xy(
+            self.array.offset_x[:, None],
+            self.array.offset_y[:, None],
+            self.pointing.az,
+            self.pointing.el,
+        )
+
+        utils.validate_pointing(self.azim, self.elev)
+
+        self.weather = weathergen.Weather(
+            region=self.site.region,
+            seasonal=self.site.seasonal,
+            diurnal=self.site.diurnal,
+        )
+
+
+    def simulate_integrated_water_vapor(self):
+        raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
+
+    def simulate_temperature(self, units='K_RJ'):
+
+        if units == 'K_RJ': # Kelvin Rayleigh-Jeans
+
+            self.simulate_integrated_water_vapor() 
+
+            self.temperature = np.empty((self.array.n_det, self.pointing.n_t))
+
+            for uib, uband in enumerate(np.unique(self.array.band)):
+
+                band_mask = self.array.band == uband
+
+                passband  = (np.abs(self.spectrum.nu - self.array.band[band_mask].mean()) < self.array.bandwidth[band_mask].mean()).astype(float)
+                passband /= passband.sum()
+
+                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
+                                                                                self.spectrum.tcwv),
+                                                                                (self.spectrum.t_rj * passband).sum(axis=-1))
+
+                self.temperature[band_mask] = band_T_RJ_interpolator((np.degrees(self.elev[band_mask]), self.integrated_water_vapor[band_mask]))
+
+        if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
+
+            self.simulate_temperature(self, units='K_RJ')
+            self.temperature = 1.8 * (self.temperature - 273.15) + 32
+                    
 
 
 class LinearAngularModel(AtmosphericModel):

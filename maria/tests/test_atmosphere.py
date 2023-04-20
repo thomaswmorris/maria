@@ -17,7 +17,7 @@ def test_ACT_PA4_LAM():
 def test_GBT_MUSTANG2_LAM():
 
     lam = models.LinearAngularModel(array=maria.get_array('MUSTANG-2'), 
-                                    pointing=maria.get_pointing('DAISY_2deg_4ra_10.5dec_600s'), 
+                                    pointing=maria.get_pointing('DAISY_2deg_4ra_10dec_600s'), 
                                     site=maria.get_site('GBT'), 
                                     verbose=True)
 

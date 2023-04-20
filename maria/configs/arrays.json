@@ -1,5 +1,6 @@
 {
     "AtLAST": {
+        "description": "",
         "detectors": [
             [27e9, 5e9, 100], 
             [39e9, 5e9, 100],
@@ -21,6 +22,7 @@
     },
 
     "ACT_PA4": {
+        "description": "ACT's PA4 (150/220 GHz)",
         "detectors": [
             [150e9, 10e9, 750],
             [220e9, 10e9, 750]
@@ -38,6 +40,7 @@
     },
 
     "ACT_PA7": {
+        "description": "ACT's PA7 (27/39 GHz)",
         "detectors": [
             [27e9, 10e9, 75],
             [39e9, 10e9, 75]
@@ -55,8 +58,9 @@
     },
 
     "MUSTANG-2": {
+        "description": "",
         "detectors": [
-            [93e9, 10e9, 250]
+            [93e9, 10e9, 217]
         ],   
         "geometry": "hex",   
         "field_of_view": 0.07,   
@@ -71,6 +75,7 @@
     },
 
     "SCUBA-2": {
+        "description": "",
         "detectors": [
             [350e9, 10e9, 5120],
             [650e9, 10e9, 5120]

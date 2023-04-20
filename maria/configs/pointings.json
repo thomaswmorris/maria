@@ -1,5 +1,6 @@
 {
     "STARE_0az_90el_60s": {
+        "description": "A 60-second zenith stare.",
         "start_time": "2022-07-01T08:00:00",
         "integration_time": 60,
         "scan_pattern": "back-and-forth",
@@ -13,6 +14,7 @@
     },
 
     "DAISY_2deg": {
+        "description": "",
         "start_time": "2022-07-01T08:00:00",
         "scan_pattern": "daisy",  
         "scan_options": {"k": 3.1416},
@@ -23,12 +25,13 @@
         "seed": 42
     },
 
-    "DAISY_2deg_4ra_10.5dec_600s": {
+    "DAISY_2deg_4ra_10dec_600s": {
+        "description": "",
         "start_time": "2022-07-01T08:00:00",
         "integration_time": 600,
         "scan_pattern": "daisy",  
         "scan_options": {"k": 3.1416},
-        "coord_center": [4, 10.5],
+        "coord_center": [4, 10],
         "coord_throws": [2, 2],
         "coord_frame": "ra_dec",
         "coord_units": "degrees", 
@@ -38,6 +41,7 @@
     },
 
     "BAF_5deg_45az_45el_60s": {
+        "description": "",
         "start_time": "2022-07-01T08:00:00",
         "integration_time": 60,
         "scan_pattern": "back-and-forth",  

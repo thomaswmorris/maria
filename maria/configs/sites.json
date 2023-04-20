@@ -1,5 +1,6 @@
 {
     "APEX" : {
+        "description": "",
         "region" : "chajnantor",
         "latitude" : -23.0058,
         "longitude" : -67.7592,
@@ -10,6 +11,7 @@
     },
 
     "ACT" : {
+        "description": "Atacama Cosmology Telescope",
         "region" : "chajnantor",
         "latitude" : -22.958567282386465,
         "longitude" : -67.7878496702156,
@@ -20,6 +22,7 @@
     },
 
     "GBT" : {
+        "description": "Green Bank Telescope",
         "region" : "green_bank",
         "latitude" : 38.433121, 
         "longitude" : -79.839835,
@@ -30,6 +33,7 @@
     },
 
     "JCMT" : {
+        "description": "",
         "region" : "mauna_kea",
         "latitude" : 19.8228, 
         "longitude" : -155.477,
@@ -40,6 +44,7 @@
     },
 
     "SPT" : {
+        "description": "",
         "region" : "south_pole",
         "latitude" : 0, 
         "longitude" : -90,
