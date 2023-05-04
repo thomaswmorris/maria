@@ -85,6 +85,7 @@ class AtmosphericModel:
             region=self.site.region,
             seasonal=self.site.seasonal,
             diurnal=self.site.diurnal,
+            altitude=self.site.altitude
         )
 
 
@@ -165,7 +166,7 @@ class LinearAngularModel(AtmosphericModel):
                 self,
                 attr,
                 sp.interpolate.RegularGridInterpolator(
-                    (self.weather.height, self.weather.time),
+                    (self.weather.levels, self.weather.time),
                     getattr(self.weather, attr),
                 )((self.heights, self.pointing.unix[None])),
             )
