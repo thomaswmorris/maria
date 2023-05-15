@@ -7,11 +7,13 @@ def test_we_observe():
 
     for file in ["./maps/tsz.fits"]:
         obs = WeObserve(
+            project       = './Mock_obs',
+            skymodel      = file,
+
+            # --- Observational setups
             array_name    = 'MUSTANG-2',
             pointing_name = 'DAISY_2deg',
             site_name     = 'GBT',
-            project       = './Mock_obs',
-            skymodel      = file,
 
             integration_time = 600,       # seconds
             coord_center     = [4, 10.5], # degree
@@ -19,8 +21,6 @@ def test_we_observe():
 
             # --- Additional
             verbose       = True,
-            cmb           = False,
-
             bands = [(27e9, 5e9, 100),
                      (35e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
                      

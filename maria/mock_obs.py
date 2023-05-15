@@ -8,31 +8,59 @@ from matplotlib import pyplot as plt
 from astropy.io import fits
 
 from . import get_array, get_site, get_pointing
-from . import models, utils
+from . import models, utils, mappers
 
 class WeObserve:
-    def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='DAISY_2deg_4ra_10.5dec_600s', site_name='APEX', verbose=True, cmb = False, **kwargs):
+    def __init__(self, 
+                 project, 
+                 skymodel, 
+                 array_name='MUSTANG-2', 
+                 pointing_name='DAISY_2deg',
+                 site_name='GBT',
+                 mappingtype='Standard Binning',
+                 verbose=True, 
+                 cmb = False,
+                 **kwargs):
 
-        self.verbose   = verbose
-        self.file_name = skymodel
-        self.file_save = project
-        self.add_cmb   = cmb
+        self.verbose     = verbose
+        self.file_name   = skymodel
+        self.file_save   = project
+        self.add_cmb     = cmb
+        self.mappingtype = mappingtype
 
         self.array    = get_array(array_name, **kwargs)
         self.pointing = get_pointing(pointing_name, **kwargs)
         self.site     = get_site(site_name, **kwargs)
 
-        # get the atmosphere --> Should do something with the pwv
+        # get the atmosphere
         self._run_atmos()
-
-        # get the CMB
-        if self.add_cmb:
-            self._get_CMBPS()
 
         # Get the astronomical signal
         self._get_skyconfig(**kwargs)
-        self._get_sky()
-        self._savesky()
+        self._get_skytod()
+        
+        # get the CMB
+        if self.add_cmb:
+            self._get_CMBPS()
+            self._cmb_imager()
+
+        print(self.lam.temperature.shape)
+
+        # Make the maps
+        self.mapmaker = mappers.get_mapper(self.mappingtype, 
+                                           self.sky_data, 
+                                           self.array, 
+                                           self.lam, 
+                                           self.im, 
+                                           self.he, 
+                                           self.file_name)
+
+        self.mapmaker.run(self.file_save +'/filtered_' )
+        self.mapmaker.add_tod(self.lam.temperature)
+        self.mapmaker.run(self.file_save +'/noisy_' )
+
+        #visualize results
+        # self._analysis()
 
     def _run_atmos(self):
         self.lam = models.LinearAngularModel(self.array, 
@@ -42,9 +70,41 @@ class WeObserve:
 
         self.lam.simulate_temperature(nu=np.unique(self.array.bands), units='K_RJ')
 
+    def _get_skyconfig(self, **kwargs):
+        hudl = fits.open(self.file_name)
+        self.im = hudl[0].data
+        self.he = hudl[0].header
+
+        if len(self.im.shape) == 4:
+            self.im = self.im[0]
+        elif len(self.im.shape) == 2:
+            self.im = self.im.reshape(1,self.im.shape[0], self.im.shape[1]) * np.ones(len(np.unique(self.array.bands)), self.im.shape[-2], self.im.shape[-1])
+
+        self.sky_data = {
+            "inbright": kwargs.get("inbright", None),             # assuming something: Jy/pix?
+            "incell":   kwargs.get("incell", self.he["CDELT1"]),  # assuming units in degree
+            "units":    kwargs.get("units", 'KRJ'),               # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel            
+        }
+
+        #updating header info
+        self.he['HISTORY'] = 'History_WeOBSERVE 1'
+        self.he[''] = 'Changed CDELT1 and CDELT2'
+        self.he['CDELT1'] = self.sky_data['incell']
+        self.he['CDELT2'] = self.sky_data['incell']
+        self.he[''] = 'Changed units to ' + self.sky_data['units']
+
+        if self.sky_data["inbright"] != None:
+            self.im = self.im / np.nanmax(self.im) * self.sky_data["inbright"]
+            self.he[''] = 'Amplitude is rescaled.'
+
+        #loop here ....
+        if self.sky_data['units'] == 'Jy/pixel':
+           for idx, uband in enumerate(np.unique(self.array.bands)):
+                self.im[idx] = self.im[idx]/utils.KbrightToJyPix(uband, self.sky_data['incell'], self.sky_data['incell'])
+
+
     def _get_CMBPS(self):
         import camb
-
         pars = camb.CAMBparams()
         pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06)
         pars.InitPower.set_params(As=2e-9, ns=0.965, r=0)
@@ -67,175 +127,25 @@ class WeObserve:
         Lx = nx * np.deg2rad(self.sky_data["incell"])
         Ly = ny * np.deg2rad(self.sky_data["incell"])
 
-        self.CMB_map = nmt.synfast_flat(
-            nx,
-            ny,
-            Lx,
-            Ly,
-            np.array([self.CMB_PS[bandnumber]]),
-            [0],
-            beam=None,
-            seed=self.pointing.seed,
-        )[0]
+        for i, uband in enumerate(np.unique(self.array.bands)):
 
-        self.CMB_map += utils.Tcmb
-        self.CMB_map *= utils.KcmbToKbright(np.unique(self.array.bands)[bandnumber])
+            CMB_map = nmt.synfast_flat(
+                nx,
+                ny,
+                Lx,
+                Ly,
+                np.array([self.CMB_PS[bandnumber]]),
+                [0],
+                beam=None,
+                seed=self.pointing.seed,
+            )[0]
 
-    def _get_skyconfig(self, **kwargs):
-        hudl = fits.open(self.file_name)
-        self.im = hudl[0].data
-        self.he = hudl[0].header
+            CMB_map += utils.Tcmb
+            CMB_map *= utils.KcmbToKbright(uband) 
 
-        if len(self.im.shape) == 4:
-            self.im = self.im[0]
-        elif len(self.im.shape) == 2:
-            self.im = self.im.reshape(1,self.im.shape[0], self.im.shape[1])
-
-        self.sky_data = {
-            "inbright": kwargs.get("inbright", None),             # assuming something: Jy/pix?
-            "incell":   kwargs.get("incell", self.he["CDELT1"]),  # assuming units in degree
-            "units":    kwargs.get("units", 'KRJ'),               # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel            
-        }
-
-        #updating header info
-        self.he['HISTORY'] = 'History_WeOBSERVE 1'
-        self.he[''] = 'Changed CDELT1 and CDELT2'
-        self.he['CDELT1'] = self.sky_data['incell']
-        self.he['CDELT2'] = self.sky_data['incell']
-        self.he[''] = 'Changed units to ' + self.sky_data['units']
-
-        if self.sky_data["inbright"] != None:
-            self.im = self.im / np.nanmax(self.im) * self.sky_data["inbright"]
-            self.he[''] = 'Amplitude is rescaled.'
+            self.im[i] += CMB_map
         
-    def _get_sky(
-        self,
-    ):
-        
-        map_res = np.radians(self.sky_data["incell"])
-        map_nx, map_ny = self.im[0].shape
-        map_x = map_res * map_nx * np.linspace(-0.5, 0.5, map_nx)
-        map_y = map_res * map_ny * np.linspace(-0.5, 0.5, map_ny)
-        map_X, map_Y = np.meshgrid(map_x, map_y, indexing="ij")
-        lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
-
-        x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
-        y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)
-
-        self.truesky     = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
-        self.noisemap    = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
-        self.filteredmap = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
-        self.mockobs     = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
-
-        # should mask the correct detectors...
-        for iub, uband in enumerate(np.unique(self.array.bands)):
-            mask = (self.array.bands == uband)
-            self._make_sky(lam_x, lam_y, map_x, map_y, map_X, map_Y, x_bins, y_bins, iub, mask)
-
-    def _make_sky(
-        self,  
-        lam_x,
-        lam_y,   
-        map_x,
-        map_y, 
-        map_X,
-        map_Y,
-        x_bins,
-        y_bins,
-        i,
-        mask
-    ):
-        if self.im.shape[0] == 1:
-            idx = 0
-        else:
-            idx = i
-
-        if self.sky_data['units'] == 'Jy/pixel':
-            self.im[idx] = self.im[idx]/utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-
-        self.map_data = sp.interpolate.RegularGridInterpolator(
-            (map_x, map_y), self.im[idx], bounds_error=False, fill_value=0
-        )((lam_x, lam_y))
-
-        if self.add_cmb:
-            self._cmb_imager(i)
-            cmb_data = sp.interpolate.RegularGridInterpolator(
-                        (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
-                        )((lam_x, lam_y))
-            self.noise    = self.lam.temperature + cmb_data
-            self.combined = self.map_data + self.lam.temperature + cmb_data
-        else:
-            self.noise    = self.lam.temperature
-            self.combined = self.map_data + self.lam.temperature
-
-        true_map = sp.stats.binned_statistic_2d(
-            map_X.ravel(),
-            map_Y.ravel(),
-            self.im[idx].ravel(),
-            statistic="mean",
-            bins=(x_bins, y_bins),
-        )[0]
-
-        filtered_map = sp.stats.binned_statistic_2d(
-            lam_x.ravel(),
-            lam_y.ravel(),
-            self.map_data.ravel(),
-            statistic="mean",
-            bins=(x_bins, y_bins),
-        )[0]
-
-        total_map = sp.stats.binned_statistic_2d(
-            lam_x.ravel(),
-            lam_y.ravel(),
-            self.combined[i].ravel(),
-            statistic="mean",
-            bins=(x_bins, y_bins),
-        )[0]
-
-        noise_map = sp.stats.binned_statistic_2d(
-            lam_x.ravel(),
-            lam_y.ravel(),
-            self.noise[i].ravel(),
-            statistic="mean",
-            bins=(x_bins, y_bins),
-        )[0]
-
-        self.truesky[i]     = true_map
-        self.noisemap[i]    = noise_map
-        self.filteredmap[i] = filtered_map
-        self.mockobs[i]     = total_map
-
-        if self.sky_data['units'] == 'Jy/pixel':
-            self.truesky[i]     *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-            self.noisemap[i]    *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-            self.filteredmap[i] *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-            self.mockobs[i]     *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-
-    def _savesky(
-        self,
-    ):
-        if not os.path.exists(self.file_save):
-            os.mkdir(self.file_save)
-
-        fits.writeto(
-            self.file_save + "/" + self.file_name.replace(".fits", "_noisemap.fits").split("/")[-1],
-            self.noisemap,
-            header=self.he,
-            overwrite=True,
-        )
-        fits.writeto(
-            self.file_save + "/" + self.file_name.replace(".fits", "_filtered.fits").split("/")[-1],
-            self.filteredmap,
-            header=self.he,
-            overwrite=True,
-        )
-
-        fits.writeto(
-            self.file_save + "/" + self.file_name.replace(".fits", "_synthetic.fits").split("/")[-1],
-            self.mockobs,
-            header=self.he,
-            overwrite=True,
-        )
+    def _analysis(self):
 
         if not os.path.exists(self.file_save + "/analyzes"):
             os.mkdir(self.file_save + "/analyzes")
@@ -260,6 +170,9 @@ class WeObserve:
         plt.legend()
         plt.savefig(self.file_save + "/analyzes/Noise_ps_" + self.file_name.replace(".fits", "").split("/")[-1] + ".png")
         plt.close()
+
+
+
 
         # visualize fits files
         fig, (true_ax, signal_ax, noise_ax, total_ax) = plt.subplots(

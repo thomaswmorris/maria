@@ -81,13 +81,12 @@ class AtmosphericModel:
 
         utils.validate_pointing(self.azim, self.elev)
 
-        self.weather = weathergen.Weather(
+        self.weather = weathergen.Weather(          
             region=self.site.region,
             seasonal=self.site.seasonal,
             diurnal=self.site.diurnal,
             altitude=self.site.altitude
         )
-
 
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
