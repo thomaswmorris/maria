@@ -15,6 +15,11 @@ here, this_filename = os.path.split(__file__)
 supported_regions = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
 regions = weathergen.regions.loc[supported_regions].sort_index()
 
+class InvalidRegionError(Exception):
+    def __init__(self, invalid_region):
+        region_string = regions.to_string(columns=['location', 'country', 'latitude', 'longitude', 'altitude'])
+        super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{region_string}")
+
 class Array:
     def __init__(self, **kwargs):
 
@@ -59,7 +64,7 @@ class Array:
             self.offset *= np.pi / 180  # put these in radians
 
             # scramble up the locations of the bands
-            if self.band_grouping == "random":
+            if self.band_grouping == "randomized":
                 random_index = np.random.choice(np.arange(self.n_det), self.n_det, replace=False)
                 self.offset = self.offset[random_index]
 
@@ -152,8 +157,9 @@ class Pointing:
         # these are all required kwargs. if they aren't in the passed kwargs, get them from here.
         DEFAULT_POINTING_CONFIG = {
         "integration_time": 600,
-        "coord_center": [0, 90],
-        "coord_frame": "az_el",
+        "pointing_center": [0, 90],
+        "pointing_frame": "az_el",
+        "pointing_units": "degrees",
         "scan_pattern": "back-and-forth",  
         "scan_period": 60,  
         "sample_rate": 20, 
@@ -183,29 +189,27 @@ class Pointing:
         self.unix_max = self.end_datetime.timestamp()
         self.dt = 1 / self.sample_rate
 
-        if self.coord_units == "degrees":
-            self.coord_center = np.radians(self.coord_center)
-            self.coord_throws = np.radians(self.coord_throws)
+        if self.pointing_units == "degrees":
+            self.pointing_center = np.radians(self.pointing_center)
+            self.pointing_throws = np.radians(self.pointing_throws)
 
         self.unix = np.arange(self.unix_min, self.unix_max, self.dt)
         self.n_time = len(self.unix)
 
-        self.coords = utils.get_pointing(
+        time_ordered_pointing = utils.get_pointing(
             self.unix,
             self.scan_period,
-            self.coord_center,
-            self.coord_throws,
+            self.pointing_center,
+            self.pointing_throws,
             self.scan_pattern,
         )
 
-        if self.coord_frame == "ra_dec":
-            self.ra, self.dec = self.coords
-
-        if self.coord_frame == "az_el":
-            self.az, self.el = self.coords
-
-        if self.coord_frame == "dx_dy":
-            self.dx, self.dy = self.coords
+        if self.pointing_frame == "ra_dec":
+            self.ra, self.dec = time_ordered_pointing
+        elif self.pointing_frame == "az_el":
+            self.az, self.el = time_ordered_pointing
+        elif self.pointing_frame == "dx_dy":
+            self.dx, self.dy = time_ordered_pointing
 
 
 class Site:
@@ -223,13 +227,13 @@ class Site:
         if not self.region in regions.index.values:
             raise InvalidRegionError(self.region)
 
-        if self.longitude is not None:
+        if self.longitude is None:
             self.longitude = regions.loc[self.region].longitude
 
-        if self.latitude is not None:
+        if self.latitude is None:
             self.latitude = regions.loc[self.region].latitude
 
-        if self.altitude is not None:
+        if self.altitude is None:
             self.altitude = regions.loc[self.region].altitude
 
         

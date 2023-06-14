@@ -28,10 +28,10 @@ import healpy as hp
 from matplotlib import pyplot as plt
 from astropy.io import fits
 
-here, this_filename = os.path.split(__file__)
-
-from . import atmosphere, sky, simulations
+from . import base, atmosphere, sky, noise
 from .objects import Array, Pointing, Site
+
+here, this_filename = os.path.split(__file__)
 
 with open(f'{here}/configs/arrays.json', 'r+') as f:
     ARRAY_CONFIGS = json.load(f)
@@ -61,12 +61,6 @@ class InvalidSiteError(Exception):
         super().__init__(f"The site \'{invalid_site}\' is not in the database of default sites. "
         f"Default sites are:\n\n{sorted(list(SITE_CONFIGS.keys()))}")
 
-class InvalidRegionError(Exception):
-    def __init__(self, invalid_region):
-        region_string = regions.to_string(columns=['location', 'country', 'latitude', 'longitude', 'altitude'])
-        super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{region_string}")
-
-
 def get_array_config(array_name, **kwargs):
     if not array_name in ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
@@ -92,6 +86,7 @@ def get_site_config(site_name, **kwargs):
     for k, v in kwargs.items():
         SITE_CONFIG[k] = v
     return SITE_CONFIG
+
 
 def get_array(array_name, **kwargs):
     return Array(**get_array_config(array_name, **kwargs))
@@ -119,28 +114,75 @@ class TOD:
         return tod_subset
 
 
+    def to_fits(self, filename):
+
+        """
+        """
+
+        ...
+
+
+    def from_fits(self, filename):
+
+        """
+        """
+
+        ...
+
+        
+    def to_hdf(self, filename):
+
+        with h5py.File(filename, "w") as f:
+
+            f.create_dataset("")
     
     def plot(self):
         pass
 
 
-class Simulation(simulations.BaseSimulation):
+class Simulation(base.BaseSimulation):
     """
     A simulation! This is what users should touch, primarily. 
     """
-    def __init__(self, array, pointing, site, atm_model="linear_angular", noise_model=None):
+    def __init__(self, 
+                 array, 
+                 pointing, 
+                 site, 
+                 atm_model="linear_angular", 
+                 map_file=None, 
+                 noise_model="white", 
+                 **kwargs):
+
+        if isinstance(array, str):
+            array = get_array(array, **kwargs)
+
+        if isinstance(pointing, str):
+            pointing = get_pointing(pointing, **kwargs)
+
+        if isinstance(site, str):
+            site = get_site(site, **kwargs)
+
         super().__init__(array, pointing, site)
 
-        if atm_model == "linear_angular":
-            self.atm_sim = atmosphere.LinearAngularSimulation(array, pointing, site)
+        if atm_model in ["linear_angular", "LA"]:
+            self.atm_sim = atmosphere.LinearAngularSimulation(array, pointing, site, **kwargs)
+        elif atm_model in ["kolmogorov_taylor", "KT"]:
+            self.atm_sim = atmosphere.KolmogorovTaylorSimulation(array, pointing, site, **kwargs)
         else:
             self.atm_sim = None
+
+        if map_file is not None:
+            self.map_sim = sky.MapSimulation(array, pointing, site, map_file, **kwargs)
+        else:
+            self.map_sim = None
 
     def run(self):
 
         if self.atm_sim is not None:
-
             self.atm_sim.run()
+
+        if self.map_sim is not None:
+            self.map_sim.run()
 
         tod = TOD()
 
@@ -152,7 +194,11 @@ class Simulation(simulations.BaseSimulation):
 
         tod.data = np.zeros((self.array.n_det, self.pointing.n_time))
 
-        tod.data += self.atm_sim.temperature
+        if self.atm_sim is not None:
+            tod.data += self.atm_sim.temperature
+
+        if self.map_sim is not None:
+            tod.data += self.map_sim.temperature
 
         tod.detectors = self.array.metadata
 

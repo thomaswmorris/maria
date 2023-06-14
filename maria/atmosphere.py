@@ -17,7 +17,7 @@ from datetime import datetime
 
 here, this_filename = os.path.split(__file__)
 
-from . import simulations
+from . import base
 
 class AtmosphericSpectrum:
     def __init__(self, filepath):
@@ -31,7 +31,7 @@ class AtmosphericSpectrum:
             self.t_rj = f["t_rj"][:]  # Rayleigh-Jeans temperature, in Kelvin
 
 
-class BaseAtmosphericSimulation(simulations.BaseSimulation):
+class BaseAtmosphericSimulation(base.BaseSimulation):
     """
     The base class for modeling atmospheric fluctuations.
 
@@ -101,7 +101,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
     This model is only appropriate for single instruments, i.e. when the baseline is zero.
     """
 
-    def __init__(self, array, pointing, site, config=DEFAULT_LA_CONFIG, verbose=False):
+    def __init__(self, array, pointing, site, config=DEFAULT_LA_CONFIG, verbose=False, **kwargs):
         super().__init__(array, pointing, site)
 
         self.config = config

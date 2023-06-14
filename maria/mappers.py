@@ -14,11 +14,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 
-# how do we do the bands? this is a great question.
-# because all practical telescope instrumentation assume a constant band
-
 here, this_filename = os.path.split(__file__)
-
 
 with open(f'{here}/configs/mappers.json', 'r+') as f:
     MAPPER_CONFIGS = json.load(f)
@@ -67,6 +63,8 @@ class BaseMapper:
 
         for tod in np.atleast_1d(tods):
             self.tods.append(self.expand_tod(tod))
+
+        
 
 
 class RawBinMapper(BaseMapper):
