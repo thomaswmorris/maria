@@ -68,7 +68,7 @@ class MapSimulation(BaseSkySimulation):
         map_center = kwargs.get("map_center", DEFAULT_MAP_CENTER)
         map_res    = kwargs.get("map_res", DEFAULT_MAP_RES)
         map_units  = kwargs.get("units", 'KRJ')
-        inbright = kwargs.get("inbright", None)
+        inbright   = kwargs.get("inbright", None)
         
         map_header = hudl[0].header
         map_header['HISTORY'] = 'History_WeOBSERVE 1'
