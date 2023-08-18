@@ -1,0 +1,9 @@
+{
+    "Input": {
+        "map_center": [[0.0,0.0]],
+        "map_res": 0.5,
+        "map_inbright": 1.0,
+        "map_units": "KRJ"
+    }
+
+}

@@ -9,7 +9,7 @@
         "pointing_frame": "az_el", 
         "pointing_units": "degrees", 
         "scan_period": 120, 
-        "sample_rate": 20,  
+        "sample_rate": 50,  
         "seed": 42
     },
 
@@ -17,11 +17,14 @@
         "description": "",
         "start_time": "2022-07-01T08:00:00",
         "scan_pattern": "daisy",  
+        "integration_time": 60,
         "scan_options": {"k": 3.1416},
+        "pointing_center": [4, 10],
         "pointing_throws": [2, 2],
         "pointing_units": "degrees", 
+        "pointing_frame": "ra_dec",
         "scan_period": 60,  
-        "sample_rate": 20, 
+        "sample_rate": 50, 
         "seed": 42
     },
 
@@ -36,7 +39,7 @@
         "pointing_frame": "ra_dec",
         "pointing_units": "degrees", 
         "scan_period": 60,  
-        "sample_rate": 20, 
+        "sample_rate": 50, 
         "seed": 42
     },
 
@@ -51,7 +54,7 @@
         "pointing_frame": "az_el",
         "pointing_units": "degrees", 
         "scan_period": 60,  
-        "sample_rate": 20, 
+        "sample_rate": 50, 
         "seed": 42
     }
 }

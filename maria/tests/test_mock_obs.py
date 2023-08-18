@@ -2,30 +2,45 @@ import pytest
 
 @pytest.mark.mock_obs
 def test_we_observe():
+    from maria import Simulation
+    from maria import mappers
+    import numpy as np
 
-    from maria.mock_obs import WeObserve
+    sim = Simulation(
 
-    for file in ["./maps/tsz.fits"]:
-        obs = WeObserve(
-            array_name    = 'MUSTANG-2',
-            pointing_name = 'DAISY_2deg',
-            site_name     = 'GBT',
-            project       = './Mock_obs',
-            skymodel      = file,
+        # Mandatory minimal weither settings
+        # ---------------------
+        array    = 'MUSTANG-2',
+        pointing = 'DAISY_2deg',
+        site     = 'GBT',
+        detectors = [[150e9, 10e9, 750],
+                     [220e9, 10e9, 750]],
+        
+        # True sky input
+        # ---------------------
+        map_file     = "./maps/protocluster.fits", #input files must be a fits file
+        # map_file     = "/Users/jvanmarr/Documents/GitHub/maria/maps/ACT0329_CL0035.097.z_036.00GHz.fits", #input files must be a fits file
+        map_center   = (4, 10.5), # RA & Dec in degree
 
-            integration_time = 600,       # seconds
-            coord_center     = [4, 10.5], # degree
-            coord_frame      = "ra_dec",
+        # Defeault Observational setup
+        # ----------------------------
+        integration_time = 600,         # seconds
+        pointing_center = (4, 10.5),    # degrees
+        pointing_frame  = "ra_dec",     # frame
+        pointing_throws = (1., 1.),     # How large the scanning pattern is in degree
 
-            # --- Additional
-            verbose       = True,
-            cmb           = False,
+        # Additional inputs:
+        # ----------------------
+        quantiles    = {'column_water_vapor' : 0.5},  # Weather conditions specific for that site
+        map_units    = 'Jy/pixel',                    # Kelvin Rayleigh Jeans (KRJ, defeault) or Jy/pixel 
+        # map_inbright = -5.37 * 1e3 * 0.000113,        # In units of the map_units key
+        map_res      = 0.5 / 1000,                    # degree, overwrites header information
+    )
 
-            bands = [(27e9, 5e9, 100),
-                     (35e9, 5e9, 100)],  # (band center, bandwidth, dets per band) [GHz, GHz, .]
-                     
-            units     = 'Jy/pixel',                 # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel            
-            inbright  = -5.37 * 1e3 * 0.000113,     # In units of key units 
-            incell    = 0.5 / 360,                  # degree
-            quantiles = {'column_water_vapor':0.5}  # pwv = 50%
-        )
+    tod = sim.run()
+
+    mapper = mappers.RawBinMapper(resolution=np.radians(0.1/60))
+    mapper.add_tods(tod)
+    mapper.run()
+
+    sim.save_maps(mapper)

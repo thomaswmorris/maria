@@ -64,8 +64,6 @@ class BaseMapper:
         for tod in np.atleast_1d(tods):
             self.tods.append(self.expand_tod(tod))
 
-        
-
 
 class RawBinMapper(BaseMapper):
 
@@ -113,15 +111,3 @@ class RawBinMapper(BaseMapper):
                 self.map_cnts[band] += map_cnt
 
         self.maps[band] = self.map_sums[band] / self.map_cnts[band]
-
-
-
-
-
-
-
-
-
-
-
-
