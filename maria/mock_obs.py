@@ -1,14 +1,13 @@
 # -- General packages --
 import os
 import numpy as np
-import scipy.signal
 import scipy as sp
 
 from matplotlib import pyplot as plt
 from astropy.io import fits
 
-from . import get_array, get_site, get_pointing
-from . import models, utils
+from . import atmosphere, get_array, get_site, get_pointing
+from . import utils
 
 class WeObserve:
     def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='DAISY_2deg_4ra_10.5dec_600s', site_name='APEX', verbose=True, cmb = False, **kwargs):
@@ -35,7 +34,7 @@ class WeObserve:
         self._savesky()
 
     def _run_atmos(self):
-        self.lam = models.LinearAngularModel(self.array, 
+        self.lam = atmosphere.LinearAngularModel(self.array, 
                                              self.pointing, 
                                              self.site, 
                                              verbose=self.verbose)

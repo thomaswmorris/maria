@@ -17,6 +17,7 @@ import glob
 import re
 import json
 import time
+import copy
 
 import weathergen
 from tqdm import tqdm
@@ -24,25 +25,27 @@ from tqdm import tqdm
 import warnings
 import healpy as hp
 
-from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from astropy.io import fits
 
 here, this_filename = os.path.split(__file__)
-supported_regions = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
-regions = weathergen.regions.loc[supported_regions].sort_index()
 
-# -- Specific packages --
-from . import utils
+REGIONS_WITH_SPECTRA = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
+REGIONS_WITH_WEATHER = list(weathergen.regions.index)
 
-with open(f'{here}/configs/arrays.json', 'r+') as f:
-    ARRAY_CONFIGS = json.load(f)
+SUPPORTED_REGIONS = list(set(REGIONS_WITH_SPECTRA) & set(REGIONS_WITH_WEATHER))
 
-with open(f'{here}/configs/pointings.json', 'r+') as f:
-    POINTING_CONFIGS = json.load(f)
+regions = weathergen.regions.loc[SUPPORTED_REGIONS].sort_index()
 
-with open(f'{here}/configs/sites.json', 'r+') as f:
-    SITE_CONFIGS = json.load(f)
+from . import base, atmosphere, sky, noise
+from .objects import Array, Pointing, Site
+
+here, this_filename = os.path.split(__file__)
+
+
+ARRAY_CONFIGS = utils.read_yaml(f'{here}/configs/arrays.yml')
+POINTING_CONFIGS = utils.read_yaml(f'{here}/configs/pointings.yml')
+SITE_CONFIGS = utils.read_yaml(f'{here}/configs/sites.yml')
 
 ARRAYS = list((ARRAY_CONFIGS.keys()))
 POINTINGS = list((POINTING_CONFIGS.keys()))
@@ -62,12 +65,6 @@ class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(f"The site \'{invalid_site}\' is not in the database of default sites. "
         f"Default sites are:\n\n{sorted(list(SITE_CONFIGS.keys()))}")
-
-class InvalidRegionError(Exception):
-    def __init__(self, invalid_region):
-        region_string = regions.to_string(columns=['location', 'country', 'latitude', 'longitude', 'altitude'])
-        super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{region_string}")
-
 
 def get_array_config(array_name, **kwargs):
     if not array_name in ARRAY_CONFIGS.keys():
@@ -95,6 +92,7 @@ def get_site_config(site_name, **kwargs):
         SITE_CONFIG[k] = v
     return SITE_CONFIG
 
+
 def get_array(array_name, **kwargs):
     return Array(**get_array_config(array_name, **kwargs))
 
@@ -104,329 +102,185 @@ def get_pointing(pointing_name, **kwargs):
 def get_site(site_name, **kwargs):
     return Site(**get_site_config(site_name, **kwargs))
 
+class TOD:
 
-class AtmosphericSpectrum:
-    def __init__(self, filepath):
+    def __init__(self):
+        pass
+
+    def subset(self, mask):
+
+        tod_subset = copy.deepcopy(self)
+
+        tod_subset.data      = tod_subset.data[mask]
+        tod_subset.detectors = tod_subset.detectors.loc[mask]
+
+        return tod_subset
+
+
+    def to_fits(self, filename):
+
         """
-        A class to hold spectra as attributes
         """
-        with h5py.File(filepath, "r") as f:
-            self.nu = f["nu"][:]  # frequency axis of the spectrum, in GHz
-            self.tcwv = f["tcwv"][:]  # total column water vapor, in mm
-            self.elev = f["elev"][:]  # elevation, in degrees
-            self.t_rj = f["t_rj"][:]  # Rayleigh-Jeans temperature, in Kelvin
+
+        ...
 
 
-class Coordinator:
+    def from_fits(self, filename):
 
-    # what three-dimensional rotation matrix takes (frame 1) to (frame 2) ?
-    # we use astropy to compute this for a few test points, and then use the answer it to efficiently broadcast very big arrays
+        """
+        """
 
-    def __init__(self, lon, lat):
-        self.lc = ap.coordinates.EarthLocation.from_geodetic(lon=lon, lat=lat)
-
-        self.fid_p = np.radians(np.array([0, 0, 90]))
-        self.fid_t = np.radians(np.array([90, 0, 0]))
-        self.fid_xyz = np.c_[
-            np.sin(self.fid_p) * np.cos(self.fid_t),
-            np.cos(self.fid_p) * np.cos(self.fid_t),
-            np.sin(self.fid_t),
-        ]  # the XYZ coordinates of our fiducial test points on the unit sphere
-
-        # in order for this to be efficient, we need to use time-invariant frames
-
-        # you are standing a the north pole looking toward lon = -90 (+x)
-        # you are standing a the north pole looking toward lon = 0 (+y)
-        # you are standing a the north pole looking up (+z)
-
-    def transform(self, unix, phi, theta, in_frame, out_frame):
-
-        _unix = np.atleast_2d(unix).copy()
-        _phi = np.atleast_2d(phi).copy()
-        _theta = np.atleast_2d(theta).copy()
-
-        if not _phi.shape == _theta.shape:
-            raise ValueError("'phi' and 'theta' must be the same shape")
-        if not 1 <= len(_phi.shape) == len(_theta.shape) <= 2:
-            raise ValueError("'phi' and 'theta' must be either 1- or 2-dimensional")
-        if not unix.shape[-1] == _phi.shape[-1] == _theta.shape[-1]:
-            ("'unix', 'phi' and 'theta' must have the same shape in their last axis")
-
-        epoch = _unix.mean()
-        obstime = ap.time.Time(epoch, format="unix")
-        rad = ap.units.rad
-
-        if in_frame == "az_el":
-            self.c = ap.coordinates.SkyCoord(
-                az=self.fid_p * rad,
-                alt=self.fid_t * rad,
-                obstime=obstime,
-                frame="altaz",
-                location=self.lc,
-            )
-        if in_frame == "ra_dec":
-            self.c = ap.coordinates.SkyCoord(
-                ra=self.fid_p * rad,
-                dec=self.fid_t * rad,
-                obstime=obstime,
-                frame="icrs",
-                location=self.lc,
-            )
-        # if in_frame == 'galactic': self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot, frame = 'galactic', location = self.lc)
-
-        if out_frame == "ra_dec":
-            self._c = self.c.icrs
-            self.rot_p, self.rot_t = self._c.ra.rad, self._c.dec.rad
-        if out_frame == "az_el":
-            self._c = self.c.altaz
-            self.rot_p, self.rot_t = self._c.az.rad, self._c.alt.rad
-        # if out_frame == 'galactic': self._c = self.c.galactic; self.rot_p, self.rot_t = self._c.l.rad,  self._c.b.rad
-
-        self.rot_xyz = np.c_[
-            np.sin(self.rot_p) * np.cos(self.rot_t),
-            np.cos(self.rot_p) * np.cos(self.rot_t),
-            np.sin(self.rot_t),
-        ]  # the XYZ coordinates of our rotated test points on the unit sphere
-
-        self.R = np.linalg.lstsq(self.fid_xyz, self.rot_xyz, rcond=None)[
-            0
-        ]  # what matrix takes us (fid_xyz -> rot_xyz)?
-
-        if (in_frame, out_frame) == ("ra_dec", "az_el"):
-            _phi -= (_unix - epoch) * (2 * np.pi / 86163.0905)
-
-        trans_xyz = np.swapaxes(
-            np.matmul(
-                np.swapaxes(
-                    np.concatenate(
-                        [
-                            (np.sin(_phi) * np.cos(_theta))[None],
-                            (np.cos(_phi) * np.cos(_theta))[None],
-                            np.sin(_theta)[None],
-                        ],
-                        axis=0,
-                    ),
-                    0,
-                    -1,
-                ),
-                self.R,
-            ),
-            0,
-            -1,
-        )
-
-        trans_phi, trans_theta = np.arctan2(trans_xyz[0], trans_xyz[1]), np.arcsin(trans_xyz[2])
-
-        if (in_frame, out_frame) == ("az_el", "ra_dec"):
-            trans_phi += (_unix - epoch) * (2 * np.pi / 86163.0905)
-
-        return np.reshape(trans_phi % (2 * np.pi), phi.shape), np.reshape(trans_theta, theta.shape)
-
-
-class Array:
-    def __init__(self, **kwargs):
-
-        DEFAULT_ARRAY_CONFIG = {
-        "detectors": [
-            [150e9, 10e9, 100], 
-        ],
-        "geometry": "hex", 
-        "field_of_view": 1.3, 
-        "primary_size": 50,   
-        "band_grouping": "randomized",   
-        "az_bounds": [0, 360],  
-        "el_bounds": [20, 90],
-        "max_az_vel": 3,
-        "max_el_vel": 2,
-        "max_az_acc": 1,
-        "max_el_acc": 0.25
-        }
-
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        
-        if type(self.detectors) == pd.DataFrame:
-
-            self.offset_x  = self.detectors.offset_x.values
-            self.offset_y  = self.detectors.offset_y.values
-            self.band      = self.detectors.band.values
-            self.bandwidth = self.detectors.bandwidth.values
-            self.offsets   = np.c_[self.offset_x, self.offset_y]
-            self.n_det     = len(self.detectors)
-                
-        else:    
-            self.band, self.bandwidth, self.n_det = np.empty(0), np.empty(0), 0
-            for nu_0, nu_w, n in self.detectors:
-                self.band, self.bandwidth = (
-                    np.r_[self.band, np.repeat(nu_0, n)],
-                    np.r_[self.bandwidth, np.repeat(nu_w, n)],
-                )
-                self.n_det += n
-
-            self.offsets  = utils.make_array(self.geometry, self.field_of_view, self.n_det)
-            self.offsets *= np.pi / 180  # put these in radians
-
-            # scramble up the locations of the bands
-            if self.band_grouping == "random":
-                random_index = np.random.choice(np.arange(self.n_det), self.n_det, replace=False)
-                self.offsets = self.offsets[random_index]
-
-            self.offset_x, self.offset_y = self.offsets.T
-            self.r, self.p = np.sqrt(np.square(self.offsets).sum(axis=1)), np.arctan2(*self.offsets.T)
+        ...
 
         
-        self.ubands = np.unique(self.band)
+    def to_hdf(self, filename):
 
-        # compute detector offsets
-        self.hull = sp.spatial.ConvexHull(self.offsets)
+        with h5py.File(filename, "w") as f:
 
-        # compute beams
-        self.optical_model = "diff_lim"
-        if self.optical_model == "diff_lim":
+            f.create_dataset("")
+    
+    def plot(self):
+        pass
 
-            self.get_beam_waist = lambda z, w_0, f: w_0 * np.sqrt(
-                1 + np.square(2.998e8 * z) / np.square(f * np.pi * np.square(w_0))
-            )
-            self.get_beam_profile = lambda r, r_fwhm: np.exp(np.log(0.5) * np.abs(r / r_fwhm) ** 8)
-            self.beam_func = self.get_beam_profile
+class KeyNotFoundError(Exception):
+    def __init__(self, invalid_keys):
+        super().__init__(f"The key \'{invalid_keys}\' is not in the database. ")
 
-    def make_filter(self, waist, res, func, width_per_waist=1.2):
+def check_nested_keys(keys_found, data, keys):
 
-        filter_width = width_per_waist * waist
-        n_filter = 2 * int(np.ceil(0.5 * filter_width / res)) + 1
+    for key in data.keys():
+        for i in range(len(keys)):
+            if keys[i] in data[key].keys():
+                keys_found[i] = True
 
-        filter_side = 0.5 * np.linspace(-filter_width, filter_width, n_filter)
+def check_json_file_for_key(keys_found, file_path, *keys_to_check):
+    with open(file_path, 'r') as json_file:
+        data = json.load(json_file)       
+        return check_nested_keys(keys_found, data, keys_to_check)
 
-        FILTER_X, FILTER_Y = np.meshgrid(filter_side, filter_side, indexing="ij")
-        FILTER_R = np.sqrt(np.square(FILTER_X) + np.square(FILTER_Y))
+def test_multiple_json_files(files_to_test, *keys_to_find):   
+    keys_found = np.zeros(len(keys_to_find)).astype(bool)
 
-        FILTER = func(FILTER_R, 0.5 * waist)
-        FILTER /= FILTER.sum()
+    for file_path in files_to_test:
+        check_json_file_for_key(keys_found, file_path, *keys_to_find)
 
-        return FILTER
+    if np.sum(keys_found) != len(keys_found):
+        raise KeyNotFoundError(np.array(keys_to_find)[~keys_found])
 
-    def separate_filter(self, F, tol=1e-2):
-
-        u, s, v = np.linalg.svd(F)
-        eff_filter = 0
-        for m, (_u, _s, _v) in enumerate(zip(u.T, s, v)):
-
-            eff_filter += _s * np.outer(_u, _v)
-            if np.abs(F - eff_filter).sum() < tol:
-                break
-
-        return u.T[: m + 1], s[: m + 1], v[: m + 1]
-
-    def separably_filter(self, M, F, tol=1e-2):
-
-        u, s, v = self.separate_filter(F, tol=tol)
-
-        filt_M = 0
-        for _u, _s, _v in zip(u, s, v):
-
-            filt_M += _s * sp.ndimage.convolve1d(sp.ndimage.convolve1d(M.astype(float), _u, axis=0), _v, axis=1)
-
-        return filt_M
-
-
-
-class Pointing:
-
+class Simulation(base.BaseSimulation):
     """
-    A class containing time-ordered pointing data.
+    A simulation! This is what users should touch, primarily. 
     """
+    def __init__(self, 
+                 array, 
+                 pointing, 
+                 site, 
+                 atm_model="linear_angular", 
+                 map_file=None, 
+                 noise_model="white", 
+                 **kwargs):
 
-    @staticmethod
-    def validate_pointing_kwargs(kwargs):
-        """
-        Make sure that we have all the ingredients to produce the pointing data.
-        """
-        if ('end_time' not in kwargs.keys()) and ('integration_time' not in kwargs.keys()):
-            raise ValueError('One of "end_time" or "integration_time" must be in the pointing kwargs.')
+        if isinstance(array, str):
+            array = get_array(array, **kwargs)
 
-    def __init__(self, **kwargs):
+        if isinstance(pointing, str):
+            pointing = get_pointing(pointing, **kwargs)
 
-        # these are all required kwargs. if they aren't in the passed kwargs, get them from here.
-        DEFAULT_POINTING_CONFIG = {
-        "integration_time": 600,
-        "coord_center": [0, 90],
-        "coord_frame": "az_el",
-        "scan_pattern": "back-and-forth",  
-        "scan_period": 60,  
-        "sample_rate": 20, 
-        }
+        if isinstance(site, str):
+            site = get_site(site, **kwargs)
 
-        for key, val in kwargs.items():
-            setattr(self, key, val)
+        json_pattern = os.path.join(here+'/configs', '*.json')
+        json_files    = glob.glob(json_pattern)
+        test_multiple_json_files(json_files, *tuple(kwargs.keys()))
 
-        for key, val in DEFAULT_POINTING_CONFIG.items():
-            if not key in kwargs.keys():
-                setattr(self, key, val)
+        super().__init__(array, pointing, site)
 
-        #self.validate_pointing_kwargs(kwargs)
-
-        # make sure that self.start_datetime exists, and that it's a datetime.datetime object
-        if not hasattr(self, 'start_time'):
-            self.start_time = time.time()
-        self.start_datetime = utils.datetime_handler(self.start_time)
-
-        # make self.end_datetime
-        if hasattr(self, 'end_time'): 
-            self.end_datetime = utils.datetime_handler(self.end_time)
+        self.atm_model = atm_model
+        if atm_model in ["linear_angular", "LA"]:
+            self.atm_sim = atmosphere.LinearAngularSimulation(array, pointing, site, **kwargs)
+        elif atm_model in ["kolmogorov_taylor", "KT"]:
+            self.atm_sim = atmosphere.KolmogorovTaylorSimulation(array, pointing, site, **kwargs)
         else:
-            self.end_datetime = self.start_datetime + timedelta(seconds=self.integration_time)
-        
-        self.unix_min = self.start_datetime.timestamp()
-        self.unix_max = self.end_datetime.timestamp()
-        self.dt = 1 / self.sample_rate
+            self.atm_sim = None
 
-        if self.coord_units == "degrees":
-            self.coord_center = np.radians(self.coord_center)
-            self.coord_throws = np.radians(self.coord_throws)
+        self.map_file = map_file
+        if map_file is not None:
+            self.map_sim = sky.MapSimulation(array, pointing, site, map_file, **kwargs)
+        else:
+            self.map_sim = None
 
-        self.unix = np.arange(self.unix_min, self.unix_max, self.dt)
-        self.n_t = len(self.unix)
+    def run(self):
 
-        self.coords = utils.get_pointing(
-            self.unix,
-            self.scan_period,
-            self.coord_center,
-            self.coord_throws,
-            self.scan_pattern,
-        )
+        if self.atm_sim is not None:
+            self.atm_sim.run()
 
-        if self.coord_frame == "ra_dec":
-            self.ra, self.dec = self.coords
+        if self.map_sim is not None:
+            self.map_sim.run()
 
-        if self.coord_frame == "az_el":
-            self.az, self.el = self.coords
+        tod = TOD()
 
-        if self.coord_frame == "dx_dy":
-            self.dx, self.dy = self.coords
+        tod.time = self.pointing.unix
+        tod.az   = self.pointing.az
+        tod.el   = self.pointing.el
+        tod.ra   = self.pointing.ra
+        tod.dec  = self.pointing.dec
 
+        # number of bands are lost here
+        tod.data = np.zeros((self.array.n_det, self.pointing.n_time))
 
-class Site:
+        if self.atm_sim is not None:
+            tod.data += self.atm_sim.temperature
 
-    """
-    A class containing time-ordered pointing data. Pass a supported site (found at weathergen.sites),
-    and a height correction if needed.
-    """
+        if self.map_sim is not None:
+            tod.data += self.map_sim.temperature
 
-    def __init__(self, **kwargs):
+        tod.detectors = self.array.metadata
 
-        for key, val in kwargs.items():
-            setattr(self, key, val)
+        tod.metadata = {'latitude': self.site.latitude,
+                        'longitude': self.site.longitude,
+                        'altitude': self.site.altitude}
 
-        if not self.region in regions.index.values:
-            raise InvalidRegionError(self.region)
+        return tod
 
-        if self.longitude is not None:
-            self.longitude = regions.loc[self.region].longitude
+    def save_maps(self, mapper):
 
-        if self.latitude is not None:
-            self.latitude = regions.loc[self.region].latitude
+            self.map_sim.map_data["header"]['comment'] = 'Made Synthetic observations via maria code'
+            self.map_sim.map_data["header"]['comment'] = 'Changed resolution and size of the output map'
+            self.map_sim.map_data["header"]['CDELT1']  = np.rad2deg(mapper.resolution)
+            self.map_sim.map_data["header"]['CDELT2']  = np.rad2deg(mapper.resolution)
+            self.map_sim.map_data["header"]['CRPIX1']  = mapper.maps[list(mapper.maps.keys())[0]].shape[0]
+            self.map_sim.map_data["header"]['CRPIX2']  = mapper.maps[list(mapper.maps.keys())[0]].shape[1]
 
-        if self.altitude is not None:
-            self.altitude = regions.loc[self.region].altitude
+            self.map_sim.map_data["header"]['comment'] = 'Changed pointing location of the output map'
+            self.map_sim.map_data["header"]['CRVAL1']  = self.pointing.ra.mean()
+            self.map_sim.map_data["header"]['CRVAL2']  = self.pointing.dec.mean()
 
-        
+            self.map_sim.map_data["header"]['comment'] = 'Changed spectral position of the output map'
+            self.map_sim.map_data["header"]['CTYPE3']  = 'FREQ    '
+            self.map_sim.map_data["header"]['CUNIT3']  = 'Hz      '
+            self.map_sim.map_data["header"]['CRPIX3']  = 1.000000000000E+00
+            
+            self.map_sim.map_data["header"]['BTYPE']   = 'Intensity'
+            if self.map_sim.map_data["inbright"] == 'Jy/pixel': 
+                self.map_sim.map_data["header"]['BUNIT']   = 'Jy/beam '   
+            else: 
+                self.map_sim.map_data["header"]['BUNIT']   = 'Kelvin RJ'   
+
+            for i in range(len(self.array.ubands)):
+                
+                self.map_sim.map_data["header"]['CRVAL3']  = self.array.detectors[i][0]
+                self.map_sim.map_data["header"]['CDELT3']  = self.array.detectors[i][1]
+
+                save_map = mapper.maps[list(mapper.maps.keys())[i]] 
+
+                if self.map_sim.map_data["inbright"] == 'Jy/pixel': 
+                    save_map *= utils.KbrightToJyPix(self.map_data["header"]['CRVAL3'], 
+                                                     self.map_data["header"]['CDELT1'], 
+                                                     self.map_data["header"]['CDELT2']
+                                                    )
+                fits.writeto( filename = here+'/outputs/atm_model_'+str(self.atm_model)+'_file_'+ str(self.map_file.split('/')[-1].split('.fits')[0])+'.fits', 
+                                  data = save_map, 
+                                header = self.map_sim.map_data["header"],
+                             overwrite = True 
+                            )
+

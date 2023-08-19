@@ -1,9 +1,7 @@
 import numpy as np
-import scipy.interpolate
-import scipy.ndimage
-import scipy.stats
 import scipy as sp
 import pandas as pd
+import h5py
 import os
 from tqdm import tqdm
 import warnings
@@ -19,68 +17,39 @@ from datetime import datetime
 
 here, this_filename = os.path.split(__file__)
 
-from . import AtmosphericSpectrum, Coordinator
+from . import base
 
-DEFAULT_LAM_CONFIG = {
-    "min_depth": 500,
-    "max_depth": 4000,
-    "n_layers": 8,
-    "min_beam_res": 4,
-}
+class AtmosphericSpectrum:
+    def __init__(self, filepath):
+        """
+        A class to hold spectra as attributes
+        """
+        with h5py.File(filepath, "r") as f:
+            self.nu = f["nu"][:]  # frequency axis of the spectrum, in GHz
+            self.tcwv = f["tcwv"][:]  # total column water vapor, in mm
+            self.elev = f["elev"][:]  # elevation, in degrees
+            self.t_rj = f["t_rj"][:]  # Rayleigh-Jeans temperature, in Kelvin
 
 
-class AtmosphericModel:
+class BaseAtmosphericSimulation(base.BaseSimulation):
     """
     The base class for modeling atmospheric fluctuations.
 
     A model needs to have the functionality to generate spectra for any pointing data we supply it with.
     """
-
     def __init__(self, array, pointing, site):
+        super().__init__(array, pointing, site)
 
-        self.array, self.pointing, self.site = array, pointing, site
-        self.spectrum = AtmosphericSpectrum(filepath=f"{here}/spectra/{self.site.region}.h5")
-        self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
-
-        if self.pointing.coord_frame == "az_el":
-            self.pointing.ra, self.pointing.dec = self.coordinator.transform(
-                self.pointing.unix,
-                self.pointing.az,
-                self.pointing.el,
-                in_frame="az_el",
-                out_frame="ra_dec",
-            )
-            self.pointing.dx, self.pointing.dy = utils.to_xy(
-                self.pointing.az,
-                self.pointing.el,
-                self.pointing.az.mean(),
-                self.pointing.el.mean(),
-            )
-
-        if self.pointing.coord_frame == "ra_dec":
-            self.pointing.az, self.pointing.el = self.coordinator.transform(
-                self.pointing.unix,
-                self.pointing.ra,
-                self.pointing.dec,
-                in_frame="ra_dec",
-                out_frame="az_el",
-            )
-            self.pointing.dx, self.pointing.dy = utils.to_xy(
-                self.pointing.az,
-                self.pointing.el,
-                self.pointing.az.mean(),
-                self.pointing.el.mean(),
-            )
-
-        self.azim, self.elev = utils.from_xy(
+        self.AZ, self.EL = utils.from_xy(
             self.array.offset_x[:, None],
             self.array.offset_y[:, None],
             self.pointing.az,
             self.pointing.el,
         )
 
-        utils.validate_pointing(self.azim, self.elev)
+        utils.validate_pointing(self.AZ, self.EL)
 
+        self.spectrum = AtmosphericSpectrum(filepath=f"{here}/spectra/{self.site.region}.h5")
         self.weather = weathergen.Weather(
             region=self.site.region,
             seasonal=self.site.seasonal,
@@ -88,30 +57,29 @@ class AtmosphericModel:
             altitude=self.site.altitude
         )
 
-
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
 
-    def simulate_temperature(self, units='K_RJ'):
+    def run(self, units='K_RJ'):
 
         if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
             self.simulate_integrated_water_vapor() 
 
-            self.temperature = np.empty((self.array.n_det, self.pointing.n_t))
+            self.temperature = np.empty((self.array.n_det, self.pointing.n_time))
 
-            for uib, uband in enumerate(np.unique(self.array.band)):
+            for uib, uband in enumerate(self.array.ubands):
 
                 band_mask = self.array.band == uband
 
-                passband  = (np.abs(self.spectrum.nu - self.array.band[band_mask].mean()) < self.array.bandwidth[band_mask].mean()).astype(float)
+                passband  = (np.abs(self.spectrum.nu - self.array.band_center[band_mask].mean()) < 0.5 * self.array.band_width[band_mask].mean()).astype(float)
                 passband /= passband.sum()
 
                 band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
                                                                                 self.spectrum.tcwv),
                                                                                 (self.spectrum.t_rj * passband).sum(axis=-1))
 
-                self.temperature[band_mask] = band_T_RJ_interpolator((np.degrees(self.elev[band_mask]), self.integrated_water_vapor[band_mask]))
+                self.temperature[band_mask] = band_T_RJ_interpolator((np.degrees(self.EL[band_mask]), self.integrated_water_vapor[band_mask]))
 
         if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
 
@@ -119,15 +87,21 @@ class AtmosphericModel:
             self.temperature = 1.8 * (self.temperature - 273.15) + 32
                     
 
+DEFAULT_LA_CONFIG = {
+    "min_depth": 500,
+    "max_depth": 3000,
+    "n_layers": 4,
+    "min_beam_res": 4,
+}
 
-class LinearAngularModel(AtmosphericModel):
+class LinearAngularSimulation(BaseAtmosphericSimulation):
     """
-    The linear angular model treats the atmosphere as a bunch of layers.
+    The linear angular model treats the atmosphere as a bunch of layers. 
 
     This model is only appropriate for single instruments, i.e. when the baseline is zero.
     """
 
-    def __init__(self, array, pointing, site, config=DEFAULT_LAM_CONFIG, verbose=False):
+    def __init__(self, array, pointing, site, config=DEFAULT_LA_CONFIG, verbose=False, **kwargs):
         super().__init__(array, pointing, site)
 
         self.config = config
@@ -428,7 +402,7 @@ class LinearAngularModel(AtmosphericModel):
         self.effective_zenith_water_vapor *= 2e-2 * self.weather.column_water_vapor / self.effective_zenith_water_vapor.std()
         self.effective_zenith_water_vapor += self.weather.column_water_vapor.mean()
 
-        self.integrated_water_vapor = self.effective_zenith_water_vapor / np.sin(self.elev)
+        self.integrated_water_vapor = self.effective_zenith_water_vapor / np.sin(self.EL)
 
         # self.atm_power = np.zeros(self.effective_zenith_water_vapor.shape)
 
@@ -441,7 +415,7 @@ class LinearAngularModel(AtmosphericModel):
 
         #         BA_TRJ_RGI = sp.interpolate.RegularGridInterpolator((self.am.tcwv, np.radians(self.am.elev)), ba_am_trj)
 
-        #         self.atm_power[bm] = BA_TRJ_RGI((self.epwv[bm], self.elev[bm]))
+        #         self.atm_power[bm] = BA_TRJ_RGI((self.epwv[bm], self.EL[bm]))
 
         #         prog.update(1)
 

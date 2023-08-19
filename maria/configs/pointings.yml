@@ -1,0 +1,67 @@
+---
+STARE_0az_90el_60s:
+  description: A 60-second zenith stare.
+  start_time: '2022-07-01T08:00:00'
+  integration_time: 60
+  scan_pattern: back-and-forth
+  pointing_center:
+  - 0
+  - 90
+  pointing_throws:
+  - 0
+  - 0
+  pointing_frame: az_el
+  pointing_units: degrees
+  scan_period: 120
+  sample_rate: 20
+  seed: 42
+  
+DAISY_2deg:
+  description: ''
+  start_time: '2022-07-01T08:00:00'
+  scan_pattern: daisy
+  scan_options:
+    k: 3.1416
+  pointing_throws:
+  - 2
+  - 2
+  pointing_units: degrees
+  scan_period: 60
+  sample_rate: 20
+  seed: 42
+DAISY_2deg_4ra_10dec_600s:
+  description: ''
+  start_time: '2022-07-01T08:00:00'
+  integration_time: 600
+  scan_pattern: daisy
+  scan_options:
+    k: 3.1416
+  pointing_center:
+  - 4
+  - 10
+  pointing_throws:
+  - 2
+  - 2
+  pointing_frame: ra_dec
+  pointing_units: degrees
+  scan_period: 60
+  sample_rate: 20
+  seed: 42
+BAF_5deg_45az_45el_60s:
+  description: ''
+  start_time: '2022-07-01T08:00:00'
+  integration_time: 60
+  scan_pattern: back-and-forth
+  scan_options:
+    k: 3.1416
+  pointing_center:
+  - 45
+  - 45
+  pointing_throws:
+  - 5
+  - 5
+  pointing_frame: az_el
+  pointing_units: degrees
+  scan_period: 60
+  sample_rate: 20
+  seed: 42
