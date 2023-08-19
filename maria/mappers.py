@@ -43,8 +43,8 @@ class BaseMapper:
                                         lon=tod.metadata['longitude'])
 
         tod.AZ, tod.EL = utils.from_xy(
-            tod.detectors.offset_x.values[:, None],
-            tod.detectors.offset_y.values[:, None],
+            tod.detectors.sky_x.values[:, None],
+            tod.detectors.sky_y.values[:, None],
             tod.az,
             tod.el,
         )

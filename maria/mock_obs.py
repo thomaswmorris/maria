@@ -39,7 +39,7 @@ class WeObserve:
                                              self.site, 
                                              verbose=self.verbose)
 
-        self.lam.simulate_temperature(nu=np.unique(self.array.bands), units='K_RJ')
+        self.lam.simulate_temperature(nu=self.array.ubands, units='K_RJ')
 
     def _get_CMBPS(self):
         import camb
@@ -54,8 +54,8 @@ class WeObserve:
         results = camb.get_results(pars)
         powers = results.get_cmb_power_spectra(pars, CMB_unit="K")["total"][:, 0]
 
-        self.CMB_PS = np.empty((len(np.unique(self.array.bands)), len(powers)))
-        for i in range(len(np.unique(self.array.bands))):
+        self.CMB_PS = np.empty((len(self.array.ubands), len(powers)))
+        for i in range(len(self.array.ubands)):
             self.CMB_PS[i] = powers
 
     def _cmb_imager(self, bandnumber=0):
@@ -78,7 +78,7 @@ class WeObserve:
         )[0]
 
         self.CMB_map += utils.Tcmb
-        self.CMB_map *= utils.KcmbToKbright(np.unique(self.array.bands)[bandnumber])
+        self.CMB_map *= utils.KcmbToKbright(self.array.ubands[bandnumber])
 
     def _get_skyconfig(self, **kwargs):
         hudl = fits.open(self.file_name)
@@ -121,14 +121,14 @@ class WeObserve:
         x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
         y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)
 
-        self.truesky     = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
-        self.noisemap    = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
-        self.filteredmap = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
-        self.mockobs     = np.empty((len(np.unique(self.array.bands)),len(x_bins)-1, len(y_bins)-1))
+        self.truesky     = np.empty((len(self.array.ubands),len(x_bins)-1, len(y_bins)-1))
+        self.noisemap    = np.empty((len(self.array.ubands),len(x_bins)-1, len(y_bins)-1))
+        self.filteredmap = np.empty((len(self.array.ubands),len(x_bins)-1, len(y_bins)-1))
+        self.mockobs     = np.empty((len(self.array.ubands),len(x_bins)-1, len(y_bins)-1))
 
         # should mask the correct detectors...
-        for iub, uband in enumerate(np.unique(self.array.bands)):
-            mask = (self.array.bands == uband)
+        for iub, uband in enumerate(self.array.ubands):
+            mask = (self.array.dets.bands == uband)
             self._make_sky(lam_x, lam_y, map_x, map_y, map_X, map_Y, x_bins, y_bins, iub, mask)
 
     def _make_sky(
@@ -150,7 +150,7 @@ class WeObserve:
             idx = i
 
         if self.sky_data['units'] == 'Jy/pixel':
-            self.im[idx] = self.im[idx]/utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.im[idx] = self.im[idx]/utils.KbrightToJyPix(self.array.ubands[i], self.sky_data['incell'], self.sky_data['incell'])
 
         self.map_data = sp.interpolate.RegularGridInterpolator(
             (map_x, map_y), self.im[idx], bounds_error=False, fill_value=0
@@ -205,10 +205,10 @@ class WeObserve:
         self.mockobs[i]     = total_map
 
         if self.sky_data['units'] == 'Jy/pixel':
-            self.truesky[i]     *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-            self.noisemap[i]    *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-            self.filteredmap[i] *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
-            self.mockobs[i]     *= utils.KbrightToJyPix(np.unique(self.array.bands)[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.truesky[i]     *= utils.KbrightToJyPix(self.array.ubands[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.noisemap[i]    *= utils.KbrightToJyPix(self.array.ubands[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.filteredmap[i] *= utils.KbrightToJyPix(self.array.ubands[i], self.sky_data['incell'], self.sky_data['incell'])
+            self.mockobs[i]     *= utils.KbrightToJyPix(self.array.ubands[i], self.sky_data['incell'], self.sky_data['incell'])
 
     def _savesky(
         self,

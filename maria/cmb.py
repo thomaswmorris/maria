@@ -22,8 +22,8 @@
 #         results = camb.get_results(pars)
 #         powers = results.get_cmb_power_spectra(pars, CMB_unit="K")["total"][:, 0]
 
-#         self.CMB_PS = np.empty((len(np.unique(self.array.band)), len(powers)))
-#         for i in range(len(np.unique(self.array.band))):
+#         self.CMB_PS = np.empty((len(self.array.ubands), len(powers)))
+#         for i in range(len(self.array.ubands)):
 #             self.CMB_PS[i] = powers
 
 
@@ -47,7 +47,7 @@
 #         )[0]
 
 #         self.CMB_map += utils.Tcmb
-#         self.CMB_map *= utils.KcmbToKbright(np.unique(self.array.band_center)[bandnumber])
+#         self.CMB_map *= utils.KcmbToKbright(np.unique(self.array.dets.band_center)[bandnumber])
 
 #     #self._cmb_imager(i)
 #         #         cmb_data = sp.interpolate.RegularGridInterpolator(

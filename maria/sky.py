@@ -24,6 +24,7 @@ class InvalidNBandsError(Exception):
         super().__init__(f"Number of bands  \'{invalid_nbands}\' don't match the cube size."
         f"The input fits file must be an image or a cube that match the number of bands")
 
+
 class BaseSkySimulation(base.BaseSimulation):
     """
     This simulates scanning over celestial sources.
@@ -32,8 +33,8 @@ class BaseSkySimulation(base.BaseSimulation):
         super().__init__(array, pointing, site)
 
         AZIM, ELEV = utils.from_xy(
-            self.array.offset_x[:, None],
-            self.array.offset_y[:, None],
+            self.array.sky_x[:, None],
+            self.array.sky_y[:, None],
             self.pointing.az,
             self.pointing.el,
         )
@@ -126,7 +127,7 @@ class MapSimulation(BaseSkySimulation):
         self.map_samples = np.zeros((self.X.shape))
 
         for i_map in range(n_maps):
-            mask = (self.array.band == np.unique(self.array.band)[i_map])
+            mask = (self.array.dets.band == self.array.ubands[i_map])
             _map_samples = sp.interpolate.RegularGridInterpolator(
                 (map_x, map_y), self.map_data["images"][i_map], bounds_error=False, fill_value=0)((self.X[mask], self.Y[mask]))
             self.map_samples[mask] = _map_samples

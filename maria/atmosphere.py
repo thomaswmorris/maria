@@ -41,8 +41,8 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
         super().__init__(array, pointing, site)
 
         self.AZ, self.EL = utils.from_xy(
-            self.array.offset_x[:, None],
-            self.array.offset_y[:, None],
+            self.array.sky_x[:, None],
+            self.array.sky_y[:, None],
             self.pointing.az,
             self.pointing.el,
         )
@@ -66,13 +66,13 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
             self.simulate_integrated_water_vapor() 
 
-            self.temperature = np.empty((self.array.n_det, self.pointing.n_time))
+            self.temperature = np.empty((self.array.n_dets, self.pointing.n_time))
 
             for uib, uband in enumerate(self.array.ubands):
 
-                band_mask = self.array.band == uband
+                band_mask = self.array.dets.band == uband
 
-                passband  = (np.abs(self.spectrum.nu - self.array.band_center[band_mask].mean()) < 0.5 * self.array.band_width[band_mask].mean()).astype(float)
+                passband  = (np.abs(self.spectrum.nu - self.array.dets.band_center[band_mask].mean()) < 0.5 * self.array.dets.band_width[band_mask].mean()).astype(float)
                 passband /= passband.sum()
 
                 band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
@@ -165,12 +165,12 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 
         # the angular position of each detector over time WRT the atmosphere
         self.REL_X = (
-            self.array.offset_x[None, :, None]
+            self.array.sky_x[None, :, None]
             + self.pointing.dx[None, None]
             + np.cumsum(self.AWV_X * self.pointing.dt, axis=-1)[:, None]
         )
         self.REL_Y = (
-            self.array.offset_y[None, :, None]
+            self.array.sky_y[None, :, None]
             + self.pointing.dy[None, None]
             + np.cumsum(self.AWV_Y * self.pointing.dt, axis=-1)[:, None]
         )
@@ -409,7 +409,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         # with tqdm(total=len(self.array.ubands), desc='Integrating spectra') as prog:
         #     for b in self.array.ubands:
 
-        #         bm = self.array.bands == b
+        #         bm = self.array.dets.bands == b
 
         #         ba_am_trj = (self.am.t_rj * self.array.am_passbands[bm].mean(axis=0)[None,None,:]).sum(axis=-1)
 

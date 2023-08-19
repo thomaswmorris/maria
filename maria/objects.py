@@ -11,14 +11,81 @@ from datetime import datetime, timedelta
 
 from . import utils
 
+
 here, this_filename = os.path.split(__file__)
-supported_regions = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
-regions = weathergen.regions.loc[supported_regions].sort_index()
+
+REGIONS_WITH_SPECTRA = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
+REGIONS_WITH_WEATHER = list(weathergen.regions.index)
+
+SUPPORTED_REGIONS = list(set(REGIONS_WITH_SPECTRA) & set(REGIONS_WITH_WEATHER))
+
+regions = weathergen.regions.loc[SUPPORTED_REGIONS].sort_index()
+
+# -- Specific packages --
+ARRAY_CONFIGS = utils.read_yaml(f'{here}/configs/arrays.yml')
+POINTING_CONFIGS = utils.read_yaml(f'{here}/configs/pointings.yml')
+SITE_CONFIGS = utils.read_yaml(f'{here}/configs/sites.yml')
+
+ARRAYS = list((ARRAY_CONFIGS.keys()))
+POINTINGS = list((POINTING_CONFIGS.keys()))
+SITES = list((SITE_CONFIGS.keys()))
+
+class InvalidArrayError(Exception):
+    def __init__(self, invalid_array):
+        super().__init__(f"The array \'{invalid_array}\' is not in the database of default arrays. "
+        f"Default arrays are:\n\n{sorted(list(ARRAY_CONFIGS.keys()))}")
+
+class InvalidPointingError(Exception):
+    def __init__(self, invalid_pointing):
+        super().__init__(f"The site \'{invalid_pointing}\' is not in the database of default pointings. "
+        f"Default pointings are:\n\n{sorted(list(POINTING_CONFIGS.keys()))}")
+
+class InvalidSiteError(Exception):
+    def __init__(self, invalid_site):
+        super().__init__(f"The site \'{invalid_site}\' is not in the database of default sites. "
+        f"Default sites are:\n\n{sorted(list(SITE_CONFIGS.keys()))}")
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         region_string = regions.to_string(columns=['location', 'country', 'latitude', 'longitude', 'altitude'])
         super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{region_string}")
+
+def get_array_config(array_name, **kwargs):
+    if not array_name in ARRAY_CONFIGS.keys():
+        raise InvalidArrayError(array_name)
+    ARRAY_CONFIG = ARRAY_CONFIGS[array_name].copy()
+    for k, v in kwargs.items():
+        ARRAY_CONFIG[k] = v
+    return ARRAY_CONFIG
+
+
+def get_pointing_config(pointing_name, **kwargs):
+    if not pointing_name in POINTING_CONFIGS.keys():
+        raise InvalidPointingError(pointing_name)
+    POINTING_CONFIG = POINTING_CONFIGS[pointing_name].copy()
+    for k, v in kwargs.items():
+        POINTING_CONFIG[k] = v
+    return POINTING_CONFIG
+
+
+def get_site_config(site_name, **kwargs):
+    if not site_name in SITE_CONFIGS.keys():
+        raise InvalidSiteError(site_name)
+    SITE_CONFIG = SITE_CONFIGS[site_name].copy()
+    for k, v in kwargs.items():
+        SITE_CONFIG[k] = v
+    return SITE_CONFIG
+
+
+def get_array(array_name, **kwargs):
+    return Array(**get_array_config(array_name, **kwargs))
+
+def get_pointing(pointing_name, **kwargs):
+    return Pointing(**get_pointing_config(pointing_name, **kwargs))
+
+def get_site(site_name, **kwargs):
+    return Site(**get_site_config(site_name, **kwargs))
+
 
 class Array:
     def __init__(self, **kwargs):
@@ -44,11 +111,11 @@ class Array:
         
         if type(self.detectors) == pd.DataFrame:
 
-            self.offset_x    = self.detectors.offset_x.values
-            self.offset_y    = self.detectors.offset_y.values
+            self.sky_x    = self.detectors.sky_x.values
+            self.sky_y    = self.detectors.sky_y.values
             self.band_center = self.detectors.band.values
             self.band_width  = self.detectors.bandwidth.values
-            self.offset      = np.c_[self.offset_x, self.offset_y]
+            self.offset      = np.c_[self.sky_x, self.sky_y]
             self.n_det       = len(self.detectors)
                 
         else:    
@@ -68,7 +135,7 @@ class Array:
                 random_index = np.random.choice(np.arange(self.n_det), self.n_det, replace=False)
                 self.offset = self.offset[random_index]
 
-            self.offset_x, self.offset_y = self.offset.T
+            self.sky_x, self.sky_y = self.offset.T
             self.r, self.p = np.sqrt(np.square(self.offset).sum(axis=1)), np.arctan2(*self.offset.T)
 
         
@@ -94,8 +161,8 @@ class Array:
 
         self.metadata.loc[:, "band"]     = self.band
         self.metadata.loc[:, "nom_freq"] = self.band_center.astype(int)
-        self.metadata.loc[:, "offset_x"] = self.offset_x
-        self.metadata.loc[:, "offset_y"] = self.offset_y
+        self.metadata.loc[:, "sky_x"] = self.sky_x
+        self.metadata.loc[:, "sky_y"] = self.sky_y
 
 
     def make_filter(self, waist, res, func, width_per_waist=1.2):
