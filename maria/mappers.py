@@ -16,9 +16,7 @@ import matplotlib.pyplot as plt
 
 here, this_filename = os.path.split(__file__)
 
-with open(f'{here}/configs/mappers.json', 'r+') as f:
-    MAPPER_CONFIGS = json.load(f)
-
+MAPPER_CONFIGS = utils.read_yaml(f"{here}/configs/mappers.yml")
 MAPPERS = list((MAPPER_CONFIGS.keys()))
 
 class InvalidMapperError(Exception):
@@ -36,15 +34,20 @@ class BaseMapper:
     def __init__(self, **kwargs):
 
         self.tods = []
+        self.resolution = kwargs.get("resolution", np.radians(1/60))
+
+    @property
+    def maps(self):
+        return {key:self.map_sums[key]/np.where(self.map_cnts[key], self.map_cnts[key], np.nan) for key in self.map_sums.keys()}
 
     def expand_tod(self, tod):
 
-        coordinator = utils.Coordinator(lat=tod.metadata['latitude'], 
-                                        lon=tod.metadata['longitude'])
+        coordinator = utils.Coordinator(lat=tod.meta['latitude'], 
+                                        lon=tod.meta['longitude'])
 
-        tod.AZ, tod.EL = utils.from_xy(
-            tod.detectors.sky_x.values[:, None],
-            tod.detectors.sky_y.values[:, None],
+        tod.AZ, tod.EL = utils.x_y_to_phi_theta(
+            tod.dets.sky_x.values[:, None],
+            tod.dets.sky_y.values[:, None],
             tod.az,
             tod.el,
         )
@@ -65,17 +68,16 @@ class BaseMapper:
             self.tods.append(self.expand_tod(tod))
 
 
-class RawBinMapper(BaseMapper):
+class BinMapper(BaseMapper):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+        self._nmtr = kwargs.get("n_modes_to_remove", 0)
 
     def run(self):
 
-        self.ubands = sorted([band for tod in self.tods for band in np.unique(tod.detectors.band)])
+        self.ubands = sorted([band for tod in self.tods for band in np.unique(tod.dets.band)])
 
         min_ra = np.min([tod.RA.min() for tod in self.tods])
         max_ra = np.max([tod.RA.max() for tod in self.tods])
@@ -86,28 +88,34 @@ class RawBinMapper(BaseMapper):
         self.ra_bins = np.arange(min_ra, max_ra, self.resolution)
         self.dec_bins = np.arange(min_dec, max_dec, self.resolution)
 
+        self.ra_side = 0.5 * (self.ra_bins[1:] + self.ra_bins[:-1])
+        self.dec_side = 0.5 * (self.dec_bins[1:] + self.dec_bins[:-1])
+
         self.n_ra, self.n_dec = len(self.ra_bins) - 1, len(self.dec_bins) - 1
 
-        self.maps     = {band: np.zeros((self.n_ra, self.n_dec)) for band in self.ubands}
         self.map_sums = {band: np.zeros((self.n_ra, self.n_dec)) for band in self.ubands}
         self.map_cnts = {band: np.zeros((self.n_ra, self.n_dec)) for band in self.ubands}
 
         for band in np.unique(self.ubands):
             for tod in self.tods:
 
-                band_mask = tod.detectors.band == band
-                map_sum = sp.stats.binned_statistic_2d(tod.RA[band_mask].ravel(), 
-                                                       tod.DEC[band_mask].ravel(),
-                                                       tod.data[band_mask].ravel(),
+                band_mask = tod.dets.band == band
+
+                RA, DEC = tod.RA[band_mask], tod.DEC[band_mask]
+                u, s, v = np.linalg.svd(sp.signal.detrend(tod.data), full_matrices=False)
+                DATA = utils.mprod(u[:, self._nmtr:], np.diag(s[self._nmtr:]), v[self._nmtr:])
+
+                
+                map_sum = sp.stats.binned_statistic_2d(RA.ravel(), 
+                                                       DEC.ravel(),
+                                                       DATA.ravel(),
                                                        bins=(self.ra_bins, self.dec_bins),
                                                        statistic='sum')[0]
 
-                map_cnt = sp.stats.binned_statistic_2d(tod.RA[band_mask].ravel(), 
-                                                       tod.DEC[band_mask].ravel(),
-                                                       tod.data[band_mask].ravel(),
+                map_cnt = sp.stats.binned_statistic_2d(RA[band_mask].ravel(), 
+                                                       DEC[band_mask].ravel(),
+                                                       DATA[band_mask].ravel(),
                                                        bins=(self.ra_bins, self.dec_bins),
                                                        statistic='count')[0]
                 self.map_sums[band] += map_sum
                 self.map_cnts[band] += map_cnt
-
-        self.maps[band] = self.map_sums[band] / self.map_cnts[band]

@@ -2,12 +2,9 @@ import numpy as np
 import scipy as sp
 import pandas as pd
 
-import glob
-import os
-import re
-import weathergen
+import matplotlib.pyplot as plt
 
-from datetime import datetime, timedelta
+import os
 
 from . import utils
 
@@ -63,23 +60,23 @@ class Array:
         "max_az_acc": 1,
         "max_el_acc": 0.25
         }
-
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+        detectors = kwargs.get("detectors", "")
         
-        if type(self.detectors) == pd.DataFrame:
+        if type(detectors) == pd.DataFrame:
+            self.dets = detectors
 
-            self.dets = self.detectors
-            del self.detectors
-
-        if isinstance(self.detectors, Mapping):    
+        elif isinstance(detectors, Mapping):    
 
             self.dets = pd.DataFrame()
 
-            for band, (band_center, band_width, n) in self.detectors.items():
+            for band, (band_center, band_width, n) in detectors.items():
             #for band in self.detectors.keys():
 
                 band_dets = pd.DataFrame(index=np.arange(n))
+                band_dets.loc[:, "det_uid"] = np.arange(n)
                 band_dets.loc[:, "band"] = band
                 band_dets.loc[:, "band_center"] = band_center
                 band_dets.loc[:, "band_width"] = band_width
@@ -97,9 +94,14 @@ class Array:
             self.sky_x, self.sky_y = self.offset.T
             self.r, self.p = np.sqrt(np.square(self.offset).sum(axis=1)), np.arctan2(*self.offset.T)
 
+        else:
+            raise ValueError("Supplied arg 'detectors' must be either a mapping or a dataframe!")
         
         #self.band = np.array([f"f{int(nu/10**(3*int(np.log10(nu)/3))):03}" for nu in self.band_center])
 
+
+
+        
 
         # compute detector offset
         self.hull = sp.spatial.ConvexHull(self.offset)
@@ -117,6 +119,19 @@ class Array:
         self.dets.loc[:, "sky_x"] = self.sky_x
         self.dets.loc[:, "sky_y"] = self.sky_y
 
+    @property
+    def band_min(self):
+        return (self.dets.band_center - 0.5 * self.dets.band_width).values
+
+    @property
+    def band_max(self):
+        return (self.dets.band_center + 0.5 * self.dets.band_width).values
+
+    def passband(self, nu):
+        """
+        Returns a (n_dets, len(nu))
+        """
+        return ((nu[None] > self.band_min[:, None]) & (nu[None] < self.band_max[:, None])).astype(float)
 
     @property
     def n_dets(self):
@@ -125,6 +140,29 @@ class Array:
     @property
     def ubands(self):
         return list(np.unique(self.dets.band))
+
+    def __repr__(self):
+
+        return (f"Array Object"
+
+                f"\nubands: {self.ubands})"
+                f"\nn_dets: {self.n_dets})")
+         
+    def plot_dets(self):
+
+        fig, ax = plt.subplots(1, 1, figsize=(4, 4), dpi=160)
+
+        for uband in self.ubands:
+
+            band_mask = self.dets.band == uband
+
+            ax.scatter(np.degrees(self.dets.sky_x[band_mask]), 
+                       np.degrees(self.dets.sky_y[band_mask]),
+                       label=uband, lw=5e-1)
+
+        ax.set_xlabel(r'$\theta_x$ offset (deg.)')
+        ax.set_ylabel(r'$\theta_y$ offset (deg.)')
+        ax.legend()
 
     def make_filter(self, waist, res, func, width_per_waist=1.2):
 

@@ -14,6 +14,16 @@ import yaml
 from pathlib import Path
 
 
+
+def mprod(*M):
+    if not len(M) > 0:
+        raise ValueError("You must specify at least one matrix!")
+    res = M[0]
+    for M_ in M[1:]:
+        res = np.matmul(res, M_)
+    return res
+
+
 def read_yaml(filepath):
     return yaml.safe_load(Path(filepath).read_text())
 
@@ -427,7 +437,7 @@ def get_brightness_temperature(f_pb, pb, f_spec, spec):
 # ================ POINTING ================
 
 
-def to_xy(p, t, c_p, c_t):
+def phi_theta_to_x_y(p, t, c_p, c_t):
     ground_X, ground_Y, ground_Z = (
         np.sin(p - c_p) * np.cos(t),
         np.cos(p - c_p) * np.cos(t),
@@ -436,7 +446,7 @@ def to_xy(p, t, c_p, c_t):
     return np.arcsin(ground_X), np.arcsin(-np.real((ground_Y + 1j * ground_Z) * np.exp(1j * (np.pi / 2 - c_t))))
 
 
-def from_xy(dx, dy, c_p, c_t):
+def x_y_to_phi_theta(dx, dy, c_p, c_t):
     ground_X, Y, Z = (
         np.sin(dx + 1e-16),
         -np.sin(dy + 1e-16),

@@ -19,9 +19,9 @@ class Simulation(BaseSimulation):
                  array, 
                  pointing, 
                  site, 
-                 atm_model="linear_angular", 
+                 atm_model=None, 
                  map_file=None, 
-                 noise_model="white", 
+                 noise_model=None, 
                  **kwargs):
 
         if isinstance(array, str):
@@ -78,11 +78,11 @@ class Simulation(BaseSimulation):
         if self.map_sim is not None:
             tod.data += self.map_sim.temperature
 
-        tod.detectors = self.array.dets
+        tod.dets = self.array.dets
 
-        tod.metadata = {'latitude': self.site.latitude,
-                        'longitude': self.site.longitude,
-                        'altitude': self.site.altitude}
+        tod.meta = {'latitude': self.site.latitude,
+                    'longitude': self.site.longitude,
+                    'altitude': self.site.altitude}
 
         return tod
 
@@ -112,8 +112,8 @@ class Simulation(BaseSimulation):
 
             for i in range(len(self.array.ubands)):
                 
-                self.map_sim.map_data["header"]['CRVAL3']  = self.array.detectors[i][0]
-                self.map_sim.map_data["header"]['CDELT3']  = self.array.detectors[i][1]
+                self.map_sim.map_data["header"]['CRVAL3']  = self.array.dets[i][0]
+                self.map_sim.map_data["header"]['CDELT3']  = self.array.dets[i][1]
 
                 save_map = mapper.maps[list(mapper.maps.keys())[i]] 
 

@@ -48,8 +48,9 @@ ACT_PA7:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
+
 MUSTANG-2:
-  description: ''
+  description: 'MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz). See https://greenbankobservatory.org/science/gbt-observers/mustang-2/'
   detectors:
     93GHz: [93.e+9, 10.e+9, 217]
   geometry: hex
@@ -62,6 +63,7 @@ MUSTANG-2:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
+
 SCUBA-2:
   description: ''
   detectors:

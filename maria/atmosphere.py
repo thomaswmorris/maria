@@ -40,7 +40,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
     def __init__(self, array, pointing, site):
         super().__init__(array, pointing, site)
 
-        self.AZ, self.EL = utils.from_xy(
+        self.AZ, self.EL = utils.x_y_to_phi_theta(
             self.array.sky_x[:, None],
             self.array.sky_y[:, None],
             self.pointing.az,

@@ -116,7 +116,7 @@ class WeObserve:
         map_x = map_res * map_nx * np.linspace(-0.5, 0.5, map_nx)
         map_y = map_res * map_ny * np.linspace(-0.5, 0.5, map_ny)
         map_X, map_Y = np.meshgrid(map_x, map_y, indexing="ij")
-        lam_x, lam_y = utils.to_xy(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
+        lam_x, lam_y = utils.phi_theta_to_x_y(self.lam.elev, self.lam.azim, self.lam.elev.mean(), self.lam.azim.mean())
 
         x_bins = np.arange(map_X.min(), map_X.max(), 8 * map_res)
         y_bins = np.arange(map_Y.min(), map_Y.max(), 8 * map_res)

@@ -39,12 +39,6 @@ class BaseSimulation:
                 in_frame="az_el",
                 out_frame="ra_dec",
             )
-            self.pointing.dx, self.pointing.dy = utils.to_xy(
-                self.pointing.az,
-                self.pointing.el,
-                self.pointing.az.mean(),
-                self.pointing.el.mean(),
-            )
 
         if self.pointing.pointing_frame == "ra_dec":
             self.pointing.az, self.pointing.el = self.coordinator.transform(
@@ -53,12 +47,6 @@ class BaseSimulation:
                 self.pointing.dec,
                 in_frame="ra_dec",
                 out_frame="az_el",
-            )
-            self.pointing.dx, self.pointing.dy = utils.to_xy(
-                self.pointing.az,
-                self.pointing.el,
-                self.pointing.az.mean(),
-                self.pointing.el.mean(),
             )
 
         
