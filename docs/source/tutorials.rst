@@ -7,3 +7,4 @@ Tutorials
    tutorials/getting-started.ipynb
    tutorials/customizing.ipynb
    tutorials/observations.ipynb
+   tutorials/mapping.ipynb
