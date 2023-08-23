@@ -1,0 +1,59 @@
+APEX:
+  description: Atacama Pathfinder Experiment
+  region: chajnantor
+  latitude: -23.0058
+  longitude: -67.7592
+  altitude: 5064
+  seasonal: True
+  diurnal: True
+  quantiles: {}
+
+ACT:
+  description: Atacama Cosmology Telescope
+  region: chajnantor
+  latitude: -22.958567282386465
+  longitude: -67.7878496702156
+  altitude: 5190
+  seasonal: True
+  diurnal: True
+  quantiles: {}
+
+GBT:
+  description: Green Bank Telescope
+  region: green_bank
+  latitude: 38.433121
+  longitude: -79.839835
+  altitude: 818
+  seasonal: True
+  diurnal: True
+  quantiles: {}
+
+JCMT:
+  description: ''
+  region: mauna_kea
+  latitude: 19.8228
+  longitude: -155.477 # 
+  altitude: 4092 # meters
+  seasonal: True
+  diurnal: True
+  quantiles: {}
+  
+SPT:
+  description: ''
+  region: south_pole
+  latitude: 0
+  longitude: -90
+  altitude: 2800
+  seasonal: True
+  diurnal: True
+  quantiles: {}
+  
+SRT:
+  description: ''
+  region: sardinia
+  latitude: 0
+  longitude: -90
+  altitude: 2800
+  seasonal: True
+  diurnal: True
+  quantiles: {}
