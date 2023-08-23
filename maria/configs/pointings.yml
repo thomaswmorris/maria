@@ -1,0 +1,74 @@
+DEFAULT:
+  description: A 10-minute stare at 45deg elevation.
+  start_time: '2022-07-01T08:00:00'
+  integration_time: 600
+  scan_pattern: back-and-forth
+  pointing_frame: az_el
+  pointing_units: degrees
+  scan_center: [60, 45]
+  scan_radius: 0
+  scan_period: 60
+  sample_rate: 50
+
+STARE_0az_90el_60s:
+  description: A 60-second zenith stare.
+  start_time: '2022-07-01T08:00:00'
+  integration_time: 60
+  scan_pattern: back-and-forth
+  pointing_frame: az_el
+  scan_center: [0, 90]
+  scan_radius: 0
+  pointing_units: degrees
+  scan_period: 120
+  sample_rate: 20
+  seed: 42
+  
+DAISY-2deg:
+  description: 'A daisy scan with a 2-degree radius.'
+  start_time: '2022-07-01T08:00:00'
+  pointing_frame: ra_dec
+  pointing_units: degrees
+  scan_pattern: daisy
+  scan_center: [10, 4.5]
+  scan_radius: 2
+  scan_period: 60
+  sample_rate: 50
+  seed: 42
+
+# DAISY-2deg_4ra_10dec_600s:
+#   description: ''
+#   start_time: '2022-07-01T08:00:00'
+#   integration_time: 600
+#   scan_pattern: daisy
+#   scan_options:
+#     k: 3.1416
+#   scan_center:
+#   - 4
+#   - 10
+#   scan_radius:
+#   - 2
+#   - 2
+#   pointing_frame: ra_dec
+#   pointing_units: degrees
+#   scan_period: 60
+#   sample_rate: 20
+#   seed: 42
+
+# BAF_5deg_45az_45el_60s:
+#   description: ''
+#   start_time: '2022-07-01T08:00:00'
+#   integration_time: 60
+#   scan_pattern: back-and-forth
+#   scan_options:
+#     k: 3.1416
+#   scan_center:
+#   - 45
+#   - 45
+#   scan_radius:
+#   - 5
+#   - 5
+#   pointing_frame: az_el
+#   pointing_units: degrees
+#   scan_period: 60
+#   sample_rate: 20
+#   seed: 42
