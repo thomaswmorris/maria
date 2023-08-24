@@ -40,7 +40,7 @@ class BaseMapper:
         self.map_res    = kwargs.get("map_res", np.radians(1/60))
         self.map_width  = kwargs.get("map_width", np.radians(5))
         self.map_height = kwargs.get("map_height", np.radians(5))
-        #this doesn't work 
+
         # self.header = fits.header.Header()
 
     @property
@@ -107,10 +107,6 @@ class BaseMapper:
         self.header['CRPIX1']  = self.maps[list(self.maps.keys())[0]].shape[0]/2
         self.header['CRPIX2']  = self.maps[list(self.maps.keys())[0]].shape[1]/2
         self.header['comment'] = 'Overwrote pointing location of the output map'
-
-        # center_lon, center_lat = self.get_map_center_lonlat
-        # self.header['CRVAL1']  = np.rad2deg(center_lon) # ra
-        # self.header['CRVAL2']  = np.rad2deg(center_lat) # dec
 
         self.header['comment'] = 'Overwrote spectral position of the output map'
         self.header['CTYPE3']  = 'FREQ    '
