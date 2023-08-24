@@ -144,7 +144,7 @@ class MapSimulation(BaseSkySimulation):
                              res      = np.radians(kwargs.get("map_res", 1/1000)),
                              center   = np.radians(kwargs.get("map_center", (10.5, 4))),
                              frame    = kwargs.get("map_frame", "ra_dec"),
-                             inbright = kwargs.get("inbright", None),
+                             inbright = kwargs.get("map_inbright", None),
                              units    = kwargs.get("map_units", "K")
                             )
 
