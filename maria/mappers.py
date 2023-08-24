@@ -37,9 +37,11 @@ class BaseMapper:
     def __init__(self, **kwargs):
 
         self.tods = []
-        self.map_res = kwargs.get("resolution", np.radians(1/60))
-
-        self.header = fits.header.Header()
+        self.map_res    = kwargs.get("map_res", np.radians(1/60))
+        self.map_width  = kwargs.get("map_width", np.radians(5))
+        self.map_height = kwargs.get("map_height", np.radians(5))
+        #this doesn't work 
+        # self.header = fits.header.Header()
 
     @property
     def maps(self):
@@ -94,50 +96,48 @@ class BaseMapper:
             mean_unit_colat, mean_unit_lon = np.r_[hp.vec2ang(mean_unit_vec)]
 
         return mean_unit_lon, np.pi/2 - mean_unit_colat
-
-
     
     def save_maps(self, filepath):
 
+        self.header = self.tods[0].header
         self.header['comment'] = 'Made Synthetic observations via maria code'
-        self.header['comment'] = 'Changed resolution and size of the output map'
+        self.header['comment'] = 'Overwrote resolution and size of the output map'
         self.header['CDELT1']  = np.rad2deg(self.map_res)
         self.header['CDELT2']  = np.rad2deg(self.map_res)
-        self.header['CRPIX1']  = self.maps[list(self.maps.keys())[0]].shape[0]
-        self.header['CRPIX2']  = self.maps[list(self.maps.keys())[0]].shape[1]
+        self.header['CRPIX1']  = self.maps[list(self.maps.keys())[0]].shape[0]/2
+        self.header['CRPIX2']  = self.maps[list(self.maps.keys())[0]].shape[1]/2
+        self.header['comment'] = 'Overwrote pointing location of the output map'
 
-        self.header['comment'] = 'Changed pointing location of the output map'
+        # center_lon, center_lat = self.get_map_center_lonlat
+        # self.header['CRVAL1']  = np.rad2deg(center_lon) # ra
+        # self.header['CRVAL2']  = np.rad2deg(center_lat) # dec
 
-        center_lon, center_lat = self.get_map_center_lonlat
-
-        self.header['CRVAL1']  = center_lon # ra
-        self.header['CRVAL2']  = center_lat # dec
-
-        self.header['comment'] = 'Changed spectral position of the output map'
+        self.header['comment'] = 'Overwrote spectral position of the output map'
         self.header['CTYPE3']  = 'FREQ    '
         self.header['CUNIT3']  = 'Hz      '
         self.header['CRPIX3']  = 1.000000000000E+00
         
         self.header['BTYPE']   = 'Intensity'
-        # if self.map_data["inbright"] == 'Jy/pixel': 
-        #     self.header['BUNIT']   = 'Jy/beam '   
-        # else: 
-        self.header['BUNIT']   = 'Kelvin RJ'   
+        if self.tods[0].unit == 'Jy/pixel': 
+            self.header['BUNIT']   = 'Jy/pixel '   
+        else: 
+            self.header['BUNIT']   = 'Kelvin RJ'   
 
         for i, key in enumerate(self.maps.keys()):
             
-            # what is this?
+            # what is this? --> Frequency information in the header
             self.header['CRVAL3'] = self.nom_freqs[key]
             # self.header['CDELT3']  = self.array.dets[i][1]
 
             save_map = self.maps[list(self.maps.keys())[i]] 
 
-            # if self.map_data["inbright"] == 'Jy/pixel': 
-            #     save_map *= utils.KbrightToJyPix(self.header['CRVAL3'], 
-            #                                      self.header['CDELT1'], 
-            #                                      self.header['CDELT2']
-            #                                     )
-            fits.writeto( filename = filepath, 
+            if self.tods[0].unit == 'Jy/pixel': 
+                save_map *= utils.KbrightToJyPix(self.header['CRVAL3'], 
+                                                 np.deg2rad(self.header['CDELT1']), 
+                                                 np.deg2rad(self.header['CDELT2'])
+                                                )
+                
+            fits.writeto( filename = filepath.split('.fits')[0] + '_'+list(self.maps.keys())[i]+'.fits', 
                             data = save_map, 
                             header = self.header,
                             overwrite = True 
@@ -148,12 +148,12 @@ class BaseMapper:
 
 class BinMapper(BaseMapper):
 
-    def __init__(self, map_width=np.radians(5), map_height=np.radians(5), map_res=np.radians(10/60), **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self._nmtr = kwargs.get("n_modes_to_remove", 0)
-        self.x_bins = np.arange(-0.5*map_width, 0.5*map_width, map_res)
-        self.y_bins = np.arange(-0.5*map_height, 0.5*map_height, map_res)
+        self.x_bins = np.arange(-0.5*self.map_width, 0.5*self.map_width, self.map_res)
+        self.y_bins = np.arange(-0.5*self.map_height, 0.5*self.map_height, self.map_res)
         self.n_x, self.n_y = len(self.x_bins) - 1, len(self.y_bins) - 1
 
     def run(self):
