@@ -8,36 +8,41 @@ def test_we_observe():
 
     sim = Simulation(
 
-        # Mandatory minimal weither settings
-        # ---------------------
-        array    = 'MUSTANG-2',
-        pointing = 'DAISY-2deg',
-        site     = 'GBT',
+    # Mandatory minimal weither settings
+    # ---------------------
+    array     = 'MUSTANG-2',       # Array type
+    pointing  = 'DAISY-2deg',      # Scanning strategy 
+    site      = 'GBT',             # Site
+    atm_model = 'linear_angular',  # The atmospheric model, set to None if you want a noiseless observation.
+    # atm_model = None,              # The atmospheric model, set to None if you want a noiseless observation.
+    
+    # True sky input
+    # ---------------------
+    map_file     = "./maps/protocluster.fits",                     # Input files must be a fits file.
+                                                                          # map_file can also be set to None if are only interested in the noise
+    map_center   = (4.5, 10),                                             # RA & Dec in degree
 
-        # True sky input
-        # ---------------------
-        map_file     = "./maps/protocluster.fits", #input files must be a fits file
-        # map_file     = "/Users/jvanmarr/Documents/GitHub/maria/maps/ACT0329_CL0035.097.z_036.00GHz.fits", #input files must be a fits file
-        map_center   = (4, 10.5), # RA & Dec in degree
+    # Defeault Observational setup
+    # ----------------------------
+    integration_time = 600,          # seconds
+    scan_center      = (4.5, 10),    # degrees
+    pointing_frame   = "ra_dec",     # frame
+    scan_radius      = 0.05,         # How large the scanning pattern is in degree
 
-        # Defeault Observational setup
-        # ----------------------------
-        integration_time = 600,         # seconds
-        scan_center = (4, 10.5),    # degrees
-        pointing_frame  = "ra_dec",     # frame
-        scan_radius = 1,     # How large the scanning pattern is in degree
-
-        # Additional inputs:
-        # ----------------------
-        quantiles    = {'column_water_vapor' : 0.5},  # Weather conditions specific for that site
-        map_units    = 'Jy/pixel',                    # Kelvin Rayleigh Jeans (KRJ, defeault) or Jy/pixel 
-        # map_inbright = -5.37 * 1e3 * 0.000113,        # In units of the map_units key
-        map_res      = 0.5 / 1000,                    # degree, overwrites header information
+    # Additional inputs:
+    # ----------------------
+    quantiles    = {'column_water_vapor' : 0.5},    # Weather conditions specific for that site
+    map_units    = 'Jy/pixel',                      # Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel 
+    # map_inbright = -6e-6,                        # Linearly scale the map to have this peak value.
+    map_res      = 0.1 / 1000,                      # degree, overwrites header information
     )
+
 
     tod = sim.run()
 
-    mapper = mappers.BinMapper(map_res=np.radians(0.1/60))
+    mapper = mappers.BinMapper(map_height=np.radians(10/60),
+                            map_width=np.radians(10/60),
+                            map_res=np.radians(0.4/1000))
     mapper.add_tods(tod)
     mapper.run()
 
