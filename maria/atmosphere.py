@@ -60,12 +60,12 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
 
-    def run(self, units='K_RJ'):
+    def _run(self, units='K_RJ'):
 
         if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
             self.simulate_integrated_water_vapor() 
-            self.temperature = np.empty((self.array.n_dets, self.pointing.n_time))
+            self.data = np.empty((self.array.n_dets, self.pointing.n_time))
 
             for iub, uband in enumerate(self.array.ubands):
 
@@ -78,12 +78,14 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
                                                                                 self.spectrum.tcwv),
                                                                                 (self.spectrum.t_rj * passband).sum(axis=-1))
 
-                self.temperature[band_mask] = band_T_RJ_interpolator((np.degrees(self.EL[band_mask]), self.integrated_water_vapor[band_mask]))
+                self.data[band_mask] = band_T_RJ_interpolator((np.degrees(self.EL[band_mask]), self.integrated_water_vapor[band_mask]))
 
         if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
 
             self.simulate_temperature(self, units='K_RJ')
-            self.temperature = 1.8 * (self.temperature - 273.15) + 32
+            self.data = 1.8 * (self.data - 273.15) + 32
+
+
                     
 
 DEFAULT_LA_CONFIG = {
@@ -311,7 +313,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
                 self.C00.append(C00)
                 self.C01.append(C01)
                 self.C11.append(C11)
-                self.A.append(np.matmul(C01, utils._fast_psd_inverse(C00)))
+                self.A.append(np.matmul(C01, utils.fast_psd_inverse(C00)))
                 self.B.append(sp.linalg.lapack.dpotrf(C11 - np.matmul(self.A[-1], C01.T))[0])
 
                 prog.update(1)
@@ -667,7 +669,7 @@ class KolmogorovTaylorModel:
         ) + alpha**2 * np.eye(self.n_cells)
         self.Cij = utils._approximate_normalized_matern(Rij, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
         self.Cjj = utils._approximate_normalized_matern(Rjj, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
-        self.A = np.matmul(self.Cij, utils._fast_psd_inverse(self.Cjj))
+        self.A = np.matmul(self.Cij, utils.fast_psd_inverse(self.Cjj))
         self.B, _ = sp.linalg.lapack.dpotrf(self.Cii - np.matmul(self.A, self.Cij.T))
 
         self.initialized = True

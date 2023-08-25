@@ -12,9 +12,14 @@ import weathergen
 from os import path
 from datetime import datetime
 
-here, this_filename = os.path.split(__file__)
+
 
 from . import utils
+from .tod import TOD
+
+from astropy.io import fits
+
+here, this_filename = os.path.split(__file__)
 
 class BaseSimulation:
     """
@@ -47,7 +52,43 @@ class BaseSimulation:
                 out_frame="az_el",
             )
 
-        
 
+    def _run(self):
+
+        raise NotImplementedError()
+
+
+    def run(self):
+
+        self._run()
+    
+        tod = TOD()
+
+        tod.data = self.data # this should be set in the _run() method
+
+        tod.time = self.pointing.time
+        tod.az   = self.pointing.az
+        tod.el   = self.pointing.el
+        tod.ra   = self.pointing.ra
+        tod.dec  = self.pointing.dec
+        tod.cntr = self.pointing.scan_center
         
+        if hasattr(self, "map_sim"):
+            if self.map_sim is not None:
+                tod.unit = self.map_sim.input_map.units
+                tod.header = self.map_sim.input_map.header
+            else:
+                tod.unit = 'K'
+                tod.header = fits.header.Header()
+
+
+        tod.dets = self.array.dets
+
+        tod.meta = {'latitude': self.site.latitude,
+                    'longitude': self.site.longitude,
+                    'altitude': self.site.altitude}
+
+        return tod
+
+
 

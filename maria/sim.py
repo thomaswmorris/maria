@@ -3,7 +3,6 @@ import glob, os
 import numpy as np
 from astropy.io import fits
 
-from .tod import TOD
 from .base import BaseSimulation
 
 from .array import get_array, get_array_config
@@ -73,7 +72,8 @@ class Simulation(BaseSimulation):
         else:
             self.map_sim = None
 
-    def run(self):
+
+    def _run(self):
 
         if self.atm_sim is not None:
             self.atm_sim.run()
@@ -81,37 +81,11 @@ class Simulation(BaseSimulation):
         if self.map_sim is not None:
             self.map_sim.run()
 
-        tod = TOD()
-
-        tod.time = self.pointing.time
-        tod.az   = self.pointing.az
-        tod.el   = self.pointing.el
-        tod.ra   = self.pointing.ra
-        tod.dec  = self.pointing.dec
-        tod.cntr = self.pointing.scan_center
-        
-        if self.map_sim is not None:
-            tod.unit = self.map_sim.input_map.units
-            tod.header = self.map_sim.input_map.header
-        else:
-            tod.unit = 'K'
-            tod.header = fits.header.Header()
-
-
         # number of bands are lost here
-        tod.data = np.zeros((self.array.n_dets, self.pointing.n_time))
+        self.data = np.zeros((self.array.n_dets, self.pointing.n_time))
 
         if self.atm_sim is not None:
-            tod.data += self.atm_sim.temperature
+            self.data += self.atm_sim.data
 
         if self.map_sim is not None:
-            tod.data += self.map_sim.temperature
-
-        tod.dets = self.array.dets
-
-        tod.meta = {'latitude': self.site.latitude,
-                    'longitude': self.site.longitude,
-                    'altitude': self.site.altitude}
-
-        return tod
-
+            self.data += self.map_sim.data

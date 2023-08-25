@@ -10,7 +10,7 @@ import maria
 #                                     verbose=True)
 
 #     lam.simulate_temperature(units='K_RJ')
-#     assert (lam.temperature > 0).all()
+#     assert (lam.data > 0).all()
 
 @pytest.mark.atmosphere
 def test_GBT_MUSTANG2_LAM():
@@ -33,4 +33,4 @@ def test_GBT_MUSTANG2_LAM():
 #                                     verbose=True)
 
 #     lam.simulate_temperature(units='K_RJ')
-#     assert (lam.temperature > 0).all()
+#     assert (lam.data > 0).all()

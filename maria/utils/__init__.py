@@ -16,13 +16,12 @@ from pathlib import Path
 
 from scipy.spatial.transform import Rotation as R
 
-def mprod(*M):
-    if not len(M) > 0:
-        raise ValueError("You must specify at least one matrix!")
-    res = M[0]
-    for M_ in M[1:]:
-        res = np.matmul(res, M_)
-    return res
+
+# this is the junk drawer of functions
+
+from .linalg import *
+
+
 
 def read_yaml(filepath):
     res = yaml.safe_load(Path(filepath).read_text())
@@ -195,15 +194,6 @@ def _approximate_normalized_matern(r, r0, nu, n_test_points=4096):
 
     return np.exp(np.interp(np.abs(r), r_test, np.log(normalized_matern(r_test, r0, 1 / 3))))
 
-
-def _fast_psd_inverse(M):
-    """
-    About twice as fast as np.linalg.inv for large, PSD matrices.
-    """
-
-    cholesky, dpotrf_info = sp.linalg.lapack.dpotrf(M)
-    invM, dpotri_info = sp.linalg.lapack.dpotri(cholesky)
-    return np.where(invM, invM, invM.T)
 
 
 def get_pointing_offset(time, period, throws, plan_type):
