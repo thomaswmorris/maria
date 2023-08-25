@@ -60,7 +60,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
 
-    def run(self, units='K_RJ'):
+    def _run(self, units='K_RJ'):
 
         if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
