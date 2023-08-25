@@ -154,12 +154,10 @@ class MapSimulation(BaseSkySimulation):
         self.input_map.header['comment'] = 'Changed input CDELT1 and CDELT2'
         self.input_map.header['comment'] = 'Changed surface brightness units to ' + self.input_map.units
         self.input_map.header['comment'] = 'Repositioned the map on the sky'
-        self.input_map.header['CRVAL1'] = np.rad2deg(self.input_map.center[0])
-        self.input_map.header['CRVAL2'] = np.rad2deg(self.input_map.center[1])
 
         if self.input_map.inbright is not None:
             self.input_map.data *= self.input_map.inbright / np.nanmax(self.input_map.data)
-            self.input_map.header[""] = "Amplitude is rescaled."
+            self.input_map.header['comment'] = "Amplitude is rescaled."
 
         if self.input_map.units == 'Jy/pixel':
             for i, nu in enumerate(self.input_map.freqs):
