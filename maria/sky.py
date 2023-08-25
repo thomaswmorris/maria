@@ -134,69 +134,36 @@ class MapSimulation(BaseSkySimulation):
         self.input_map_file = map_file
         hudl = ap.io.fits.open(map_file)
 
-        map_res_radians = np.radians(kwargs.get("map_res", 1/1000))
-        map_center_radians = np.radians(kwargs.get("map_center", (10.5, 4)))
+        freqs = []
+        for ke in self.array.detectors.keys():
+            freqs.append(self.array.detectors[ke][0])
 
-        self.input_map = Map(data=hudl[0].data[None],
-                       freqs=np.atleast_1d(kwargs.get("map_freqs", 90e9)),
-                       res=map_res_radians,
-                       center=map_center_radians,
-                       frame=kwargs.get("map_frame", "ra_dec"),
-                       inbright=kwargs.get("inbright", None),
-                       header=hudl[0].header,
-                       units="K")
-
+        self.input_map = Map(data     = hudl[0].data[None],
+                             header   = hudl[0].header,
+                             freqs    = np.atleast_1d(kwargs.get("map_freqs", freqs)),
+                             res      = np.radians(kwargs.get("map_res", 1/1000)),
+                             center   = np.radians(kwargs.get("map_center", (10.5, 4))),
+                             frame    = kwargs.get("map_frame", "ra_dec"),
+                             inbright = kwargs.get("map_inbright", None),
+                             units    = kwargs.get("map_units", "K")
+                            )
 
         self.map_X, self.map_Y = utils.lonlat_to_xy(self.RA, self.DEC, *self.input_map.center)
 
-        # # Prep mapmaker
-        # # -------------
-        # self.input_map_file = map_file
-        # hudl          = ap.io.fits.open(self.input_map_file)
-        # map_image     = hudl[0].data
-
-        # if map_image.ndim == 2:
-        #     map_image = map_image[None]
-
-        # *_, map_nx, map_ny = map_image.shape
-
-        # #map_image = map_image.reshape(-1, map_nx, map_ny)
-
-        # if len(self.array.dets) != map_image.shape[0] | map_image.shape[0] != 1:
-        #     raise InvalidNBandsError(len(self.array.dets))
-
-        # map is a degree wide by default
-        # DEFAULT_MAP_CENTER = (self.RA.mean(), self.DEC.mean())
-        # DEFAULT_MAP_RES = 1 / np.maximum(map_nx, map_ny)
-
-        # map_center   = kwargs.get("map_center",     DEFAULT_MAP_CENTER)
-        # map_res      = kwargs.get("map_res",        DEFAULT_MAP_RES)
-        # map_units    = kwargs.get("map_units",     'KRJ')
-        # map_inbright = kwargs.get("map_inbright",   None)
-        
         self.input_map.header['HISTORY'] = 'History_input_adjustments'
         self.input_map.header['comment'] = 'Changed input CDELT1 and CDELT2'
-        self.input_map.header['CDELT1']  = self.input_map.res
-        self.input_map.header['CDELT2']  = self.input_map.res
         self.input_map.header['comment'] = 'Changed surface brightness units to ' + self.input_map.units
         self.input_map.header['comment'] = 'Repositioned the map on the sky'
 
-        # self.input_map_data = {"images":        map_image,
-        #                  "shape":         map_image.shape,
-        #                  "header":        self.input_map.header,
-        #                  "center":        map_center,
-        #                  "res":           map_res,
-        #                  "inbright":      map_inbright,
-        #                  "units":         map_units,
-        #                  }
-
         if self.input_map.inbright is not None:
             self.input_map.data *= self.input_map.inbright / np.nanmax(self.input_map.data)
-            self.input_map.header[""] = "Amplitude is rescaled."
+            self.input_map.header['comment'] = "Amplitude is rescaled."
 
         if self.input_map.units == 'Jy/pixel':
             for i, nu in enumerate(self.input_map.freqs):
-                self.input_map.data[i] = self.input_map.data[i] / utils.KbrightToJyPix(nu, self.input_map.res, self.input_map.res)
+                self.input_map.data[i] = self.input_map.data[i] / utils.KbrightToJyPix(nu, 
+                                                                                       self.input_map.res, 
+                                                                                       self.input_map.res)
 
     def run(self, **kwargs):
 

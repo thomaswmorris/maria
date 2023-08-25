@@ -46,7 +46,7 @@ class Simulation(BaseSimulation):
                  noise_model=None, 
                  **kwargs):
 
-        #_validate_kwargs(kwargs)
+        _validate_kwargs(kwargs)
 
         if isinstance(array, str):
             array = get_array(array, **kwargs)
@@ -88,6 +88,15 @@ class Simulation(BaseSimulation):
         tod.el   = self.pointing.el
         tod.ra   = self.pointing.ra
         tod.dec  = self.pointing.dec
+        tod.cntr = self.pointing.scan_center
+        
+        if self.map_sim is not None:
+            tod.unit = self.map_sim.input_map.units
+            tod.header = self.map_sim.input_map.header
+        else:
+            tod.unit = 'K'
+            tod.header = fits.header.Header()
+
 
         # number of bands are lost here
         tod.data = np.zeros((self.array.n_dets, self.pointing.n_time))
