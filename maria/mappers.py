@@ -106,6 +106,14 @@ class BaseMapper:
         self.header['CDELT2']  = np.rad2deg(self.map_res)
         self.header['CRPIX1']  = self.maps[list(self.maps.keys())[0]].shape[0]/2
         self.header['CRPIX2']  = self.maps[list(self.maps.keys())[0]].shape[1]/2
+
+        self.header['CRVAL1'] = np.rad2deg(self.tods[0].cntr[0])
+        self.header['CRVAL2'] = np.rad2deg(self.tods[0].cntr[1])
+
+        self.header['CTYPE1']  = 'RA---SIN'
+        self.header['CUNIT1']  = 'deg     ' 
+        self.header['CTYPE2']  = 'DEC--SIN' 
+        self.header['CUNIT2']  = 'deg     '
         self.header['comment'] = 'Overwrote pointing location of the output map'
 
         self.header['comment'] = 'Overwrote spectral position of the output map'
