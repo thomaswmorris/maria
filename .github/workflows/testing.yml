@@ -2,28 +2,17 @@ name: Unit Tests
 
 on:
   push:
-    branches:
-      - master
-    paths-ignore:
-      - README.rst
-  pull_request_target:
-    branches:
-      - master
-  workflow_dispatch:
+  pull_request:
   schedule:
-    - cron: '00 12 * * *'  # daily at noon UTC
+    - cron: '00 12 * * *'  # daily at 4AM
 
 jobs:
   run_tests:
     # pull requests are a duplicate of a branch push if within the same repo.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
-    runs-on: ${{ matrix.host-os }}
-    strategy:
-      matrix:
-        host-os: ["ubuntu-latest"]
-        python-version: ["3.10"]
-      fail-fast: false
+    runs-on: ubuntu-latest
+    python-version: "3.10"
 
     defaults:
       run:
@@ -42,4 +31,4 @@ jobs:
       - name: Test the code
         run: |
           set -vxuo pipefail
-          pytest -s -vv
+          pytest -s -vv -m atmosphere
