@@ -165,7 +165,7 @@ class MapSimulation(BaseSkySimulation):
                                                                                        self.input_map.res, 
                                                                                        self.input_map.res)
 
-    def run(self, **kwargs):
+    def _run(self, **kwargs):
 
         self.sample_maps()
         self.temperature = self.map_samples
