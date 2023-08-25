@@ -65,7 +65,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
         if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
             self.simulate_integrated_water_vapor() 
-            self.temperature = np.empty((self.array.n_dets, self.pointing.n_time))
+            self.data = np.empty((self.array.n_dets, self.pointing.n_time))
 
             for iub, uband in enumerate(self.array.ubands):
 
@@ -78,12 +78,14 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
                                                                                 self.spectrum.tcwv),
                                                                                 (self.spectrum.t_rj * passband).sum(axis=-1))
 
-                self.temperature[band_mask] = band_T_RJ_interpolator((np.degrees(self.EL[band_mask]), self.integrated_water_vapor[band_mask]))
+                self.data[band_mask] = band_T_RJ_interpolator((np.degrees(self.EL[band_mask]), self.integrated_water_vapor[band_mask]))
 
         if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
 
             self.simulate_temperature(self, units='K_RJ')
-            self.temperature = 1.8 * (self.temperature - 273.15) + 32
+            self.data = 1.8 * (self.data - 273.15) + 32
+
+
                     
 
 DEFAULT_LA_CONFIG = {
