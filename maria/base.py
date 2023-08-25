@@ -73,12 +73,13 @@ class BaseSimulation:
         tod.dec  = self.pointing.dec
         tod.cntr = self.pointing.scan_center
         
-        if self.map_sim is not None:
-            tod.unit = self.map_sim.input_map.units
-            tod.header = self.map_sim.input_map.header
-        else:
-            tod.unit = 'K'
-            tod.header = fits.header.Header()
+        if hasattr(self, "map_sim"):
+            if self.map_sim is not None:
+                tod.unit = self.map_sim.input_map.units
+                tod.header = self.map_sim.input_map.header
+            else:
+                tod.unit = 'K'
+                tod.header = fits.header.Header()
 
 
         tod.dets = self.array.dets

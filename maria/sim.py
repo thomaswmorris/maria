@@ -85,7 +85,7 @@ class Simulation(BaseSimulation):
         self.data = np.zeros((self.array.n_dets, self.pointing.n_time))
 
         if self.atm_sim is not None:
-            self.data += self.atm_sim.temperature
+            self.data += self.atm_sim.data
 
         if self.map_sim is not None:
-            self.data += self.map_sim.temperature
+            self.data += self.map_sim.data
