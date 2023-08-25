@@ -313,7 +313,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
                 self.C00.append(C00)
                 self.C01.append(C01)
                 self.C11.append(C11)
-                self.A.append(np.matmul(C01, utils._fast_psd_inverse(C00)))
+                self.A.append(np.matmul(C01, utils.fast_psd_inverse(C00)))
                 self.B.append(sp.linalg.lapack.dpotrf(C11 - np.matmul(self.A[-1], C01.T))[0])
 
                 prog.update(1)
@@ -669,7 +669,7 @@ class KolmogorovTaylorModel:
         ) + alpha**2 * np.eye(self.n_cells)
         self.Cij = utils._approximate_normalized_matern(Rij, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
         self.Cjj = utils._approximate_normalized_matern(Rjj, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
-        self.A = np.matmul(self.Cij, utils._fast_psd_inverse(self.Cjj))
+        self.A = np.matmul(self.Cij, utils.fast_psd_inverse(self.Cjj))
         self.B, _ = sp.linalg.lapack.dpotrf(self.Cii - np.matmul(self.A, self.Cij.T))
 
         self.initialized = True
