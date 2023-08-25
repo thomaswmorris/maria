@@ -6,8 +6,7 @@ on:
 
 jobs:
   build_docs:
-    # pull requests are a duplicate of a branch push if they are from within
-    # the same repo. Skip these
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     strategy:
       matrix:
