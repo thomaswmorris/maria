@@ -2,7 +2,13 @@ name: Unit Tests
 
 on:
   push:
-  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - README.rst
+  pull_request_target:
+    branches:
+      - master
   workflow_dispatch:
   schedule:
     - cron: '00 12 * * *'  # daily at noon UTC
