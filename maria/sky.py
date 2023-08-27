@@ -23,6 +23,14 @@ from . import base
 
 from dataclasses import dataclass, field
 
+
+
+MAP_CONFIGS = utils.io.read_yaml(f"{here}/configs/arrays.yml")
+MAP_PARAMS = set()
+for key, config in MAP_CONFIGS.items():
+    MAP_PARAMS |= set(config.keys())
+
+
 @dataclass
 class Map():
     
@@ -99,7 +107,7 @@ class BaseSkySimulation(base.BaseSimulation):
     This simulates scanning over celestial sources.
     """
     def __init__(self, array, pointing, site, **kwargs):
-        super().__init__(array, pointing, site)
+        super().__init__(array, pointing, site, **kwargs)
 
         AZIM, ELEV = utils.xy_to_lonlat(
             self.array.sky_x[:, None],
@@ -128,7 +136,6 @@ class MapSimulation(BaseSkySimulation):
                  site, 
                  map_file, 
                  **kwargs):
-
         super().__init__(array, pointing, site, **kwargs)
 
         self.input_map_file = map_file

@@ -4,26 +4,27 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+import glob
 import os
 
 from . import utils
 
 from collections.abc import Mapping
 
-
 here, this_filename = os.path.split(__file__)
 
-# -- Specific packages --
-ARRAY_CONFIGS = utils.read_yaml(f'{here}/configs/arrays.yml')
-
-ARRAYS = list((ARRAY_CONFIGS.keys()))
-
+ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/configs/arrays.yml")
+ARRAY_PARAMS = set()
+for key, config in ARRAY_CONFIGS.items():
+    ARRAY_PARAMS |= set(config.keys())
 
 class UnsupportedArrayError(Exception):
     def __init__(self, invalid_array):
+        array_df = pd.DataFrame(columns=["description"])
+        for key, config in ARRAY_CONFIGS.items():
+            array_df.loc[key] = config["description"]
         super().__init__(f"The array \'{invalid_array}\' is not in the database of default arrays. "
-        f"Default arrays are:\n\n{sorted(list(ARRAY_CONFIGS.keys()))}")
-
+        f"Default arrays are:\n\n{array_df.sort_index()}")
 
 def get_array_config(array_name, **kwargs):
     if not array_name in ARRAY_CONFIGS.keys():
@@ -33,10 +34,8 @@ def get_array_config(array_name, **kwargs):
         ARRAY_CONFIG[k] = v
     return ARRAY_CONFIG
 
-
 def get_array(array_name, **kwargs):
     return Array(**get_array_config(array_name, **kwargs))
-
 
 def get_array_from_fits(array_name, **kwargs):
     return Array(**get_array_config(array_name, **kwargs))
@@ -45,23 +44,8 @@ def get_array_from_fits(array_name, **kwargs):
 class Array:
     def __init__(self, **kwargs):
 
-        DEFAULT_ARRAY_CONFIG = {
-        "detectors": [
-            [150e9, 10e9, 100], 
-        ],
-        "geometry": "hex", 
-        "field_of_view": 1.3, 
-        "primary_size": 50,   
-        "band_grouping": "randomized",   
-        "az_bounds": [0, 360],  
-        "el_bounds": [20, 90],
-        "max_az_vel": 3,
-        "max_el_vel": 2,
-        "max_az_acc": 1,
-        "max_el_acc": 0.25
-        }
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+        for key, default_value in ARRAY_CONFIGS["default"].items():
+            setattr(self, key, kwargs.get(key, default_value))
 
         detectors = kwargs.get("detectors", "")
         
@@ -97,12 +81,6 @@ class Array:
         else:
             raise ValueError("Supplied arg 'detectors' must be either a mapping or a dataframe!")
         
-        #self.band = np.array([f"f{int(nu/10**(3*int(np.log10(nu)/3))):03}" for nu in self.band_center])
-
-
-
-        
-
         # compute detector offset
         self.hull = sp.spatial.ConvexHull(self.offset)
 

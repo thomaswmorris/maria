@@ -7,7 +7,7 @@ from tqdm import tqdm
 import warnings
 from importlib import resources
 import time as ttime
-from . import utils
+from .. import utils
 import weathergen
 from os import path
 from datetime import datetime
@@ -17,28 +17,18 @@ from datetime import datetime
 
 here, this_filename = os.path.split(__file__)
 
-from . import base
-
-class AtmosphericSpectrum:
-    def __init__(self, filepath):
-        """
-        A class to hold spectra as attributes
-        """
-        with h5py.File(filepath, "r") as f:
-            self.nu = f["nu"][:]  # frequency axis of the spectrum, in GHz
-            self.tcwv = f["tcwv"][:]  # total column water vapor, in mm
-            self.elev = f["elev"][:]  # elevation, in degrees
-            self.t_rj = f["t_rj"][:]  # Rayleigh-Jeans temperature, in Kelvin
+from .. import base
 
 
 class BaseAtmosphericSimulation(base.BaseSimulation):
     """
     The base class for modeling atmospheric fluctuations.
 
-    A model needs to have the functionality to generate spectra for any pointing data we supply it with.
+    The methods to simulate e.g. line-of-sight water and temeperature profiles should be implemented by
+    classes which inherit from this one. 
     """
-    def __init__(self, array, pointing, site):
-        super().__init__(array, pointing, site)
+    def __init__(self, array, pointing, site, **kwargs):
+        super().__init__(array, pointing, site, **kwargs)
 
         self.AZ, self.EL = utils.xy_to_lonlat(
             self.array.sky_x[:, None],
@@ -49,7 +39,6 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
         utils.validate_pointing(self.AZ, self.EL)
 
-        self.spectrum = AtmosphericSpectrum(filepath=f"{here}/spectra/{self.site.region}.h5")
         self.weather = weathergen.Weather(
             region=self.site.region,
             seasonal=self.site.seasonal,
@@ -71,14 +60,14 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
                 band_mask = self.array.dets.band == uband
 
-                passband  = (np.abs(self.spectrum.nu - self.array.dets.band_center[band_mask].mean()) < 0.5 * self.array.dets.band_width[band_mask].mean()).astype(float)
+                passband  = (np.abs(self.site.spectrum.nu - self.array.dets.band_center[band_mask].mean()) < 0.5 * self.array.dets.band_width[band_mask].mean()).astype(float)
                 passband /= passband.sum()
 
-                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.elev, 
-                                                                                self.spectrum.tcwv),
-                                                                                (self.spectrum.t_rj * passband).sum(axis=-1))
+                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.site.spectrum.side_pwv, 
+                                                                                 self.site.spectrum.side_elevation),
+                                                                                (self.site.spectrum.trj * passband).sum(axis=-1))
 
-                self.data[band_mask] = band_T_RJ_interpolator((np.degrees(self.EL[band_mask]), self.integrated_water_vapor[band_mask]))
+                self.data[band_mask] = band_T_RJ_interpolator((self.integrated_water_vapor[band_mask], np.degrees(self.EL[band_mask])))
 
         if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
 
@@ -103,7 +92,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
     """
 
     def __init__(self, array, pointing, site, config=DEFAULT_LA_CONFIG, verbose=False, **kwargs):
-        super().__init__(array, pointing, site)
+        super().__init__(array, pointing, site, **kwargs)
 
         self.config = config
         for key, val in config.items():
@@ -119,13 +108,13 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 
         # returns a beam waists and angular waists for each frequency for each layer depth
         self.waists = self.array.get_beam_waist(
-            self.layer_depths[:, None], self.array.primary_size, self.spectrum.nu
+            self.layer_depths[:, None], self.array.primary_size, self.array.dets.band_center.values
         )
         self.angular_waists = self.waists / self.layer_depths[:, None]
 
         self.min_ang_res = self.angular_waists / self.min_beam_res
 
-        self.weather.generate(time=self.pointing.time, fixed_quantiles=self.site.quantiles)
+        self.weather.generate(time=self.pointing.time, fixed_quantiles=self.site.weather_quantiles)
 
         self.heights = self.site.altitude + self.layer_depths[:, None] * np.sin(self.pointing.el)[None, :]
 
@@ -302,11 +291,11 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 
                 alpha = 1e-4
 
-                C00 = utils._approximate_normalized_matern(R00, self.outer_scale / depth, 5 / 6) + alpha * np.eye(
+                C00 = utils.approximate_matern(R00, self.outer_scale / depth, 5 / 6) + alpha * np.eye(
                     len(X0)
                 )
-                C01 = utils._approximate_normalized_matern(R01, self.outer_scale / depth, 5 / 6)
-                C11 = utils._approximate_normalized_matern(R11, self.outer_scale / depth, 5 / 6) + alpha * np.eye(
+                C01 = utils.approximate_matern(R01, self.outer_scale / depth, 5 / 6)
+                C11 = utils.approximate_matern(R11, self.outer_scale / depth, 5 / 6) + alpha * np.eye(
                     len(X1)
                 )
 
@@ -664,11 +653,11 @@ class KolmogorovTaylorModel:
         alpha = 1e-3
 
         # this is all very computationally expensive stuff (n^3 is rough!)
-        self.Cii = utils._approximate_normalized_matern(
+        self.Cii = utils.approximate_matern(
             Rii, r0=self.outer_scale, nu=1 / 3, n_test_points=4096
         ) + alpha**2 * np.eye(self.n_cells)
-        self.Cij = utils._approximate_normalized_matern(Rij, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
-        self.Cjj = utils._approximate_normalized_matern(Rjj, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
+        self.Cij = utils.approximate_matern(Rij, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
+        self.Cjj = utils.approximate_matern(Rjj, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
         self.A = np.matmul(self.Cij, utils.fast_psd_inverse(self.Cjj))
         self.B, _ = sp.linalg.lapack.dpotrf(self.Cii - np.matmul(self.A, self.Cij.T))
 
