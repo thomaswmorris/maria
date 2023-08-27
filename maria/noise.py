@@ -13,5 +13,5 @@ class NoiseSimulation(base.BaseSimulation):
 
     def _run(self):
 
-        self.data = self.white_noise_level * np.random.standard_normal(size=(self.pointing.nt, self.pointing.nt))
+        self.data = self.white_noise_level * np.random.standard_normal(size=(self.array.n_dets, self.pointing.n_time))
               
