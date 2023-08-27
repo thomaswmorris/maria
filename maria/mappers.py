@@ -14,13 +14,16 @@ from datetime import datetime
 import healpy as hp
 
 import matplotlib.pyplot as plt
-
+from .coordinator import Coordinator
 from astropy.io import fits
 
 here, this_filename = os.path.split(__file__)
 
 MAPPER_CONFIGS = utils.read_yaml(f"{here}/configs/mappers.yml")
 MAPPERS = list((MAPPER_CONFIGS.keys()))
+
+
+
 
 class InvalidMapperError(Exception):
     def __init__(self, invalid_mapper):
@@ -62,8 +65,7 @@ class BaseMapper:
 
     def expand_tod(self, tod):
 
-        coordinator = utils.Coordinator(lat=tod.meta['latitude'], 
-                                        lon=tod.meta['longitude'])
+        coordinator = Coordinator(lat=tod.meta['latitude'], lon=tod.meta['longitude'])
 
         tod.AZ, tod.EL = utils.xy_to_lonlat(
             tod.dets.sky_x.values[:, None],

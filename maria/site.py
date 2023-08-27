@@ -2,6 +2,7 @@ import glob
 import re
 import os
 import weathergen
+import h5py
 from . import utils
 
 here, this_filename = os.path.split(__file__)
@@ -12,9 +13,10 @@ SUPPORTED_REGIONS = list(set(REGIONS_WITH_SPECTRA) & set(REGIONS_WITH_WEATHER))
 
 regions = weathergen.regions.loc[SUPPORTED_REGIONS].sort_index()
 
-SITE_CONFIGS = utils.read_yaml(f'{here}/configs/sites.yml')
-
-SITES = list((SITE_CONFIGS.keys()))
+SITE_CONFIGS = utils.io.read_yaml(f"{here}/configs/sites.yml")
+SITE_PARAMS = set()
+for key, config in SITE_CONFIGS.items():
+    SITE_PARAMS |= set(config.keys())
 
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
@@ -38,6 +40,19 @@ def get_site(site_name, **kwargs):
     return Site(**get_site_config(site_name, **kwargs))
 
 
+class AtmosphericSpectrum:
+    def __init__(self, filepath):
+        """
+        A dataclass to hold spectra as attributes
+        """
+        with h5py.File(filepath, "r") as f:
+
+            self.nu             = f["nu_Hz"][:]
+            self.side_elevation = f["side_elevation_deg"][:]
+            self.side_pwv       = f["side_zenith_pwv_mm"][:]
+            self.trj            = f["temperature_rayleigh_jeans_K"][:]
+            self.phase_delay    = f["phase_delay_um"][:]
+
 class Site:
 
     """
@@ -47,8 +62,8 @@ class Site:
 
     def __init__(self, **kwargs):
 
-        for key, val in kwargs.items():
-            setattr(self, key, val)
+        for key, default_value in SITE_CONFIGS["default"].items():
+            setattr(self, key, kwargs.get(key, default_value))
 
         if not self.region in regions.index.values:
             raise InvalidRegionError(self.region)
@@ -61,6 +76,9 @@ class Site:
 
         if self.altitude is None:
             self.altitude = regions.loc[self.region].altitude
+
+        spectrum_filepath = f"{here}/spectra/{self.region}.h5"
+        self.spectrum = AtmosphericSpectrum(filepath=spectrum_filepath) if os.path.exists(spectrum_filepath) else None
 
         
     def __repr__(self):
