@@ -11,7 +11,7 @@ from . import get_array, get_site, get_pointing
 from . import utils
 
 class WeObserve:
-    def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='DAISY-2deg_4ra_10.5dec_600s', site_name='APEX', verbose=True, cmb = False, **kwargs):
+    def __init__(self, project, skymodel, array_name='AtLAST', pointing_name='daisy_4ra_10.5dec_600s', site_name='APEX', verbose=True, cmb = False, **kwargs):
 
         self.verbose   = verbose
         self.file_name = skymodel
