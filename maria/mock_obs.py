@@ -1,12 +1,13 @@
 # -- General packages --
 import os
+from . import atmosphere
 import numpy as np
 import scipy as sp
 
 from matplotlib import pyplot as plt
 from astropy.io import fits
 
-from . import atmosphere, get_array, get_site, get_pointing
+from . import get_array, get_site, get_pointing
 from . import utils
 
 class WeObserve:

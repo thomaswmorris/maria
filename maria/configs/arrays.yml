@@ -1,5 +1,90 @@
+default:
+  description: Default values for arrays
+  documentation:
+  detectors:
+    f150: [150.e+9, 10.e+9, 750]
+  geometry: hex
+  field_of_view: 0.8
+  primary_size: 6
+  band_grouping: randomized
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+
+ACT-PA4:
+  description: ACT's PA4 (150/220 GHz)
+  documentation:
+  detectors:
+    f150: [150.e+9, 10.e+9, 750]
+    f220: [220.e+9, 10.e+9, 750]
+  geometry: hex
+  field_of_view: 0.8
+  primary_size: 6
+  band_grouping: randomized
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+
+ACT-PA5:
+  description: ACT's PA5 (90/150 GHz)
+  documentation:
+  detectors:
+    pa5_f090: [150.e+9, 10.e+9, 750]
+    pa6_f150: [220.e+9, 10.e+9, 750]
+  geometry: hex
+  field_of_view: 0.8
+  primary_size: 6
+  band_grouping: randomized
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+
+ACT_PA7:
+  description: ACT's PA7 (27/39 GHz)
+  documentation:
+  detectors:
+    27GHz: [27.e+9, 10.e+9, 75]
+    39GHz: [39.e+9, 10.e+9, 75]
+  geometry: hex
+  field_of_view: 0.8
+  primary_size: 6
+  band_grouping: randomized
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  
+ALMA:
+  description: Atacama Large Millimeter Array
+  documentation:
+  detectors:
+    f150: [150.e+9, 10.e+9, 750]
+    f220: [220.e+9, 10.e+9, 750]
+  geometry: hex
+  field_of_view: 0.8
+  primary_size: 6
+  band_grouping: randomized
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  
 AtLAST:
   description: Atacama Large-Aperture Submillimeter Telescope
+  documentation:
   detectors:
     27GHz: [27.e+9, 5.e+9, 1000]
     39GHz: [39.e+9, 5.e+9, 1000]
@@ -18,40 +103,10 @@ AtLAST:
   max_az_acc: 1
   max_el_acc: 0.25
   
-ACT_PA4:
-  description: ACT's PA4 (150/220 GHz)
-  detectors:
-    150GHz: [150.e+9, 10.e+9, 750]
-    220GHz: [220.e+9, 10.e+9, 750]
-  geometry: hex
-  field_of_view: 0.8
-  primary_size: 6
-  band_grouping: randomized
-  az_bounds: [0,  360]
-  el_bounds: [20,  90]
-  max_az_vel: 3
-  max_el_vel: 2
-  max_az_acc: 1
-  max_el_acc: 0.25
-ACT_PA7:
-  description: ACT's PA7 (27/39 GHz)
-  detectors:
-    27GHz: [27.e+9, 10.e+9, 75]
-    39GHz: [39.e+9, 10.e+9, 75]
-  geometry: hex
-  field_of_view: 0.8
-  primary_size: 6
-  band_grouping: randomized
-  az_bounds: [0,  360]
-  el_bounds: [20,  90]
-  max_az_vel: 3
-  max_el_vel: 2
-  max_az_acc: 1
-  max_el_acc: 0.25
-
 MUSTANG-2:
-  description: 'MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz). See https://greenbankobservatory.org/science/gbt-observers/mustang-2/'
-  detectors:
+  description: Multiplexed SQUID TES Array for Ninety Gigahertz
+  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
+  detectors: # band center, band width, number of dets
     93GHz: [93.e+9, 10.e+9, 217]
   geometry: hex
   field_of_view: 0.07
@@ -63,9 +118,10 @@ MUSTANG-2:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-
+  
 SCUBA-2:
   description: ''
+  documentation:
   detectors:
     350GHz: [350.e+9, 10.e+9, 5120]
     650GHz: [650.e+9, 10.e+9, 5120]
@@ -79,13 +135,13 @@ SCUBA-2:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-
-
+  
 test-small:
-  description: Atacama Large-Aperture Submillimeter Telescope
+  description: A small test array.
+  documentation: 
   detectors:
     145GHz: [145.e+9, 10.e+9, 19]
-  geometry: hex
+  geometry: flower
   field_of_view: 2
   primary_size: 10
   band_grouping: randomized
