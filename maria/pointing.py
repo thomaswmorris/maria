@@ -1,6 +1,7 @@
 import numpy as np
 
 import os
+import glob
 
 from datetime import datetime, timedelta
 
@@ -8,8 +9,10 @@ from . import utils
 
 here, this_filename = os.path.split(__file__)
 
-POINTING_CONFIGS = utils.read_yaml(f'{here}/configs/pointings.yml')
-POINTINGS = list((POINTING_CONFIGS.keys()))
+POINTING_CONFIGS = utils.io.read_yaml(f"{here}/configs/pointings.yml")
+POINTING_PARAMS = set()
+for key, config in POINTING_CONFIGS.items():
+    POINTING_PARAMS |= set(config.keys())
 
 class UnsupportedPointingError(Exception):
     def __init__(self, invalid_pointing):
@@ -17,7 +20,7 @@ class UnsupportedPointingError(Exception):
         f"Default pointings are:\n\n{sorted(list(POINTING_CONFIGS.keys()))}")
 
 def get_pointing_config(pointing_name, **kwargs):
-    if not pointing_name in POINTING_CONFIGS.keys():
+    if pointing_name not in POINTING_CONFIGS.keys():
         raise UnsupportedPointingError(pointing_name)
     POINTING_CONFIG = POINTING_CONFIGS[pointing_name].copy()
     for k, v in kwargs.items():
@@ -46,14 +49,8 @@ class Pointing:
     def __init__(self, **kwargs):
 
         # these are all required kwargs. if they aren't in the passed kwargs, get them from here.
-        DEFAULT_POINTING_CONFIG = get_pointing_config("DEFAULT")
-
-        for key, val in kwargs.items():
-            setattr(self, key, val)
-
-        for key, val in DEFAULT_POINTING_CONFIG.items():
-            if not key in kwargs.keys():
-                setattr(self, key, val)
+        for key, default_value in POINTING_CONFIGS["default"].items():
+            setattr(self, key, kwargs.get(key, default_value))
 
         # make sure that self.start_datetime exists, and that it's a datetime.datetime object
         if not hasattr(self, 'start_time'):

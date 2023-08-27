@@ -1,3 +1,13 @@
+default:
+  description: default site data
+  region: chajnantor
+  latitude: -23.0058
+  longitude: -67.7592
+  altitude: 5064
+  seasonal: True
+  diurnal: True
+  weather_quantiles: {}
+
 APEX:
   description: Atacama Pathfinder Experiment
   region: chajnantor
@@ -6,7 +16,7 @@ APEX:
   altitude: 5064
   seasonal: True
   diurnal: True
-  quantiles: {}
+  weather_quantiles: {}
 
 ACT:
   description: Atacama Cosmology Telescope
@@ -16,7 +26,7 @@ ACT:
   altitude: 5190
   seasonal: True
   diurnal: True
-  quantiles: {}
+  weather_quantiles: {}
 
 GBT:
   description: Green Bank Telescope
@@ -26,7 +36,7 @@ GBT:
   altitude: 818
   seasonal: True
   diurnal: True
-  quantiles: {}
+  weather_quantiles: {}
 
 JCMT:
   description: ''
@@ -36,7 +46,7 @@ JCMT:
   altitude: 4092 # meters
   seasonal: True
   diurnal: True
-  quantiles: {}
+  weather_quantiles: {}
   
 SPT:
   description: ''
@@ -46,7 +56,7 @@ SPT:
   altitude: 2800
   seasonal: True
   diurnal: True
-  quantiles: {}
+  weather_quantiles: {}
   
 SRT:
   description: ''
@@ -56,4 +66,4 @@ SRT:
   altitude: 2800
   seasonal: True
   diurnal: True
-  quantiles: {}
+  weather_quantiles: {}

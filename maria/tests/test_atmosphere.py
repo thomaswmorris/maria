@@ -1,36 +1,12 @@
 import pytest
 import maria
+from maria.atmosphere import LinearAngularSimulation
 
-# @pytest.mark.atmosphere
-# def test_ACT_PA4_LAM():
-
-#     lam = atmosphere.LinearAngularModel(array=maria.get_array('ACT_PA4'), 
-#                                     pointing=maria.get_pointing('STARE_0az_90el_60s'), 
-#                                     site=maria.get_site('ACT'), 
-#                                     verbose=True)
-
-#     lam.simulate_temperature(units='K_RJ')
-#     assert (lam.data > 0).all()
 
 @pytest.mark.atmosphere
-def test_GBT_MUSTANG2_LAM():
+def test_linear_angular_model():
 
-    mustang_2 = maria.get_array("MUSTANG-2")
-    stare = maria.get_pointing("STARE_0az_90el_60s")
-    green_bank = maria.get_site("GBT")
-
-    sim = maria.Simulation(array=mustang_2, pointing=stare, site=green_bank, atm_model="linear_angular")
-
+    sim = LinearAngularSimulation(array="MUSTANG-2", pointing="daisy", site="GBT", atm_model="linear_angular")
     tod = sim.run()
 
 
-# @pytest.mark.atmosphere
-# def test_JCMT_SCUBA2_LAM():
-
-#     lam = atmosphere.LinearAngularModel(array=maria.get_array('SCUBA-2'), 
-#                                     pointing=maria.get_pointing('BAF_5deg_45az_45el_60s'), 
-#                                     site=maria.get_site('JCMT'), 
-#                                     verbose=True)
-
-#     lam.simulate_temperature(units='K_RJ')
-#     assert (lam.data > 0).all()

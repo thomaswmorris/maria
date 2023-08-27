@@ -11,15 +11,18 @@ from . import utils
 import weathergen
 from os import path
 from datetime import datetime
-
-
-
-from . import utils
-from .tod import TOD
-
 from astropy.io import fits
 
 here, this_filename = os.path.split(__file__)
+
+from .array import get_array, ARRAY_PARAMS
+from .coordinator import Coordinator
+from .pointing import get_pointing, POINTING_PARAMS
+from .site import get_site, SITE_PARAMS
+from .tod import TOD
+
+from . import utils
+
 
 class BaseSimulation:
     """
@@ -29,10 +32,14 @@ class BaseSimulation:
     def __init__(self, 
                  array, 
                  pointing, 
-                 site):
+                 site,
+                 **kwargs):
 
-        self.array, self.pointing, self.site = array, pointing, site
-        self.coordinator = utils.Coordinator(lat=self.site.latitude, lon=self.site.longitude)
+        self.array = get_array(array, **kwargs) if isinstance(array, str) else array
+        self.pointing = get_pointing(pointing, **kwargs) if isinstance(pointing, str) else pointing
+        self.site = get_site(site, **kwargs) if isinstance(site, str) else site
+
+        self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
 
         if self.pointing.pointing_frame == "az_el":
             self.pointing.ra, self.pointing.dec = self.coordinator.transform(
@@ -51,6 +58,17 @@ class BaseSimulation:
                 in_frame="ra_dec",
                 out_frame="az_el",
             )
+
+    @property
+    def params(self):
+        _params = {"array": {}, "pointing": {}, "site": {}}
+        for key in ARRAY_PARAMS:
+            _params["array"][key] = getattr(self.array, key)
+        for key in POINTING_PARAMS:
+            _params["pointing"][key] = getattr(self.pointing, key)
+        for key in SITE_PARAMS:
+            _params["site"][key] = getattr(self.site, key)
+        return _params
 
 
     def _run(self):
