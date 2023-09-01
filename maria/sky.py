@@ -115,7 +115,7 @@ class BaseSkySimulation(base.BaseSimulation):
             self.pointing.az,
             self.pointing.el,
         )
-
+        
         self.RA, self.DEC = self.coordinator.transform(
             self.pointing.time,
             AZIM, ELEV,
