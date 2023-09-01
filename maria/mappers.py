@@ -175,12 +175,17 @@ class BinMapper(BaseMapper):
                 band_mask = tod.dets.band == band
 
                 LON, LAT = tod.LON[band_mask], tod.LAT[band_mask]
-                u, s, v = np.linalg.svd(sp.signal.detrend(tod.data), full_matrices=False)
-                DATA = utils.mprod(u[:, self._nmtr:], np.diag(s[self._nmtr:]), v[self._nmtr:])
+                if self._nmtr > 0:
+                    u, s, v = np.linalg.svd(sp.signal.detrend(tod.data[band_mask]), full_matrices=False)
+                    DATA = utils.mprod(u[:, self._nmtr:], np.diag(s[self._nmtr:]), v[self._nmtr:])
+                else:
+                    DATA = sp.signal.detrend(tod.data[band_mask])
 
                 #pointing_in_rel_map_units_X, pointing_in_rel_map_units_Y = utils.lonlat_to_xy(self.RA, self.LAT, self.map.center[0], self.map.center[1])
                 
                 X, Y = utils.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
+
+                self.LON, self.LAT, self.DATA = LON, LAT, DATA
 
                 map_sum = sp.stats.binned_statistic_2d(X.ravel(), 
                                                        Y.ravel(),
@@ -188,9 +193,9 @@ class BinMapper(BaseMapper):
                                                        bins=(self.x_bins, self.y_bins),
                                                        statistic='sum')[0]
 
-                map_cnt = sp.stats.binned_statistic_2d(X[band_mask].ravel(), 
-                                                       Y[band_mask].ravel(),
-                                                       DATA[band_mask].ravel(),
+                map_cnt = sp.stats.binned_statistic_2d(X.ravel(), 
+                                                       Y.ravel(),
+                                                       DATA.ravel(),
                                                        bins=(self.x_bins, self.y_bins),
                                                        statistic='count')[0]
                 self.map_sums[band] += map_sum

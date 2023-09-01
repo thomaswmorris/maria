@@ -71,9 +71,9 @@ class Array:
             self.offset *= np.pi / 180  # put these in radians
 
             # scramble up the locations of the bands
-            if self.band_grouping == "randomized":
-                random_index = np.random.choice(np.arange(self.n_dets), self.n_dets, replace=False)
-                self.offset = self.offset[random_index]
+            # if self.band_grouping == "randomized":
+            #     random_index = np.random.choice(np.arange(self.n_dets), self.n_dets, replace=False)
+            #     self.offset = self.offset[random_index]
 
             self.sky_x, self.sky_y = self.offset.T
             self.r, self.p = np.sqrt(np.square(self.offset).sum(axis=1)), np.arctan2(*self.offset.T)
