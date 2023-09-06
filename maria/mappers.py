@@ -162,6 +162,49 @@ class BinMapper(BaseMapper):
         self.y_bins = np.arange(-0.5*self.map_height, 0.5*self.map_height, self.map_res)
         self.n_x, self.n_y = len(self.x_bins) - 1, len(self.y_bins) - 1
 
+    def _fourier_filter(self, tod_dat, tod_time):
+        ffilt       = [0.08,51.0]        # high-pass and low-pass filters, in Hz
+        width       = 0.05
+
+        n  = len(tod_time)
+        dt = tod_time[1]-tod_time[0]
+        freqs = np.fft.fftfreq(n,dt)
+
+        ndet,nint = tod_dat.shape
+        tfft = np.fft.fft(tod_dat)
+
+        lpf = np.ones(n)
+        hpf = np.ones(n)
+        if ffilt[1] != 0:
+            lpf = self._lpcos_filter(freqs,[ffilt[1]*(1-width),ffilt[1]*(1+width)])
+        if ffilt[0] != 0:
+            hpf = self._hpcos_filter(freqs,[ffilt[0]*(1-width),ffilt[0]*(1+width)])
+
+        filt    = np.outer(np.ones(ndet),hpf*lpf)
+            
+        filttod = np.real(np.fft.ifft(tfft*filt))
+
+        return filttod
+
+    def _lpcos_filter(self, k,par):
+        k1 = par[0]
+        k2 = par[1]
+        filter = k*0.0
+        filter[k < k1]  = 1.0
+        filter[k >= k1] = 0.5 * (1+np.cos(np.pi*(k[k >= k1]-k1)/(k2-k1)))
+        filter[k > k2]  = 0.0
+        return filter
+
+    def _hpcos_filter(self, k,par):
+        k1 = par[0]
+        k2 = par[1]
+        filter = k*0.0
+        filter[k < k1]  = 0.0
+        filter[k >= k1] = 0.5 * (1-np.cos(np.pi*(k[k >= k1]-k1)/(k2-k1)))
+        filter[k > k2]  = 1.0
+        return filter
+
+
     def run(self):
 
         self.ubands = sorted([band for tod in self.tods for band in np.unique(tod.dets.band)])
@@ -173,6 +216,8 @@ class BinMapper(BaseMapper):
             for tod in self.tods:
 
                 band_mask = tod.dets.band == band
+
+                tod.data[band_mask] = self._fourier_filter(tod.data[band_mask], tod.time)
 
                 LON, LAT = tod.LON[band_mask], tod.LAT[band_mask]
                 if self._nmtr > 0:
