@@ -78,9 +78,9 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
                     
 
 DEFAULT_LA_CONFIG = {
-    "min_depth": 1000,
-    "max_depth": 1000,
-    "n_layers": 1,
+    "min_depth": 500,
+    "max_depth": 3000,
+    "n_layers": 4,
     "min_beam_res": 4,
 }
 

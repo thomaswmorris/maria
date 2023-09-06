@@ -5,7 +5,7 @@ default:
   scan_pattern: daisy
   pointing_frame: az_el
   pointing_units: degrees
-  scan_center: [150, 10]
+  scan_center: [150., 10]
   scan_radius: 0
   scan_period: 60
   sample_rate: 50
