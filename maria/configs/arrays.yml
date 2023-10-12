@@ -93,7 +93,7 @@ AtLAST:
     225GHz: [225.e+9, 30.e+9, 1000]
     280GHz: [280.e+9, 40.e+9, 1000]
   geometry: hex
-  field_of_view: 1.3
+  field_of_view: 2.0
   primary_size: 50
   band_grouping: randomized
   az_bounds: [0,  360]
