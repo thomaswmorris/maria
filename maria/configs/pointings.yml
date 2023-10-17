@@ -1,11 +1,11 @@
 default:
   description: A 60-second stare at 45deg elevation.
-  start_time: '2022-07-01T08:00:00'
+  start_time: '2022-02-10T06:00:00'
   integration_time: 60
   scan_pattern: daisy
   pointing_frame: az_el
   pointing_units: degrees
-  scan_center: [60, 45]
+  scan_center: [150., 10]
   scan_radius: 0
   scan_period: 60
   sample_rate: 50
@@ -26,9 +26,9 @@ daisy:
   pointing_frame: ra_dec
   pointing_units: degrees
   scan_pattern: daisy
-  scan_center: [10, 4.5]
+  scan_center: [150., 10]
   scan_radius: 2
-  scan_period: 60
+  scan_period: 20
   sample_rate: 50
   
 # DAISY-2deg_4ra_10dec_600s:
