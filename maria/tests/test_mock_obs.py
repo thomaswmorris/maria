@@ -20,12 +20,12 @@ def test_we_observe():
     # ---------------------
     map_file     = "maps/protocluster.fits",                     # Input files must be a fits file.
                                                                           # map_file can also be set to None if are only interested in the noise
-    map_center   = (4.5, 10),                                             # RA & Dec in degree
+    map_center   = (150., 10),                                             # RA & Dec in degree
 
     # Defeault Observational setup
     # ----------------------------
     integration_time = 600,          # seconds
-    scan_center      = (4.5, 10),    # degrees
+    scan_center      = (150., 10),    # degrees
     pointing_frame   = "ra_dec",     # frame
     scan_radius      = 0.05,         # How large the scanning pattern is in degree
 

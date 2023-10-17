@@ -109,9 +109,8 @@ class BaseMapper:
         self.header['CRPIX1']  = self.maps[list(self.maps.keys())[0]].shape[0]/2
         self.header['CRPIX2']  = self.maps[list(self.maps.keys())[0]].shape[1]/2
 
-        self.header['CRVAL1'] = np.rad2deg(self.tods[0].cntr[0])
-        self.header['CRVAL2'] = np.rad2deg(self.tods[0].cntr[1])
-
+        self.header['CRVAL1']  = np.rad2deg(self.tods[0].cntr[0])
+        self.header['CRVAL2']  = np.rad2deg(self.tods[0].cntr[1])
         self.header['CTYPE1']  = 'RA---SIN'
         self.header['CUNIT1']  = 'deg     ' 
         self.header['CTYPE2']  = 'DEC--SIN' 
@@ -133,23 +132,21 @@ class BaseMapper:
             
             # what is this? --> Frequency information in the header
             self.header['CRVAL3'] = self.nom_freqs[key]
-            # self.header['CDELT3']  = self.array.dets[i][1]
-
             save_map = self.maps[list(self.maps.keys())[i]] 
 
             if self.tods[0].unit == 'Jy/pixel': 
                 save_map *= utils.KbrightToJyPix(self.header['CRVAL3'], 
-                                                 np.deg2rad(self.header['CDELT1']), 
-                                                 np.deg2rad(self.header['CDELT2'])
+                                                 self.header['CDELT1'], 
+                                                 self.header['CDELT2']
+                                                #  np.deg2rad(self.header['CDELT1']), 
+                                                #  np.deg2rad(self.header['CDELT2'])
                                                 )
                 
-            fits.writeto( filename = filepath.split('.fits')[0] + '_'+list(self.maps.keys())[i]+'.fits', 
+            fits.writeto( filename = os.getcwd() + filepath.split('.fits')[0] + '_'+list(self.maps.keys())[i]+'.fits', 
                             data = save_map, 
                             header = self.header,
                             overwrite = True 
                         )
-
-
 
 
 class BinMapper(BaseMapper):
@@ -161,6 +158,48 @@ class BinMapper(BaseMapper):
         self.x_bins = np.arange(-0.5*self.map_width, 0.5*self.map_width, self.map_res)
         self.y_bins = np.arange(-0.5*self.map_height, 0.5*self.map_height, self.map_res)
         self.n_x, self.n_y = len(self.x_bins) - 1, len(self.y_bins) - 1
+
+    def _fourier_filter(self, tod_dat, tod_time):
+        ffilt       = [0.08,51.0]        # high-pass and low-pass filters, in Hz
+        # ffilt       = [0.008,51.0]        # high-pass and low-pass filters, in Hz
+        width       = 0.05
+
+        n  = len(tod_time)
+        dt = tod_time[1]-tod_time[0]
+        freqs = np.fft.fftfreq(n,dt)
+
+        ndet,nint = tod_dat.shape
+        tfft = np.fft.fft(tod_dat)
+
+        lpf = np.ones(n)
+        hpf = np.ones(n)
+        if ffilt[1] != 0:
+            lpf = self._lpcos_filter(freqs,[ffilt[1]*(1-width),ffilt[1]*(1+width)])
+        if ffilt[0] != 0:
+            hpf = self._hpcos_filter(freqs,[ffilt[0]*(1-width),ffilt[0]*(1+width)])
+
+        filt    = np.outer(np.ones(ndet),hpf*lpf)
+        filttod = np.real(np.fft.ifft(tfft*filt))
+        return filttod
+
+    def _lpcos_filter(self, k,par):
+        k1 = par[0]
+        k2 = par[1]
+        filter = k*0.0
+        filter[k < k1]  = 1.0
+        filter[k >= k1] = 0.5 * (1+np.cos(np.pi*(k[k >= k1]-k1)/(k2-k1)))
+        filter[k > k2]  = 0.0
+        return filter
+
+    def _hpcos_filter(self, k,par):
+        k1 = par[0]
+        k2 = par[1]
+        filter = k*0.0
+        filter[k < k1]  = 0.0
+        filter[k >= k1] = 0.5 * (1-np.cos(np.pi*(k[k >= k1]-k1)/(k2-k1)))
+        filter[k > k2]  = 1.0
+        return filter
+
 
     def run(self):
 
@@ -174,6 +213,8 @@ class BinMapper(BaseMapper):
 
                 band_mask = tod.dets.band == band
 
+                # tod.data[band_mask] = self._fourier_filter(tod.data[band_mask], tod.time)
+
                 LON, LAT = tod.LON[band_mask], tod.LAT[band_mask]
                 if self._nmtr > 0:
                     u, s, v = np.linalg.svd(sp.signal.detrend(tod.data[band_mask]), full_matrices=False)
@@ -182,8 +223,8 @@ class BinMapper(BaseMapper):
                     DATA = sp.signal.detrend(tod.data[band_mask])
 
                 #pointing_in_rel_map_units_X, pointing_in_rel_map_units_Y = utils.lonlat_to_xy(self.RA, self.LAT, self.map.center[0], self.map.center[1])
-                
-                X, Y = utils.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
+                # X, Y = utils.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
+                X, Y = utils.lonlat_to_xy(LON, LAT, *tod.cntr)
 
                 self.LON, self.LAT, self.DATA = LON, LAT, DATA
 
