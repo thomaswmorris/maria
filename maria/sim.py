@@ -52,8 +52,8 @@ class Simulation(BaseSimulation):
         super().__init__(array, pointing, site, **kwargs)
 
         self.atm_model = atm_model
-        if atm_model in ["linear_angular", "LA"]:
-            self.atm_sim = atmosphere.LinearAngularSimulation(array, pointing, site, **kwargs)
+        if atm_model in ["single_layer", "SL"]:
+            self.atm_sim = atmosphere.SingleLayerSimulation(array, pointing, site, **kwargs)
         elif atm_model in ["kolmogorov_taylor", "KT"]:
             self.atm_sim = atmosphere.KolmogorovTaylorSimulation(array, pointing, site, **kwargs)
         else:
