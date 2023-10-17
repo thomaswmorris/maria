@@ -68,7 +68,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
                 self.data[band_mask] = band_T_RJ_interpolator((self.effective_integrated_water_vapor[band_mask], np.degrees(self.EL[band_mask])))
 
-        if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸🇺🇸🇺🇸
+        if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸
 
             self.simulate_temperature(self, units='K_RJ')
             self.data = 1.8 * (self.data - 273.15) + 32
@@ -83,8 +83,6 @@ DEFAULT_ATMOSPHERE_CONFIG = {
     "min_beam_res": 4,
 }
 
-
-
 def get_rotation_matrix_from_skew(x):
     S = x * np.array([[0, 1], [-1, 0]])
     R = sp.linalg.expm(S)
@@ -93,14 +91,20 @@ def get_rotation_matrix_from_skew(x):
 MIN_SAMPLES_PER_RIBBON = 2
 JITTER_LEVEL = 1e-6
 
+
+
+
+
 class SingleLayerSimulation(BaseAtmosphericSimulation):
     """
     The simplest possible atmospheric model.
     This model is only appropriate for single instruments, i.e. when the baseline is zero.
     """
 
-    def __init__(self, array, pointing, site, layer_height=1e3, min_beam_res=8, verbose=False, **kwargs):
+    def __init__(self, array, pointing, site, layer_height=1e3, min_beam_res=4, verbose=False, **kwargs):
         super().__init__(array, pointing, site, **kwargs)
+
+        
 
         self.min_beam_res = min_beam_res
 
@@ -114,29 +118,33 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             self.layer_height, self.array.primary_size, self.array.dets.band_center.values
         )
         self.angular_beam_waists = self.physical_beam_waists / self.layer_depth
-
-        self.ang_res = self.angular_beam_waists.min() / self.min_beam_res
+        self.angular_outer_scale = 500 / self.layer_depth
+        self.angular_resolution = self.angular_beam_waists.min() / self.min_beam_res
 
         self.weather = weathergen.Weather(region=self.site.region, 
                                           altitude=self.site.altitude,
                                           diurnal=True, 
-                                          seasonal=True,
-                                          levels=np.array([self.site.altitude + self.layer_height]))
-
+                                          seasonal=True)
         
-
         self.weather.generate(time=self.pointing.time.mean(), 
-                              mode="median", 
-                              fixed_quantiles=self.site.weather_quantiles)
+                      mode="median", 
+                      fixed_quantiles=self.site.weather_quantiles)
 
-        angular_velocity_x = (+self.weather.wind_east[0] * np.cos(self.pointing.az) 
-                                   -self.weather.wind_north[0] * np.sin(self.pointing.az)) / self.layer_depth
+        layer_altitude = self.site.altitude + self.layer_height
+
+        layer_wind_north = sp.interpolate.interp1d(self.weather.levels, self.weather.wind_north, axis=0)(layer_altitude)[0]
+        layer_wind_east  = sp.interpolate.interp1d(self.weather.levels, self.weather.wind_east, axis=0)(layer_altitude)[0]
+
         
-        angular_velocity_y = (-self.weather.wind_east[0] * np.sin(self.pointing.az) 
-                                   +self.weather.wind_north[0] * np.cos(self.pointing.az)) / self.layer_depth
+        
+        angular_velocity_x = (+layer_wind_east * np.cos(self.pointing.az) 
+                              -layer_wind_north * np.sin(self.pointing.az)) / self.layer_depth
+        
+        angular_velocity_y = (-layer_wind_east * np.sin(self.pointing.az) 
+                              +layer_wind_north * np.cos(self.pointing.az)) / self.layer_depth
 
-        print(angular_velocity_x.shape)
-        print(angular_velocity_y.shape)
+        if verbose:
+            print(f"{(layer_wind_east, layer_wind_north) = }")
         
         # compute the offset with respect to the center of the scan
         center_az, center_el = utils.get_center_lonlat(self.pointing.az, self.pointing.el)
@@ -162,31 +170,16 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         padded_doch = sp.spatial.ConvexHull(padded_doch_offsets)
         detector_padding = padded_doch_offsets[padded_doch.vertices]
         
-        
         # add the padded hull to the moving boresight
         atmosphere_offsets = (detector_padding[:, None] + self.boresight_angular_position[None]).reshape(-1, 2)
         atmosphere_hull = sp.spatial.ConvexHull(atmosphere_offsets)
         self.atmosphere_hull_points = atmosphere_offsets[atmosphere_hull.vertices]
 
-
-        def optimize_area_minimizing_rotation_matrix(points):        
-            def ratio(x):
-                R = get_rotation_matrix_from_skew(x[0])
-                trans_points = R @ points[..., None]
-                log_ratio = np.log(trans_points[:, 0].ptp() / trans_points[:, 1].ptp())
-                #print(log_ratio)
-                return log_ratio
-            
-            res = sp.optimize.minimize(ratio, x0=[1.,], tol=1e-16, method="L-BFGS-B")
-            return res
-        
         # R takes us from the real (dx, dy) to a more compact (cross_section, extrusion) frame
-        self.res = optimize_area_minimizing_rotation_matrix(self.atmosphere_hull_points)
-
-        #return
+        self.res = utils.optimize_area_minimizing_rotation_matrix(self.atmosphere_hull_points)
         
         assert self.res.success
-        self.R = get_rotation_matrix_from_skew(self.res.x)
+        self.R = utils.get_rotation_matrix_from_angle(self.res.x[0])
 
         #                   
         #          ^      xxxxxxxxxxxx
@@ -202,8 +195,8 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         extrusion_min = trans_points[:, 1].min()
         extrusion_max = trans_points[:, 1].max()
         
-        self.cross_section_side = np.arange(cross_section_min, cross_section_max + self.ang_res, self.ang_res)
-        self.extrusion_side = np.arange(extrusion_min, extrusion_max, self.ang_res)
+        self.cross_section_side = np.arange(cross_section_min, cross_section_max + self.angular_resolution, self.angular_resolution)
+        self.extrusion_side = np.arange(extrusion_min, extrusion_max, self.angular_resolution)
         
         self.n_cross_section = len(self.cross_section_side)
         self.n_extrusion = len(self.extrusion_side)
@@ -214,8 +207,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         
         extrusion_indices = [0, *(2 ** np.arange(0, np.log(self.n_extrusion) / np.log(2))).astype(int), self.n_extrusion-1]
         
-        
-        
+    
         extrusion_sample_index = []
         cross_section_sample_index = []
         for i, extrusion_index in enumerate(extrusion_indices):
@@ -229,11 +221,10 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         self.cross_section_sample_index = np.array(cross_section_sample_index)
         
         live_edge_positions = np.c_[self.cross_section_side, 
-                                    np.repeat(extrusion_min - self.ang_res, self.n_cross_section)]
+                                    np.repeat(extrusion_min - self.angular_resolution, self.n_cross_section)]
         
         sample_positions = np.c_[CROSS_SECTION[self.extrusion_sample_index, self.cross_section_sample_index], 
                                  EXTRUSION[self.extrusion_sample_index, self.cross_section_sample_index]]
-        
         
         # the sampling index will look something like:
         #
@@ -248,40 +239,45 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         #          x111000000000001 ...
         #
         
-        n_live_edge = len(live_edge_positions)
-        n_sample = len(sample_positions)
+        self.n_live_edge = len(live_edge_positions)
+        self.n_sample = len(sample_positions)
+        
+        if verbose:
+            print(f"{self.n_extrusion = }")
+            print(f"{self.n_live_edge = }")
+            print(f"{self.n_sample = }")
         
         outer_scale = 0.1
         
         # sample upper {i,j}
-        i, j = np.triu_indices(n_sample, k=1)
-        COV_S_S = np.eye(n_sample) + JITTER_LEVEL
-        COV_S_S[i, j] = utils.functions.matern(np.sqrt(np.square(sample_positions[j] - sample_positions[i]).sum(axis=1)), outer_scale, 5/6)
+        i, j = np.triu_indices(self.n_sample, k=1)
+        COV_S_S = np.eye(self.n_sample) + JITTER_LEVEL
+        COV_S_S[i, j] = utils.functions.approximate_normalized_matern(np.sqrt(np.square(sample_positions[j] - sample_positions[i]).sum(axis=1)) / outer_scale, 5/6, n_test_points=256)
         COV_S_S[j, i] = COV_S_S[i, j]
         
         # this one is explicit
-        COV_LE_S = utils.functions.matern(np.sqrt(np.square(sample_positions[None] - live_edge_positions[:, None]).sum(axis=2)), outer_scale, 5/6)
+        COV_LE_S = utils.functions.approximate_normalized_matern(np.sqrt(np.square(sample_positions[None] - live_edge_positions[:, None]).sum(axis=2)) / outer_scale, 5/6, n_test_points=256)
         
         # live edge upper {i,j}
-        i, j = np.triu_indices(n_live_edge, k=1)
-        COV_LE_LE = np.eye(n_live_edge) + JITTER_LEVEL
-        COV_LE_LE[i, j] = utils.functions.matern(np.sqrt(np.square(live_edge_positions[j] - live_edge_positions[i]).sum(axis=1)), outer_scale, 5/6)
+        i, j = np.triu_indices(self.n_live_edge, k=1)
+        COV_LE_LE = np.eye(self.n_live_edge) + JITTER_LEVEL
+        COV_LE_LE[i, j] = utils.functions.approximate_normalized_matern(np.sqrt(np.square(live_edge_positions[j] - live_edge_positions[i]).sum(axis=1)) / outer_scale, 5/6, n_test_points=256)
         COV_LE_LE[j, i] = COV_LE_LE[i, j]
         
+        # this is typically the bottleneck
         inv_COV_S_S = utils.fast_psd_inverse(COV_S_S)
         
+        # compute the weights
         self.A = COV_LE_S @ inv_COV_S_S
         self.B = np.linalg.cholesky(COV_LE_LE - self.A @ COV_LE_S.T)
-        self.VALUES = np.zeros((self.n_extrusion, self.n_cross_section))
+        self.VALUES = np.zeros((self.n_extrusion, self.n_cross_section), dtype=np.float32)
 
-        
-        
+
     def extrude(self, n_steps, desc=None):
         # muy rapido
-        BUFFER = np.zeros((self.n_extrusion + n_steps, self.n_cross_section))
+        BUFFER = np.zeros((self.n_extrusion + n_steps, self.n_cross_section), dtype=np.float32)
         BUFFER[self.n_extrusion:] = self.VALUES
         for buffer_index in tqdm(np.arange(n_steps)[::-1], desc=desc):
-            
             new_values = self.A @ BUFFER[buffer_index + self.extrusion_sample_index + 1, self.cross_section_sample_index] + self.B @ np.random.standard_normal(size=self.B.shape[-1])
             BUFFER[buffer_index] = new_values
         self.VALUES = BUFFER[:self.n_extrusion]
@@ -292,15 +288,12 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         self.sim_start = ttime.time()
         self.extrude(n_steps=self.n_extrusion, desc="Generating atmosphere")
         
-        #self.extrude(n_steps=0, desc="Initializing atmosphere")
-
-
         trans_detector_angular_positions = (self.detector_offsets[:, None] + self.boresight_angular_position[None]) @ self.R.T
         detector_values = np.zeros(trans_detector_angular_positions.shape[:-1])
         for uband in self.array.ubands:
             band_mask = self.array.dets.band == uband
             angular_waist = self.angular_beam_waists[band_mask].mean()
-            F = self.array.make_filter(angular_waist, self.ang_res, self.array.beam_func)
+            F = self.array.make_filter(angular_waist, self.angular_resolution, self.array.beam_func)
             FILTERED_VALUES = self.array.separably_filter(self.VALUES, F) 
             detector_values[band_mask] = sp.interpolate.RegularGridInterpolator((self.cross_section_side, self.extrusion_side), 
                                                                                 FILTERED_VALUES.T)(trans_detector_angular_positions[band_mask])
