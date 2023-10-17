@@ -3,10 +3,11 @@ default:
   region: chajnantor
   latitude: -23.0058
   longitude: -67.7592
-  altitude: 5064
+  altitude: 5064 # in meters
   seasonal: True
-  diurnal: True
+  diurnal: True 
   weather_quantiles: {}
+  pwv_rms: 0.05 # in millimeters
 
 APEX:
   description: Atacama Pathfinder Experiment
@@ -17,6 +18,7 @@ APEX:
   seasonal: True
   diurnal: True
   weather_quantiles: {}
+  pwv_rms: 0.05
 
 ACT:
   description: Atacama Cosmology Telescope
@@ -27,6 +29,7 @@ ACT:
   seasonal: True
   diurnal: True
   weather_quantiles: {}
+  pwv_rms: 0.05
 
 GBT:
   description: Green Bank Telescope
@@ -37,16 +40,18 @@ GBT:
   seasonal: True
   diurnal: True
   weather_quantiles: {}
+  pwv_rms: 0.05
 
 JCMT:
   description: ''
   region: mauna_kea
   latitude: 19.8228
-  longitude: -155.477 # 
-  altitude: 4092 # meters
+  longitude: -155.477
+  altitude: 4092
   seasonal: True
   diurnal: True
   weather_quantiles: {}
+  pwv_rms: 0.05
   
 SPT:
   description: ''
@@ -57,6 +62,7 @@ SPT:
   seasonal: True
   diurnal: True
   weather_quantiles: {}
+  pwv_rms: 0.05
   
 SRT:
   description: ''
@@ -67,3 +73,4 @@ SRT:
   seasonal: True
   diurnal: True
   weather_quantiles: {}
+  pwv_rms: 0.05
