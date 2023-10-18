@@ -31,7 +31,7 @@ def approximate_normalized_matern(r, nu, n_test_points=256):
     r_min = np.maximum(r_safe[r_safe > 0].min(), 1e-3)
     r_max = np.minimum(r_safe.max(), 1e2)
     
-    test_values = np.r_[0, *np.geomspace(r_min, r_max, n_test_points-1)]
+    test_values = np.r_[0, np.geomspace(r_min, r_max, n_test_points-1)]
     data_values = normalized_matern(test_values, nu) * np.exp(test_values)
     
     return np.interp(r_safe, test_values, data_values) * np.exp(-r_safe)
