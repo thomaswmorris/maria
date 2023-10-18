@@ -3,13 +3,16 @@ import scipy as sp
 import pandas as pd
 
 import matplotlib.pyplot as plt
-
-import glob
+from matplotlib.collections import EllipseCollection
+from dataclasses import dataclass
+from typing import Tuple
+from collections.abc import Mapping
 import os
 
 from . import utils
 
-from collections.abc import Mapping
+# better formatting for pandas dataframes
+pd.set_eng_float_format()
 
 here, this_filename = os.path.split(__file__)
 
@@ -20,9 +23,10 @@ for key, config in ARRAY_CONFIGS.items():
 
 class UnsupportedArrayError(Exception):
     def __init__(self, invalid_array):
-        array_df = pd.DataFrame(columns=["description"])
+        array_df = pd.DataFrame(columns=["description", "documentation"])
         for key, config in ARRAY_CONFIGS.items():
-            array_df.loc[key] = config["description"]
+            array_df.loc[key, "description"] = config["description"]
+            array_df.loc[key, "documentation"] = config["documentation"]
         super().__init__(f"The array \'{invalid_array}\' is not in the database of default arrays. "
         f"Default arrays are:\n\n{array_df.sort_index()}")
 
@@ -35,68 +39,117 @@ def get_array_config(array_name, **kwargs):
     return ARRAY_CONFIG
 
 def get_array(array_name, **kwargs):
-    return Array(**get_array_config(array_name, **kwargs))
+    """
+    Get an array from a pre-defined config.
+    """
+    return Array.from_config(get_array_config(array_name, **kwargs))
 
-def get_array_from_fits(array_name, **kwargs):
-    return Array(**get_array_config(array_name, **kwargs))
 
+REQUIRED_DET_CONFIG_KEYS = ["n", "band_center", "band_width"]
 
+def generate_dets_from_config(bands: Mapping, field_of_view: float, geometry: str = 'hex', max_baseline: float = 0, randomize_offsets: bool = True):
+
+    dets = pd.DataFrame(columns=["band", "band_center", "band_width", "offset_x", "offset_y", "baseline_x", "baseline_y"], dtype=float)
+
+    for band, band_config in bands.items():
+        
+        if not all(key in band_config.keys() for key in REQUIRED_DET_CONFIG_KEYS):
+            raise ValueError(f'Each band must have keys {REQUIRED_DET_CONFIG_KEYS}')
+
+        band_dets = pd.DataFrame(index=np.arange(band_config["n"]))
+        band_dets.loc[:, "band"] = band
+        band_dets.loc[:, "band_center"] = band_config["band_center"]
+        band_dets.loc[:, "band_width"] = band_config["band_width"]
+
+        dets = pd.concat([dets, band_dets])
+
+    offsets = utils.generate_array_offsets(geometry, field_of_view, len(dets))
+
+    # should we make another function for this?
+    baseline = utils.generate_array_offsets(geometry, max_baseline, len(dets))
+
+    if randomize_offsets:
+        np.random.shuffle(offsets) # this is a stupid function.
+
+    dets.loc[:, "offset_x"] = offsets[:, 0]
+    dets.loc[:, "offset_y"] = offsets[:, 1]
+    dets.loc[:, "baseline_x"] = baseline[:, 0]
+    dets.loc[:, "baseline_y"] = baseline[:, 1]
+
+    for key in ['offset_x', 'offset_y', 'baseline_x', 'baseline_y']:
+        dets.loc[:, key] = dets.loc[:, key].astype(float)
+
+    return dets
+
+@dataclass
 class Array:
-    def __init__(self, **kwargs):
+    """
+    An array.
+    """
+    description: str = '',
+    dets: pd.DataFrame = None,    # dets, it's complicated
+    primary_size: float = 5,    # in meters
+    max_az_vel: float = 0,      # in deg/s
+    max_el_vel: float = np.inf, # in deg/s
+    max_az_acc: float = 0,      # in deg/s^2
+    max_el_acc: float = np.inf, # in deg/s^2
+    az_bounds: Tuple[float, float] = (0, 360), # in degrees
+    el_bounds: Tuple[float, float] = (0, 90),  # in degrees
+    documentation: str = '',
 
-        for key, default_value in ARRAY_CONFIGS["default"].items():
-            setattr(self, key, kwargs.get(key, default_value))
+    @property
+    def ubands(self):
+        return np.unique(self.dets.band)
 
-        detectors = kwargs.get("detectors", "")
-        
-        if type(detectors) == pd.DataFrame:
-            self.dets = detectors
+    @property
+    def offset_x(self):
+        return self.dets.offset_x.values
 
-        elif isinstance(detectors, Mapping):    
+    @property
+    def offset_y(self):
+        return self.dets.offset_y.values
 
-            self.dets = pd.DataFrame()
+    @property
+    def offsets(self):
+        return np.c_[self.offset_x, self.offset_y]
 
-            for band, (band_center, band_width, n) in detectors.items():
-            #for band in self.detectors.keys():
+    @property
+    def baseline_x(self):
+        return self.dets.baseline_x.values
 
-                band_dets = pd.DataFrame(index=np.arange(n))
-                band_dets.loc[:, "det_uid"] = np.arange(n)
-                band_dets.loc[:, "band"] = band
-                band_dets.loc[:, "band_center"] = band_center
-                band_dets.loc[:, "band_width"] = band_width
+    @property
+    def baseline_y(self):
+        return self.dets.baseline_y.values
 
-                self.dets = pd.concat([self.dets, band_dets])
+    @property
+    def baselines(self):
+        return np.c_[self.baseline_x, self.baseline_y]
 
-            self.offset  = utils.make_array(self.geometry, self.field_of_view, self.n_dets)
-            self.offset *= np.pi / 180  # put these in radians
+    @classmethod
+    def from_config(cls, config):
 
-            # scramble up the locations of the bands
-            # if self.band_grouping == "randomized":
-            #     random_index = np.random.choice(np.arange(self.n_dets), self.n_dets, replace=False)
-            #     self.offset = self.offset[random_index]
+        if isinstance(config["dets"], Mapping):
+            dets = generate_dets_from_config(config["dets"], 
+                                            field_of_view=config.get("field_of_view", 1),
+                                            geometry=config.get("geometry", "hex"))
 
-            self.sky_x, self.sky_y = self.offset.T
-            self.r, self.p = np.sqrt(np.square(self.offset).sum(axis=1)), np.arctan2(*self.offset.T)
+        return cls(
+                dets=dets,
+                description=config["description"],
+                primary_size=config["primary_size"],
+                max_az_vel=config["max_az_vel"],
+                max_el_vel=config["max_el_vel"],
+                max_az_acc=config["max_az_acc"],
+                max_el_acc=config["max_el_acc"],
+                az_bounds=config["az_bounds"],
+                el_bounds=config["el_bounds"],
+                documentation=config["documentation"],
+                )
 
-        else:
-            raise ValueError("Supplied arg 'detectors' must be either a mapping or a dataframe!")
-        
-        # compute detector offset
-        self.hull = sp.spatial.ConvexHull(self.offset)
-
-        # compute beams
-        self.optical_model = "diff_lim"
-        if self.optical_model == "diff_lim":
-
-            self.get_beam_waist = lambda z, w_0, f: w_0 * np.sqrt(
-                1 + np.square(2.998e8 * z) / np.square(f * np.pi * np.square(w_0))
-            )
-            self.get_beam_profile = lambda r, r_fwhm: np.exp(np.log(0.5) * np.abs(r / r_fwhm) ** 8)
-            self.beam_func = self.get_beam_profile
-
-        self.dets.loc[:, "sky_x"] = self.sky_x
-        self.dets.loc[:, "sky_y"] = self.sky_y
-
+    @staticmethod
+    def beam_profile(r, fwhm):
+        return np.exp(np.log(0.5) * np.abs(r / fwhm) ** 8)
+    
     @property
     def band_min(self):
         return (self.dets.band_center - 0.5 * self.dets.band_width).values
@@ -107,9 +160,27 @@ class Array:
 
     def passband(self, nu):
         """
-        Returns a (n_dets, len(nu))
+        Passband response as a function of nu (in Hz)
         """
         return ((nu[None] > self.band_min[:, None]) & (nu[None] < self.band_max[:, None])).astype(float)
+
+    def angular_fwhm(self, z):
+        return utils.gaussian_beam_angular_fwhm(z=z, w_0=self.primary_size/np.sqrt(2*np.log(2)), f=self.dets.band_center.values, n=1)
+
+    def physical_fwhm(self, z):
+        return z * self.angular_fwhm(z)
+
+    def angular_beam(self, r, z=np.inf, n=1, l=None, f=None):
+        """
+        Beam response as a function of radius (in radians)
+        """
+        return self.beam_profile(r, self.angular_fwhm(z))
+
+    def physical_beam(self, r, z=np.inf, n=1, l=None, f=None):
+        """
+        Beam response as a function of radius (in meters)
+        """
+        return self.beam_profile(r, self.physical_fwhm(z))
 
     @property
     def n_dets(self):
@@ -118,65 +189,26 @@ class Array:
     @property
     def ubands(self):
         return list(np.unique(self.dets.band))
-
-    def __repr__(self):
-
-        return (f"Array Object"
-
-                f"\nubands: {self.ubands})"
-                f"\nn_dets: {self.n_dets})")
+         
          
     def plot_dets(self):
 
-        fig, ax = plt.subplots(1, 1, figsize=(4, 4), dpi=160)
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=256)
 
         for uband in self.ubands:
 
             band_mask = self.dets.band == uband
 
-            ax.scatter(np.degrees(self.dets.sky_x[band_mask]), 
-                       np.degrees(self.dets.sky_y[band_mask]),
-                       label=uband, lw=5e-1)
+            band_res = 60 * np.degrees(2.998e8 / (self.dets.band_center.mean() * self.primary_size))
+            offsets = 60 * np.degrees(np.vstack([self.dets.offset_x[band_mask], self.dets.offset_y[band_mask]])).T
 
-        ax.set_xlabel(r'$\theta_x$ offset (deg.)')
-        ax.set_ylabel(r'$\theta_y$ offset (deg.)')
+            ax.add_collection(EllipseCollection(widths=band_res, heights=band_res, angles=0, units='xy',
+                                            facecolors="none", edgecolors="k", lw=1e-1,
+                                            offsets=offsets, transOffset=ax.transData))
+            
+            ax.scatter(*offsets.T, label=uband, s=5e-1)
+
+        ax.set_xlabel(r'$\theta_x$ offset (arc min.)')
+        ax.set_ylabel(r'$\theta_y$ offset (arc min.)')
         ax.legend()
-
-    def make_filter(self, waist, res, func, width_per_waist=1.2):
-
-        filter_width = width_per_waist * waist
-        n_filter = 2 * int(np.ceil(0.5 * filter_width / res)) + 1
-
-        filter_side = 0.5 * np.linspace(-filter_width, filter_width, n_filter)
-
-        FILTER_X, FILTER_Y = np.meshgrid(filter_side, filter_side, indexing="ij")
-        FILTER_R = np.sqrt(np.square(FILTER_X) + np.square(FILTER_Y))
-
-        FILTER = func(FILTER_R, 0.5 * waist)
-        FILTER /= FILTER.sum()
-
-        return FILTER
-
-    def separate_filter(self, F, tol=1e-2):
-
-        u, s, v = np.linalg.svd(F)
-        eff_filter = 0
-        for m, (_u, _s, _v) in enumerate(zip(u.T, s, v)):
-
-            eff_filter += _s * np.outer(_u, _v)
-            if np.abs(F - eff_filter).sum() < tol:
-                break
-
-        return u.T[: m + 1], s[: m + 1], v[: m + 1]
-
-    def separably_filter(self, M, F, tol=1e-2):
-
-        u, s, v = self.separate_filter(F, tol=tol)
-
-        filt_M = 0
-        for _u, _s, _v in zip(u, s, v):
-
-            filt_M += _s * sp.ndimage.convolve1d(sp.ndimage.convolve1d(M.astype(float), _u, axis=0), _v, axis=1)
-
-        return filt_M
 

@@ -68,8 +68,8 @@ class BaseMapper:
         coordinator = Coordinator(lat=tod.meta['latitude'], lon=tod.meta['longitude'])
 
         tod.AZ, tod.EL = utils.xy_to_lonlat(
-            tod.dets.sky_x.values[:, None],
-            tod.dets.sky_y.values[:, None],
+            tod.dets.offset_x.values[:, None],
+            tod.dets.offset_y.values[:, None],
             tod.az,
             tod.el,
         )
@@ -142,7 +142,7 @@ class BaseMapper:
                                                 #  np.deg2rad(self.header['CDELT2'])
                                                 )
                 
-            fits.writeto( filename = os.getcwd() + filepath.split('.fits')[0] + '_'+list(self.maps.keys())[i]+'.fits', 
+            fits.writeto( filename = filepath, 
                             data = save_map, 
                             header = self.header,
                             overwrite = True 

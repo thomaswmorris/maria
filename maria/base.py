@@ -21,9 +21,6 @@ from .pointing import get_pointing, POINTING_PARAMS
 from .site import get_site, SITE_PARAMS
 from .tod import TOD
 
-from . import utils
-
-
 class BaseSimulation:
     """
     The base class for a simulation. This is an ingredient in every simulation.
@@ -35,9 +32,14 @@ class BaseSimulation:
                  site,
                  **kwargs):
 
-        self.array = get_array(array, **kwargs) if isinstance(array, str) else array
-        self.pointing = get_pointing(pointing, **kwargs) if isinstance(pointing, str) else pointing
-        self.site = get_site(site, **kwargs) if isinstance(site, str) else site
+        # who does each kwarg belong to?
+        array_kwargs = {k:v for k, v in kwargs.items() if k in ARRAY_PARAMS}
+        pointing_kwargs = {k:v for k, v in kwargs.items() if k in POINTING_PARAMS}
+        site_kwargs = {k:v for k, v in kwargs.items() if k in SITE_PARAMS}
+
+        self.array = get_array(array, **array_kwargs) if isinstance(array, str) else array
+        self.pointing = get_pointing(pointing, **pointing_kwargs) if isinstance(pointing, str) else pointing
+        self.site = get_site(site, **site_kwargs) if isinstance(site, str) else site
 
         self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
 

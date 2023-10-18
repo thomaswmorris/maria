@@ -2,8 +2,10 @@ import numpy as np
 
 import os
 import glob
-
+import typing
+from typing import Tuple
 from datetime import datetime, timedelta
+from dataclasses import dataclass
 
 from . import utils
 
@@ -31,13 +33,22 @@ def get_pointing_config(pointing_name, **kwargs):
 def get_pointing(pointing_name, **kwargs):
     return Pointing(**get_pointing_config(pointing_name, **kwargs))
 
-
+@dataclass
 class Pointing:
-
     """
-    A class containing time-ordered pointing data.
+    A dataclass containing time-ordered pointing data.
     """
-
+    description: str = '',
+    pointing_frame: str = "ra_dec",
+    pointing_units: str = "degrees",
+    scan_center: Tuple[float, float] = (4, 10.5),
+    scan_radius: float = 1.,
+    scan_period: float = 60.,
+    scan_pattern: str = 'daisy',
+    start_time: float | str = '2022-02-10T06:00:00',
+    integration_time: float = 60.,
+    sample_rate: float = 20.,
+    
     @staticmethod
     def validate_pointing_kwargs(kwargs):
         """

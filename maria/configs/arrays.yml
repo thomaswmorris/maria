@@ -1,153 +1,114 @@
 default:
-  description: Default values for arrays
-  documentation:
-  detectors:
-    f150: [150.e+9, 10.e+9, 750]
-  geometry: hex
+  description: Default array 
+  dets:
+    f150: 
+      n: 750
+      band_center: 150.e+9
+      band_width: 150.e+9
   field_of_view: 0.8
+  geometry: hex
   primary_size: 6
-  band_grouping: randomized
   az_bounds: [0,  360]
   el_bounds: [20,  90]
   max_az_vel: 3
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-
-ACT-PA4:
-  description: ACT's PA4 (150/220 GHz)
   documentation:
-  detectors:
-    f150: [150.e+9, 10.e+9, 750]
-    f220: [220.e+9, 10.e+9, 750]
-  geometry: hex
-  field_of_view: 0.8
-  primary_size: 6
-  band_grouping: randomized
-  az_bounds: [0,  360]
-  el_bounds: [20,  90]
-  max_az_vel: 3
-  max_el_vel: 2
-  max_az_acc: 1
-  max_el_acc: 0.25
-
-ACT-PA5:
-  description: ACT's PA5 (90/150 GHz)
-  documentation:
-  detectors:
-    pa5_f090: [150.e+9, 10.e+9, 750]
-    pa6_f150: [220.e+9, 10.e+9, 750]
-  geometry: hex
-  field_of_view: 0.8
-  primary_size: 6
-  band_grouping: randomized
-  az_bounds: [0,  360]
-  el_bounds: [20,  90]
-  max_az_vel: 3
-  max_el_vel: 2
-  max_az_acc: 1
-  max_el_acc: 0.25
-
-ACT_PA7:
-  description: ACT's PA7 (27/39 GHz)
-  documentation:
-  detectors:
-    27GHz: [27.e+9, 10.e+9, 75]
-    39GHz: [39.e+9, 10.e+9, 75]
-  geometry: hex
-  field_of_view: 0.8
-  primary_size: 6
-  band_grouping: randomized
-  az_bounds: [0,  360]
-  el_bounds: [20,  90]
-  max_az_vel: 3
-  max_el_vel: 2
-  max_az_acc: 1
-  max_el_acc: 0.25
   
 ALMA:
-  description: Atacama Large Millimeter Array
-  documentation:
-  detectors:
-    f150: [150.e+9, 10.e+9, 750]
-    f220: [220.e+9, 10.e+9, 750]
-  geometry: hex
+  description: ALMA (Atacama Large Millimeter Array)
+  dets:
+    f150: 
+      n: 750
+      band_center: 150.e+9
+      band_width: 150.e+9
   field_of_view: 0.8
+  max_baseline: 12000 # meters
+  geometry: hex
   primary_size: 6
-  band_grouping: randomized
   az_bounds: [0,  360]
   el_bounds: [20,  90]
   max_az_vel: 3
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
   
 AtLAST:
-  description: Atacama Large-Aperture Submillimeter Telescope
-  documentation:
-  detectors:
-    27GHz: [27.e+9, 5.e+9, 1000]
-    39GHz: [39.e+9, 5.e+9, 1000]
-    93GHz: [93.e+9, 10.e+9, 1000]
-    145GHz: [145.e+9, 10.e+9, 1000]
-    225GHz: [225.e+9, 30.e+9, 1000]
-    280GHz: [280.e+9, 40.e+9, 1000]
+  description: AtLAST (Atacama Large-Aperture Submillimeter Telescope)
+  dets:
+    f027: 
+      n: 750
+      band_center: 27.e+9
+      band_width: 5.e+9
+    f039: 
+      n: 750
+      band_center: 39.e+9
+      band_width: 5.e+9
+    f093: 
+      n: 750
+      band_center: 93.e+9
+      band_width: 10.e+9
+    f150: 
+      n: 750
+      band_center: 150.e+9
+      band_width: 10.e+9
+    f225: 
+      n: 750
+      band_center: 225.e+9
+      band_width: 30.e+9
+    f280: 
+      n: 750
+      band_center: 280.e+9
+      band_width: 40.e+9
   geometry: hex
   field_of_view: 2.0
   primary_size: 50
-  band_grouping: randomized
   az_bounds: [0,  360]
   el_bounds: [20,  90]
   max_az_vel: 3
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
+  documentation: https://www.atlast.uio.no/
   
 MUSTANG-2:
-  description: Multiplexed SQUID TES Array for Ninety Gigahertz
-  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
-  detectors: # band center, band width, number of dets
-    93GHz: [93.e+9, 10.e+9, 217]
-  geometry: hex
+  description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
+  dets:
+    93GHz: 
+      n: 217
+      band_center: 93.e+9
+      band_width: 10.e+9
   field_of_view: 0.07
+  geometry: hex
   primary_size: 100
-  band_grouping: randomized
   az_bounds: [0,  360]
   el_bounds: [20,  90]
   max_az_vel: 3
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
+  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
   
 SCUBA-2:
-  description: ''
-  documentation:
-  detectors:
-    350GHz: [350.e+9, 10.e+9, 5120]
-    650GHz: [650.e+9, 10.e+9, 5120]
-  geometry: hex
+  description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
+  dets:
+    f350: 
+      n: 5120
+      band_center: 350.e+9
+      band_width: 10.e+9
+    f650: 
+      n: 5120
+      band_center: 650.e+9
+      band_width: 10.e+9
   field_of_view: 0.12
+  geometry: hex
   primary_size: 15
-  band_grouping: randomized
   az_bounds: [0,  360]
   el_bounds: [20,  90]
   max_az_vel: 3
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  
-test-small:
-  description: A small test array.
-  documentation: 
-  detectors:
-    145GHz: [145.e+9, 10.e+9, 19]
-  geometry: flower
-  field_of_view: 2
-  primary_size: 10
-  band_grouping: randomized
-  az_bounds: [0,  360]
-  el_bounds: [20,  90]
-  max_az_vel: 3
-  max_el_vel: 2
-  max_az_acc: 1
-  max_el_acc: 0.25
+  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/

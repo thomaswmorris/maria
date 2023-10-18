@@ -1,11 +1,14 @@
 # this is the junk drawer of functions
 import warnings 
 
+from .beam      import *
 from .coords    import *
 from .functions import *
 from .io        import *
 from .linalg    import *
 from .units     import *
+
+
 
 
 class PointingError(Exception):
@@ -17,20 +20,6 @@ def validate_pointing(azim, elev):
         warnings.warn(f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)")
     if el_min <= 0:
         raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
-
-
-
-def _beam_sigma(z, primary_size, nu):
-
-    c = 2.998e8
-    n = 1
-    w0 = primary_size / np.sqrt(2 * np.log(2))
-    zR = np.pi * w0**2 * n * nu / c
-
-    return 0.5 * w0 * np.sqrt(1 + (z / zR) ** 2)
-
-
-
 
 
 def get_pointing_offset(time, period, throws, plan_type):
@@ -45,40 +34,39 @@ def get_pointing_offset(time, period, throws, plan_type):
         return throws[0] * r * np.cos(phase), throws[1] * r * np.sin(phase)
 
 
-def get_pointing(time, period, centers, throws, plan_type, frame):
+# def get_pointing(time, period, centers, throws, plan_type, frame):
 
-    p = 2 * np.pi * time / period
+#     p = 2 * np.pi * time / period
 
-    if plan_type == "back-and-forth":
-        return (
-            centers[0] + throws[0] * sp.signal.sawtooth(p, width=0.5),
-            centers[1] + throws[1] * sp.signal.sawtooth(p, width=0.5),
-        )
+#     if plan_type == "back-and-forth":
+#         return (
+#             centers[0] + throws[0] * sp.signal.sawtooth(p, width=0.5),
+#             centers[1] + throws[1] * sp.signal.sawtooth(p, width=0.5),
+#         )
 
-    if plan_type == "daisy":
+#     if plan_type == "daisy":
 
-        daisy_offset_x, daisy_offset_y = get_pointing_offset(time, period, plan_type="daisy")
+#         daisy_offset_x, daisy_offset_y = get_pointing_offset(time, period, plan_type="daisy")
 
-        return (
-            centers[0] + throws[0] * r * np.cos(p),
-            centers[1] + throws[1] * r * np.sin(p),
-        )
+#         return (
+#             centers[0] + throws[0] * r * np.cos(p),
+#             centers[1] + throws[1] * r * np.sin(p),
+#         )
 
-    if plan_type == "box":
-        return (
-            centers[0]
-            + throws[0] * np.interp(p % (2 * np.pi), np.linspace(0, 2 * np.pi, 5), [-1, -1, +1, +1, -1]),
-            centers[1] + throws[1] * np.interp(p, np.linspace(0, 2 * np.pi, 5), [-1, +1, +1, -1, -1]),
-        )
+#     if plan_type == "box":
+#         return (
+#             centers[0]
+#             + throws[0] * np.interp(p % (2 * np.pi), np.linspace(0, 2 * np.pi, 5), [-1, -1, +1, +1, -1]),
+#             centers[1] + throws[1] * np.interp(p, np.linspace(0, 2 * np.pi, 5), [-1, +1, +1, -1, -1]),
+#         )
+
 
 
 def get_daisy_offsets(phase, k=2.11):
     r = np.sin(k * phase)
     return r * np.cos(phase), r * np.sin(phase)
     
-
-
-
+    
 def get_pointing(time, **kwargs):
     """
     Returns azimuth and elevation
@@ -138,33 +126,29 @@ class Planner:
 # ================ ARRAY ================
 
 
-def get_passband(nu, nu_0, nu_w, order=4):
-    return np.exp(-np.abs((nu - nu_0) / (nu_w / 2)) ** order)
-
-
-def make_array(array_shape, max_fov, n_det):
+def generate_array_offsets(geometry, field_of_view, n):
 
     valid_array_types = ["flower", "hex", "square"]
 
-    if array_shape == "flower":
+    if geometry == "flower":
         phi = np.pi * (3.0 - np.sqrt(5.0))  # golden angle in radians
-        dzs = np.zeros(n_det).astype(complex)
-        for i in range(n_det):
-            dzs[i] = np.sqrt((i / (n_det - 1)) * 2) * np.exp(1j * phi * i)
+        dzs = np.zeros(n).astype(complex)
+        for i in range(n):
+            dzs[i] = np.sqrt((i / (n - 1)) * 2) * np.exp(1j * phi * i)
         od = np.abs(np.subtract.outer(dzs, dzs))
-        dzs *= max_fov / od.max()
+        dzs *= field_of_view / od.max()
         return np.c_[np.real(dzs), np.imag(dzs)]
-    if array_shape == "hex":
-        return make_hex(n_det, max_fov)
-    if array_shape == "square":
-        dxy_ = np.linspace(-max_fov, max_fov, int(np.ceil(np.sqrt(n_det)))) / (2 * np.sqrt(2))
+    if geometry == "hex":
+        return generate_hex_offsets(n, field_of_view)
+    if geometry == "square":
+        dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (2 * np.sqrt(2))
         DX, DY = np.meshgrid(dxy_, dxy_)
-        return np.c_[DX.ravel()[:n_det], DY.ravel()[:n_det]]
+        return np.c_[DX.ravel()[:n], DY.ravel()[:n]]
 
     raise ValueError("Please specify a valid array type. Valid array types are:\n" + "\n".join(valid_array_types))
 
 
-def make_hex(n, d):
+def generate_hex_offsets(n, d):
 
     angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
     zs = np.array([0])
@@ -183,60 +167,60 @@ def make_hex(n, d):
 # ================ STATS ================
 
 
-def get_minimal_bounding_rotation_angle(z):  # minimal-area rotation angle
+# def get_minimal_bounding_rotation_angle(z):  # minimal-area rotation angle
 
-    H = sp.spatial.ConvexHull(points=np.vstack([np.real(z).ravel(), np.imag(z).ravel()]).T)
-    HZ = z.ravel()[H.vertices]
+#     H = sp.spatial.ConvexHull(points=np.vstack([np.real(z).ravel(), np.imag(z).ravel()]).T)
+#     HZ = z.ravel()[H.vertices]
 
-    HE = np.imag(HZ).max() - np.imag(HZ).min()
-    HO = 0
-    # for z1,z2 in zip(HZ,np.roll(HZ,1)):
-    for RHO in np.linspace(0, np.pi, 1024 + 1)[1:]:
+#     HE = np.imag(HZ).max() - np.imag(HZ).min()
+#     HO = 0
+#     # for z1,z2 in zip(HZ,np.roll(HZ,1)):
+#     for RHO in np.linspace(0, np.pi, 1024 + 1)[1:]:
 
-        # RHO = np.angle(z2-z1)
-        RHZ = HZ * np.exp(1j * RHO)
+#         # RHO = np.angle(z2-z1)
+#         RHZ = HZ * np.exp(1j * RHO)
 
-        im_width = np.imag(RHZ).max() - np.imag(RHZ).min()
-        re_width = np.real(RHZ).max() - np.real(RHZ).min()
+#         im_width = np.imag(RHZ).max() - np.imag(RHZ).min()
+#         re_width = np.real(RHZ).max() - np.real(RHZ).min()
 
-        RHE = im_width  # * re_width
+#         RHE = im_width  # * re_width
 
-        if RHE < HE and re_width > im_width:
-            HE = RHE
-            HO = RHO
+#         if RHE < HE and re_width > im_width:
+#             HE = RHE
+#             HO = RHO
 
-    return HO
-
-
-def smallest_max_error_sample(items, max_error=1e0):
-
-    k = 1
-    cluster_mids = np.sort(sp.cluster.vq.kmeans(items, k_or_guess=1)[0])
-    while (np.abs(np.subtract.outer(items, cluster_mids)) / cluster_mids[None, :]).min(axis=1).max() > max_error:
-        cluster_mids = np.sort(sp.cluster.vq.kmeans(items, k_or_guess=k)[0])
-        k += 1
-
-    which_cluster = np.abs(np.subtract.outer(items, cluster_mids)).argmin(axis=1)
-
-    return cluster_mids, which_cluster
+#     return HO
 
 
-def make_beam_filter(side, window_func, args):
+# def smallest_max_error_sample(items, max_error=1e0):
 
-    beam_X, beam_Y = np.meshgrid(side, side)
-    beam_R = np.sqrt(np.square(beam_X) + np.square(beam_Y))
-    beam_W = window_func(beam_R, *args)
+#     k = 1
+#     cluster_mids = np.sort(sp.cluster.vq.kmeans(items, k_or_guess=1)[0])
+#     while (np.abs(np.subtract.outer(items, cluster_mids)) / cluster_mids[None, :]).min(axis=1).max() > max_error:
+#         cluster_mids = np.sort(sp.cluster.vq.kmeans(items, k_or_guess=k)[0])
+#         k += 1
 
-    return beam_W / beam_W.sum()
+#     which_cluster = np.abs(np.subtract.outer(items, cluster_mids)).argmin(axis=1)
+
+#     return cluster_mids, which_cluster
+
+
+# def make_beam_filter(side, window_func, args):
+
+#     beam_X, beam_Y = np.meshgrid(side, side)
+#     beam_R = np.sqrt(np.square(beam_X) + np.square(beam_Y))
+#     beam_W = window_func(beam_R, *args)
+
+#     return beam_W / beam_W.sum()
 
 
 
 
-def get_brightness_temperature(f_pb, pb, f_spec, spec):
+# def get_brightness_temperature(f_pb, pb, f_spec, spec):
 
-    return sp.integrate.trapz(
-        sp.interpolate.interp1d(f_spec, spec, axis=-1)(f_pb) * pb, f_pb, axis=-1
-    ) / sp.integrate.trapz(pb, f_pb)
+#     return sp.integrate.trapz(
+#         sp.interpolate.interp1d(f_spec, spec, axis=-1)(f_pb) * pb, f_pb, axis=-1
+#     ) / sp.integrate.trapz(pb, f_pb)
 
 
 # ================ POINTING ================

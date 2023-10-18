@@ -1,23 +1,17 @@
 import numpy as np
 import scipy as sp
-import pandas as pd
-import h5py
 import os
 from tqdm import tqdm
-import warnings
-from importlib import resources
 import time as ttime
 from .. import utils
 import weathergen
-from os import path
-from datetime import datetime
 
 # how do we do the bands? this is a great question.
 # because all practical telescope instrumentation assume a constant band
 
 here, this_filename = os.path.split(__file__)
 
-from .. import base
+from .. import base, utils
 
 class BaseAtmosphericSimulation(base.BaseSimulation):
     """
@@ -29,14 +23,9 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
     def __init__(self, array, pointing, site, **kwargs):
         super().__init__(array, pointing, site, **kwargs)
 
-        self.AZ, self.EL = utils.xy_to_lonlat(
-            self.array.sky_x[:, None],
-            self.array.sky_y[:, None],
-            self.pointing.az,
-            self.pointing.el,
-        )
 
-        utils.validate_pointing(self.AZ, self.EL)
+
+        utils.validate_pointing(self.pointing.az, self.pointing.el)
 
         self.weather = weathergen.Weather(
             region=self.site.region,
@@ -44,6 +33,16 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
             diurnal=self.site.diurnal,
             altitude=self.site.altitude
         )
+
+    @property
+    def EL(self):
+        _, EL = utils.xy_to_lonlat(
+            self.array.offset_x[:, None],
+            self.array.offset_y[:, None],
+            self.pointing.az,
+            self.pointing.el,
+        )
+        return EL
 
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
@@ -53,7 +52,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
         if units == 'K_RJ': # Kelvin Rayleigh-Jeans
 
             self.simulate_integrated_water_vapor() 
-            self.data = np.empty((self.array.n_dets, self.pointing.n_time))
+            self.data = np.empty((self.array.n_dets, self.pointing.n_time), dtype=np.float32)
 
             for iub, uband in enumerate(self.array.ubands):
 
@@ -89,10 +88,7 @@ def get_rotation_matrix_from_skew(x):
     return R
             
 MIN_SAMPLES_PER_RIBBON = 2
-JITTER_LEVEL = 1e-6
-
-
-
+JITTER_LEVEL = 1e-4
 
 
 class SingleLayerSimulation(BaseAtmosphericSimulation):
@@ -104,22 +100,22 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
     def __init__(self, array, pointing, site, layer_height=1e3, min_beam_res=4, verbose=False, **kwargs):
         super().__init__(array, pointing, site, **kwargs)
 
-        
-
         self.min_beam_res = min_beam_res
-
         self.layer_height = layer_height
 
         # this is approximately correct
         self.layer_depth = self.layer_height / np.sin(np.mean(self.pointing.el))
 
-        # returns the beam waist for each detector at the layer distance
-        self.physical_beam_waists = self.array.get_beam_waist(
-            self.layer_height, self.array.primary_size, self.array.dets.band_center.values
-        )
-        self.angular_beam_waists = self.physical_beam_waists / self.layer_depth
+        # this might change
         self.angular_outer_scale = 500 / self.layer_depth
-        self.angular_resolution = self.angular_beam_waists.min() / self.min_beam_res
+
+        # returns the beam fwhm for each detector at the layer distance
+        self.physical_beam_fwhm = self.array.physical_fwhm(self.layer_height)
+        self.angular_beam_fwhm = self.physical_beam_fwhm / self.layer_depth
+        
+        self.angular_resolution = self.angular_beam_fwhm.min() / self.min_beam_res
+        if verbose:
+            print(f"{self.angular_resolution = }")
 
         self.weather = weathergen.Weather(region=self.site.region, 
                                           altitude=self.site.altitude,
@@ -156,13 +152,13 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
                                                 self.pointing.dy + np.cumsum(angular_velocity_y * self.pointing.dt, axis=-1)]
 
         # find the detector offsets which form a convex hull
-        self.detector_offsets = np.c_[self.array.sky_x, self.array.sky_y]
+        self.detector_offsets = np.c_[self.array.offset_x, self.array.offset_y]
         doch = sp.spatial.ConvexHull(self.detector_offsets)
         
         # pad each vertex in the convex hull by an appropriate amount
         unit_circle_angles = np.linspace(0, 2*np.pi, 32+1)[:-1]
         unit_circle_offsets = np.c_[np.cos(unit_circle_angles), np.sin(unit_circle_angles)]
-        angular_padding_per_detector = 1.1 * self.angular_beam_waists
+        angular_padding_per_detector = 1.1 * self.angular_beam_fwhm
         padded_doch_offsets = (angular_padding_per_detector[doch.vertices][:, None, None] * unit_circle_offsets[None, :] 
                                + self.detector_offsets[doch.vertices][:, None]).reshape(-1, 2)
         
@@ -292,13 +288,11 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         detector_values = np.zeros(trans_detector_angular_positions.shape[:-1])
         for uband in self.array.ubands:
             band_mask = self.array.dets.band == uband
-            angular_waist = self.angular_beam_waists[band_mask].mean()
-            F = self.array.make_filter(angular_waist, self.angular_resolution, self.array.beam_func)
-            FILTERED_VALUES = self.array.separably_filter(self.VALUES, F) 
+            band_angular_fwhm = self.angular_beam_fwhm[band_mask].mean()
+            F = utils.beam.make_beam_filter(band_angular_fwhm, self.angular_resolution, self.array.beam_profile)
+            FILTERED_VALUES = utils.beam.separably_filter(self.VALUES, F) 
             detector_values[band_mask] = sp.interpolate.RegularGridInterpolator((self.cross_section_side, self.extrusion_side), 
                                                                                 FILTERED_VALUES.T)(trans_detector_angular_positions[band_mask])
 
         # this is "zenith-scaled"
         self.effective_integrated_water_vapor = 1. + self.site.pwv_rms * detector_values
-
-
