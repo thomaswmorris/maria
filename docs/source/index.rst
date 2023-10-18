@@ -16,4 +16,5 @@ a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
    :maxdepth: 2
 
    installation.rst
+   simulations.rst
    tutorials.rst
