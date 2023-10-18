@@ -158,7 +158,6 @@ class BinMapper(BaseMapper):
 
     def _fourier_filter(self, tod_dat, tod_time):
         ffilt       = [0.08,51.0]        # high-pass and low-pass filters, in Hz
-        # ffilt       = [0.008,51.0]        # high-pass and low-pass filters, in Hz
         width       = 0.05
 
         n  = len(tod_time)
