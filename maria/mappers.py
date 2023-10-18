@@ -22,9 +22,6 @@ here, this_filename = os.path.split(__file__)
 MAPPER_CONFIGS = utils.read_yaml(f"{here}/configs/mappers.yml")
 MAPPERS = list((MAPPER_CONFIGS.keys()))
 
-
-
-
 class InvalidMapperError(Exception):
     def __init__(self, invalid_mapper):
         print(f"The mapper \'{invalid_mapper}\' is not in the database of default mappers."
@@ -43,6 +40,7 @@ class BaseMapper:
         self.map_res    = kwargs.get("map_res", np.radians(1/60))
         self.map_width  = kwargs.get("map_width", np.radians(5))
         self.map_height = kwargs.get("map_height", np.radians(5))
+        self.map_filter = kwargs.get("filter", True)
 
         # self.header = fits.header.Header()
 
@@ -128,25 +126,24 @@ class BaseMapper:
         else: 
             self.header['BUNIT']   = 'Kelvin RJ'   
 
+        save_maps = np.zeros((len(self.maps.keys()), self.maps[list(self.maps.keys())[0]].shape[0], self.maps[list(self.maps.keys())[0]].shape[1]))
         for i, key in enumerate(self.maps.keys()):
             
             # what is this? --> Frequency information in the header
             self.header['CRVAL3'] = self.nom_freqs[key]
-            save_map = self.maps[list(self.maps.keys())[i]] 
+            save_maps[i] = self.maps[list(self.maps.keys())[i]] 
 
             if self.tods[0].unit == 'Jy/pixel': 
-                save_map *= utils.KbrightToJyPix(self.header['CRVAL3'], 
-                                                 self.header['CDELT1'], 
-                                                 self.header['CDELT2']
-                                                #  np.deg2rad(self.header['CDELT1']), 
-                                                #  np.deg2rad(self.header['CDELT2'])
+                save_maps[i] *= utils.KbrightToJyPix(self.header['CRVAL3'], 
+                                                    self.header['CDELT1'], 
+                                                    self.header['CDELT2']
                                                 )
                 
-            fits.writeto( filename = os.getcwd() + filepath.split('.fits')[0] + '_'+list(self.maps.keys())[i]+'.fits', 
-                            data = save_map, 
-                            header = self.header,
-                            overwrite = True 
-                        )
+        fits.writeto( filename = os.getcwd() + filepath, 
+                        data = save_maps, 
+                        header = self.header,
+                        overwrite = True 
+                    )
 
 
 class BinMapper(BaseMapper):
@@ -161,7 +158,6 @@ class BinMapper(BaseMapper):
 
     def _fourier_filter(self, tod_dat, tod_time):
         ffilt       = [0.08,51.0]        # high-pass and low-pass filters, in Hz
-        # ffilt       = [0.008,51.0]        # high-pass and low-pass filters, in Hz
         width       = 0.05
 
         n  = len(tod_time)
@@ -213,7 +209,8 @@ class BinMapper(BaseMapper):
 
                 band_mask = tod.dets.band == band
 
-                # tod.data[band_mask] = self._fourier_filter(tod.data[band_mask], tod.time)
+                if self.map_filter:
+                    tod.data[band_mask] = self._fourier_filter(tod.data[band_mask], tod.time)
 
                 LON, LAT = tod.LON[band_mask], tod.LAT[band_mask]
                 if self._nmtr > 0:
