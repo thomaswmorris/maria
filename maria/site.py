@@ -3,7 +3,9 @@ import re
 import os
 import weathergen
 import h5py
+import typing
 from . import utils
+from dataclasses import dataclass
 
 here, this_filename = os.path.split(__file__)
 
@@ -53,17 +55,25 @@ class AtmosphericSpectrum:
             self.trj            = f["temperature_rayleigh_jeans_K"][:]
             self.phase_delay    = f["phase_delay_um"][:]
 
+@dataclass
 class Site:
+
+    description: str = "",
+    region: str = "princeton",
+    altitude: float = 62, # in meters
+    seasonal: bool = True,
+    diurnal: bool = True,
+    latitude: float = 40.3522, # in degrees
+    longitude: float = -74.6519, # in degrees
+    weather_quantiles: dict = {},
+    pwv_rms: float = 100, # in microns
 
     """
     A class containing time-ordered pointing data. Pass a supported site (found at weathergen.sites),
     and a height correction if needed.
     """
 
-    def __init__(self, **kwargs):
-
-        for key, default_value in SITE_CONFIGS["default"].items():
-            setattr(self, key, kwargs.get(key, default_value))
+    def __post_init__(self):
 
         if not self.region in regions.index.values:
             raise InvalidRegionError(self.region)
@@ -79,8 +89,3 @@ class Site:
 
         spectrum_filepath = f"{here}/spectra/{self.region}.h5"
         self.spectrum = AtmosphericSpectrum(filepath=spectrum_filepath) if os.path.exists(spectrum_filepath) else None
-
-        
-    def __repr__(self):
-        
-        return f"{self.region}"

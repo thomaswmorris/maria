@@ -46,7 +46,8 @@ class Simulation(BaseSimulation):
                  site="default", 
                  atm_model=None, 
                  map_file=None, 
-                 noise_model=None, 
+                 map_center=None,
+                 noise_model=None,
                  **kwargs):
 
         super().__init__(array, pointing, site, **kwargs)
