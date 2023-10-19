@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sp
 import os
 from tqdm import tqdm
+import h5py
 import time as ttime
 from .. import utils, weather
 
@@ -11,8 +12,6 @@ from .. import utils, weather
 here, this_filename = os.path.split(__file__)
 
 from .. import base, utils
-
-
 
 class AtmosphericSpectrum:
     def __init__(self, filepath):
