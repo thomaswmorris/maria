@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import pathlib
 import pytz
 import yaml
@@ -12,6 +12,6 @@ def datetime_handler(time):
     Accepts any time format you can think of, spits out datetime object
     """
     if isinstance(time, (int, float)):
-        return datetime.datetime.fromtimestamp(time).astimezone(pytz.utc)
+        return datetime.fromtimestamp(time).astimezone(pytz.utc)
     if isinstance(time, str):
-        return datetime.datetime.fromisoformat(time).replace(tzinfo=pytz.utc)
+        return datetime.fromisoformat(time).replace(tzinfo=pytz.utc)
