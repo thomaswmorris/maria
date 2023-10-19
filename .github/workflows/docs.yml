@@ -25,21 +25,27 @@ jobs:
 
       - name: Checkout the code
         uses: actions/checkout@v3
-
-      - name: Set up Python ${{ matrix.python-version }} with conda
-        uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: ${{ env.REPOSITORY_NAME }}-py${{ matrix.python-version }}
-          auto-update-conda: true
-          miniconda-version: "latest"
-          python-version: ${{ matrix.python-version }}
-          mamba-version: "*"
-          channels: conda-forge
+          fetch-depth: 0
 
-      - name: Install dependencies with pip
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install documentation-building requirements with apt/dpkg
         run: |
-          mamba install -c conda-forge pandoc
-          pip install .
+          set -vxeuo pipefail
+          wget --progress=dot:giga "https://github.com/jgm/pandoc/releases/download/3.1.6.1/pandoc-3.1.6.1-1-amd64.deb" -O /tmp/pandoc.deb
+          sudo dpkg -i /tmp/pandoc.deb
+
+      - name: Install documentation-building requirements with pip
+        run: |
+          # For reference: https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html.
+          set -vxeo pipefail
+
+          pip install --upgrade pip wheel
+          pip install -v .
           pip install -r requirements-dev.txt
           pip list
 

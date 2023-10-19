@@ -7,7 +7,6 @@ import warnings
 from importlib import resources
 import time as ttime
 from . import utils
-import weathergen
 from os import path
 import json
 from datetime import datetime
@@ -42,7 +41,6 @@ class BaseMapper:
         self.map_height = kwargs.get("map_height", np.radians(5))
         self.map_filter = kwargs.get("filter", True)
 
-        # self.header = fits.header.Header()
 
     @property
     def maps(self):
@@ -66,8 +64,8 @@ class BaseMapper:
         coordinator = Coordinator(lat=tod.meta['latitude'], lon=tod.meta['longitude'])
 
         tod.AZ, tod.EL = utils.xy_to_lonlat(
-            tod.dets.sky_x.values[:, None],
-            tod.dets.sky_y.values[:, None],
+            tod.dets.offset_x.values[:, None],
+            tod.dets.offset_y.values[:, None],
             tod.az,
             tod.el,
         )
