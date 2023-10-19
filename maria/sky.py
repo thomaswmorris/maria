@@ -10,7 +10,6 @@ import warnings
 from importlib import resources
 import time as ttime
 from . import utils
-import weathergen
 from os import path
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -110,8 +109,8 @@ class BaseSkySimulation(base.BaseSimulation):
         super().__init__(array, pointing, site, **kwargs)
 
         AZIM, ELEV = utils.xy_to_lonlat(
-            self.array.sky_x[:, None],
-            self.array.sky_y[:, None],
+            self.array.offset_x[:, None],
+            self.array.offset_y[:, None],
             self.pointing.az,
             self.pointing.el,
         )
@@ -141,9 +140,7 @@ class MapSimulation(BaseSkySimulation):
         self.input_map_file = map_file
         hudl = ap.io.fits.open(map_file)
 
-        freqs = []
-        for ke in self.array.detectors.keys():
-            freqs.append(self.array.detectors[ke][0])
+        freqs = np.unique(self.array.dets.band_center)
 
         self.input_map = Map(data     = hudl[0].data[None],
                              header   = hudl[0].header,

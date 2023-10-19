@@ -74,12 +74,12 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 
         # the angular position of each detector over time WRT the atmosphere
         self.REL_X = (
-            self.array.sky_x[None, :, None]
+            self.array.offset_x[None, :, None]
             + self.pointing.dx[None, None]
             + np.cumsum(self.AWV_X * self.pointing.dt, axis=-1)[:, None]
         )
         self.REL_Y = (
-            self.array.sky_y[None, :, None]
+            self.array.offset_y[None, :, None]
             + self.pointing.dy[None, None]
             + np.cumsum(self.AWV_Y * self.pointing.dt, axis=-1)[:, None]
         )
