@@ -1,19 +1,14 @@
-import glob
-import re
 import os
-import weathergen
 import h5py
-import typing
 from . import utils
+from .weather import regions
 from dataclasses import dataclass
 
 here, this_filename = os.path.split(__file__)
 
-REGIONS_WITH_SPECTRA = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
-REGIONS_WITH_WEATHER = list(weathergen.regions.index)
-SUPPORTED_REGIONS = list(set(REGIONS_WITH_SPECTRA) & set(REGIONS_WITH_WEATHER))
-
-regions = weathergen.regions.loc[SUPPORTED_REGIONS].sort_index()
+# REGIONS_WITH_SPECTRA = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
+# REGIONS_WITH_WEATHER = list(weathergen.regions.index)
+# SUPPORTED_REGIONS = list(set(REGIONS_WITH_SPECTRA) & set(REGIONS_WITH_WEATHER))
 
 SITE_CONFIGS = utils.io.read_yaml(f"{here}/configs/sites.yml")
 SITE_PARAMS = set()

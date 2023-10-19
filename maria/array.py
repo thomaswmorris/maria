@@ -12,7 +12,7 @@ import os
 from . import utils
 
 # better formatting for pandas dataframes
-pd.set_eng_float_format()
+# pd.set_eng_float_format()
 
 here, this_filename = os.path.split(__file__)
 
@@ -63,16 +63,16 @@ def generate_dets_from_config(bands: Mapping, field_of_view: float, geometry: st
 
         dets = pd.concat([dets, band_dets])
 
-    offsets = utils.generate_array_offsets(geometry, field_of_view, len(dets))
+    offsets_radians = np.radians(utils.generate_array_offsets(geometry, field_of_view, len(dets)))
 
     # should we make another function for this?
     baseline = utils.generate_array_offsets(geometry, max_baseline, len(dets))
 
     if randomize_offsets:
-        np.random.shuffle(offsets) # this is a stupid function.
+        np.random.shuffle(offsets_radians) # this is a stupid function.
 
-    dets.loc[:, "offset_x"] = offsets[:, 0]
-    dets.loc[:, "offset_y"] = offsets[:, 1]
+    dets.loc[:, "offset_x"] = offsets_radians[:, 0]
+    dets.loc[:, "offset_y"] = offsets_radians[:, 1]
     dets.loc[:, "baseline_x"] = baseline[:, 0]
     dets.loc[:, "baseline_y"] = baseline[:, 1]
 
@@ -87,7 +87,6 @@ class Array:
     An array.
     """
     description: str = '',
-    dets: pd.DataFrame = None,    # dets, it's complicated
     primary_size: float = 5,    # in meters
     max_az_vel: float = 0,      # in deg/s
     max_el_vel: float = np.inf, # in deg/s
@@ -96,6 +95,7 @@ class Array:
     az_bounds: Tuple[float, float] = (0, 360), # in degrees
     el_bounds: Tuple[float, float] = (0, 90),  # in degrees
     documentation: str = '',
+    dets: pd.DataFrame = None,    # dets, it's complicated
 
     @property
     def ubands(self):
@@ -125,6 +125,7 @@ class Array:
     def baselines(self):
         return np.c_[self.baseline_x, self.baseline_y]
 
+
     @classmethod
     def from_config(cls, config):
 
@@ -134,7 +135,6 @@ class Array:
                                             geometry=config.get("geometry", "hex"))
 
         return cls(
-                dets=dets,
                 description=config["description"],
                 primary_size=config["primary_size"],
                 max_az_vel=config["max_az_vel"],
@@ -144,6 +144,7 @@ class Array:
                 az_bounds=config["az_bounds"],
                 el_bounds=config["el_bounds"],
                 documentation=config["documentation"],
+                dets=dets,
                 )
 
     @staticmethod
@@ -200,13 +201,13 @@ class Array:
             band_mask = self.dets.band == uband
 
             band_res = 60 * np.degrees(2.998e8 / (self.dets.band_center.mean() * self.primary_size))
-            offsets = 60 * np.degrees(np.vstack([self.dets.offset_x[band_mask], self.dets.offset_y[band_mask]])).T
+            offsets_arcmins = 60 * np.degrees(self.offsets)
 
             ax.add_collection(EllipseCollection(widths=band_res, heights=band_res, angles=0, units='xy',
                                             facecolors="none", edgecolors="k", lw=1e-1,
-                                            offsets=offsets, transOffset=ax.transData))
+                                            offsets=offsets_arcmins, transOffset=ax.transData))
             
-            ax.scatter(*offsets.T, label=uband, s=5e-1)
+            ax.scatter(*offsets_arcmins.T, label=uband, s=5e-1)
 
         ax.set_xlabel(r'$\theta_x$ offset (arc min.)')
         ax.set_ylabel(r'$\theta_y$ offset (arc min.)')
