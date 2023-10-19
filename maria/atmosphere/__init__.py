@@ -12,6 +12,22 @@ here, this_filename = os.path.split(__file__)
 
 from .. import base, utils
 
+
+
+class AtmosphericSpectrum:
+    def __init__(self, filepath):
+        """
+        A dataclass to hold spectra as attributes
+        """
+        with h5py.File(filepath, "r") as f:
+
+            self.nu             = f["nu_Hz"][:]
+            self.side_elevation = f["side_elevation_deg"][:]
+            self.side_pwv       = f["side_zenith_pwv_mm"][:]
+            self.trj            = f["temperature_rayleigh_jeans_K"][:]
+            self.phase_delay    = f["phase_delay_um"][:]
+
+
 class BaseAtmosphericSimulation(base.BaseSimulation):
     """
     The base class for modeling atmospheric fluctuations.
@@ -30,6 +46,9 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
             altitude=self.site.altitude,
             quantiles=self.site.weather_quantiles,
         )
+
+        spectrum_filepath = f"{here}/spectra/{self.site.region}.h5"
+        self.spectrum = AtmosphericSpectrum(filepath=spectrum_filepath) if os.path.exists(spectrum_filepath) else None
 
     @property
     def EL(self):
@@ -55,12 +74,12 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
                 band_mask = self.array.dets.band == uband
 
-                passband  = (np.abs(self.site.spectrum.nu - self.array.dets.band_center[band_mask].mean()) < 0.5 * self.array.dets.band_width[band_mask].mean()).astype(float)
+                passband  = (np.abs(self.spectrum.nu - self.array.dets.band_center[band_mask].mean()) < 0.5 * self.array.dets.band_width[band_mask].mean()).astype(float)
                 passband /= passband.sum()
 
-                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.site.spectrum.side_pwv, 
-                                                                                 self.site.spectrum.side_elevation),
-                                                                                (self.site.spectrum.trj * passband).sum(axis=-1))
+                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.side_pwv, 
+                                                                                 self.spectrum.side_elevation),
+                                                                                (self.spectrum.trj * passband).sum(axis=-1))
 
                 self.data[band_mask] = band_T_RJ_interpolator((self.effective_integrated_water_vapor[band_mask], np.degrees(self.EL[band_mask])))
 

@@ -7,7 +7,6 @@ import warnings
 from importlib import resources
 import time as ttime
 from . import utils
-import weathergen
 from os import path
 import json
 from datetime import datetime
