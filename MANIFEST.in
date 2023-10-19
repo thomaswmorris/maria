@@ -10,5 +10,7 @@ recursive-include docs *.rst conf.py Makefile make.bat
 
 include versioneer.py
 include maria/_version.py
-include maria/spectra/*
+include maria/atmosphere/spectra/*
 include maria/configs/*
+include maria/weather/*
+include maria/weather/data/*
