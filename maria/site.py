@@ -37,19 +37,6 @@ def get_site(site_name, **kwargs):
     return Site(**get_site_config(site_name, **kwargs))
 
 
-class AtmosphericSpectrum:
-    def __init__(self, filepath):
-        """
-        A dataclass to hold spectra as attributes
-        """
-        with h5py.File(filepath, "r") as f:
-
-            self.nu             = f["nu_Hz"][:]
-            self.side_elevation = f["side_elevation_deg"][:]
-            self.side_pwv       = f["side_zenith_pwv_mm"][:]
-            self.trj            = f["temperature_rayleigh_jeans_K"][:]
-            self.phase_delay    = f["phase_delay_um"][:]
-
 @dataclass
 class Site:
 
@@ -81,6 +68,3 @@ class Site:
 
         if self.altitude is None:
             self.altitude = regions.loc[self.region].altitude
-
-        spectrum_filepath = f"{here}/spectra/{self.region}.h5"
-        self.spectrum = AtmosphericSpectrum(filepath=spectrum_filepath) if os.path.exists(spectrum_filepath) else None
