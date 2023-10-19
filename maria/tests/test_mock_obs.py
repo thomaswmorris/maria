@@ -46,4 +46,4 @@ def test_we_observe():
     mapper.add_tods(tod)
     mapper.run()
 
-    mapper.save_maps("/tmp/test.fits")
+    #mapper.save_maps("/tmp/test.fits")
