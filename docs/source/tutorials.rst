@@ -4,7 +4,4 @@ Tutorials
 .. toctree::
    :maxdepth: 2
 
-   tutorials/getting-started.ipynb
-   tutorials/customizing.ipynb
    tutorials/mock-observations.ipynb
-   tutorials/atmosphere.ipynb
