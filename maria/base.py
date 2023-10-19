@@ -8,7 +8,6 @@ import warnings
 from importlib import resources
 import time as ttime
 from . import utils
-import weathergen
 from os import path
 from datetime import datetime
 from astropy.io import fits
