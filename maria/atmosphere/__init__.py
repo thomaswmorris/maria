@@ -3,8 +3,7 @@ import scipy as sp
 import os
 from tqdm import tqdm
 import time as ttime
-from .. import utils
-import weathergen
+from .. import utils, weather
 
 # how do we do the bands? this is a great question.
 # because all practical telescope instrumentation assume a constant band
@@ -23,15 +22,13 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
     def __init__(self, array, pointing, site, **kwargs):
         super().__init__(array, pointing, site, **kwargs)
 
-
-
         utils.validate_pointing(self.pointing.az, self.pointing.el)
 
-        self.weather = weathergen.Weather(
+        self.weather = weather.Weather(
+            t=self.pointing.time.mean(),
             region=self.site.region,
-            seasonal=self.site.seasonal,
-            diurnal=self.site.diurnal,
-            altitude=self.site.altitude
+            altitude=self.site.altitude,
+            quantiles=self.site.weather_quantiles,
         )
 
     @property
@@ -117,21 +114,10 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         if verbose:
             print(f"{self.angular_resolution = }")
 
-        self.weather = weathergen.Weather(region=self.site.region, 
-                                          altitude=self.site.altitude,
-                                          diurnal=True, 
-                                          seasonal=True)
-        
-        self.weather.generate(time=self.pointing.time.mean(), 
-                      mode="median", 
-                      fixed_quantiles=self.site.weather_quantiles)
-
         layer_altitude = self.site.altitude + self.layer_height
 
-        layer_wind_north = sp.interpolate.interp1d(self.weather.levels, self.weather.wind_north, axis=0)(layer_altitude)[0]
-        layer_wind_east  = sp.interpolate.interp1d(self.weather.levels, self.weather.wind_east, axis=0)(layer_altitude)[0]
-
-        
+        layer_wind_north = sp.interpolate.interp1d(self.weather.altitude_levels, self.weather.wind_north, axis=0)(layer_altitude)
+        layer_wind_east  = sp.interpolate.interp1d(self.weather.altitude_levels, self.weather.wind_east, axis=0)(layer_altitude)
         
         angular_velocity_x = (+layer_wind_east * np.cos(self.pointing.az) 
                               -layer_wind_north * np.sin(self.pointing.az)) / self.layer_depth
