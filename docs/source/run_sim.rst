@@ -1,5 +1,5 @@
 Simulate
-============
+========
 
 In this section, we provide a brief explanation of how to create synthetic time streams using Maria. For a comprehensive overview, please refer to the Tutorials.
 
