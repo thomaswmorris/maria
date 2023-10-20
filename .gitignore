@@ -7,6 +7,8 @@
 *.fits
 !maps/*.fits
 
+notebooks/*
+
 # *.ipynb
 # !docs/**.ipynb
 
