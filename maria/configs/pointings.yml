@@ -38,12 +38,8 @@ BAF:
   scan_pattern: back-and-forth
   scan_options:
     k: 3.1416
-  scan_center:
-  - 45
-  - 45
-  scan_radius:
-  - 5
-  - 5
+  scan_center: [45, 45]
+  scan_radius: 5.
   pointing_frame: az_el
   pointing_units: degrees
   scan_period: 60

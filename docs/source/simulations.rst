@@ -1,5 +1,5 @@
 Simulations
-============
+===========
 
 Here's how you do a simulation::
 
