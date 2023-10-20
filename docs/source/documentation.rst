@@ -1,5 +1,5 @@
 Code Documentation
-============
+==================
 
 In this documentation, you can find an overview of available keywords for customizing mock observations using the Maria software. We've included predefined configurations for convenience, which set all keywords to match specific settings.
 Below we list the keywords which compose the respective catagories: 

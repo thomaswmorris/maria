@@ -20,9 +20,9 @@ class AtmosphericSpectrum:
         """
         with h5py.File(filepath, "r") as f:
 
-            self.nu             = f["nu_Hz"][:]
+            self.nu             = f["side_nu_Hz"][:]
             self.side_elevation = f["side_elevation_deg"][:]
-            self.side_pwv       = f["side_zenith_pwv_mm"][:]
+            self.side_los_pwv   = f["side_line_of_sight_pwv_mm"][:]
             self.trj            = f["temperature_rayleigh_jeans_K"][:]
             self.phase_delay    = f["phase_delay_um"][:]
 
@@ -51,13 +51,11 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
     @property
     def EL(self):
-        _, EL = utils.xy_to_lonlat(
+        return utils.xy_to_lonlat(
             self.array.offset_x[:, None],
             self.array.offset_y[:, None],
             self.pointing.az,
-            self.pointing.el,
-        )
-        return EL
+            self.pointing.el)[1]
 
     def simulate_integrated_water_vapor(self):
         raise NotImplementedError('Atmospheric simulations are not implemented in the base class!')
@@ -76,11 +74,11 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
                 passband  = (np.abs(self.spectrum.nu - self.array.dets.band_center[band_mask].mean()) < 0.5 * self.array.dets.band_width[band_mask].mean()).astype(float)
                 passband /= passband.sum()
 
-                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.side_pwv, 
+                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.side_los_pwv, 
                                                                                  self.spectrum.side_elevation),
                                                                                 (self.spectrum.trj * passband).sum(axis=-1))
 
-                self.data[band_mask] = band_T_RJ_interpolator((self.effective_integrated_water_vapor[band_mask], np.degrees(self.EL[band_mask])))
+                self.data[band_mask] = band_T_RJ_interpolator((self.line_of_sight_water_vapor[band_mask], np.degrees(self.EL[band_mask])))
 
         if units == 'F_RJ': # Fahrenheit Rayleigh-Jeans 🇺🇸
 
@@ -299,4 +297,4 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
                                                                                 FILTERED_VALUES.T)(trans_detector_angular_positions[band_mask])
 
         # this is "zenith-scaled"
-        self.effective_integrated_water_vapor = 1. + self.site.pwv_rms * detector_values
+        self.line_of_sight_water_vapor = self.weather.pwv * (1. + self.site.pwv_rms_frac * detector_values) / np.sin(self.EL)

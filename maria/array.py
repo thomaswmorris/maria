@@ -1,10 +1,11 @@
 import numpy as np
 import scipy as sp
 import pandas as pd
-
+from operator import attrgetter
 import matplotlib.pyplot as plt
 from matplotlib.collections import EllipseCollection
-from dataclasses import dataclass
+
+from dataclasses import dataclass, fields
 from typing import Tuple
 from collections.abc import Mapping
 import os
@@ -81,21 +82,34 @@ def generate_dets_from_config(bands: Mapping, field_of_view: float, geometry: st
 
     return dets
 
+
 @dataclass
 class Array:
     """
     An array.
     """
-    description: str = '',
-    primary_size: float = 5,    # in meters
-    max_az_vel: float = 0,      # in deg/s
-    max_el_vel: float = np.inf, # in deg/s
-    max_az_acc: float = 0,      # in deg/s^2
-    max_el_acc: float = np.inf, # in deg/s^2
-    az_bounds: Tuple[float, float] = (0, 360), # in degrees
-    el_bounds: Tuple[float, float] = (0, 90),  # in degrees
-    documentation: str = '',
-    dets: pd.DataFrame = None,    # dets, it's complicated
+    description: str = ''
+    primary_size: float = 5    # in meters
+    field_of_view: float = 1   # in deg
+    geometry: str = 'hex'
+    max_az_vel: float = 0      # in deg/s
+    max_el_vel: float = np.inf # in deg/s
+    max_az_acc: float = 0      # in deg/s^2
+    max_el_acc: float = np.inf # in deg/s^2
+    az_bounds: Tuple[float, float] = (0, 360) # in degrees
+    el_bounds: Tuple[float, float] = (0, 90)  # in degrees
+    documentation: str = ''
+    dets: pd.DataFrame = None    # dets, it's complicated
+
+    def __repr__(self):
+        nodef_f_vals = (
+            (f.name, attrgetter(f.name)(self))
+            for f in fields(self)
+            if f.name != "dets"
+        )
+
+        nodef_f_repr = ", ".join(f"{name}={value}" for name, value in nodef_f_vals)
+        return f"{self.__class__.__name__}({nodef_f_repr})"
 
     @property
     def ubands(self):
@@ -130,13 +144,17 @@ class Array:
     def from_config(cls, config):
 
         if isinstance(config["dets"], Mapping):
+            field_of_view = config.get("field_of_view", 1)
+            geometry = config.get("geometry", "hex")
             dets = generate_dets_from_config(config["dets"], 
-                                            field_of_view=config.get("field_of_view", 1),
-                                            geometry=config.get("geometry", "hex"))
+                                            field_of_view=field_of_view,
+                                            geometry=geometry)
 
         return cls(
                 description=config["description"],
                 primary_size=config["primary_size"],
+                field_of_view=field_of_view,
+                geometry=geometry,
                 max_az_vel=config["max_az_vel"],
                 max_el_vel=config["max_el_vel"],
                 max_az_acc=config["max_az_acc"],

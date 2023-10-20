@@ -46,10 +46,10 @@ def absolute_to_relative_humidity(air_temp, abs_hum):
 class Weather:
     t          : float = 0
     region     : str = "chajnantor"
-    altitude   : float | None = None
-    utc_time   : str | None = None
-    local_time : str | None = None
-    time_zone  : str | None = None
+    altitude   : float = None
+    utc_time   : str = ''
+    local_time : str = ''
+    time_zone  : str = ''
     quantiles  : dict = field(default_factory=dict)
 
     def __post_init__(self):
