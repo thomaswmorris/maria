@@ -53,7 +53,7 @@ JCMT:
   longitude: -155.4770
   altitude: 4092
   documentation: https://www.eaobservatory.org/jcmt/
-  
+
 LMT:
   description: Large Millimeter Telescope
   region: sierra_negra
@@ -85,7 +85,7 @@ SPT:
   longitude: -90.
   altitude: 2800
   documentation: https://astro.uchicago.edu/research/spt.php
-  
+
 SRT:
   description: Sardinia Radio Telescope
   region: sardinia

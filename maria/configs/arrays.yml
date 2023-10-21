@@ -1,10 +1,14 @@
-default:
-  description: Default array 
+ACT_PA4:
+  description: AdvACT Polarization Array 4
   dets:
-    f150: 
-      n: 750
-      band_center: 150.e+9
-      band_width: 150.e+9
+    f150:
+      n: 375
+      band_center: 150
+      band_width: 10
+    f220:
+      n: 375
+      band_center: 220
+      band_width: 20
   field_of_view: 0.8
   geometry: hex
   primary_size: 6
@@ -14,16 +18,16 @@ default:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation:
-  
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+
 ALMA:
   description: ALMA (Atacama Large Millimeter Array)
   dets:
-    f150: 
+    f150:
       n: 750
-      band_center: 150.e+9
-      band_width: 150.e+9
-  field_of_view: 0.8
+      band_center: 150
+      band_width: 10
+  field_of_view: 0
   max_baseline: 12000 # meters
   geometry: hex
   primary_size: 6
@@ -34,34 +38,34 @@ ALMA:
   max_az_acc: 1
   max_el_acc: 0.25
   documentation: https://almascience.nrao.edu/about-alma/alma-basics
-  
+
 AtLAST:
   description: AtLAST (Atacama Large-Aperture Submillimeter Telescope)
   dets:
-    f027: 
+    f027:
       n: 750
-      band_center: 27.e+9
-      band_width: 5.e+9
-    f039: 
+      band_center: 27
+      band_width: 5
+    f039:
       n: 750
-      band_center: 39.e+9
-      band_width: 5.e+9
-    f093: 
+      band_center: 39
+      band_width: 5
+    f093:
       n: 750
-      band_center: 93.e+9
-      band_width: 10.e+9
-    f150: 
+      band_center: 93
+      band_width: 10
+    f150:
       n: 750
-      band_center: 150.e+9
-      band_width: 10.e+9
-    f225: 
+      band_center: 150
+      band_width: 10
+    f225:
       n: 750
-      band_center: 225.e+9
-      band_width: 30.e+9
-    f280: 
+      band_center: 225
+      band_width: 30
+    f280:
       n: 750
-      band_center: 280.e+9
-      band_width: 40.e+9
+      band_center: 280
+      band_width: 40
   geometry: hex
   field_of_view: 2.0
   primary_size: 50
@@ -72,14 +76,14 @@ AtLAST:
   max_az_acc: 1
   max_el_acc: 0.25
   documentation: https://www.atlast.uio.no/
-  
+
 MUSTANG-2:
   description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
   dets:
-    93GHz: 
+    93GHz:
       n: 217
-      band_center: 93.e+9
-      band_width: 10.e+9
+      band_center: 93
+      band_width: 10
   field_of_view: 0.07
   geometry: hex
   primary_size: 100
@@ -90,18 +94,18 @@ MUSTANG-2:
   max_az_acc: 1
   max_el_acc: 0.25
   documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
-  
+
 SCUBA-2:
   description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
   dets:
-    f350: 
+    f350:
       n: 5120
-      band_center: 350.e+9
-      band_width: 10.e+9
-    f650: 
+      band_center: 350
+      band_width: 10
+    f650:
       n: 5120
-      band_center: 650.e+9
-      band_width: 10.e+9
+      band_center: 650
+      band_width: 10
   field_of_view: 0.12
   geometry: hex
   primary_size: 15

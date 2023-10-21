@@ -1,10 +1,11 @@
-import numpy as np
 import astropy as ap
+import numpy as np
+
 
 class Coordinator:
-
     # what three-dimensional rotation matrix takes (frame 1) to (frame 2) ?
-    # we use astropy to compute this for a few test points, and then use the answer it to efficiently broadcast very big arrays
+    # we use astropy to compute this for a few test points, and then use the
+    # answer it to efficiently broadcast very big arrays
 
     def __init__(self, lon, lat):
         self.location = ap.coordinates.EarthLocation.from_geodetic(lon=lon, lat=lat)
@@ -24,7 +25,6 @@ class Coordinator:
         # you are standing a the north pole looking up (+z)
 
     def transform(self, unix, phi, theta, in_frame, out_frame):
-
         _unix = np.atleast_2d(unix).copy()
         _phi = np.atleast_2d(phi).copy()
         _theta = np.atleast_2d(theta).copy()
@@ -56,7 +56,9 @@ class Coordinator:
                 frame="icrs",
                 location=self.location,
             )
-        # if in_frame == 'galactic': self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot, frame = 'galactic', location = self.location)
+        # if in_frame == 'galactic':
+        # self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot,
+        # frame = 'galactic', location = self.location)
 
         if out_frame == "ra_dec":
             self._c = self.c.icrs
@@ -64,6 +66,7 @@ class Coordinator:
         if out_frame == "az_el":
             self._c = self.c.altaz
             self.rot_p, self.rot_t = self._c.az.rad, self._c.alt.rad
+
         # if out_frame == 'galactic': self._c = self.c.galactic; self.rot_p, self.rot_t = self._c.l.rad,  self._c.b.rad
 
         self.rot_xyz = np.c_[
@@ -99,9 +102,13 @@ class Coordinator:
             -1,
         )
 
-        trans_phi, trans_theta = np.arctan2(trans_xyz[0], trans_xyz[1]), np.arcsin(trans_xyz[2])
+        trans_phi, trans_theta = np.arctan2(trans_xyz[0], trans_xyz[1]), np.arcsin(
+            trans_xyz[2]
+        )
 
         if (in_frame, out_frame) == ("az_el", "ra_dec"):
             trans_phi += (_unix - epoch) * (2 * np.pi / 86163.0905)
 
-        return np.reshape(trans_phi % (2 * np.pi), phi.shape), np.reshape(trans_theta, theta.shape)
+        return np.reshape(trans_phi % (2 * np.pi), phi.shape), np.reshape(
+            trans_theta, theta.shape
+        )

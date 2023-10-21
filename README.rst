@@ -6,7 +6,7 @@ a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
 
 ``maria`` is a python-based package that simulates turbulent atmospheric
 emission using a auto-regressive Gaussian process framework, for
-applications in observational astronomy. Tutorials for installation and 
+applications in observational astronomy. Tutorials for installation and
 usage can be found in the `documentation <https://www.thomaswmorris.com/maria>`_.
 
 Background

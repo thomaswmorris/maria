@@ -21,7 +21,7 @@ We can specify a custom array::
     - field_of_view (float): in degrees
     - geometry (string): options are `hex` (defeault), `flower`, `square`
     - primary_size (float): meters
-    - az_bounds (list): [lower (float), upper (float)] in degrees 
+    - az_bounds (list): [lower (float), upper (float)] in degrees
     - el_bounds (list): [lower (float), upper (float)] in degrees
     - max_az_vel (float): ...
     - max_el_vel (float): ...
