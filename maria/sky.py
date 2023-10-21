@@ -164,7 +164,7 @@ class MapSimulation(BaseSkySimulation):
         if self.input_map.units == "Jy/pixel":
             for i, nu in enumerate(self.input_map.freqs):
                 self.input_map.data[i] = self.input_map.data[i] / utils.KbrightToJyPix(
-                    nu, np.rad2deg(self.input_map.res), np.rad2deg(self.input_map.res)
+                    1e9 * nu, np.rad2deg(self.input_map.res), np.rad2deg(self.input_map.res)
                 )
 
     def _run(self, **kwargs):

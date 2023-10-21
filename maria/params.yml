@@ -52,8 +52,9 @@ atmosphere:
   min_atmosphere_beam_res: 4
 
 map:
-  map_frame: "ra_dec"
+  map_file: ''
+  map_frame: 'ra_dec'
   map_center: [10, 4.5]
   map_res: 0.5
   map_inbright: 1
-  map_units: KRJ
+  map_units: K_RJ

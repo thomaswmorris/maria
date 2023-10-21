@@ -36,16 +36,14 @@ class Simulation(BaseSimulation):
         pointing: str or Pointing,
         site: str or Site,
         atm_model=None,
-        noise_model=None,
-        map_file=None,
-        map_center=None,
         verbose=False,
         **kwargs,
     ):
 
-        parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params, strict=True)
+        
+        self.parsed_kwargs = parse_sim_kwargs(kwargs, master_params, strict=True)
 
-        super().__init__(array, pointing, site, **parsed_sim_kwargs["array"], **parsed_sim_kwargs["pointing"], **parsed_sim_kwargs["site"])
+        super().__init__(array, pointing, site, verbose=verbose, **self.parsed_kwargs["array"], **self.parsed_kwargs["pointing"], **self.parsed_kwargs["site"])
 
         self.atm_sim = None
         self.map_sim = None
@@ -53,7 +51,7 @@ class Simulation(BaseSimulation):
 
         if atm_model is not None:
             self.atm_model = None
-            atm_kwargs = parsed_sim_kwargs["atmosphere"]
+            atm_kwargs = self.parsed_kwargs["atmosphere"]
             if atm_model in ["single_layer", "SL"]:
                 self.atm_sim = atmosphere.SingleLayerSimulation(
                     self.array, self.pointing, self.site, **atm_kwargs
@@ -62,12 +60,10 @@ class Simulation(BaseSimulation):
                 self.atm_sim = atmosphere.KolmogorovTaylorSimulation(
                     self.array, self.pointing, self.site, **atm_kwargs
                 )
-
-        if map_file is not None:
-            self.map_file = map_file
-            map_kwargs = parsed_sim_kwargs["map"]
-            if map_file is not None:
-                self.map_sim = sky.MapSimulation(self.array, self.pointing, self.site, map_file, **map_kwargs)
+        
+        if "map_file" in kwargs.keys():
+            map_kwargs = self.parsed_kwargs["map"]
+            self.map_sim = sky.MapSimulation(self.array, self.pointing, self.site, **map_kwargs)
 
 
     def _run(self):
