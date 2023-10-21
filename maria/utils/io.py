@@ -1,11 +1,14 @@
-from datetime import datetime
 import pathlib
+from datetime import datetime
+
 import pytz
 import yaml
+
 
 def read_yaml(filepath):
     res = yaml.safe_load(pathlib.Path(filepath).read_text())
     return res if res is not None else {}
+
 
 def datetime_handler(time):
     """

@@ -1,41 +1,50 @@
 # this is the junk drawer of functions
-import warnings 
-
-from .beam      import *
-from .coords    import *
-from .functions import *
-from .io        import *
-from .linalg    import *
-from .units     import *
-
+import warnings
 from datetime import datetime
+
+import numpy as np
+import pytz
+
+from .beam import *  # noqa F401
+from .coords import *  # noqa F401
+from .functions import *  # noqa F401
+from .io import *  # noqa F401
+from .linalg import *  # noqa F401
+from .units import *  # noqa F401
+
 
 def get_utc_day_hour(t):
     dt = datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc)
     return dt.hour + dt.minute / 60 + dt.second / 3600
 
+
 def get_utc_year_day(t):
     tt = datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc).timetuple()
-    return (tt.tm_yday + get_utc_day_hour(t) / 24 - 1) 
+    return tt.tm_yday + get_utc_day_hour(t) / 24 - 1
+
 
 def get_utc_year(t):
     return datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc).year
 
+
 class PointingError(Exception):
     pass
+
 
 def validate_pointing(azim, elev):
     el_min = np.atleast_1d(elev).min()
     if el_min < np.radians(10):
-        warnings.warn(f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)")
+        warnings.warn(
+            f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
+        )
     if el_min <= 0:
-        raise PointingError(f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)")
+        raise PointingError(
+            f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)"
+        )
 
 
 def get_pointing_offset(time, period, throws, plan_type):
-
     if plan_type == "daisy":
-
         phase = 2 * np.pi * time / period
 
         k = np.pi  # this added an irrational precession to the daisy
@@ -71,39 +80,33 @@ def get_pointing_offset(time, period, throws, plan_type):
 #         )
 
 
-
 def get_daisy_offsets(phase, k=2.11):
     r = np.sin(k * phase)
     return r * np.cos(phase), r * np.sin(phase)
-    
-    
+
+
 def get_pointing(time, **kwargs):
     """
     Returns azimuth and elevation
     """
-    scan_center  = kwargs.get("scan_center", (np.radians(10), np.radians(4.5)))
+    scan_center = kwargs.get("scan_center", (np.radians(10), np.radians(4.5)))
     scan_pattern = kwargs.get("scan_pattern", "stare")
-    scan_period  = kwargs.get("scan_period", 60)
-    scan_radius  = kwargs.get("scan_radius", np.radians(2))
-    
-    phase = 2 * np.pi * time / scan_period
-    
-    if scan_pattern == "daisy":
-        
-        dpox, dpoy = get_daisy_offsets(phase)
-        return xy_to_lonlat(scan_radius*dpox, scan_radius*dpoy, *scan_center)
-        
+    scan_period = kwargs.get("scan_period", 60)
+    scan_radius = kwargs.get("scan_radius", np.radians(2))
 
+    phase = 2 * np.pi * time / scan_period
+
+    if scan_pattern == "daisy":
+        dpox, dpoy = get_daisy_offsets(phase)
+        return xy_to_lonlat(scan_radius * dpox, scan_radius * dpoy, *scan_center)
 
 
 # COORDINATE TRANSFORM UTILS
 class Planner:
     def __init__(self, Array):
-
         self.array = Array
 
     def make_plans(self, start, end, ra, dec, chunk_time, static_config):
-
         start_time = datetime.fromisoformat(start).replace(tzinfo=pytz.utc).timestamp()
         end_time = datetime.fromisoformat(end).replace(tzinfo=pytz.utc).timestamp()
 
@@ -111,7 +114,9 @@ class Planner:
         _ra = np.radians(np.linspace(ra, ra, len(_unix)))
         _dec = np.radians(np.linspace(dec, dec, len(_unix)))
 
-        _az, _el = self.array.coordinator.transform(_unix, _ra, _dec, in_frame="ra_dec", out_frame="az_el")
+        _az, _el = self.array.coordinator.transform(
+            _unix, _ra, _dec, in_frame="ra_dec", out_frame="az_el"
+        )
 
         min_el = np.degrees(np.minimum(_el[1:], _el[:-1]))
 
@@ -120,7 +125,6 @@ class Planner:
         self.time, self.az, self.el = _unix[1:][ok], _az[1:][ok], _el[1:][ok]
 
         for start_time in _unix[:-1][ok]:
-
             yield dict(
                 {
                     "start_time": start_time,
@@ -137,7 +141,6 @@ class Planner:
 
 
 def generate_array_offsets(geometry, field_of_view, n):
-
     valid_array_types = ["flower", "hex", "square"]
 
     if geometry == "flower":
@@ -151,21 +154,27 @@ def generate_array_offsets(geometry, field_of_view, n):
     if geometry == "hex":
         return generate_hex_offsets(n, field_of_view)
     if geometry == "square":
-        dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (2 * np.sqrt(2))
+        dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (
+            2 * np.sqrt(2)
+        )
         DX, DY = np.meshgrid(dxy_, dxy_)
         return np.c_[DX.ravel()[:n], DY.ravel()[:n]]
 
-    raise ValueError("Please specify a valid array type. Valid array types are:\n" + "\n".join(valid_array_types))
+    raise ValueError(
+        "Please specify a valid array type. Valid array types are:\n"
+        + "\n".join(valid_array_types)
+    )
 
 
 def generate_hex_offsets(n, d):
-
     angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
     zs = np.array([0])
     layer = 0
     while len(zs) < n:
         for angle in angles:
-            for z in layer * np.exp(1j * angle) + np.arange(layer) * np.exp(1j * (angle + 2 * np.pi / 3)):
+            for z in layer * np.exp(1j * angle) + np.arange(layer) * np.exp(
+                1j * (angle + 2 * np.pi / 3)
+            ):
                 zs = np.append(zs, z)
         layer += 1
     zs -= zs.mean()
@@ -224,8 +233,6 @@ def generate_hex_offsets(n, d):
 #     return beam_W / beam_W.sum()
 
 
-
-
 # def get_brightness_temperature(f_pb, pb, f_spec, spec):
 
 #     return sp.integrate.trapz(
@@ -234,6 +241,3 @@ def generate_hex_offsets(n, d):
 
 
 # ================ POINTING ================
-
-
-
