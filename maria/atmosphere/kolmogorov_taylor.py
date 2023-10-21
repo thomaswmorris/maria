@@ -1,6 +1,4 @@
-
-
-class KolmogorovTaylorSimulation():
+class KolmogorovTaylorSimulation:
     def __init__(
         self,
         time,
@@ -17,7 +15,6 @@ class KolmogorovTaylorSimulation():
         max_res=100,
         max_depth=3000,
     ):
-
         self.time = time
         self.azim = azim
         self.elev = elev
@@ -60,7 +57,6 @@ class KolmogorovTaylorSimulation():
         self.initialized = False
 
     def initialize(self):
-
         max_spacing = int(self.n_cells / 1.1)
         iter_samples = [
             np.random.choice(
@@ -80,15 +76,21 @@ class KolmogorovTaylorSimulation():
         Zi, Zj = self.cZ, self.cZ[self.cell_iter_index]
 
         Rii = np.sqrt(
-            np.subtract.outer(Xi, Xi) ** 2 + np.subtract.outer(Yi, Yi) ** 2 + np.subtract.outer(Zi, Zi) ** 2
+            np.subtract.outer(Xi, Xi) ** 2
+            + np.subtract.outer(Yi, Yi) ** 2
+            + np.subtract.outer(Zi, Zi) ** 2
         )
 
         Rij = np.sqrt(
-            np.subtract.outer(Xi, Xj) ** 2 + np.subtract.outer(Yi, Yj) ** 2 + np.subtract.outer(Zi, Zj) ** 2
+            np.subtract.outer(Xi, Xj) ** 2
+            + np.subtract.outer(Yi, Yj) ** 2
+            + np.subtract.outer(Zi, Zj) ** 2
         )
 
         Rjj = np.sqrt(
-            np.subtract.outer(Xj, Xj) ** 2 + np.subtract.outer(Yj, Yj) ** 2 + np.subtract.outer(Zj, Zj) ** 2
+            np.subtract.outer(Xj, Xj) ** 2
+            + np.subtract.outer(Yj, Yj) ** 2
+            + np.subtract.outer(Zj, Zj) ** 2
         )
 
         alpha = 1e-3
@@ -97,15 +99,18 @@ class KolmogorovTaylorSimulation():
         self.Cii = utils.approximate_matern(
             Rii, r0=self.outer_scale, nu=1 / 3, n_test_points=4096
         ) + alpha**2 * np.eye(self.n_cells)
-        self.Cij = utils.approximate_matern(Rij, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
-        self.Cjj = utils.approximate_matern(Rjj, r0=self.outer_scale, nu=1 / 3, n_test_points=4096)
+        self.Cij = utils.approximate_matern(
+            Rij, r0=self.outer_scale, nu=1 / 3, n_test_points=4096
+        )
+        self.Cjj = utils.approximate_matern(
+            Rjj, r0=self.outer_scale, nu=1 / 3, n_test_points=4096
+        )
         self.A = np.matmul(self.Cij, utils.fast_psd_inverse(self.Cjj))
         self.B, _ = sp.linalg.lapack.dpotrf(self.Cii - np.matmul(self.A, self.Cij.T))
 
         self.initialized = True
 
     def extrude(self):
-
         if not self.initialized:
             self.initialize()
 
@@ -114,9 +119,9 @@ class KolmogorovTaylorSimulation():
 
         def iterate_autoregression(ARH, n_iter):
             for i in range(n_iter):
-                res = np.matmul(self.A, ARH[self.cell_iter_index, self.hist_iter_index]) + np.matmul(
-                    self.B, np.random.standard_normal(self.n_cells)
-                )
+                res = np.matmul(
+                    self.A, ARH[self.cell_iter_index, self.hist_iter_index]
+                ) + np.matmul(self.B, np.random.standard_normal(self.n_cells))
                 ARH = np.c_[res, ARH[:, :-1]]
             return ARH
 
@@ -125,7 +130,6 @@ class KolmogorovTaylorSimulation():
         for i in range(self.n_extrusion):
             ARH = iterate_autoregression(ARH, n_iter=1)
             self.cdata[:, i] = ARH[:, 0]
-
 
 
 def get_extrusion_products(
@@ -165,7 +169,9 @@ def get_extrusion_products(
 
     # this converts the $(x, y, z)$ vertices of a beam looking straight up to the $(x, y, z)$ vertices of
     # the time-ordered pointing of the beam in the frame of the wind direction.
-    elev_rotation_matrix = sp.spatial.transform.Rotation.from_euler("y", np.pi / 2 - elev).as_matrix()
+    elev_rotation_matrix = sp.spatial.transform.Rotation.from_euler(
+        "y", np.pi / 2 - elev
+    ).as_matrix()
     azim_rotation_matrix = sp.spatial.transform.Rotation.from_euler(
         "z", np.pi / 2 - azim + wind_direction
     ).as_matrix()
@@ -177,15 +183,23 @@ def get_extrusion_products(
 
     # this returns a list of time-ordered vertices, which can used to construct a convex hull
     time_ordered_vertices_list = []
-    for _min_radius, _max_radius, _baseline in zip(primary_sizes / 2, max_boresight_offset, baseline):
-
+    for _min_radius, _max_radius, _baseline in zip(
+        primary_sizes / 2, max_boresight_offset, baseline
+    ):
         _rot_baseline = np.matmul(
             sp.spatial.transform.Rotation.from_euler("z", wind_direction).as_matrix(),
             _baseline,
         )
 
         _vertices = np.c_[
-            np.r_[[_.ravel() for _ in np.meshgrid([-_min_radius, _min_radius], [-_min_radius, _min_radius], [0])]],
+            np.r_[
+                [
+                    _.ravel()
+                    for _ in np.meshgrid(
+                        [-_min_radius, _min_radius], [-_min_radius, _min_radius], [0]
+                    )
+                ]
+            ],
             np.r_[
                 [
                     _.ravel()
@@ -199,7 +213,10 @@ def get_extrusion_products(
         ]
 
         time_ordered_vertices_list.append(
-            _rot_baseline[None] + np.swapaxes(np.matmul(total_rotation_matrix, _vertices), 1, -1).reshape(-1, 3)
+            _rot_baseline[None]
+            + np.swapaxes(np.matmul(total_rotation_matrix, _vertices), 1, -1).reshape(
+                -1, 3
+            )
         )
 
     # these are the bounds in space that we have to worry about. it has shape (3, 2)
@@ -211,15 +228,23 @@ def get_extrusion_products(
     # here we make the layers of the atmosphere given the bounds of $z$ and the specified resolution; we use
     # regular layers to make interpolation more efficient later
     min_height = np.max(
-        [np.max(tov[:, 2][tov[:, 2] < np.median(tov[:, 2])]) for tov in time_ordered_vertices_list]
+        [
+            np.max(tov[:, 2][tov[:, 2] < np.median(tov[:, 2])])
+            for tov in time_ordered_vertices_list
+        ]
     )
     max_height = np.min(
-        [np.min(tov[:, 2][tov[:, 2] > np.median(tov[:, 2])]) for tov in time_ordered_vertices_list]
+        [
+            np.min(tov[:, 2][tov[:, 2] > np.median(tov[:, 2])])
+            for tov in time_ordered_vertices_list
+        ]
     )
 
     height_samples = np.linspace(min_height, max_height, 1024)
     dh = np.gradient(height_samples).mean()
-    dheight_dindex = np.interp(height_samples, [min_height, max_height], [min_res, max_res])
+    dheight_dindex = np.interp(
+        height_samples, [min_height, max_height], [min_res, max_res]
+    )
     dindex_dheight = 1 / dheight_dindex
     n_layers = int(np.sum(dindex_dheight * dh))
     layer_heights = sp.interpolate.interp1d(
@@ -234,10 +259,17 @@ def get_extrusion_products(
     x_min, x_max = extrusion_bounds[0, 0], extrusion_bounds[0, 1]
     n_per_layer = ((x_max - x_min) / layer_res).astype(int)
     cell_x = np.concatenate(
-        [np.linspace(x_min, x_max, n) for i, (res, n) in enumerate(zip(layer_res, n_per_layer))]
+        [
+            np.linspace(x_min, x_max, n)
+            for i, (res, n) in enumerate(zip(layer_res, n_per_layer))
+        ]
     )
-    cell_z = np.concatenate([h * np.ones(n) for i, (h, n) in enumerate(zip(layer_heights, n_per_layer))])
-    cell_res = np.concatenate([res * np.ones(n) for i, (res, n) in enumerate(zip(layer_res, n_per_layer))])
+    cell_z = np.concatenate(
+        [h * np.ones(n) for i, (h, n) in enumerate(zip(layer_heights, n_per_layer))]
+    )
+    cell_res = np.concatenate(
+        [res * np.ones(n) for i, (res, n) in enumerate(zip(layer_res, n_per_layer))]
+    )
 
     extrusion_cells = np.c_[cell_x, cell_z]
     extrusion_shift = np.c_[cell_res, np.zeros(len(cell_z))]
@@ -246,20 +278,22 @@ def get_extrusion_products(
 
     in_view = np.zeros(len(extrusion_cells)).astype(bool)
     for tov in time_ordered_vertices_list:
-
         baseline_in_view = np.zeros(len(extrusion_cells)).astype(bool)
 
-        hull = sp.spatial.ConvexHull(tov[:, [0, 2]])  # we only care about the $(x, z)$ dimensions here
+        hull = sp.spatial.ConvexHull(
+            tov[:, [0, 2]]
+        )  # we only care about the $(x, z)$ dimensions here
         A, b = hull.equations[:, :-1], hull.equations[:, -1:]
 
         for shift_factor in [-1, 0, +1]:
-
             baseline_in_view |= np.all(
                 (extrusion_cells + shift_factor * extrusion_shift) @ A.T + b.T < eps,
                 axis=1,
             )
 
-        in_view |= baseline_in_view  # if the cell is in view of any of the baselines, keep it!
+        in_view |= (
+            baseline_in_view  # if the cell is in view of any of the baselines, keep it!
+        )
 
         # plt.scatter(tov[:, 0], tov[:, 2], s=1e0)
 

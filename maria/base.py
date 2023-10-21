@@ -1,44 +1,58 @@
-import numpy as np
-import scipy as sp
-import pandas as pd
-import h5py
 import os
-from tqdm import tqdm
-import warnings
-from importlib import resources
-import time as ttime
-from . import utils
-from os import path
-from datetime import datetime
 from astropy.io import fits
+from . import utils
+
+from .array import ARRAY_PARAMS, Array, get_array
+from .coordinator import Coordinator
+from .pointing import POINTING_PARAMS, Pointing, get_pointing
+from .site import SITE_PARAMS, Site, get_site
+from .tod import TOD
 
 here, this_filename = os.path.split(__file__)
 
-from .array import get_array, ARRAY_PARAMS
-from .coordinator import Coordinator
-from .pointing import get_pointing, POINTING_PARAMS
-from .site import get_site, SITE_PARAMS
-from .tod import TOD
+class InvalidSimulationParameterError(Exception):
+    def __init__(self, invalid_keys):
+        super().__init__(
+            f"The parameters {invalid_keys} are not valid simulation parameters!"
+        )
+
+def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
+
+    parsed_kwargs = {k:{} for k in master_kwargs.keys()}
+    invalid_kwargs = {}
+
+    for k, v in kwargs.items():
+        parsed = False
+        for sub_type, sub_kwargs in master_kwargs.items():
+            if k in sub_kwargs.keys():
+                parsed_kwargs[sub_type][k] = v
+                parsed = True
+        if not parsed:
+            invalid_kwargs[k] = v
+        
+    if len(invalid_kwargs) > 0:
+        if strict:
+            raise InvalidSimulationParameterError(invalid_keys=list(invalid_kwargs.keys()))
+
+    return parsed_kwargs
+
+master_params = utils.io.read_yaml(f"{here}/params.yml")
 
 class BaseSimulation:
     """
     The base class for a simulation. This is an ingredient in every simulation.
     """
 
-    def __init__(self, 
-                 array, 
-                 pointing, 
-                 site,
-                 **kwargs):
-
+    def __init__(self, array, pointing, site, verbose=False, **kwargs):
         # who does each kwarg belong to?
-        array_kwargs = {k:v for k, v in kwargs.items() if k in ARRAY_PARAMS}
-        pointing_kwargs = {k:v for k, v in kwargs.items() if k in POINTING_PARAMS}
-        site_kwargs = {k:v for k, v in kwargs.items() if k in SITE_PARAMS}
 
-        self.array = get_array(array, **array_kwargs) if isinstance(array, str) else array
-        self.pointing = get_pointing(pointing, **pointing_kwargs) if isinstance(pointing, str) else pointing
-        self.site = get_site(site, **site_kwargs) if isinstance(site, str) else site
+        self.verbose = verbose
+
+        parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
+
+        self.array = array if isinstance(array, Array) else get_array(array, **parsed_sim_kwargs["array"])
+        self.pointing = pointing if isinstance(pointing, Pointing) else get_pointing(pointing, **parsed_sim_kwargs["pointing"])
+        self.site = site if isinstance(site, Site) else get_site(site, **parsed_sim_kwargs["site"])
 
         self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
 
@@ -71,43 +85,37 @@ class BaseSimulation:
             _params["site"][key] = getattr(self.site, key)
         return _params
 
-
     def _run(self):
-
         raise NotImplementedError()
 
-
     def run(self):
-
         self._run()
-    
+
         tod = TOD()
 
-        tod.data = self.data # this should be set in the _run() method
+        tod.data = self.data  # this should be set in the _run() method
 
         tod.time = self.pointing.time
-        tod.az   = self.pointing.az
-        tod.el   = self.pointing.el
-        tod.ra   = self.pointing.ra
-        tod.dec  = self.pointing.dec
+        tod.az = self.pointing.az
+        tod.el = self.pointing.el
+        tod.ra = self.pointing.ra
+        tod.dec = self.pointing.dec
         tod.cntr = self.pointing.scan_center
-        
+
         if hasattr(self, "map_sim"):
             if self.map_sim is not None:
                 tod.unit = self.map_sim.input_map.units
                 tod.header = self.map_sim.input_map.header
             else:
-                tod.unit = 'K'
+                tod.unit = "K"
                 tod.header = fits.header.Header()
-
 
         tod.dets = self.array.dets
 
-        tod.meta = {'latitude': self.site.latitude,
-                    'longitude': self.site.longitude,
-                    'altitude': self.site.altitude}
+        tod.meta = {
+            "latitude": self.site.latitude,
+            "longitude": self.site.longitude,
+            "altitude": self.site.altitude,
+        }
 
         return tod
-
-
-
