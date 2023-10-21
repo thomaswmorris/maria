@@ -20,11 +20,11 @@ class AtmosphericSpectrum:
         """
         with h5py.File(filepath, "r") as f:
 
-            self.nu             = f["side_nu_Hz"][:]
-            self.side_elevation = f["side_elevation_deg"][:]
-            self.side_los_pwv   = f["side_line_of_sight_pwv_mm"][:]
-            self.trj            = f["temperature_rayleigh_jeans_K"][:]
-            self.phase_delay    = f["phase_delay_um"][:]
+            self.side_nu        = f["side_nu_Hz"][:].astype(float)
+            self.side_elevation = f["side_elevation_deg"][:].astype(float)
+            self.side_los_pwv   = f["side_line_of_sight_pwv_mm"][:].astype(float)
+            self.trj            = f["temperature_rayleigh_jeans_K"][:].astype(float)
+            self.phase_delay    = f["phase_delay_um"][:].astype(float)
 
 
 class BaseAtmosphericSimulation(base.BaseSimulation):
@@ -69,10 +69,10 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
             for iub, uband in enumerate(self.array.ubands):
 
-                band_mask = self.array.dets.band == uband
+                band_mask = self.array.dets.band.values == uband
+                passband  = self.array.passbands(self.spectrum.side_nu)[band_mask].mean(axis=0)
 
-                passband  = (np.abs(self.spectrum.nu - self.array.dets.band_center[band_mask].mean()) < 0.5 * self.array.dets.band_width[band_mask].mean()).astype(float)
-                passband /= passband.sum()
+                assert False
 
                 band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator((self.spectrum.side_los_pwv, 
                                                                                  self.spectrum.side_elevation),

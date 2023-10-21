@@ -1,31 +1,22 @@
 import os
 import pandas as pd
 from . import utils
-from .weather import regions
+from .weather import supported_regions, InvalidRegionError
 from dataclasses import dataclass, field
 
 here, this_filename = os.path.split(__file__)
-
-# REGIONS_WITH_SPECTRA = [re.findall(rf"{here}/spectra/(.+).h5", filepath)[0] for filepath in glob.glob(f"{here}/spectra/*.h5")]
-# REGIONS_WITH_WEATHER = list(weathergen.regions.index)
-# SUPPORTED_REGIONS = list(set(REGIONS_WITH_SPECTRA) & set(REGIONS_WITH_WEATHER))
 
 SITE_CONFIGS = utils.io.read_yaml(f"{here}/configs/sites.yml")
 SITE_PARAMS = set()
 for key, config in SITE_CONFIGS.items():
     SITE_PARAMS |= set(config.keys())
 
-sites = pd.DataFrame(SITE_CONFIGS).T
+DISPLAY_COLUMNS = ['description', 'region', 'latitude', 'longitude', 'altitude']
+supported_sites = pd.DataFrame(SITE_CONFIGS).T
 
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
-        sites_string = sites.to_string(columns=['description', 'region', 'latitude', 'longitude', 'altitude', 'documentation'])
-        super().__init__(f"The site \'{invalid_site}\' is not supported. Supported sites are:\n\n{sites_string}")
-
-class InvalidRegionError(Exception):
-    def __init__(self, invalid_region):
-        regions_string = regions.to_string(columns=['location', 'country', 'latitude', 'longitude'])
-        super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{regions_string}")
+        super().__init__(f"The site \'{invalid_site}\' is not supported. Supported sites are:\n\n{supported_sites.loc[:, DISPLAY_COLUMNS].to_string()}")
 
 def get_site_config(site_name="APEX", **kwargs):
     if not site_name in SITE_CONFIGS.keys():
@@ -37,7 +28,6 @@ def get_site_config(site_name="APEX", **kwargs):
 
 def get_site(site_name="APEX", **kwargs):
     return Site(**get_site_config(site_name, **kwargs))
-
 
 @dataclass
 class Site:
@@ -60,14 +50,14 @@ class Site:
 
     def __post_init__(self):
 
-        if not self.region in regions.index.values:
+        if not self.region in supported_regions.index.values:
             raise InvalidRegionError(self.region)
 
         if self.longitude is None:
-            self.longitude = regions.loc[self.region].longitude
+            self.longitude = supported_regions.loc[self.region].longitude
 
         if self.latitude is None:
-            self.latitude = regions.loc[self.region].latitude
+            self.latitude = supported_regions.loc[self.region].latitude
 
         if self.altitude is None:
-            self.altitude = regions.loc[self.region].altitude
+            self.altitude = supported_regions.loc[self.region].altitude

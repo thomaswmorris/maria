@@ -11,9 +11,14 @@ from ..utils import get_utc_year_day, get_utc_day_hour
 
 here, this_filename = os.path.split(__file__)
 
-regions = pd.read_csv(f"{here}/regions.csv", index_col=0)
+DISPLAY_COLUMNS = ['location', 'country', 'latitude', 'longitude']
+supported_regions = pd.read_csv(f"{here}/regions.csv", index_col=0)
 
 g = 9.806651
+
+class InvalidRegionError(Exception):
+    def __init__(self, invalid_region):
+        super().__init__(f"The region \'{invalid_region}\' is not supported. Supported regions are:\n\n{supported_regions.loc[:, DISPLAY_COLUMNS].to_string()}")
 
 def get_vapor_pressure(air_temp, rel_hum): # units are (°K, %)
     T = air_temp - 273.15 # in °C
@@ -54,12 +59,15 @@ class Weather:
 
     def __post_init__(self):
 
+        if self.region not in supported_regions.index.values:
+            raise InvalidRegionError(self.region)
+
         if self.altitude is None:
-            self.altitude = regions.loc[self.region, "altitude"]
+            self.altitude = supported_regions.loc[self.region, "altitude"]
 
         self.t            = np.round(self.t, 0)
         self.altitude     = np.round(self.altitude, 0)
-        self.time_zone    = regions.loc[self.region, "timezone"]
+        self.time_zone    = supported_regions.loc[self.region, "timezone"]
         self.utc_datetime = datetime.fromtimestamp(self.t).astimezone(pytz.utc)
         self.utc_time     = self.utc_datetime.ctime()
         self.local_time   = self.utc_datetime.astimezone(pytz.timezone(self.time_zone)).ctime()

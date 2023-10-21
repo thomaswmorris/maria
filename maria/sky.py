@@ -181,7 +181,7 @@ class MapSimulation(BaseSkySimulation):
 
         for i, nu in enumerate(self.input_map.freqs):
 
-            det_freq_response = self.array.passband(nu=np.array([nu]))[:,0]
+            det_freq_response = self.array.passbands(nu=np.array([nu]))[:,0]
 
             det_mask = det_freq_response > -1e-3
 
