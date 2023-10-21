@@ -22,18 +22,16 @@ ARRAY_PARAMS = set()
 for key, config in ARRAY_CONFIGS.items():
     ARRAY_PARAMS |= set(config.keys())
 
-class UnsupportedArrayError(Exception):
+DISPLAY_COLUMNS = ['description', 'field_of_view', 'primary_size']
+supported_arrays = pd.DataFrame(ARRAY_CONFIGS).T
+
+class InvalidArrayError(Exception):
     def __init__(self, invalid_array):
-        array_df = pd.DataFrame(columns=["description", "documentation"])
-        for key, config in ARRAY_CONFIGS.items():
-            array_df.loc[key, "description"] = config["description"]
-            array_df.loc[key, "documentation"] = config["documentation"]
-        super().__init__(f"The array \'{invalid_array}\' is not in the database of default arrays. "
-        f"Default arrays are:\n\n{array_df.sort_index()}")
+        super().__init__(f"The array \'{invalid_array}\' is not supported. Supported arrays are:\n\n{supported_arrays.loc[:, DISPLAY_COLUMNS].to_string()}")
 
 def get_array_config(array_name, **kwargs):
     if not array_name in ARRAY_CONFIGS.keys():
-        raise UnsupportedArrayError(array_name)
+        raise InvalidArrayError(array_name)
     ARRAY_CONFIG = ARRAY_CONFIGS[array_name].copy()
     for k, v in kwargs.items():
         ARRAY_CONFIG[k] = v
@@ -177,7 +175,7 @@ class Array:
     def band_max(self):
         return (self.dets.band_center + 0.5 * self.dets.band_width).values
 
-    def passband(self, nu):
+    def passbands(self, nu):
         """
         Passband response as a function of nu (in Hz)
         """

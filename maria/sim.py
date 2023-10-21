@@ -41,9 +41,9 @@ class Simulation(BaseSimulation):
     A simulation! This is what users should touch, primarily. 
     """
     def __init__(self, 
-                 array="default", 
-                 pointing="default", 
-                 site="default", 
+                 array, 
+                 pointing, 
+                 site, 
                  atm_model=None, 
                  map_file=None, 
                  map_center=None,
