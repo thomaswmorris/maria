@@ -20,7 +20,7 @@ stare:
   pointing_units: degrees
   scan_period: 120
   sample_rate: 20
-    
+
 daisy:
   description: 'A daisy scan with a 2-degree radius.'
   pointing_frame: ra_dec
@@ -30,7 +30,7 @@ daisy:
   scan_radius: 2
   scan_period: 20
   sample_rate: 50
-    
+
 BAF:
   description: ''
   start_time: '2022-07-01T08:00:00'
