@@ -103,8 +103,8 @@ class WeObserve:
                 "incell", self.he["CDELT1"]
             ),  # assuming units in degree
             "units": kwargs.get(
-                "units", "KRJ"
-            ),  # Kelvin Rayleigh Jeans (KRJ) or Jy/pixel
+                "units", "K_RJ"
+            ),  # Kelvin Rayleigh Jeans (K_RJ) or Jy/pixel
         }
 
         # updating header info

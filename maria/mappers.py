@@ -78,7 +78,7 @@ class BaseMapper:
             tod.el,
         )
 
-        tod.LON, tod.LAT = coordinator.transform(
+        tod.RA, tod.DEC = coordinator.transform(
             tod.time,
             tod.AZ,
             tod.EL,
@@ -230,7 +230,7 @@ class BinMapper(BaseMapper):
                         tod.data[band_mask], tod.time
                     )
 
-                LON, LAT = tod.LON[band_mask], tod.LAT[band_mask]
+                RA, DEC = tod.RA[band_mask], tod.DEC[band_mask]
                 if self._nmtr > 0:
                     u, s, v = np.linalg.svd(
                         sp.signal.detrend(tod.data[band_mask]), full_matrices=False
@@ -243,9 +243,9 @@ class BinMapper(BaseMapper):
 
                 # pointing_in_rel_map_units_X, pointing_in_rel_map_units_Y = utils.lonlat_to_xy(self.RA, self.LAT, self.map.center[0], self.map.center[1])
                 # X, Y = utils.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
-                X, Y = utils.lonlat_to_xy(LON, LAT, *tod.cntr)
+                X, Y = utils.lonlat_to_xy(RA, DEC, *tod.center_ra_dec)
 
-                self.LON, self.LAT, self.DATA = LON, LAT, DATA
+                self.RA, self.DEC, self.DATA = RA, DEC, DATA
 
                 map_sum = sp.stats.binned_statistic_2d(
                     X.ravel(),

@@ -46,3 +46,6 @@ pygments_dark_style = "monokai"
 # Document Python Code
 autoapi_type = 'python'
 autoapi_dirs = ['./../../maria']
+
+
+nbsphinx_allow_errors = True

@@ -23,8 +23,8 @@ def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
 
     for k, v in kwargs.items():
         parsed = False
-        for sub_type, sub_params in master_kwargs.items():
-            if k in sub_params.keys():
+        for sub_type, sub_kwargs in master_kwargs.items():
+            if k in sub_kwargs.keys():
                 parsed_kwargs[sub_type][k] = v
                 parsed = True
         if not parsed:
