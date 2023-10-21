@@ -1,12 +1,13 @@
-
 class LinearAngularSimulation(BaseAtmosphericSimulation):
     """
-    The linear angular model treats the atmosphere as a bunch of layers. 
+    The linear angular model treats the atmosphere as a bunch of layers.
 
     This model is only appropriate for single instruments, i.e. when the baseline is zero.
     """
 
-    def __init__(self, array, pointing, site, config=DEFAULT_LA_CONFIG, verbose=False, **kwargs):
+    def __init__(
+        self, array, pointing, site, config=DEFAULT_LA_CONFIG, verbose=False, **kwargs
+    ):
         super().__init__(array, pointing, site, **kwargs)
 
         self.config = config
@@ -15,23 +16,34 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
             if verbose:
                 print(f"set {key} to {val}")
 
-        self.layer_boundaries = np.linspace(self.min_depth, self.max_depth, self.n_layers + 1)
+        self.layer_boundaries = np.linspace(
+            self.min_depth, self.max_depth, self.n_layers + 1
+        )
 
         # layer of integrated atmosphere
-        self.layer_depths = 0.5 * (self.layer_boundaries[1:] + self.layer_boundaries[:-1])
+        self.layer_depths = 0.5 * (
+            self.layer_boundaries[1:] + self.layer_boundaries[:-1]
+        )
         self.layer_thicks = np.diff(self.layer_boundaries)
 
         # returns a beam waists and angular waists for each frequency for each layer depth
         self.waists = self.array.get_beam_waist(
-            self.layer_depths[:, None], self.array.primary_size, self.array.dets.band_center.values
+            self.layer_depths[:, None],
+            self.array.primary_size,
+            self.array.dets.band_center.values,
         )
         self.angular_waists = self.waists / self.layer_depths[:, None]
 
         self.min_ang_res = self.angular_waists / self.min_beam_res
 
-        self.weather.generate(time=self.pointing.time, fixed_quantiles=self.site.weather_quantiles)
+        self.weather.generate(
+            time=self.pointing.time, fixed_quantiles=self.site.weather_quantiles
+        )
 
-        self.heights = self.site.altitude + self.layer_depths[:, None] * np.sin(self.pointing.el)[None, :]
+        self.heights = (
+            self.site.altitude
+            + self.layer_depths[:, None] * np.sin(self.pointing.el)[None, :]
+        )
 
         for attr in [
             "water_vapor",
@@ -40,7 +52,6 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
             "wind_north",
             "wind_east",
         ]:
-
             setattr(
                 self,
                 attr,
@@ -53,24 +64,40 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
             # setattr(self, attr, sp.interpolate.interp1d(self.weather.height, getattr(self.weather, attr), axis=0)(self.heights))
 
         self.wind_bearing = np.arctan2(self.wind_east, self.wind_north)
-        self.wind_speed = np.sqrt(np.square(self.wind_east) + np.square(self.wind_north))
+        self.wind_speed = np.sqrt(
+            np.square(self.wind_east) + np.square(self.wind_north)
+        )
 
-        self.layer_scaling = self.water_vapor * self.temperature * self.wind_speed * self.layer_thicks[:, None]
-        self.layer_scaling = np.sqrt(np.square(self.layer_scaling) / np.square(self.layer_scaling).sum(axis=0))
+        self.layer_scaling = (
+            self.water_vapor
+            * self.temperature
+            * self.wind_speed
+            * self.layer_thicks[:, None]
+        )
+        self.layer_scaling = np.sqrt(
+            np.square(self.layer_scaling) / np.square(self.layer_scaling).sum(axis=0)
+        )
 
         # the velocity of the atmosphere with respect to the array pointing
         self.AWV_X = (
-            +self.wind_east * np.cos(self.pointing.az[None]) - self.wind_north * np.sin(self.pointing.az[None])
+            +self.wind_east * np.cos(self.pointing.az[None])
+            - self.wind_north * np.sin(self.pointing.az[None])
         ) / self.layer_depths[:, None]
         self.AWV_Y = (
-            (-self.wind_east * np.sin(self.pointing.az[None]) + self.wind_north * np.cos(self.pointing.az[None]))
+            (
+                -self.wind_east * np.sin(self.pointing.az[None])
+                + self.wind_north * np.cos(self.pointing.az[None])
+            )
             / self.layer_depths[:, None]
             * np.sin(self.pointing.el[None])
         )
 
-
-        center_lon, center_lat = utils.get_center_lonlat(self.pointing.az, self.pointing.el)
-        self.pointing.dx, self.pointing.dy = utils.lonlat_to_xy(self.pointing.az, self.pointing.el, center_lon, center_lat)
+        center_lon, center_lat = utils.get_center_lonlat(
+            self.pointing.az, self.pointing.el
+        )
+        self.pointing.dx, self.pointing.dy = utils.lonlat_to_xy(
+            self.pointing.az, self.pointing.el, center_lon, center_lat
+        )
 
         # the angular position of each detector over time WRT the atmosphere
         self.REL_X = (
@@ -84,7 +111,9 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
             + np.cumsum(self.AWV_Y * self.pointing.dt, axis=-1)[:, None]
         )
 
-        self.MEAN_REL_X, self.MEAN_REL_Y = self.REL_X.mean(axis=1), self.REL_Y.mean(axis=1)
+        self.MEAN_REL_X, self.MEAN_REL_Y = self.REL_X.mean(axis=1), self.REL_Y.mean(
+            axis=1
+        )
 
         # These are empty lists we need to fill with chunky parameters (they won't fit together!) for each layer.
         self.para, self.orth, self.P, self.O, self.X, self.Y = [], [], [], [], [], []
@@ -113,7 +142,6 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         self.padding = (radius_sample_prop + beam_tol) * max_layer_beam_radii
 
         for i_l, depth in enumerate(self.layer_depths):
-
             MEAN_REL_POINTS = np.c_[self.MEAN_REL_X[i_l], self.MEAN_REL_Y[i_l]]
             MEAN_REL_POINTS += 1e-12 * np.random.standard_normal(
                 size=MEAN_REL_POINTS.shape
@@ -128,7 +156,9 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
                 utils.get_minimal_bounding_rotation_angle(layer_hull_theta_z.ravel())
             )
 
-            zop = (self.REL_X[i_l] + 1j * self.REL_Y[i_l]) * np.exp(1j * self.layer_rotation_angles[-1])
+            zop = (self.REL_X[i_l] + 1j * self.REL_Y[i_l]) * np.exp(
+                1j * self.layer_rotation_angles[-1]
+            )
             self.p[i_l], self.o[i_l] = np.real(zop), np.imag(zop)
 
             res = self.min_ang_res[i_l].min()
@@ -153,7 +183,10 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 
             ORTH_, PARA_ = np.meshgrid(orth_, para_)
 
-            self.genz.append(np.exp(-1j * self.layer_rotation_angles[-1]) * (PARA_[0] + 1j * ORTH_[0] - res))
+            self.genz.append(
+                np.exp(-1j * self.layer_rotation_angles[-1])
+                * (PARA_[0] + 1j * ORTH_[0] - res)
+            )
             XYZ = np.exp(-1j * self.layer_rotation_angles[-1]) * (PARA_ + 1j * ORTH_)
 
             self.X.append(np.real(XYZ)), self.Y.append(np.imag(XYZ))
@@ -169,7 +202,6 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
                     self.n_para[-1] - 1,
                 ]
             ):
-
                 orth_i.append(
                     np.unique(
                         np.linspace(
@@ -186,7 +218,6 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
             n_cm = len(self.AR_samples[-1][0])
 
             if n_cm > 5000 and verbose:
-
                 warning_message = f"A very large covariance matrix for layer {i_l+1} (n_side = {n_cm})"
                 warnings.warn(warning_message)
 
@@ -196,29 +227,36 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
             for i_l, (depth, LX, LY, AR, GZ) in enumerate(
                 zip(self.layer_depths, self.X, self.Y, self.AR_samples, self.genz)
             ):
-
                 X0, Y0 = LX[AR], LY[AR]
                 X1, Y1 = np.real(GZ), np.imag(GZ)
 
-                R00 = np.sqrt(np.subtract.outer(X0, X0) ** 2 + np.subtract.outer(Y0, Y0) ** 2)
-                R01 = np.sqrt(np.subtract.outer(X1, X0) ** 2 + np.subtract.outer(Y1, Y0) ** 2)
-                R11 = np.sqrt(np.subtract.outer(X1, X1) ** 2 + np.subtract.outer(Y1, Y1) ** 2)
+                R00 = np.sqrt(
+                    np.subtract.outer(X0, X0) ** 2 + np.subtract.outer(Y0, Y0) ** 2
+                )
+                R01 = np.sqrt(
+                    np.subtract.outer(X1, X0) ** 2 + np.subtract.outer(Y1, Y0) ** 2
+                )
+                R11 = np.sqrt(
+                    np.subtract.outer(X1, X1) ** 2 + np.subtract.outer(Y1, Y1) ** 2
+                )
 
                 alpha = 1e-4
 
-                C00 = utils.approximate_matern(R00, self.outer_scale / depth, 5 / 6) + alpha * np.eye(
-                    len(X0)
-                )
+                C00 = utils.approximate_matern(
+                    R00, self.outer_scale / depth, 5 / 6
+                ) + alpha * np.eye(len(X0))
                 C01 = utils.approximate_matern(R01, self.outer_scale / depth, 5 / 6)
-                C11 = utils.approximate_matern(R11, self.outer_scale / depth, 5 / 6) + alpha * np.eye(
-                    len(X1)
-                )
+                C11 = utils.approximate_matern(
+                    R11, self.outer_scale / depth, 5 / 6
+                ) + alpha * np.eye(len(X1))
 
                 self.C00.append(C00)
                 self.C01.append(C01)
                 self.C11.append(C11)
                 self.A.append(np.matmul(C01, utils.fast_psd_inverse(C00)))
-                self.B.append(sp.linalg.lapack.dpotrf(C11 - np.matmul(self.A[-1], C01.T))[0])
+                self.B.append(
+                    sp.linalg.lapack.dpotrf(C11 - np.matmul(self.A[-1], C01.T))[0]
+                )
 
                 prog.update(1)
 
@@ -228,16 +266,16 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
                 )
 
                 for i_l, depth in enumerate(self.layer_depths):
-
-                    row_string  = f"{i_l+1:2} | {depth:9.01f} | {self.waists[i_l].min():8.02f} | {60*np.degrees(self.angular_waists[i_l].min()):8.02f} | "
+                    row_string = f"{i_l+1:2} | {depth:9.01f} | {self.waists[i_l].min():8.02f} | {60*np.degrees(self.angular_waists[i_l].min()):8.02f} | "
                     row_string += f"{depth*self.lay_ang_res[i_l]:7.02f} | {60*np.degrees(self.lay_ang_res[i_l]):7.02f} | "
                     row_string += f"{1e3*self.layer_scaling[i_l].mean():11.02f} | {len(self.AR_samples[i_l][0]):5} | {self.n_orth[i_l]:4} | "
                     row_string += f"{self.n_para[i_l]:4} | {1e3*self.water_vapor[i_l].mean():11.02f} | {self.temperature[i_l].mean():8.02f} | "
                     row_string += f"{self.wind_speed[i_l].mean():8.02f} | {np.degrees(self.wind_bearing[i_l].mean()+np.pi):8.02f} |"
                     print(row_string)
 
-    def atmosphere_timestep(self, i):  # iterate the i-th layer of atmosphere by one step
-
+    def atmosphere_timestep(
+        self, i
+    ):  # iterate the i-th layer of atmosphere by one step
         self.vals[i] = np.r_[
             (
                 np.matmul(self.A[i], self.vals[i][self.AR_samples[i]])
@@ -247,7 +285,6 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         ]
 
     def initialize_atmosphere(self, blurred=False):
-
         self.vals = [np.zeros(lx.shape) for lx in self.X]
         n_init_ = [n_para for n_para in self.n_para]
         n_ts_ = [n_para for n_para in self.n_para]
@@ -257,12 +294,10 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         with tqdm(total=tot_n_init, desc="Generating layers") as prog:
             for i, n_init in enumerate(n_init_):
                 for i_init in range(n_init):
-
                     self.atmosphere_timestep(i)
                     prog.update(1)
 
     def simulate_integrated_water_vapor(self, do_atmosphere=True, verbose=False):
-
         self.sim_start = ttime.time()
         self.initialize_atmosphere()
 
@@ -271,47 +306,58 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         multichromatic_beams = False
 
         with tqdm(total=self.n_layers, desc="Sampling layers") as prog:
-
             for i_d, d in enumerate(self.layer_depths):
-
                 # Compute the filtered line-of-sight pwv corresponding to each layer
 
                 if multichromatic_beams:
-
-                    filtered_vals = np.zeros((len(self.array.nu), *self.vals[i_d].shape))
+                    filtered_vals = np.zeros(
+                        (len(self.array.nu), *self.vals[i_d].shape)
+                    )
                     angular_res = self.lay_ang_res[i_d]
 
                     for i_f, f in enumerate(self.array.nu):
-
                         angular_waist = self.angular_waists[i_d, i_f]
 
-                        self.F = self.array.make_filter(angular_waist, angular_res, self.array.beam_func)
+                        self.F = self.array.make_filter(
+                            angular_waist, angular_res, self.array.beam_func
+                        )
                         u, s, v = self.array.separate_filter(self.F)
 
-                        filtered_vals[i_f] = self.array.separably_filter(self.vals[i_d], u, s, v)
+                        filtered_vals[i_f] = self.array.separably_filter(
+                            self.vals[i_d], u, s, v
+                        )
 
                 else:
-
                     angular_res = self.lay_ang_res[i_d]
                     angular_waist = self.angular_waists[i_d].mean()
 
-                    self.F = self.array.make_filter(angular_waist, angular_res, self.array.beam_func)
+                    self.F = self.array.make_filter(
+                        angular_waist, angular_res, self.array.beam_func
+                    )
 
                     filtered_vals = self.array.separably_filter(self.vals[i_d], self.F)
-                    self.rel_flucs[i_d] = sp.interpolate.RegularGridInterpolator((self.para[i_d], self.orth[i_d]), filtered_vals)(
-                        (self.p[i_d], self.o[i_d])
-                    )
+                    self.rel_flucs[i_d] = sp.interpolate.RegularGridInterpolator(
+                        (self.para[i_d], self.orth[i_d]), filtered_vals
+                    )((self.p[i_d], self.o[i_d]))
 
                 prog.update(1)
 
         # Convert PWV fluctuations to detector powers
 
-        self.effective_zenith_water_vapor = (self.rel_flucs * self.layer_scaling[:, None]).sum(axis=0)
+        self.effective_zenith_water_vapor = (
+            self.rel_flucs * self.layer_scaling[:, None]
+        ).sum(axis=0)
 
-        self.effective_zenith_water_vapor *= 2e-2 * self.weather.column_water_vapor / self.effective_zenith_water_vapor.std()
+        self.effective_zenith_water_vapor *= (
+            2e-2
+            * self.weather.column_water_vapor
+            / self.effective_zenith_water_vapor.std()
+        )
         self.effective_zenith_water_vapor += self.weather.column_water_vapor.mean()
 
-        self.integrated_water_vapor = self.effective_zenith_water_vapor / np.sin(self.EL)
+        self.integrated_water_vapor = self.effective_zenith_water_vapor / np.sin(
+            self.EL
+        )
 
         # self.atm_power = np.zeros(self.effective_zenith_water_vapor.shape)
 
@@ -366,7 +412,9 @@ def get_extrusion_products(
 
     # this converts the $(x, y, z)$ vertices of a beam looking straight up to the $(x, y, z)$ vertices of
     # the time-ordered pointing of the beam in the frame of the wind direction.
-    elev_rotation_matrix = sp.spatial.transform.Rotation.from_euler("y", np.pi / 2 - elev).as_matrix()
+    elev_rotation_matrix = sp.spatial.transform.Rotation.from_euler(
+        "y", np.pi / 2 - elev
+    ).as_matrix()
     azim_rotation_matrix = sp.spatial.transform.Rotation.from_euler(
         "z", np.pi / 2 - azim + wind_direction
     ).as_matrix()
@@ -378,15 +426,23 @@ def get_extrusion_products(
 
     # this returns a list of time-ordered vertices, which can used to construct a convex hull
     time_ordered_vertices_list = []
-    for _min_radius, _max_radius, _baseline in zip(primary_sizes / 2, max_boresight_offset, baseline):
-
+    for _min_radius, _max_radius, _baseline in zip(
+        primary_sizes / 2, max_boresight_offset, baseline
+    ):
         _rot_baseline = np.matmul(
             sp.spatial.transform.Rotation.from_euler("z", wind_direction).as_matrix(),
             _baseline,
         )
 
         _vertices = np.c_[
-            np.r_[[_.ravel() for _ in np.meshgrid([-_min_radius, _min_radius], [-_min_radius, _min_radius], [0])]],
+            np.r_[
+                [
+                    _.ravel()
+                    for _ in np.meshgrid(
+                        [-_min_radius, _min_radius], [-_min_radius, _min_radius], [0]
+                    )
+                ]
+            ],
             np.r_[
                 [
                     _.ravel()
@@ -400,7 +456,10 @@ def get_extrusion_products(
         ]
 
         time_ordered_vertices_list.append(
-            _rot_baseline[None] + np.swapaxes(np.matmul(total_rotation_matrix, _vertices), 1, -1).reshape(-1, 3)
+            _rot_baseline[None]
+            + np.swapaxes(np.matmul(total_rotation_matrix, _vertices), 1, -1).reshape(
+                -1, 3
+            )
         )
 
     # these are the bounds in space that we have to worry about. it has shape (3, 2)
@@ -412,15 +471,23 @@ def get_extrusion_products(
     # here we make the layers of the atmosphere given the bounds of $z$ and the specified resolution; we use
     # regular layers to make interpolation more efficient later
     min_height = np.max(
-        [np.max(tov[:, 2][tov[:, 2] < np.median(tov[:, 2])]) for tov in time_ordered_vertices_list]
+        [
+            np.max(tov[:, 2][tov[:, 2] < np.median(tov[:, 2])])
+            for tov in time_ordered_vertices_list
+        ]
     )
     max_height = np.min(
-        [np.min(tov[:, 2][tov[:, 2] > np.median(tov[:, 2])]) for tov in time_ordered_vertices_list]
+        [
+            np.min(tov[:, 2][tov[:, 2] > np.median(tov[:, 2])])
+            for tov in time_ordered_vertices_list
+        ]
     )
 
     height_samples = np.linspace(min_height, max_height, 1024)
     dh = np.gradient(height_samples).mean()
-    dheight_dindex = np.interp(height_samples, [min_height, max_height], [min_res, max_res])
+    dheight_dindex = np.interp(
+        height_samples, [min_height, max_height], [min_res, max_res]
+    )
     dindex_dheight = 1 / dheight_dindex
     n_layers = int(np.sum(dindex_dheight * dh))
     layer_heights = sp.interpolate.interp1d(
@@ -435,10 +502,17 @@ def get_extrusion_products(
     x_min, x_max = extrusion_bounds[0, 0], extrusion_bounds[0, 1]
     n_per_layer = ((x_max - x_min) / layer_res).astype(int)
     cell_x = np.concatenate(
-        [np.linspace(x_min, x_max, n) for i, (res, n) in enumerate(zip(layer_res, n_per_layer))]
+        [
+            np.linspace(x_min, x_max, n)
+            for i, (res, n) in enumerate(zip(layer_res, n_per_layer))
+        ]
     )
-    cell_z = np.concatenate([h * np.ones(n) for i, (h, n) in enumerate(zip(layer_heights, n_per_layer))])
-    cell_res = np.concatenate([res * np.ones(n) for i, (res, n) in enumerate(zip(layer_res, n_per_layer))])
+    cell_z = np.concatenate(
+        [h * np.ones(n) for i, (h, n) in enumerate(zip(layer_heights, n_per_layer))]
+    )
+    cell_res = np.concatenate(
+        [res * np.ones(n) for i, (res, n) in enumerate(zip(layer_res, n_per_layer))]
+    )
 
     extrusion_cells = np.c_[cell_x, cell_z]
     extrusion_shift = np.c_[cell_res, np.zeros(len(cell_z))]
@@ -447,20 +521,22 @@ def get_extrusion_products(
 
     in_view = np.zeros(len(extrusion_cells)).astype(bool)
     for tov in time_ordered_vertices_list:
-
         baseline_in_view = np.zeros(len(extrusion_cells)).astype(bool)
 
-        hull = sp.spatial.ConvexHull(tov[:, [0, 2]])  # we only care about the $(x, z)$ dimensions here
+        hull = sp.spatial.ConvexHull(
+            tov[:, [0, 2]]
+        )  # we only care about the $(x, z)$ dimensions here
         A, b = hull.equations[:, :-1], hull.equations[:, -1:]
 
         for shift_factor in [-1, 0, +1]:
-
             baseline_in_view |= np.all(
                 (extrusion_cells + shift_factor * extrusion_shift) @ A.T + b.T < eps,
                 axis=1,
             )
 
-        in_view |= baseline_in_view  # if the cell is in view of any of the baselines, keep it!
+        in_view |= (
+            baseline_in_view  # if the cell is in view of any of the baselines, keep it!
+        )
 
         # plt.scatter(tov[:, 0], tov[:, 2], s=1e0)
 

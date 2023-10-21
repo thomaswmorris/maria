@@ -1,7 +1,7 @@
 Pointings
 =========
 
-One component of the simulation is the `Array`, which defines the observing instrument. 
+One component of the simulation is the `Array`, which defines the observing instrument.
 
     import maria
 
