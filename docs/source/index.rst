@@ -3,8 +3,11 @@
 ..       <source src="./_static/cloud_64.gif" type="image/gif">
 ..    </video>
 
+maria
+=====
+
 .. image:: ./_static/cloud_64_b.gif
-   :scale: 20%
+   :scale: 30%
    :alt: StreamPlayer
 
 `Oh, maria blows the stars around / and sends the clouds
