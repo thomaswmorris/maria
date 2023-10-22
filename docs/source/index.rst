@@ -1,13 +1,10 @@
-maria
-=====
-
 .. .. raw:: html
 ..    <video width="256" height="256" autoplay loop>
 ..       <source src="./_static/cloud_64.gif" type="image/gif">
 ..    </video>
 
-.. image:: ./_static/cloud_64.gif
-   :scale: 40%
+.. image:: ./_static/cloud_64_b.gif
+   :scale: 20%
    :alt: StreamPlayer
 
 `Oh, maria blows the stars around / and sends the clouds
