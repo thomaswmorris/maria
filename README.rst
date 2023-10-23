@@ -2,7 +2,7 @@ maria
 =====
 
 .. image:: ./docs/source/_static/cloud_64_b.gif
-   :scale: 30%
+   :scale: 10%
    :alt: StreamPlayer
 
 `Oh, maria blows the stars around / and sends the clouds
