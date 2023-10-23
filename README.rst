@@ -1,7 +1,7 @@
 maria
 =====
 
-.. image:: ./_static/cloud_64_b.gif
+.. image:: ./docs/source/_static/cloud_64_b.gif
    :scale: 30%
    :alt: StreamPlayer
 
