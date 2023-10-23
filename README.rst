@@ -1,5 +1,9 @@
-maria (modular auto-regressive integrated atmosphere)
-=====================================================
+maria
+=====
+
+.. image:: ./_static/cloud_64_b.gif
+   :scale: 30%
+   :alt: StreamPlayer
 
 `Oh, maria blows the stars around / and sends the clouds
 a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
