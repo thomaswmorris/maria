@@ -1,5 +1,5 @@
 # this is a master list of parameters that can be passed to a total simulation, along with default values
-# repeated parameters like "description" or "documentation" are not preserved in the simulation class. 
+# repeated parameters like "description" or "documentation" are not preserved in the simulation class.
 
 array: # defaults to a small test array
   description:
@@ -34,9 +34,9 @@ pointing: # defaults to a 45 degree stare due north
   scan_pattern: daisy
   scan_center: [10, 4.5]
   scan_radius: 2
-  scan_period: 60
+  scan_period: 120
   scan_options: {}
-  
+
 site: # default to the ALMA site
   description: ''
   region: 'chajnantor'
@@ -58,3 +58,6 @@ map:
   map_res: 0.5
   map_inbright: 1
   map_units: K_RJ
+
+noise:
+  white_noise_level: 1.e-2 # in Kelvin Rayleigh-Jeans equivalent

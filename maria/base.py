@@ -1,7 +1,8 @@
 import os
-from astropy.io import fits
-from . import utils
 
+from astropy.io import fits
+
+from . import utils
 from .array import ARRAY_PARAMS, Array, get_array
 from .coordinator import Coordinator
 from .pointing import POINTING_PARAMS, Pointing, get_pointing
@@ -10,15 +11,16 @@ from .tod import TOD
 
 here, this_filename = os.path.split(__file__)
 
+
 class InvalidSimulationParameterError(Exception):
     def __init__(self, invalid_keys):
         super().__init__(
             f"The parameters {invalid_keys} are not valid simulation parameters!"
         )
 
-def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
 
-    parsed_kwargs = {k:{} for k in master_kwargs.keys()}
+def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
+    parsed_kwargs = {k: {} for k in master_kwargs.keys()}
     invalid_kwargs = {}
 
     for k, v in kwargs.items():
@@ -29,14 +31,18 @@ def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
                 parsed = True
         if not parsed:
             invalid_kwargs[k] = v
-        
+
     if len(invalid_kwargs) > 0:
         if strict:
-            raise InvalidSimulationParameterError(invalid_keys=list(invalid_kwargs.keys()))
+            raise InvalidSimulationParameterError(
+                invalid_keys=list(invalid_kwargs.keys())
+            )
 
     return parsed_kwargs
 
+
 master_params = utils.io.read_yaml(f"{here}/params.yml")
+
 
 class BaseSimulation:
     """
@@ -50,9 +56,21 @@ class BaseSimulation:
 
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
-        self.array = array if isinstance(array, Array) else get_array(array, **parsed_sim_kwargs["array"])
-        self.pointing = pointing if isinstance(pointing, Pointing) else get_pointing(pointing, **parsed_sim_kwargs["pointing"])
-        self.site = site if isinstance(site, Site) else get_site(site, **parsed_sim_kwargs["site"])
+        self.array = (
+            array
+            if isinstance(array, Array)
+            else get_array(array, **parsed_sim_kwargs["array"])
+        )
+        self.pointing = (
+            pointing
+            if isinstance(pointing, Pointing)
+            else get_pointing(pointing, **parsed_sim_kwargs["pointing"])
+        )
+        self.site = (
+            site
+            if isinstance(site, Site)
+            else get_site(site, **parsed_sim_kwargs["site"])
+        )
 
         self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
 

@@ -1,12 +1,11 @@
 import os
 from dataclasses import dataclass
-from os import path
 
 import astropy as ap
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
-from astropy.io import fits
+from astropy.io import fits  # noqa F401
 
 from . import base, utils
 
@@ -164,7 +163,9 @@ class MapSimulation(BaseSkySimulation):
         if self.input_map.units == "Jy/pixel":
             for i, nu in enumerate(self.input_map.freqs):
                 self.input_map.data[i] = self.input_map.data[i] / utils.KbrightToJyPix(
-                    1e9 * nu, np.rad2deg(self.input_map.res), np.rad2deg(self.input_map.res)
+                    1e9 * nu,
+                    np.rad2deg(self.input_map.res),
+                    np.rad2deg(self.input_map.res),
                 )
 
     def _run(self, **kwargs):

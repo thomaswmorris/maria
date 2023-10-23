@@ -21,12 +21,12 @@ A database of supported arrays can be found at::
 
 Supported arrays are customizeable by passing extra keywords to the ``get_array()`` function. We can double the size of the Green Bank Telescope and increase MUSTANG's field of view to one degree with::
 
-   mustang = maria.get_array("MUSTANG-2", 
+   mustang = maria.get_array("MUSTANG-2",
                               field_of_view=10, # in degrees
                               primary_size=200 # in meters
                               )
 
-The arrays 
+The arrays
 
 - **array** telescope and array design parameters
   - Predefined configurations: `MUSTANG-2`, `ALMA`, `AtLAST`, `SCUBA-2`
@@ -47,7 +47,7 @@ The arrays
 Pointings
 ^^^^^^^^^
 
-The next component of the simulation 
+The next component of the simulation
 
     import maria
 
@@ -83,13 +83,13 @@ The following few lines show how to generate the time streams in Python::
 
     from maria import Simulation
 
-    sim = Simulation(array='MUSTANG-2', 
-                     pointing='daisy', 
-                     site='GBT', 
-                     atm_model='single_layer', 
+    sim = Simulation(array='MUSTANG-2',
+                     pointing='daisy',
+                     site='GBT',
+                     atm_model='single_layer',
                      map_file=some_input_file)
 
-    
+
 
 Running the simulation returns a ``TOD`` object::
 

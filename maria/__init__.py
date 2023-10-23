@@ -12,4 +12,3 @@ from .array import get_array  # noqa F401
 from .pointing import get_pointing  # noqa F401
 from .sim import Simulation  # noqa F401
 from .site import get_site  # noqa F401
-

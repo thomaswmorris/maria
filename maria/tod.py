@@ -3,6 +3,7 @@ import json
 
 import h5py
 import numpy as np
+
 from . import utils
 
 
@@ -39,11 +40,12 @@ class TOD:
 
     @property
     def center_ra_dec(self):
-       return utils.get_center_lonlat(self.ra, self.dec)
+        return utils.get_center_lonlat(self.ra, self.dec)
 
     @property
     def center_az_el(self):
-       return utils.get_center_lonlat(self.az, self.el)
+        return utils.get_center_lonlat(self.az, self.el)
+
 
 class KeyNotFoundError(Exception):
     def __init__(self, invalid_keys):

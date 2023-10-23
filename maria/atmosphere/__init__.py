@@ -1,17 +1,8 @@
-import os
-import time as ttime
-
-import h5py
-import numpy as np
-import scipy as sp
-from tqdm import tqdm
-
-from .. import base, utils, weather
+from .single_layer import SingleLayerSimulation  # noqa F401
 
 # how do we do the bands? this is a great question.
 # because all practical telescope instrumentation assume a constant band
 
-from .single_layer import SingleLayerSimulation
 # from .kolmogorov_taylor import KolmogorovTaylorSimulation
 # from .linear_angular import LinearAngularSimulation
 
@@ -21,7 +12,3 @@ ATMOSPHERE_PARAMS = {
     "n_layers": 4,
     "min_beam_res": 4,
 }
-
-
-
-
