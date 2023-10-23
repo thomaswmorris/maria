@@ -1,19 +1,24 @@
+import numpy as np
 import pytest
+
+from maria import Simulation, mappers
 
 
 @pytest.mark.mock_obs
-def test_we_observe():
-    import numpy as np
+def test_sim():
+    sim = Simulation(array="MUSTANG-2", pointing="daisy", site="GBT")
+    tod = sim.run()
 
-    from maria import Simulation, mappers
 
+@pytest.mark.mock_obs
+def test_sim_with_params():
     sim = Simulation(
         # Mandatory minimal weither settings
         # ---------------------
         array="MUSTANG-2",  # Array type
         pointing="daisy",  # Scanning strategy
         site="GBT",  # Site
-        atm_model="linear_angular",  # The atmospheric model, set to None if you want a noiseless observation.
+        atm_model="single_layer",  # The atmospheric model, set to None if you want a noiseless observation.
         # atm_model = None,              # The atmospheric model, set to None if you want a noiseless observation.
         # True sky input
         # ---------------------

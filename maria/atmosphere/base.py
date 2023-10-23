@@ -20,12 +20,15 @@ class AtmosphericSpectrum:
         A dataclass to hold spectra as attributes
         """
         with h5py.File(filepath, "r") as f:
-
-            self.side_nu_GHz                  = f["side_nu_GHz"][:].astype(float)
-            self.side_elevation_deg           = f["side_elevation_deg"][:].astype(float)
-            self.side_line_of_sight_pwv_mm    = f["side_line_of_sight_pwv_mm"][:].astype(float)
-            self.temperature_rayleigh_jeans_K = f["temperature_rayleigh_jeans_K"][:].astype(float)
-            self.phase_delay_um               = f["phase_delay_um"][:].astype(float)
+            self.side_nu_GHz = f["side_nu_GHz"][:].astype(float)
+            self.side_elevation_deg = f["side_elevation_deg"][:].astype(float)
+            self.side_line_of_sight_pwv_mm = f["side_line_of_sight_pwv_mm"][:].astype(
+                float
+            )
+            self.temperature_rayleigh_jeans_K = f["temperature_rayleigh_jeans_K"][
+                :
+            ].astype(float)
+            self.phase_delay_um = f["phase_delay_um"][:].astype(float)
 
 
 class BaseAtmosphericSimulation(base.BaseSimulation):
@@ -70,6 +73,8 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
         )
 
     def _run(self, units="K_RJ"):
+        start_time = ttime.monotonic()
+
         if units == "K_RJ":  # Kelvin Rayleigh-Jeans
             self.simulate_integrated_water_vapor()
             self.data = np.empty(
@@ -78,11 +83,18 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
             for uband in tqdm(self.array.ubands, desc="Sampling atmosphere"):
                 band_mask = self.array.dets.band.values == uband
-                passband = self.array.passbands(self.spectrum.side_nu_GHz)[band_mask].mean(axis=0)
-                
+                passband = self.array.passbands(self.spectrum.side_nu_GHz)[
+                    band_mask
+                ].mean(axis=0)
+
                 band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator(
-                    (self.spectrum.side_line_of_sight_pwv_mm, self.spectrum.side_elevation_deg),
-                    (self.spectrum.temperature_rayleigh_jeans_K * passband).sum(axis=-1),
+                    (
+                        self.spectrum.side_line_of_sight_pwv_mm,
+                        self.spectrum.side_elevation_deg,
+                    ),
+                    (self.spectrum.temperature_rayleigh_jeans_K * passband).sum(
+                        axis=-1
+                    ),
                 )
 
                 self.data[band_mask] = band_T_RJ_interpolator(
@@ -96,6 +108,11 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
             self.simulate_temperature(self, units="K_RJ")
             self.data = 1.8 * (self.data - 273.15) + 32
 
+        if self.verbose:
+            print(
+                f"ran atmospheric simulation in {ttime.monotonic() - start_time:.01f} seconds"
+            )
+
 
 DEFAULT_ATMOSPHERE_CONFIG = {
     "min_depth": 500,
@@ -103,9 +120,6 @@ DEFAULT_ATMOSPHERE_CONFIG = {
     "n_layers": 4,
     "min_beam_res": 4,
 }
-
-
-
 
 
 MIN_SAMPLES_PER_RIBBON = 2

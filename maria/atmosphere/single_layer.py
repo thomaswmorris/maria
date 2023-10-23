@@ -1,13 +1,13 @@
 import numpy as np
 import scipy as sp
-import time as ttime
 from tqdm import tqdm
 
+from .. import utils
 from .base import BaseAtmosphericSimulation
-from . import utils
 
 MIN_SAMPLES_PER_RIBBON = 2
 JITTER_LEVEL = 1e-4
+
 
 class SingleLayerSimulation(BaseAtmosphericSimulation):
     """
@@ -270,7 +270,6 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         self.VALUES = BUFFER[: self.n_extrusion]
 
     def simulate_integrated_water_vapor(self):
-        start_time = ttime.time()
         self.extrude(n_steps=self.n_extrusion, desc="Generating atmosphere")
 
         trans_detector_angular_positions = (
@@ -294,6 +293,3 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             * (1.0 + self.site.pwv_rms_frac * detector_values)
             / np.sin(self.EL)
         )
-
-        if self.verbose:
-            print(f"simulated atmopshere in {ttime.monotonic() - start_time:.02f} seconds")

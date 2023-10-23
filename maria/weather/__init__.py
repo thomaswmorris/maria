@@ -25,6 +25,7 @@ class InvalidRegionError(Exception):
             f"Supported regions are:\n\n{supported_regions.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
 
+
 def get_vapor_pressure(air_temp, rel_hum):  # units are (°K, %)
     T = air_temp - 273.15  # in °C
     a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C

@@ -28,7 +28,7 @@ extensions = [
     "numpydoc",
     "sphinx_copybutton",
     "nbsphinx",
-    #"autoapi.extension",
+    # "autoapi.extension",
 ]
 
 templates_path = ["_templates"]
@@ -44,8 +44,8 @@ pygments_style = "sphinx"
 pygments_dark_style = "monokai"
 
 # Document Python Code
-autoapi_type = 'python'
-autoapi_dirs = ['./../../maria']
+autoapi_type = "python"
+autoapi_dirs = ["./../../maria"]
 
 
 nbsphinx_allow_errors = True

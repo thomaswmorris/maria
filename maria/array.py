@@ -4,17 +4,19 @@ from dataclasses import dataclass, fields
 from operator import attrgetter
 from typing import Tuple
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.collections import EllipseCollection
+from matplotlib.patches import Patch
 
 from . import utils
 
-import matplotlib as mpl
-from matplotlib.patches import Patch
-
-HEX_CODE_LIST = [mpl.colors.to_hex(mpl.cm.get_cmap("Paired")(t)) for t in [*np.linspace(0.05,.95,12)]] 
+HEX_CODE_LIST = [
+    mpl.colors.to_hex(mpl.cm.get_cmap("Paired")(t))
+    for t in [*np.linspace(0.05, 0.95, 12)]
+]
 
 # better formatting for pandas dataframes
 # pd.set_eng_float_format()
@@ -36,6 +38,7 @@ class InvalidArrayError(Exception):
             f"The array '{invalid_array}' is not supported."
             f"Supported arrays are:\n\n{supported_arrays.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
+
 
 def get_array_config(array_name, **kwargs):
     if array_name not in ARRAY_CONFIGS.keys():
@@ -209,7 +212,9 @@ class Array:
         Passband response as a function of nu (in GHz)
         """
         _nu = np.atleast_1d(nu)
-        nu_mask = (_nu[None] > self.band_min[:, None]) & (_nu[None] < self.band_max[:, None])
+        nu_mask = (_nu[None] > self.band_min[:, None]) & (
+            _nu[None] < self.band_max[:, None]
+        )
         return nu_mask.astype(float) / nu_mask.sum(axis=-1)[:, None]
 
     def angular_fwhm(self, z):
@@ -240,13 +245,14 @@ class Array:
 
         legend_handles = []
         for iub, uband in enumerate(self.ubands):
-
             band_color = HEX_CODE_LIST[iub]
             band_mask = self.dets.band.values == uband
 
             nom_freq = self.dets.band_center[band_mask].mean()
-            band_res_arcmins = 60 * np.degrees(1.22 * 2.998e8 / (1e9 * nom_freq * self.primary_size))
-            #band_res_arcmins = 60 * np.degrees(utils.gaussian_beam_angular_fwhm(z=1e12, w_0=self.primary_size, f=nom_freq))
+            band_res_arcmins = 60 * np.degrees(
+                1.22 * 2.998e8 / (1e9 * nom_freq * self.primary_size)
+            )
+            # band_res_arcmins = 60 * np.degrees(utils.gaussian_beam_angular_fwhm(z=1e12, w_0=self.primary_size, f=nom_freq))
             offsets_arcmins = 60 * np.degrees(self.offsets[band_mask])
 
             ax.add_collection(
@@ -263,8 +269,13 @@ class Array:
                     transOffset=ax.transData,
                 )
             )
-            
-            legend_handles.append(Patch(label=f"{uband}, res = {band_res_arcmins:.01e} arcmin.", color=band_color))
+
+            legend_handles.append(
+                Patch(
+                    label=f"{uband}, res = {band_res_arcmins:.01e} arcmin.",
+                    color=band_color,
+                )
+            )
 
             ax.scatter(*offsets_arcmins.T, label=uband, s=5e-1, color=band_color)
 
