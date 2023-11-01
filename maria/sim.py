@@ -58,6 +58,10 @@ class Simulation(BaseSimulation):
                 self.atm_sim = atmosphere.SingleLayerSimulation(
                     self.array, self.pointing, self.site, **atm_kwargs
                 )
+            elif atm_model in ["linear_angular", "LA"]:
+                self.atm_sim = atmosphere.LinearAngularSimulation(
+                    self.array, self.pointing, self.site, **atm_kwargs
+                )
             elif atm_model in ["kolmogorov_taylor", "KT"]:
                 self.atm_sim = atmosphere.KolmogorovTaylorSimulation(
                     self.array, self.pointing, self.site, **atm_kwargs

@@ -9,20 +9,20 @@ import pytz
 import scipy as sp
 
 from ..utils import get_utc_day_hour, get_utc_year_day
+from ..utils.constants import g
 
 here, this_filename = os.path.split(__file__)
 
 DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude"]
-supported_regions = pd.read_csv(f"{here}/regions.csv", index_col=0)
-
-g = 9.806651
+supported_regions_table = pd.read_csv(f"{here}/regions.csv", index_col=0)
+all_regions = supported_regions_table.index.values
 
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         super().__init__(
             f"The region '{invalid_region}' is not supported."
-            f"Supported regions are:\n\n{supported_regions.loc[:, DISPLAY_COLUMNS].to_string()}"
+            f"Supported regions are:\n\n{supported_regions_table.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
 
 
@@ -70,15 +70,15 @@ class Weather:
     quantiles: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        if self.region not in supported_regions.index.values:
+        if self.region not in supported_regions_table.index.values:
             raise InvalidRegionError(self.region)
 
         if self.altitude is None:
-            self.altitude = supported_regions.loc[self.region, "altitude"]
+            self.altitude = supported_regions_table.loc[self.region, "altitude"]
 
         self.t = np.round(self.t, 0)
         self.altitude = np.round(self.altitude, 0)
-        self.time_zone = supported_regions.loc[self.region, "timezone"]
+        self.time_zone = supported_regions_table.loc[self.region, "timezone"]
         self.utc_datetime = datetime.fromtimestamp(self.t).astimezone(pytz.utc)
         self.utc_time = self.utc_datetime.ctime()
         self.local_time = self.utc_datetime.astimezone(
