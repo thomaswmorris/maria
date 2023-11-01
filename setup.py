@@ -17,8 +17,8 @@ with open(path.join(here, "requirements.txt")) as requirements_file:
 
 setuptools.setup(
     name="maria",
-    version="0.3.0",
-    description="Simulate observations of ground-based millimeter and submillimeter telescopes.",
+    version="0.4.0",
+    description="Simulate ground-based telescopes.",
     long_description=readme,
     author="Thomas W. Morris",
     author_email="thomasmorris@princeton.edu",
@@ -34,7 +34,7 @@ setuptools.setup(
         ]
     },
     install_requires=requirements,
-    license="MIT",
+    license="BSD (3-clause)",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Natural Language :: English",
