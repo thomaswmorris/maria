@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 from . import utils
-from .weather import InvalidRegionError, supported_regions
+from .weather import InvalidRegionError, supported_regions_table
 
 here, this_filename = os.path.split(__file__)
 
@@ -14,18 +14,20 @@ for key, config in SITE_CONFIGS.items():
     SITE_PARAMS |= set(config.keys())
 
 DISPLAY_COLUMNS = ["description", "region", "latitude", "longitude", "altitude"]
-supported_sites = pd.DataFrame(SITE_CONFIGS).T
+supported_sites_table = pd.DataFrame(SITE_CONFIGS).T
+all_sites = supported_sites_table.index.values
 
 
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(
-            f"The site '{invalid_site}' is not supported. Supported sites are:\n\n{supported_sites.loc[:, DISPLAY_COLUMNS].to_string()}"
+            f"The site '{invalid_site}' is not supported. "
+            f"Supported sites are:\n\n{supported_sites_table.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
 
 
 def get_site_config(site_name="APEX", **kwargs):
-    if not site_name in SITE_CONFIGS.keys():
+    if site_name not in SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
     SITE_CONFIG = SITE_CONFIGS[site_name].copy()
     for k, v in kwargs.items():
@@ -56,14 +58,14 @@ class Site:
     """
 
     def __post_init__(self):
-        if not self.region in supported_regions.index.values:
+        if self.region not in supported_regions_table.index.values:
             raise InvalidRegionError(self.region)
 
         if self.longitude is None:
-            self.longitude = supported_regions.loc[self.region].longitude
+            self.longitude = supported_regions_table.loc[self.region].longitude
 
         if self.latitude is None:
-            self.latitude = supported_regions.loc[self.region].latitude
+            self.latitude = supported_regions_table.loc[self.region].latitude
 
         if self.altitude is None:
-            self.altitude = supported_regions.loc[self.region].altitude
+            self.altitude = supported_regions_table.loc[self.region].altitude

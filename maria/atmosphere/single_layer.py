@@ -1,12 +1,15 @@
 import numpy as np
 import scipy as sp
-from tqdm import tqdm
 
 from .. import utils
-from .base import BaseAtmosphericSimulation
+from .base import BaseAtmosphericSimulation, extrude
 
 MIN_SAMPLES_PER_RIBBON = 2
+RIBBON_SAMPLE_DECAY = 4
 JITTER_LEVEL = 1e-4
+
+matern_callback = utils.functions.approximate_normalized_matern
+# matern_callback = utils.functions.normalized_matern
 
 
 class SingleLayerSimulation(BaseAtmosphericSimulation):
@@ -162,7 +165,10 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         cross_section_sample_index = []
         for i, extrusion_index in enumerate(extrusion_indices):
             n_ribbon_samples = np.minimum(
-                np.maximum(int(self.n_cross_section * 2**-i), MIN_SAMPLES_PER_RIBBON),
+                np.maximum(
+                    int(self.n_cross_section * RIBBON_SAMPLE_DECAY**-i),
+                    MIN_SAMPLES_PER_RIBBON,
+                ),
                 self.n_cross_section,
             )
             cross_section_indices = np.unique(
@@ -212,7 +218,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         # sample upper {i,j}
         i, j = np.triu_indices(self.n_sample, k=1)
         COV_S_S = np.eye(self.n_sample) + JITTER_LEVEL
-        COV_S_S[i, j] = utils.functions.approximate_normalized_matern(
+        COV_S_S[i, j] = matern_callback(
             np.sqrt(np.square(sample_positions[j] - sample_positions[i]).sum(axis=1))
             / outer_scale,
             5 / 6,
@@ -221,7 +227,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         COV_S_S[j, i] = COV_S_S[i, j]
 
         # this one is explicit
-        COV_LE_S = utils.functions.approximate_normalized_matern(
+        COV_LE_S = matern_callback(
             np.sqrt(
                 np.square(sample_positions[None] - live_edge_positions[:, None]).sum(
                     axis=2
@@ -235,7 +241,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         # live edge upper {i,j}
         i, j = np.triu_indices(self.n_live_edge, k=1)
         COV_LE_LE = np.eye(self.n_live_edge) + JITTER_LEVEL
-        COV_LE_LE[i, j] = utils.functions.approximate_normalized_matern(
+        COV_LE_LE[i, j] = matern_callback(
             np.sqrt(
                 np.square(live_edge_positions[j] - live_edge_positions[i]).sum(axis=1)
             )
@@ -251,26 +257,27 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         # compute the weights
         self.A = COV_LE_S @ inv_COV_S_S
         self.B = np.linalg.cholesky(COV_LE_LE - self.A @ COV_LE_S.T)
-        self.VALUES = np.zeros(
+        self.shaped_values = np.zeros(
             (self.n_extrusion, self.n_cross_section), dtype=np.float32
         )
 
-    def extrude(self, n_steps, desc=None):
-        # muy rapido
-        BUFFER = np.zeros(
-            (self.n_extrusion + n_steps, self.n_cross_section), dtype=np.float32
-        )
-        BUFFER[self.n_extrusion :] = self.VALUES
-        for buffer_index in tqdm(np.arange(n_steps)[::-1], desc=desc):
-            new_values = self.A @ BUFFER[
-                buffer_index + self.extrusion_sample_index + 1,
-                self.cross_section_sample_index,
-            ] + self.B @ np.random.standard_normal(size=self.B.shape[-1])
-            BUFFER[buffer_index] = new_values
-        self.VALUES = BUFFER[: self.n_extrusion]
+    def simulate_normalized_effective_water_vapor(self):
+        n_steps = self.n_extrusion
 
-    def simulate_integrated_water_vapor(self):
-        self.extrude(n_steps=self.n_extrusion, desc="Generating atmosphere")
+        extruded_values = extrude(
+            values=self.shaped_values.ravel(),
+            A=self.A,
+            B=self.B,
+            n_steps=n_steps,
+            n_i=self.n_extrusion,
+            n_j=self.n_cross_section,
+            i_sample_index=self.extrusion_sample_index,
+            j_sample_index=self.cross_section_sample_index,
+        )
+
+        self.shaped_values = extruded_values.reshape(
+            self.n_extrusion, self.n_cross_section
+        )
 
         trans_detector_angular_positions = (
             self.detector_offsets[:, None] + self.boresight_angular_position[None]
@@ -282,10 +289,15 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             F = utils.beam.make_beam_filter(
                 band_angular_fwhm, self.angular_resolution, self.array.beam_profile
             )
-            FILTERED_VALUES = utils.beam.separably_filter(self.VALUES, F)
+            FILTERED_VALUES = utils.beam.separably_filter(self.shaped_values, F)
             detector_values[band_mask] = sp.interpolate.RegularGridInterpolator(
                 (self.cross_section_side, self.extrusion_side), FILTERED_VALUES.T
             )(trans_detector_angular_positions[band_mask])
+
+        return detector_values
+
+    def simulate_integrated_water_vapor(self):
+        detector_values = self.simulate_normalized_effective_water_vapor()
 
         # this is "zenith-scaled"
         self.line_of_sight_pwv = (

@@ -114,7 +114,7 @@ class WeObserve:
         self.he["CDELT2"] = self.sky_data["incell"]
         self.he[""] = "Changed units to " + self.sky_data["units"]
 
-        if self.sky_data["inbright"] != None:
+        if self.sky_data["inbright"] is not None:
             self.im = self.im / np.nanmax(self.im) * self.sky_data["inbright"]
             self.he[""] = "Amplitude is rescaled."
 

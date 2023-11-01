@@ -1,18 +1,9 @@
-import json
 import os
-import time as ttime
-import warnings
-from datetime import datetime
-from importlib import resources
-from os import path
 
 import healpy as hp
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import scipy as sp
 from astropy.io import fits
-from tqdm import tqdm
 
 from . import utils
 from .coordinator import Coordinator
@@ -241,7 +232,6 @@ class BinMapper(BaseMapper):
                 else:
                     DATA = sp.signal.detrend(tod.data[band_mask])
 
-                # pointing_in_rel_map_units_X, pointing_in_rel_map_units_Y = utils.lonlat_to_xy(self.RA, self.LAT, self.map.center[0], self.map.center[1])
                 # X, Y = utils.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
                 X, Y = utils.lonlat_to_xy(RA, DEC, *tod.center_ra_dec)
 
