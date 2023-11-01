@@ -1,10 +1,11 @@
+from .linear_angular import LinearAngularSimulation  # noqa F401
 from .single_layer import SingleLayerSimulation  # noqa F401
 
 # how do we do the bands? this is a great question.
 # because all practical telescope instrumentation assume a constant band
 
 # from .kolmogorov_taylor import KolmogorovTaylorSimulation
-# from .linear_angular import LinearAngularSimulation
+
 
 ATMOSPHERE_PARAMS = {
     "min_depth": 500,
