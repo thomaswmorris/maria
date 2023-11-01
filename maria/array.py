@@ -29,14 +29,15 @@ for key, config in ARRAY_CONFIGS.items():
     ARRAY_PARAMS |= set(config.keys())
 
 DISPLAY_COLUMNS = ["description", "field_of_view", "primary_size"]
-supported_arrays = pd.DataFrame(ARRAY_CONFIGS).T
+supported_arrays_table = pd.DataFrame(ARRAY_CONFIGS).T
+all_arrays = supported_arrays_table.index.values
 
 
 class InvalidArrayError(Exception):
     def __init__(self, invalid_array):
         super().__init__(
             f"The array '{invalid_array}' is not supported."
-            f"Supported arrays are:\n\n{supported_arrays.loc[:, DISPLAY_COLUMNS].to_string()}"
+            f"Supported arrays are:\n\n{supported_arrays_table.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
 
 

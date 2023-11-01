@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Tuple
 
 import numpy as np
+import pandas as pd
 import pytz
 
 from . import utils
@@ -14,13 +15,15 @@ POINTING_CONFIGS = utils.io.read_yaml(f"{here}/configs/pointings.yml")
 POINTING_PARAMS = set()
 for key, config in POINTING_CONFIGS.items():
     POINTING_PARAMS |= set(config.keys())
+supported_pointings_table = pd.DataFrame(POINTING_CONFIGS).T
+all_pointings = supported_pointings_table.index.values
 
 
 class UnsupportedPointingError(Exception):
     def __init__(self, invalid_pointing):
         super().__init__(
             f"The site '{invalid_pointing}' is not in the database of default pointings. "
-            f"Default pointings are:\n\n{sorted(list(POINTING_CONFIGS.keys()))}"
+            f"Default pointings are:\n\n{supported_pointings_table.to_string()}"
         )
 
 

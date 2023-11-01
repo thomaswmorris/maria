@@ -98,7 +98,9 @@ def get_pointing(time, **kwargs):
 
     if scan_pattern == "daisy":
         dpox, dpoy = get_daisy_offsets(phase)
-        return xy_to_lonlat(scan_radius * dpox, scan_radius * dpoy, *scan_center)
+        return xy_to_lonlat(  # noqa F401
+            scan_radius * dpox, scan_radius * dpoy, *scan_center
+        )
 
 
 # COORDINATE TRANSFORM UTILS
