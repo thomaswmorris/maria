@@ -3,22 +3,16 @@ import pytest
 import maria
 
 
-def test_arrays():
-    for array_name in maria.array.ARRAY_CONFIGS.keys():
-        print(f"getting array {array_name}")
-        array = maria.get_array(array_name)
-        print(array)
+@pytest.mark.parametrize("array_name", maria.all_arrays)
+def test_get_array(array_name):
+    array = maria.get_array(array_name)
 
 
-def test_pointings():
-    for pointing_name in maria.pointing.POINTING_CONFIGS.keys():
-        print(f"getting pointing {pointing_name}")
-        pointing = maria.get_pointing(pointing_name)
-        print(pointing)
+@pytest.mark.parametrize("pointing_name", maria.all_pointings)
+def test_get_pointing(pointing_name):
+    pointing = maria.get_pointing(pointing_name)
 
 
-def test_sites():
-    for site_name in maria.site.SITE_CONFIGS.keys():
-        print(f"getting site {site_name}")
-        site = maria.get_site(site_name)
-        print(site)
+@pytest.mark.parametrize("site_name", maria.all_sites)
+def test_get_site(site_name):
+    site = maria.get_site(site_name)
