@@ -49,3 +49,4 @@ autoapi_dirs = ["./../../maria"]
 
 
 nbsphinx_allow_errors = True
+nbsphinx_execute = "always"
