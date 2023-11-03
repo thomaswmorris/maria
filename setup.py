@@ -17,7 +17,7 @@ with open(path.join(here, "requirements.txt")) as requirements_file:
 
 setuptools.setup(
     name="maria",
-    version="0.4.0",
+    version="0.9.0",
     description="Simulate ground-based telescopes.",
     long_description=readme,
     author="Thomas W. Morris",

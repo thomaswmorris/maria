@@ -28,7 +28,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         pointing,
         site,
         min_layer_height=0,
-        max_layer_height=5000,
+        max_layer_height=3000,
         n_layers=4,
         min_atmosphere_beam_res=4,
         verbose=False,
