@@ -1,7 +1,7 @@
 # List required packages in this file, one per line.
 
 astropy
-camb
+cmocean
 h5py
 healpy
 numpy
@@ -9,4 +9,3 @@ pandas
 scipy
 tables
 tqdm
-cmocean

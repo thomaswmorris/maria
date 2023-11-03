@@ -6,6 +6,7 @@ flake8
 furo
 ipykernel
 isort
+jupyter
 nbstripout
 nbsphinx
 pandoc
