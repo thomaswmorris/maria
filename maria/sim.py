@@ -11,7 +11,7 @@ from .base import BaseSimulation, parse_sim_kwargs
 
 here, this_filename = os.path.split(__file__)
 
-master_params = utils.io.read_yaml(f"{here}/params.yml")
+master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
 
 
 class InvalidSimulationParameterError(Exception):

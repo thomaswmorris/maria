@@ -17,13 +17,13 @@ with open(path.join(here, "requirements.txt")) as requirements_file:
 
 setuptools.setup(
     name="maria",
-    version="0.9.0",
+    version="0.9.1",
     description="Simulate ground-based telescopes.",
     long_description=readme,
     author="Thomas W. Morris",
     author_email="thomasmorris@princeton.edu",
-    url="thomaswmorris.com/maria",
-    python_requires=">=3.7",
+    url="https://www.thomaswmorris.com/maria",
+    python_requires=">=3.10",
     packages=setuptools.find_packages(exclude=["docs", "tests"]),
     include_package_data=True,
     package_data={

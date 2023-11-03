@@ -41,7 +41,7 @@ def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
     return parsed_kwargs
 
 
-master_params = utils.io.read_yaml(f"{here}/params.yml")
+master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
 
 
 class BaseSimulation:
