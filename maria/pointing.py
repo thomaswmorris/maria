@@ -55,8 +55,7 @@ class Pointing:
     scan_period: float = 60.0
     scan_pattern: str = "daisy"
     scan_options: dict = field(default_factory=dict)
-    # start_time: float | str = "2022-02-10T06:00:00"
-    start_time: str = "2022-02-10T06:00:00"
+    start_time: float | str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
     sample_rate: float = 20.0
 
