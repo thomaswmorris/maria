@@ -119,6 +119,7 @@ class BaseSimulation:
         tod.ra = self.pointing.ra
         tod.dec = self.pointing.dec
         tod.cntr = self.pointing.scan_center
+        tod.pntunit = self.pointing.pointing_units
 
         if hasattr(self, "map_sim"):
             if self.map_sim is not None:

@@ -21,7 +21,6 @@ class InvalidMapperError(Exception):
             f"Default mappers are: {MAPPERS}"
         )
 
-
 class BaseMapper:
     """
     The base class for modeling atmospheric fluctuations.
@@ -31,8 +30,8 @@ class BaseMapper:
 
     def __init__(self, **kwargs):
         self.tods = []
-        self.map_res = kwargs.get("map_res", np.radians(1 / 60))
-        self.map_width = kwargs.get("map_width", np.radians(5))
+        self.map_res    = kwargs.get("map_res", np.radians(1 / 60))
+        self.map_width  = kwargs.get("map_width", np.radians(5))
         self.map_height = kwargs.get("map_height", np.radians(5))
         self.map_filter = kwargs.get("filter", True)
 
@@ -98,23 +97,31 @@ class BaseMapper:
         self.header = self.tods[0].header
         self.header["comment"] = "Made Synthetic observations via maria code"
         self.header["comment"] = "Overwrote resolution and size of the output map"
+
         self.header["CDELT1"] = np.rad2deg(self.map_res)
         self.header["CDELT2"] = np.rad2deg(self.map_res)
+
         self.header["CRPIX1"] = self.maps[list(self.maps.keys())[0]].shape[0] / 2
         self.header["CRPIX2"] = self.maps[list(self.maps.keys())[0]].shape[1] / 2
 
-        self.header["CRVAL1"] = np.rad2deg(self.tods[0].cntr[0])
-        self.header["CRVAL2"] = np.rad2deg(self.tods[0].cntr[1])
-        self.header["CTYPE1"] = "RA---SIN"
-        self.header["CUNIT1"] = "deg     "
-        self.header["CTYPE2"] = "DEC--SIN"
-        self.header["CUNIT2"] = "deg     "
-        self.header["comment"] = "Overwrote pointing location of the output map"
+        if self.tods[0].pntunit == 'degrees':
+            self.header["CRVAL1"] = self.tods[0].cntr[0]
+            self.header["CRVAL2"] = self.tods[0].cntr[1]
+        else:
+            self.header["CRVAL1"] = np.rad2deg(self.tods[0].cntr[0])
+            self.header["CRVAL2"] = np.rad2deg(self.tods[0].cntr[1])
 
-        self.header["comment"] = "Overwrote spectral position of the output map"
+
+        self.header["CTYPE1"] = "RA---SIN"
+        self.header["CTYPE2"] = "DEC--SIN"
+        self.header["CUNIT1"] = "deg     "
+        self.header["CUNIT2"] = "deg     "
         self.header["CTYPE3"] = "FREQ    "
         self.header["CUNIT3"] = "Hz      "
         self.header["CRPIX3"] = 1.000000000000e00
+
+        self.header["comment"] = "Overwrote pointing location of the output map"
+        self.header["comment"] = "Overwrote spectral position of the output map"
 
         self.header["BTYPE"] = "Intensity"
         if self.tods[0].unit == "Jy/pixel":
@@ -126,12 +133,15 @@ class BaseMapper:
             (
                 len(self.maps.keys()),
                 self.maps[list(self.maps.keys())[0]].shape[0],
-                self.maps[list(self.maps.keys())[0]].shape[1],
+                self.maps[list(self.maps.keys())[0]].shape[1]
             )
         )
         for i, key in enumerate(self.maps.keys()):
             # what is this? --> Frequency information in the header
-            self.header["CRVAL3"] = self.nom_freqs[key]
+            
+            self.header["CRVAL3"] = self.nom_freqs[key] *1e9
+            self.header["CDELT3"] = self.nom_freqwidth[key] *1e9
+
             save_maps[i] = self.maps[list(self.maps.keys())[i]]
 
             if self.tods[0].unit == "Jy/pixel":
@@ -209,6 +219,7 @@ class BinMapper(BaseMapper):
             [band for tod in self.tods for band in np.unique(tod.dets.band)]
         )
         self.nom_freqs = {}
+        self.nom_freqwidth = {}
         self.map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
         self.map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
 
@@ -256,3 +267,4 @@ class BinMapper(BaseMapper):
                 self.map_cnts[band] += map_cnt
 
                 self.nom_freqs[band] = tod.dets.band_center.mean()
+                self.nom_freqwidth[band] = tod.dets.band_width.mean()
