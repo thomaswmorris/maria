@@ -119,7 +119,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         )
 
         assert self.res.success
-        self.R = utils.get_rotation_matrix_from_angle(self.res.x[0])
+        self.R = utils.get_rotation_matrix_2d(self.res.x[0])
 
         #
         #          ^      xxxxxxxxxxxx

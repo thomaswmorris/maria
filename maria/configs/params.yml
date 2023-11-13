@@ -13,7 +13,7 @@ array: # defaults to a small test array
       band_center: 150
       band_width: 20
   field_of_view: 0.8
-  max_baseline: 0 # meters
+  baseline: 0 # meters
   geometry: hex
   primary_size: 6
   az_bounds: [0,  360]

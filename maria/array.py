@@ -23,10 +23,9 @@ HEX_CODE_LIST = [
 
 here, this_filename = os.path.split(__file__)
 
+all_array_params = utils.io.read_yaml(f"{here}/configs/params.yml")["array"]
+
 ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/configs/arrays.yml")
-ARRAY_PARAMS = set()
-for key, config in ARRAY_CONFIGS.items():
-    ARRAY_PARAMS |= set(config.keys())
 
 DISPLAY_COLUMNS = ["description", "field_of_view", "primary_size"]
 supported_arrays_table = pd.DataFrame(ARRAY_CONFIGS).T
@@ -41,13 +40,16 @@ class InvalidArrayError(Exception):
         )
 
 
-def get_array_config(array_name, **kwargs):
+def get_array_config(array_name=None, **kwargs):
     if array_name not in ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
-    ARRAY_CONFIG = ARRAY_CONFIGS[array_name].copy()
+    array_config = ARRAY_CONFIGS[array_name].copy()
     for k, v in kwargs.items():
-        ARRAY_CONFIG[k] = v
-    return ARRAY_CONFIG
+        if k in all_array_params.keys():
+            array_config[k] = v
+        else:
+            raise ValueError(f"'{k}' is not a valid argument for an array!")
+    return array_config
 
 
 def get_array(array_name, **kwargs):
@@ -64,7 +66,7 @@ def generate_dets_from_config(
     bands: Mapping,
     field_of_view: float,
     geometry: str = "hex",
-    max_baseline: float = 0,
+    baseline: float = 0,
     randomize_offsets: bool = True,
 ):
     dets = pd.DataFrame(
@@ -89,23 +91,26 @@ def generate_dets_from_config(
         band_dets.loc[:, "band_center"] = band_config["band_center"]
         band_dets.loc[:, "band_width"] = band_config["band_width"]
 
+        det_offsets_radians = np.radians(
+            utils.generate_array_offsets(geometry, field_of_view, len(band_dets))
+        )
+
+        # should we make another function for this?
+        det_baselines_meters = utils.generate_array_offsets(
+            geometry, baseline, len(band_dets)
+        )
+
+        # if randomize_offsets:
+        #     np.random.shuffle(offsets_radians)  # this is a stupid function.
+
+        band_dets.loc[:, "offset_x"] = det_offsets_radians[:, 0]
+        band_dets.loc[:, "offset_y"] = det_offsets_radians[:, 1]
+        band_dets.loc[:, "baseline_x"] = det_baselines_meters[:, 0]
+        band_dets.loc[:, "baseline_y"] = det_baselines_meters[:, 1]
+        band_dets.loc[:, "baseline_z"] = 0
+
         dets = pd.concat([dets, band_dets])
         dets.index = np.arange(len(dets))
-
-    offsets_radians = np.radians(
-        utils.generate_array_offsets(geometry, field_of_view, len(dets))
-    )
-
-    # should we make another function for this?
-    baseline = utils.generate_array_offsets(geometry, max_baseline, len(dets))
-
-    if randomize_offsets:
-        np.random.shuffle(offsets_radians)  # this is a stupid function.
-
-    dets.loc[:, "offset_x"] = offsets_radians[:, 0]
-    dets.loc[:, "offset_y"] = offsets_radians[:, 1]
-    dets.loc[:, "baseline_x"] = baseline[:, 0]
-    dets.loc[:, "baseline_y"] = baseline[:, 1]
 
     for key in ["offset_x", "offset_y", "baseline_x", "baseline_y"]:
         dets.loc[:, key] = dets.loc[:, key].astype(float)
@@ -123,6 +128,7 @@ class Array:
     primary_size: float = 5  # in meters
     field_of_view: float = 1  # in deg
     geometry: str = "hex"
+    baseline: float = 0
     max_az_vel: float = 0  # in deg/s
     max_el_vel: float = np.inf  # in deg/s
     max_az_acc: float = 0  # in deg/s^2
@@ -173,14 +179,19 @@ class Array:
         if isinstance(config["dets"], Mapping):
             field_of_view = config.get("field_of_view", 1)
             geometry = config.get("geometry", "hex")
+            baseline = config.get("baseline", 0)  # default to zero baseline
             dets = generate_dets_from_config(
-                config["dets"], field_of_view=field_of_view, geometry=geometry
+                config["dets"],
+                field_of_view=field_of_view,
+                geometry=geometry,
+                baseline=baseline,
             )
 
         return cls(
             description=config["description"],
             primary_size=config["primary_size"],
             field_of_view=field_of_view,
+            baseline=baseline,
             geometry=geometry,
             max_az_vel=config["max_az_vel"],
             max_el_vel=config["max_el_vel"],

@@ -47,5 +47,5 @@ pygments_dark_style = "monokai"
 autoapi_type = "python"
 autoapi_dirs = ["./../../maria"]
 
-
 nbsphinx_allow_errors = True
+nbsphinx_execute = "always"
