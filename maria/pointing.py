@@ -93,7 +93,10 @@ class Pointing:
         )
 
         if self.pointing_units == "degrees":
-            self.scan_center = (np.radians(x) for x in self.scan_center)
+            self.scan_center = (
+                np.radians(self.scan_center[0]),
+                np.radians(self.scan_center[1]),
+            )
             x_offsets, y_offsets = np.radians(x_offsets), np.radians(y_offsets)
 
         assert len(self.time) == len(x_offsets)
