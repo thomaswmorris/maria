@@ -30,7 +30,7 @@ def test_sim_with_params():
         integration_time=600,  # seconds
         scan_center=(150.0, 10),  # degrees
         pointing_frame="ra_dec",  # frame
-        scan_radius=0.05,  # How large the scanning pattern is in degree
+        scan_options={"radius": 0.05, "speed": 0.05, "petals": 5},
         # Additional inputs:
         # ----------------------
         weather_quantiles={

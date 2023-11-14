@@ -40,6 +40,49 @@ class InvalidArrayError(Exception):
         )
 
 
+def generate_array_offsets(geometry, field_of_view, n):
+    valid_array_types = ["flower", "hex", "square"]
+
+    if geometry == "flower":
+        phi = np.pi * (3.0 - np.sqrt(5.0))  # golden angle in radians
+        dzs = np.zeros(n).astype(complex)
+        for i in range(n):
+            dzs[i] = np.sqrt((i / (n - 1)) * 2) * np.exp(1j * phi * i)
+        od = np.abs(np.subtract.outer(dzs, dzs))
+        dzs *= field_of_view / od.max()
+        return np.c_[np.real(dzs), np.imag(dzs)]
+    if geometry == "hex":
+        return generate_hex_offsets(n, field_of_view)
+    if geometry == "square":
+        dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (
+            2 * np.sqrt(2)
+        )
+        DX, DY = np.meshgrid(dxy_, dxy_)
+        return np.c_[DX.ravel()[:n], DY.ravel()[:n]]
+
+    raise ValueError(
+        "Please specify a valid array type. Valid array types are:\n"
+        + "\n".join(valid_array_types)
+    )
+
+
+def generate_hex_offsets(n, d):
+    angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
+    zs = np.array([0])
+    layer = 0
+    while len(zs) < n:
+        for angle in angles:
+            for z in layer * np.exp(1j * angle) + np.arange(layer) * np.exp(
+                1j * (angle + 2 * np.pi / 3)
+            ):
+                zs = np.append(zs, z)
+        layer += 1
+    zs -= zs.mean()
+    zs *= 0.5 * d / np.abs(zs).max()
+
+    return np.c_[np.real(np.array(zs[:n])), np.imag(np.array(zs[:n]))]
+
+
 def get_array_config(array_name=None, **kwargs):
     if array_name not in ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
@@ -92,11 +135,11 @@ def generate_dets_from_config(
         band_dets.loc[:, "band_width"] = band_config["band_width"]
 
         det_offsets_radians = np.radians(
-            utils.generate_array_offsets(geometry, field_of_view, len(band_dets))
+            generate_array_offsets(geometry, field_of_view, len(band_dets))
         )
 
         # should we make another function for this?
-        det_baselines_meters = utils.generate_array_offsets(
+        det_baselines_meters = generate_array_offsets(
             geometry, baseline, len(band_dets)
         )
 
@@ -230,7 +273,7 @@ class Array:
         return nu_mask.astype(float) / nu_mask.sum(axis=-1)[:, None]
 
     def angular_fwhm(self, z):
-        return utils.gaussian_beam_angular_fwhm(
+        return utils.beam.gaussian_beam_angular_fwhm(
             z=z,
             w_0=self.primary_size / np.sqrt(2 * np.log(2)),
             f=self.dets.band_center.values,
@@ -264,7 +307,7 @@ class Array:
             band_res_arcmins = 60 * np.degrees(
                 1.22 * 2.998e8 / (1e9 * nom_freq * self.primary_size)
             )
-            # band_res_arcmins = 60 * np.degrees(utils.gaussian_beam_angular_fwhm(z=1e12, w_0=self.primary_size, f=nom_freq))
+
             offsets_arcmins = 60 * np.degrees(self.offsets[band_mask])
 
             ax.add_collection(

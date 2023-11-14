@@ -206,10 +206,10 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 #             * np.sin(self.pointing.el[None])
 #         )
 
-#         center_lon, center_lat = utils.get_center_lonlat(
+#         center_lon, center_lat = utils.coords.get_center_lonlat(
 #             self.pointing.az, self.pointing.el
 #         )
-#         self.pointing.dx, self.pointing.dy = utils.lonlat_to_xy(
+#         self.pointing.dx, self.pointing.dy = utils.coords.lonlat_to_xy(
 #             self.pointing.az, self.pointing.el, center_lon, center_lat
 #         )
 
@@ -367,7 +367,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 #                 self.C00.append(C00)
 #                 self.C01.append(C01)
 #                 self.C11.append(C11)
-#                 self.A.append(np.matmul(C01, utils.fast_psd_inverse(C00)))
+#                 self.A.append(np.matmul(C01, utils.linalg.fast_psd_inverse(C00)))
 #                 self.B.append(
 #                     sp.linalg.lapack.dpotrf(C11 - np.matmul(self.A[-1], C01.T))[0]
 #                 )

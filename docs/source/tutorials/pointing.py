@@ -51,6 +51,7 @@ class Pointing:
     pointing_frame: str = "ra_dec"
     pointing_units: str = "degrees"
     scan_center: Tuple[float, float] = (4, 10.5)
+    scan_radius: float = 1.0
     scan_pattern: str = "daisy"
     scan_options: dict = field(default_factory=dict)
     start_time: float | str = "2022-02-10T06:00:00"
@@ -81,33 +82,31 @@ class Pointing:
         self.time_max = self.end_datetime.timestamp()
         self.dt = 1 / self.sample_rate
 
+        if self.pointing_units == "degrees":
+            self.scan_center_radians = np.radians(self.scan_center)
+            self.scan_radius_radians = np.radians(self.scan_radius)
+        else:
+            self.scan_center_radians = np.array(self.scan_center)
+            self.scan_radius_radians = np.array(self.scan_radius)
+
         self.time = np.arange(self.time_min, self.time_max, self.dt)
         self.n_time = len(self.time)
 
-        # this is in pointing_units
-        x_offsets, y_offsets = utils.pointing.get_offsets(
-            scan_pattern=self.scan_pattern,
-            integration_time=self.integration_time,
-            sample_rate=self.sample_rate,
-            **self.scan_options,
+        time_ordered_pointing = utils.get_pointing(
+            self.time,
+            scan_center=self.scan_center_radians,  # a lon/lat in some frame
+            pointing_frame=self.pointing_frame,  # the frame, one of "az_el", "ra_dec", "galactic"
+            scan_radius=self.scan_radius_radians,
+            scan_speed=self.scan_speed,
+            scan_pattern="daisy",
         )
 
-        if self.pointing_units == "degrees":
-            self.scan_center = (np.radians(x) for x in self.scan_center)
-            x_offsets, y_offsets = np.radians(x_offsets), np.radians(y_offsets)
-
-        assert len(self.time) == len(x_offsets)
-
-        theta, phi = utils.coords.xy_to_lonlat(x_offsets, y_offsets, *self.scan_center)
-
         if self.pointing_frame == "ra_dec":
-            self.ra, self.dec = theta, phi
+            self.ra, self.dec = time_ordered_pointing
         elif self.pointing_frame == "az_el":
-            self.az, self.el = theta, phi
+            self.az, self.el = time_ordered_pointing
         elif self.pointing_frame == "dx_dy":
-            self.dx, self.dy = theta, phi
-        else:
-            raise ValueError("Not a valid pointing frame!")
+            self.dx, self.dy = time_ordered_pointing
 
         self.utc_time = (
             datetime.fromtimestamp(self.time_min).astimezone(pytz.utc).ctime()

@@ -99,7 +99,7 @@ class BaseSkySimulation(base.BaseSimulation):
     def __init__(self, array, pointing, site, **kwargs):
         super().__init__(array, pointing, site, **kwargs)
 
-        AZIM, ELEV = utils.xy_to_lonlat(
+        AZIM, ELEV = utils.coords.xy_to_lonlat(
             self.array.offset_x[:, None],
             self.array.offset_y[:, None],
             self.pointing.az,
@@ -114,7 +114,7 @@ class BaseSkySimulation(base.BaseSimulation):
             out_frame="ra_dec",
         )
 
-        self.X, self.Y = utils.lonlat_to_xy(
+        self.X, self.Y = utils.coords.lonlat_to_xy(
             self.RA, self.DEC, self.RA.mean(), self.DEC.mean()
         )
 
@@ -143,7 +143,7 @@ class MapSimulation(BaseSkySimulation):
             units=kwargs.get("map_units", "K"),
         )
 
-        self.map_X, self.map_Y = utils.lonlat_to_xy(
+        self.map_X, self.map_Y = utils.coords.lonlat_to_xy(
             self.RA, self.DEC, *self.input_map.center
         )
 
@@ -162,7 +162,9 @@ class MapSimulation(BaseSkySimulation):
 
         if self.input_map.units == "Jy/pixel":
             for i, nu in enumerate(self.input_map.freqs):
-                self.input_map.data[i] = self.input_map.data[i] / utils.KbrightToJyPix(
+                self.input_map.data[i] = self.input_map.data[
+                    i
+                ] / utils.units.KbrightToJyPix(
                     1e9 * nu,
                     np.rad2deg(self.input_map.res),
                     np.rad2deg(self.input_map.res),

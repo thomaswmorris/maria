@@ -33,8 +33,6 @@ pointing: # defaults to a 45 degree stare due north
   sample_rate: 20
   scan_pattern: daisy
   scan_center: [10, 4.5]
-  scan_radius: 2
-  scan_period: 120
   scan_options: {}
 
 site: # default to the ALMA site

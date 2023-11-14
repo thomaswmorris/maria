@@ -83,7 +83,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
     @property
     def EL(self):
-        return utils.xy_to_lonlat(
+        return utils.coords.xy_to_lonlat(
             self.array.offset_x[:, None],
             self.array.offset_y[:, None],
             self.pointing.az,
