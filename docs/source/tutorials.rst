@@ -4,4 +4,5 @@ Tutorials
 .. toctree::
    :maxdepth: 2
 
-   tutorials/mock-observations.ipynb
+   tutorials/Synthetic_MUSTANG2_observations.ipynb
+   tutorials/Synthetic_AtLAST_observations.ipynb
