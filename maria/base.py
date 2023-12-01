@@ -112,7 +112,6 @@ class BaseSimulation:
         tod = TOD()
 
         tod.data = self.data  # this should be set in the _run() method
-
         tod.time = self.pointing.time
         tod.az = self.pointing.az
         tod.el = self.pointing.el

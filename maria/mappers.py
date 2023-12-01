@@ -8,6 +8,8 @@ from astropy.io import fits
 from . import utils
 from .coordinator import Coordinator
 
+np.seterr(invalid="ignore")
+
 here, this_filename = os.path.split(__file__)
 
 MAPPER_CONFIGS = utils.io.read_yaml(f"{here}/configs/mappers.yml")
@@ -79,9 +81,12 @@ class BaseMapper:
 
         return tod
 
-    def add_tods(self, tods):
+    def add_tods(self, tods, synthetatic=True):
         for tod in np.atleast_1d(tods):
-            self.tods.append(self.expand_tod(tod))
+            if synthetatic:
+                self.tods.append(self.expand_tod(tod))
+            else:
+                self.tods.append(tod)
 
     @property
     def get_map_center_lonlat(self):
@@ -138,11 +143,14 @@ class BaseMapper:
         )
         for i, key in enumerate(self.maps.keys()):
             # what is this? --> Frequency information in the header
-
             self.header["CRVAL3"] = self.nom_freqs[key] * 1e9
             self.header["CDELT3"] = self.nom_freqwidth[key] * 1e9
 
-            save_maps[i] = self.maps[list(self.maps.keys())[i]]
+            # save_maps[i] = self.maps[list(self.maps.keys())[i]]
+            sigma_smooth = (
+                8 / np.rad2deg(self.map_res) / 3600 / 2.355
+            )  # hard coded angular resolution to smooth with
+            save_maps[i] = self.smoothed_maps(sigma_smooth)[list(self.maps.keys())[i]]
 
             if self.tods[0].unit == "Jy/pixel":
                 save_maps[i] *= utils.units.KbrightToJyPix(
