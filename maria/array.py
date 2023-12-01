@@ -72,7 +72,7 @@ def generate_dets_from_config(
             "band",
             "band_center",
             "band_width",
-            "offset_x",
+            "scan_center" "offset_x",
             "offset_y",
             "baseline_x",
             "baseline_y",
@@ -92,8 +92,9 @@ def generate_dets_from_config(
         dets = pd.concat([dets, band_dets])
         dets.index = np.arange(len(dets))
 
+    # want cetner = scan_center similar to what is done in pointing.py
     offsets_radians = np.radians(
-        utils.generate_array_offsets(geometry, field_of_view, len(dets))
+        utils.generate_array_offsets(geometry, field_of_view, len(dets), center=None)
     )
 
     # should we make another function for this?

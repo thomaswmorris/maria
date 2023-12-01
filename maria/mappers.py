@@ -8,6 +8,8 @@ from astropy.io import fits
 from . import utils
 from .coordinator import Coordinator
 
+np.seterr(invalid="ignore")
+
 here, this_filename = os.path.split(__file__)
 
 MAPPER_CONFIGS = utils.read_yaml(f"{here}/configs/mappers.yml")
@@ -21,6 +23,7 @@ class InvalidMapperError(Exception):
             f"Default mappers are: {MAPPERS}"
         )
 
+
 class BaseMapper:
     """
     The base class for modeling atmospheric fluctuations.
@@ -30,8 +33,8 @@ class BaseMapper:
 
     def __init__(self, **kwargs):
         self.tods = []
-        self.map_res    = kwargs.get("map_res", np.radians(1 / 60))
-        self.map_width  = kwargs.get("map_width", np.radians(5))
+        self.map_res = kwargs.get("map_res", np.radians(1 / 60))
+        self.map_width = kwargs.get("map_width", np.radians(5))
         self.map_height = kwargs.get("map_height", np.radians(5))
         self.map_filter = kwargs.get("filter", True)
 
@@ -78,9 +81,12 @@ class BaseMapper:
 
         return tod
 
-    def add_tods(self, tods):
+    def add_tods(self, tods, synthetatic=True):
         for tod in np.atleast_1d(tods):
-            self.tods.append(self.expand_tod(tod))
+            if synthetatic:
+                self.tods.append(self.expand_tod(tod))
+            else:
+                self.tods.append(tod)
 
     @property
     def get_map_center_lonlat(self):
@@ -104,13 +110,12 @@ class BaseMapper:
         self.header["CRPIX1"] = self.maps[list(self.maps.keys())[0]].shape[0] / 2
         self.header["CRPIX2"] = self.maps[list(self.maps.keys())[0]].shape[1] / 2
 
-        if self.tods[0].pntunit == 'degrees':
+        if self.tods[0].pntunit == "degrees":
             self.header["CRVAL1"] = self.tods[0].cntr[0]
             self.header["CRVAL2"] = self.tods[0].cntr[1]
         else:
             self.header["CRVAL1"] = np.rad2deg(self.tods[0].cntr[0])
             self.header["CRVAL2"] = np.rad2deg(self.tods[0].cntr[1])
-
 
         self.header["CTYPE1"] = "RA---SIN"
         self.header["CTYPE2"] = "DEC--SIN"
@@ -133,16 +138,19 @@ class BaseMapper:
             (
                 len(self.maps.keys()),
                 self.maps[list(self.maps.keys())[0]].shape[0],
-                self.maps[list(self.maps.keys())[0]].shape[1]
+                self.maps[list(self.maps.keys())[0]].shape[1],
             )
         )
         for i, key in enumerate(self.maps.keys()):
             # what is this? --> Frequency information in the header
-            
-            self.header["CRVAL3"] = self.nom_freqs[key] *1e9
-            self.header["CDELT3"] = self.nom_freqwidth[key] *1e9
+            self.header["CRVAL3"] = self.nom_freqs[key] * 1e9
+            self.header["CDELT3"] = self.nom_freqwidth[key] * 1e9
 
-            save_maps[i] = self.maps[list(self.maps.keys())[i]]
+            # save_maps[i] = self.maps[list(self.maps.keys())[i]]
+            sigma_smooth = (
+                8 / np.rad2deg(self.map_res) / 3600 / 2.355
+            )  # hard coded angular resolution to smooth with
+            save_maps[i] = self.smoothed_maps(sigma_smooth)[list(self.maps.keys())[i]]
 
             if self.tods[0].unit == "Jy/pixel":
                 save_maps[i] *= utils.KbrightToJyPix(

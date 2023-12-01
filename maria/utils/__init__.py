@@ -53,36 +53,25 @@ def get_pointing_offset(time, period, throws, plan_type):
         return throws[0] * r * np.cos(phase), throws[1] * r * np.sin(phase)
 
 
-# def get_pointing(time, period, centers, throws, plan_type, frame):
-
-#     p = 2 * np.pi * time / period
-
-#     if plan_type == "back-and-forth":
-#         return (
-#             centers[0] + throws[0] * sp.signal.sawtooth(p, width=0.5),
-#             centers[1] + throws[1] * sp.signal.sawtooth(p, width=0.5),
-#         )
-
-#     if plan_type == "daisy":
-
-#         daisy_offset_x, daisy_offset_y = get_pointing_offset(time, period, plan_type="daisy")
-
-#         return (
-#             centers[0] + throws[0] * r * np.cos(p),
-#             centers[1] + throws[1] * r * np.sin(p),
-#         )
-
-#     if plan_type == "box":
-#         return (
-#             centers[0]
-#             + throws[0] * np.interp(p % (2 * np.pi), np.linspace(0, 2 * np.pi, 5), [-1, -1, +1, +1, -1]),
-#             centers[1] + throws[1] * np.interp(p, np.linspace(0, 2 * np.pi, 5), [-1, +1, +1, -1, -1]),
-#         )
-
-
 def get_daisy_offsets(phase, k=2.11):
     r = np.sin(k * phase)
     return r * np.cos(phase), r * np.sin(phase)
+
+
+def daisy_pattern_miss_center(
+    phase, petals=3, radius=1, offset_factor=0.15, k1=1 / 3 * np.pi, k2=2 / 3 * np.pi
+):
+    shifted_phase = phase + np.pi / 2
+    z1 = np.sin(phase * k2) * np.exp(1j * phase / petals)
+    z2 = (
+        offset_factor * np.sin(shifted_phase * k1) * np.exp(1j * shifted_phase / petals)
+    )
+    z = z1 - z2
+
+    max_dist = np.atleast_1d(np.abs(z)).max()
+    z *= radius / max_dist
+
+    return np.real(z), np.imag(z)
 
 
 def get_pointing(time, **kwargs):
@@ -97,7 +86,8 @@ def get_pointing(time, **kwargs):
     phase = 2 * np.pi * time / scan_period
 
     if scan_pattern == "daisy":
-        dpox, dpoy = get_daisy_offsets(phase)
+        # dpox, dpoy = get_daisy_offsets(phase)
+        dpox, dpoy = daisy_pattern_miss_center(phase)
         return xy_to_lonlat(  # noqa F401
             scan_radius * dpox, scan_radius * dpoy, *scan_center
         )
@@ -142,7 +132,7 @@ class Planner:
 # ================ ARRAY ================
 
 
-def generate_array_offsets(geometry, field_of_view, n):
+def generate_array_offsets(geometry, field_of_view, n, center=None):
     valid_array_types = ["flower", "hex", "square"]
 
     if geometry == "flower":
@@ -154,7 +144,7 @@ def generate_array_offsets(geometry, field_of_view, n):
         dzs *= field_of_view / od.max()
         return np.c_[np.real(dzs), np.imag(dzs)]
     if geometry == "hex":
-        return generate_hex_offsets(n, field_of_view)
+        return generate_hex_offsets(n, field_of_view, center)
     if geometry == "square":
         dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (
             2 * np.sqrt(2)
@@ -168,7 +158,7 @@ def generate_array_offsets(geometry, field_of_view, n):
     )
 
 
-def generate_hex_offsets(n, d):
+def generate_hex_offsets(n, d, center):
     angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
     zs = np.array([0])
     layer = 0
@@ -179,9 +169,12 @@ def generate_hex_offsets(n, d):
             ):
                 zs = np.append(zs, z)
         layer += 1
-    zs -= zs.mean()
-    zs *= 0.5 * d / np.abs(zs).max()
 
+    if center is None:
+        zs -= zs.mean()
+    else:
+        zs -= center
+    zs *= 0.5 * d / np.abs(zs).max()
     return np.c_[np.real(np.array(zs[:n])), np.imag(np.array(zs[:n]))]
 
 
