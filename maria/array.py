@@ -117,7 +117,7 @@ def generate_dets_from_config(
             "band",
             "band_center",
             "band_width",
-            "scan_center" "offset_x",
+            "offset_x",
             "offset_y",
             "baseline_x",
             "baseline_y",
