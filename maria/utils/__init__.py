@@ -55,17 +55,24 @@ def validate_pointing(azim, elev):
 #         return throws[0] * r * np.cos(phase), throws[1] * r * np.sin(phase)
 
 
-# def get_pointing(time, period, centers, throws, plan_type, frame):
+def get_daisy_offsets(phase, k=2.11):
+    r = np.sin(k * phase)
+    return r * np.cos(phase), r * np.sin(phase)
 
-#     p = 2 * np.pi * time / period
 
-#     if plan_type == "back-and-forth":
-#         return (
-#             centers[0] + throws[0] * sp.signal.sawtooth(p, width=0.5),
-#             centers[1] + throws[1] * sp.signal.sawtooth(p, width=0.5),
-#         )
+def daisy_pattern_miss_center(
+    phase, petals=3, radius=1, offset_factor=0.15, k1=1 / 3 * np.pi, k2=2 / 3 * np.pi
+):
+    shifted_phase = phase + np.pi / 2
+    z1 = np.sin(phase * k2) * np.exp(1j * phase / petals)
+    z2 = (
+        offset_factor * np.sin(shifted_phase * k1) * np.exp(1j * shifted_phase / petals)
+    )
+    z = z1 - z2
 
-#     if plan_type == "daisy":
+    max_dist = np.atleast_1d(np.abs(z)).max()
+    z *= radius / max_dist
+
 
 #         daisy_offset_x, daisy_offset_y = get_pointing_offset(time, period, plan_type="daisy")
 

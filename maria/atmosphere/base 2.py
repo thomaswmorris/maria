@@ -4,11 +4,9 @@ import time as ttime
 import h5py
 import numpy as np
 import scipy as sp
+from tqdm import tqdm
 
 from .. import base, utils, weather
-
-# from tqdm import tqdm
-
 
 # how do we do the bands? this is a great question.
 # because all practical telescope instrumentation assume a constant band
@@ -85,7 +83,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
 
     @property
     def EL(self):
-        return utils.coords.xy_to_lonlat(
+        return utils.xy_to_lonlat(
             self.array.offset_x[:, None],
             self.array.offset_y[:, None],
             self.pointing.az,
@@ -106,8 +104,7 @@ class BaseAtmosphericSimulation(base.BaseSimulation):
                 (self.array.n_dets, self.pointing.n_time), dtype=np.float32
             )
 
-            # for uband in tqdm(self.array.ubands, desc="Sampling atmosphere"):
-            for uband in self.array.ubands:
+            for uband in tqdm(self.array.ubands, desc="Sampling atmosphere"):
                 band_mask = self.array.dets.band.values == uband
                 passband = self.array.passbands(self.spectrum.side_nu_GHz)[
                     band_mask

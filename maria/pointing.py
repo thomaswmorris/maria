@@ -77,7 +77,8 @@ class Pointing:
     scan_center: Tuple[float, float] = (4, 10.5)
     scan_pattern: str = "daisy_miss_center"
     scan_options: dict = field(default_factory=dict)
-    start_time: float | str = "2022-02-10T06:00:00"
+    # start_time: float | str = "2022-02-10T06:00:00"
+    start_time: str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
     sample_rate: float = 20.0
 

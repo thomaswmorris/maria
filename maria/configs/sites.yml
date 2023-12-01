@@ -35,7 +35,7 @@ GBT:
   region: green_bank
   latitude: 38.4331
   longitude: -79.8398
-  altitude: 818
+  altitude: 825
   documentation: https://greenbankobservatory.org/science/telescopes/gbt/
 
 IRAM:
