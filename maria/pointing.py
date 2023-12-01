@@ -36,8 +36,32 @@ def get_pointing_config(pointing_name, **kwargs):
     return POINTING_CONFIG
 
 
-def get_pointing(pointing_name, **kwargs):
+def get_pointing(pointing_name="stare", **kwargs):
     return Pointing(**get_pointing_config(pointing_name, **kwargs))
+
+
+def get_offsets(scan_pattern, integration_time, sample_rate, **scan_options):
+    """
+    Returns x and y offsets
+    """
+
+    if scan_pattern == "stare":
+        return utils.pointing.get_stare_offsets(
+            integration_time=integration_time, sample_rate=sample_rate, **scan_options
+        )
+
+    if scan_pattern == "daisy":
+        return utils.pointing.get_daisy_offsets_constant_speed(
+            integration_time=integration_time, sample_rate=sample_rate, **scan_options
+        )
+
+    elif scan_pattern == "back_and_forth":
+        return utils.pointing.get_back_and_forth_offsets(
+            integration_time=integration_time, sample_rate=sample_rate, **scan_options
+        )
+
+    else:
+        raise ValueError(f"'{scan_pattern}' is not a valid scan pattern.")
 
 
 @dataclass
@@ -51,9 +75,7 @@ class Pointing:
     pointing_frame: str = "ra_dec"
     pointing_units: str = "degrees"
     scan_center: Tuple[float, float] = (4, 10.5)
-    scan_radius: float = 1.0
-    scan_period: float = 60.0
-    scan_pattern: str = "daisy"
+    scan_pattern: str = "daisy_miss_center"
     scan_options: dict = field(default_factory=dict)
     start_time: float | str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
@@ -74,7 +96,7 @@ class Pointing:
     def __post_init__(self):
         if not hasattr(self, "start_time"):
             self.start_time = datetime.now().timestamp()
-        self.start_datetime = utils.datetime_handler(self.start_time)
+        self.start_datetime = utils.io.datetime_handler(self.start_time)
         self.end_datetime = self.start_datetime + timedelta(
             seconds=self.integration_time
         )
@@ -83,31 +105,35 @@ class Pointing:
         self.time_max = self.end_datetime.timestamp()
         self.dt = 1 / self.sample_rate
 
-        if self.pointing_units == "degrees":
-            self.scan_center_radians = np.radians(self.scan_center)
-            self.scan_radius_radians = np.radians(self.scan_radius)
-        else:
-            self.scan_center_radians = np.array(self.scan_center)
-            self.scan_radius_radians = np.array(self.scan_radius)
-
         self.time = np.arange(self.time_min, self.time_max, self.dt)
         self.n_time = len(self.time)
 
-        time_ordered_pointing = utils.get_pointing(
-            self.time,
-            scan_center=self.scan_center_radians,  # a lon/lat in some frame
-            pointing_frame=self.pointing_frame,  # the frame, one of "az_el", "ra_dec", "galactic"
-            scan_radius=self.scan_radius_radians,
-            scan_period=self.scan_period,
-            scan_pattern="daisy",
+        # this is in pointing_units
+        x_offsets, y_offsets = getattr(utils.pointing, self.scan_pattern)(
+            integration_time=self.integration_time,
+            sample_rate=self.sample_rate,
+            **self.scan_options,
         )
 
+        if self.pointing_units == "degrees":
+            self.scan_center = (
+                np.radians(self.scan_center[0]),
+                np.radians(self.scan_center[1]),
+            )
+            x_offsets, y_offsets = np.radians(x_offsets), np.radians(y_offsets)
+
+        assert len(self.time) == len(x_offsets)
+
+        theta, phi = utils.coords.xy_to_lonlat(x_offsets, y_offsets, *self.scan_center)
+
         if self.pointing_frame == "ra_dec":
-            self.ra, self.dec = time_ordered_pointing
+            self.ra, self.dec = theta, phi
         elif self.pointing_frame == "az_el":
-            self.az, self.el = time_ordered_pointing
+            self.az, self.el = theta, phi
         elif self.pointing_frame == "dx_dy":
-            self.dx, self.dy = time_ordered_pointing
+            self.dx, self.dy = theta, phi
+        else:
+            raise ValueError("Not a valid pointing frame!")
 
         self.utc_time = (
             datetime.fromtimestamp(self.time_min).astimezone(pytz.utc).ctime()

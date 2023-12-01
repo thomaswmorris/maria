@@ -70,10 +70,10 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             print(f"{(layer_wind_east, layer_wind_north) = }")
 
         # compute the offset with respect to the center of the scan
-        center_az, center_el = utils.get_center_lonlat(
+        center_az, center_el = utils.coords.get_center_lonlat(
             self.pointing.az, self.pointing.el
         )
-        self.pointing.dx, self.pointing.dy = utils.lonlat_to_xy(
+        self.pointing.dx, self.pointing.dy = utils.coords.lonlat_to_xy(
             self.pointing.az, self.pointing.el, center_az, center_el
         )
 
@@ -114,12 +114,12 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         self.atmosphere_hull_points = atmosphere_offsets[atmosphere_hull.vertices]
 
         # R takes us from the real (dx, dy) to a more compact (cross_section, extrusion) frame
-        self.res = utils.optimize_area_minimizing_rotation_matrix(
+        self.res = utils.linalg.optimize_area_minimizing_rotation_matrix(
             self.atmosphere_hull_points
         )
 
         assert self.res.success
-        self.R = utils.get_rotation_matrix_from_angle(self.res.x[0])
+        self.R = utils.linalg.get_rotation_matrix_2d(self.res.x[0])
 
         #
         #          ^      xxxxxxxxxxxx
@@ -252,7 +252,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
         COV_LE_LE[j, i] = COV_LE_LE[i, j]
 
         # this is typically the bottleneck
-        inv_COV_S_S = utils.fast_psd_inverse(COV_S_S)
+        inv_COV_S_S = utils.linalg.fast_psd_inverse(COV_S_S)
 
         # compute the weights
         self.A = COV_LE_S @ inv_COV_S_S

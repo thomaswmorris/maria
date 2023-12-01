@@ -20,17 +20,55 @@ ACT_PA4:
   max_el_acc: 0.25
   documentation: https://almascience.nrao.edu/about-alma/alma-basics
 
+
 ALMA:
   description: ALMA (Atacama Large Millimeter Array)
   dets:
-    f150:
-      n: 750
-      band_center: 150
-      band_width: 10
+    043GHz:
+      n: 66
+      band_center: 43
+      band_width: 16
+    078GHz:
+      n: 66
+      band_center: 78
+      band_width: 22
+    100GHz:
+      n: 66
+      band_center: 100
+      band_width: 32
+    144GHz:
+      n: 66
+      band_center: 144
+      band_width: 38
+    187GHz:
+      n: 66
+      band_center: 187
+      band_width: 48
+    243GHz:
+      n: 66
+      band_center: 243
+      band_width: 64
+    324GHz:
+      n: 66
+      band_center: 324
+      band_width: 98
+    447GHz:
+      n: 66
+      band_center: 447
+      band_width: 114
+    661GHz:
+      n: 66
+      band_center: 661
+      band_width: 118
+    869GHz:
+      n: 66
+      band_center: 869
+      band_width: 163
+
   field_of_view: 0
-  max_baseline: 12000 # meters
+  baseline: 12000 # meters
   geometry: hex
-  primary_size: 6
+  primary_size: 12
   az_bounds: [0,  360]
   el_bounds: [20,  90]
   max_az_vel: 3
@@ -109,6 +147,24 @@ SCUBA-2:
   field_of_view: 0.12
   geometry: hex
   primary_size: 15
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/
+
+SO_SAT:
+  description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
+  dets:
+    f150:
+      n: 217
+      band_center: 150
+      band_width: 20
+  field_of_view: 10
+  geometry: hex
+  primary_size: 0.5
   az_bounds: [0,  360]
   el_bounds: [20,  90]
   max_az_vel: 3

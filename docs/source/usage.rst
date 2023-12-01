@@ -41,19 +41,19 @@ The arrays
         - max_el_vel (float): ...
         - max_az_acc (float): ...
         - max_el_acc (float): ...
-        - max_baseline (float): meters (only for ALMA)
+        - baseline (float): meters (only for ALMA)
 
 
 Pointings
 ^^^^^^^^^
 
-The next component of the simulation
+The next component of the simulation is the pointing, which defines the direction and scan pattern of the observation:::
 
-    import maria
+    daisy_scan = maria.get_pointing("daisy")
 
-    mustang = maria.get_array("MUSTANG-2")
+We can specify a custom pointing by passing extra arguments to the above, such as::
 
-We can specify a custom array
+    custom_daisy_scan = maria.get_pointing("daisy", integration_time=600, scan_options={"radius": 2})
 
 
 Sites
@@ -114,7 +114,7 @@ Simulation parameters
         - max_el_vel (float): ...
         - max_az_acc (float): ...
         - max_el_acc (float): ...
-        - max_baseline (float): meters (only for ALMA)
+        - baseline (float): meters (only for ALMA)
 
 - **pointing:** Scanning strategy
     - Predefined configurations: `stare`, `daisy`, `BAF`,

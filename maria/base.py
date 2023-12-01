@@ -3,7 +3,7 @@ import os
 from astropy.io import fits
 
 from . import utils
-from .array import ARRAY_PARAMS, Array, get_array
+from .array import Array, all_array_params, get_array
 from .coordinator import Coordinator
 from .pointing import POINTING_PARAMS, Pointing, get_pointing
 from .site import SITE_PARAMS, Site, get_site
@@ -95,7 +95,7 @@ class BaseSimulation:
     @property
     def params(self):
         _params = {"array": {}, "pointing": {}, "site": {}}
-        for key in ARRAY_PARAMS:
+        for key in all_array_params:
             _params["array"][key] = getattr(self.array, key)
         for key in POINTING_PARAMS:
             _params["pointing"][key] = getattr(self.pointing, key)

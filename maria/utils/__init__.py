@@ -5,12 +5,14 @@ from datetime import datetime
 import numpy as np
 import pytz
 
-from .beam import *  # noqa F401
-from .coords import *  # noqa F401
-from .functions import *  # noqa F401
-from .io import *  # noqa F401
-from .linalg import *  # noqa F401
-from .units import *  # noqa F401
+from . import beam  # noqa F401
+from . import constants  # noqa F401
+from . import coords  # noqa F401
+from . import functions  # noqa F401
+from . import io  # noqa F401
+from . import linalg  # noqa F401
+from . import pointing  # noqa F401
+from . import units  # noqa F401
 
 
 def get_utc_day_hour(t):
@@ -43,14 +45,14 @@ def validate_pointing(azim, elev):
         )
 
 
-def get_pointing_offset(time, period, throws, plan_type):
-    if plan_type == "daisy":
-        phase = 2 * np.pi * time / period
+# def get_pointing_offset(time, period, throws, plan_type):
+#     if plan_type == "daisy":
+#         phase = 2 * np.pi * time / period
 
-        k = np.pi  # this added an irrational precession to the daisy
-        r = np.sin(k * phase)
+#         k = np.pi  # this added an irrational precession to the daisy
+#         r = np.sin(k * phase)
 
-        return throws[0] * r * np.cos(phase), throws[1] * r * np.sin(phase)
+#         return throws[0] * r * np.cos(phase), throws[1] * r * np.sin(phase)
 
 
 # def get_pointing(time, period, centers, throws, plan_type, frame):
@@ -80,110 +82,66 @@ def get_pointing_offset(time, period, throws, plan_type):
 #         )
 
 
-def get_daisy_offsets(phase, k=2.11):
-    r = np.sin(k * phase)
-    return r * np.cos(phase), r * np.sin(phase)
+# def get_daisy_offsets(phase, k=2.11):
+#     r = np.sin(k * phase)
+#     return r * np.cos(phase), r * np.sin(phase)
 
 
-def get_pointing(time, **kwargs):
-    """
-    Returns azimuth and elevation
-    """
-    scan_center = kwargs.get("scan_center", (np.radians(10), np.radians(4.5)))
-    scan_pattern = kwargs.get("scan_pattern", "stare")
-    scan_period = kwargs.get("scan_period", 60)
-    scan_radius = kwargs.get("scan_radius", np.radians(2))
+# def get_pointing(time, **kwargs):
+#     """
+#     Returns azimuth and elevation
+#     """
+#     scan_center = kwargs.get("scan_center", (np.radians(10), np.radians(4.5)))
+#     scan_pattern = kwargs.get("scan_pattern", "stare")
+#     scan_speed = kwargs.get("scan_speed", 60)
+#     scan_radius = kwargs.get("scan_radius", np.radians(2))
 
-    phase = 2 * np.pi * time / scan_period
+#     phase = 2 * np.pi * time / scan_speed
 
-    if scan_pattern == "daisy":
-        dpox, dpoy = get_daisy_offsets(phase)
-        return xy_to_lonlat(  # noqa F401
-            scan_radius * dpox, scan_radius * dpoy, *scan_center
-        )
+#     if scan_pattern == "daisy":
+#         dpox, dpoy = get_daisy_offsets(phase)
+#         return xy_to_lonlat(   # noqa F401
+#             scan_radius * dpox, scan_radius * dpoy, *scan_center
+#         )
 
 
-# COORDINATE TRANSFORM UTILS
-class Planner:
-    def __init__(self, Array):
-        self.array = Array
+# # COORDINATE TRANSFORM UTILS
+# class Planner:
+#     def __init__(self, Array):
+#         self.array = Array
 
-    def make_plans(self, start, end, ra, dec, chunk_time, static_config):
-        start_time = datetime.fromisoformat(start).replace(tzinfo=pytz.utc).timestamp()
-        end_time = datetime.fromisoformat(end).replace(tzinfo=pytz.utc).timestamp()
+#     def make_plans(self, start, end, ra, dec, chunk_time, static_config):
+#         start_time = datetime.fromisoformat(start).replace(tzinfo=pytz.utc).timestamp()
+#         end_time = datetime.fromisoformat(end).replace(tzinfo=pytz.utc).timestamp()
 
-        _unix = np.arange(start_time, end_time, chunk_time)
-        _ra = np.radians(np.linspace(ra, ra, len(_unix)))
-        _dec = np.radians(np.linspace(dec, dec, len(_unix)))
+#         _unix = np.arange(start_time, end_time, chunk_time)
+#         _ra = np.radians(np.linspace(ra, ra, len(_unix)))
+#         _dec = np.radians(np.linspace(dec, dec, len(_unix)))
 
-        _az, _el = self.array.coordinator.transform(
-            _unix, _ra, _dec, in_frame="ra_dec", out_frame="az_el"
-        )
+#         _az, _el = self.array.coordinator.transform(
+#             _unix, _ra, _dec, in_frame="ra_dec", out_frame="az_el"
+#         )
 
-        min_el = np.degrees(np.minimum(_el[1:], _el[:-1]))
+#         min_el = np.degrees(np.minimum(_el[1:], _el[:-1]))
 
-        ok = (min_el > self.array.el_bounds[0]) & (min_el < self.array.el_bounds[1])
+#         ok = (min_el > self.array.el_bounds[0]) & (min_el < self.array.el_bounds[1])
 
-        self.time, self.az, self.el = _unix[1:][ok], _az[1:][ok], _el[1:][ok]
+#         self.time, self.az, self.el = _unix[1:][ok], _az[1:][ok], _el[1:][ok]
 
-        for start_time in _unix[:-1][ok]:
-            yield dict(
-                {
-                    "start_time": start_time,
-                    "end_time": start_time + chunk_time,
-                    "coord_center": (ra, dec),
-                    "coord_throw": (2, 2),
-                    "coord_frame": "ra_dec",
-                },
-                **static_config,
-            )
+#         for start_time in _unix[:-1][ok]:
+#             yield dict(
+#                 {
+#                     "start_time": start_time,
+#                     "end_time": start_time + chunk_time,
+#                     "coord_center": (ra, dec),
+#                     "coord_throw": (2, 2),
+#                     "coord_frame": "ra_dec",
+#                 },
+#                 **static_config,
+#             )
 
 
 # ================ ARRAY ================
-
-
-def generate_array_offsets(geometry, field_of_view, n):
-    valid_array_types = ["flower", "hex", "square"]
-
-    if geometry == "flower":
-        phi = np.pi * (3.0 - np.sqrt(5.0))  # golden angle in radians
-        dzs = np.zeros(n).astype(complex)
-        for i in range(n):
-            dzs[i] = np.sqrt((i / (n - 1)) * 2) * np.exp(1j * phi * i)
-        od = np.abs(np.subtract.outer(dzs, dzs))
-        dzs *= field_of_view / od.max()
-        return np.c_[np.real(dzs), np.imag(dzs)]
-    if geometry == "hex":
-        return generate_hex_offsets(n, field_of_view)
-    if geometry == "square":
-        dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (
-            2 * np.sqrt(2)
-        )
-        DX, DY = np.meshgrid(dxy_, dxy_)
-        return np.c_[DX.ravel()[:n], DY.ravel()[:n]]
-
-    raise ValueError(
-        "Please specify a valid array type. Valid array types are:\n"
-        + "\n".join(valid_array_types)
-    )
-
-
-def generate_hex_offsets(n, d):
-    angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
-    zs = np.array([0])
-    layer = 0
-    while len(zs) < n:
-        for angle in angles:
-            for z in layer * np.exp(1j * angle) + np.arange(layer) * np.exp(
-                1j * (angle + 2 * np.pi / 3)
-            ):
-                zs = np.append(zs, z)
-        layer += 1
-    zs -= zs.mean()
-    zs *= 0.5 * d / np.abs(zs).max()
-
-    return np.c_[np.real(np.array(zs[:n])), np.imag(np.array(zs[:n]))]
-
 
 # ================ STATS ================
 

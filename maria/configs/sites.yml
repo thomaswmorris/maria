@@ -1,6 +1,6 @@
 AliCPT:
   description: Ali CMB Polarization Telescope
-  region: tibet
+  region: ngari
   latitude: -32.326
   longitude: 80.026
   altitude: 5050
@@ -88,7 +88,7 @@ SPT:
 
 SRT:
   description: Sardinia Radio Telescope
-  region: sardinia
+  region: san_basilio
   latitude: 39.4928
   longitude: 9.2450
   altitude: 600
