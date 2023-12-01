@@ -11,14 +11,14 @@ daisy:
   description: 'A daisy scan with a 2-degree radius.'
   pointing_frame: ra_dec
   pointing_units: degrees
-  scan_pattern: daisy
+  scan_pattern: daisy_miss_center
   scan_center: [150., 10]
   sample_rate: 50
   scan_options:
     radius: 2
     speed: 0.5
     petals: 2.11
-
+    miss_factor: 0.1
 
 back_and_forth:
   description: ''

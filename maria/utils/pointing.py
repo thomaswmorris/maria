@@ -1,11 +1,15 @@
 import numpy as np
 
 
-def daisy_pattern(p, petals, radius):
-    distance_from_center = radius * np.sin(p)
-    x = distance_from_center * np.cos(p / petals)
-    y = distance_from_center * np.sin(p / petals)
-    return x, y
+def daisy_pattern_miss_center(phase, petals=5, radius=1, miss_factor=0.1):
+    shifted_phase = phase + np.pi / 2
+
+    z1 = np.sin(phase) * np.exp(1j * phase / petals)
+    z2 = miss_factor * np.sin(shifted_phase) * np.exp(1j * shifted_phase / petals)
+
+    z = radius * (z1 - z2)
+
+    return np.real(z), np.imag(z)
 
 
 def get_constant_speed_offsets(
@@ -32,16 +36,14 @@ def get_constant_speed_offsets(
     return pattern(np.array([p for p in phase_coroutine()]), **scan_options)
 
 
-def get_daisy_offsets_constant_speed(
-    integration_time, sample_rate, speed, **scan_options
-):
+def daisy_miss_center(integration_time, sample_rate, speed, **scan_options):
     return get_constant_speed_offsets(
-        daisy_pattern, integration_time, sample_rate, speed, **scan_options
+        daisy_pattern_miss_center, integration_time, sample_rate, speed, **scan_options
     )
 
 
-def get_back_and_forth_offsets(
-    integration_time, sample_rate, speed, x_throw, y_throw, taper=0.1
+def back_and_forth(
+    integration_time, sample_rate, speed, x_throw=1, y_throw=1, taper=0.1
 ):
     scan_period = np.sqrt(x_throw**2 + y_throw**2) / speed
     phase = 2 * np.pi * np.arange(0, integration_time, 1 / sample_rate) / scan_period
@@ -50,30 +52,6 @@ def get_back_and_forth_offsets(
     return x_throw * smooth_sawtooth, y_throw * smooth_sawtooth
 
 
-def get_stare_offsets(integration_time, sample_rate):
+def stare(integration_time, sample_rate):
     n_samples = len(np.arange(0, integration_time, 1 / sample_rate))
     return np.zeros(n_samples), np.zeros(n_samples)
-
-
-def get_offsets(scan_pattern, integration_time, sample_rate, **scan_options):
-    """
-    Returns x and y offsets
-    """
-
-    if scan_pattern == "stare":
-        return get_stare_offsets(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    if scan_pattern == "daisy":
-        return get_daisy_offsets_constant_speed(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    elif scan_pattern == "back_and_forth":
-        return get_back_and_forth_offsets(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    else:
-        raise ValueError(f"'{scan_pattern}' is not a valid scan pattern.")

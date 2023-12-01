@@ -36,8 +36,32 @@ def get_pointing_config(pointing_name, **kwargs):
     return POINTING_CONFIG
 
 
-def get_pointing(pointing_name, **kwargs):
+def get_pointing(pointing_name="stare", **kwargs):
     return Pointing(**get_pointing_config(pointing_name, **kwargs))
+
+
+def get_offsets(scan_pattern, integration_time, sample_rate, **scan_options):
+    """
+    Returns x and y offsets
+    """
+
+    if scan_pattern == "stare":
+        return utils.pointing.get_stare_offsets(
+            integration_time=integration_time, sample_rate=sample_rate, **scan_options
+        )
+
+    if scan_pattern == "daisy":
+        return utils.pointing.get_daisy_offsets_constant_speed(
+            integration_time=integration_time, sample_rate=sample_rate, **scan_options
+        )
+
+    elif scan_pattern == "back_and_forth":
+        return utils.pointing.get_back_and_forth_offsets(
+            integration_time=integration_time, sample_rate=sample_rate, **scan_options
+        )
+
+    else:
+        raise ValueError(f"'{scan_pattern}' is not a valid scan pattern.")
 
 
 @dataclass
@@ -51,7 +75,7 @@ class Pointing:
     pointing_frame: str = "ra_dec"
     pointing_units: str = "degrees"
     scan_center: Tuple[float, float] = (4, 10.5)
-    scan_pattern: str = "daisy"
+    scan_pattern: str = "daisy_miss_center"
     scan_options: dict = field(default_factory=dict)
     start_time: float | str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
@@ -85,8 +109,7 @@ class Pointing:
         self.n_time = len(self.time)
 
         # this is in pointing_units
-        x_offsets, y_offsets = utils.pointing.get_offsets(
-            scan_pattern=self.scan_pattern,
+        x_offsets, y_offsets = getattr(utils.pointing, self.scan_pattern)(
             integration_time=self.integration_time,
             sample_rate=self.sample_rate,
             **self.scan_options,
