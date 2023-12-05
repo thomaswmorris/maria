@@ -34,6 +34,7 @@ class BaseMapper:
     def __init__(self, **kwargs):
         self.tods = []
         self.map_res = kwargs.get("map_res", np.radians(1 / 60))
+        self.map_smt = kwargs.get("map_smooth", 8)
         self.map_width = kwargs.get("map_width", np.radians(5))
         self.map_height = kwargs.get("map_height", np.radians(5))
         self.map_filter = kwargs.get("filter", True)
@@ -147,9 +148,7 @@ class BaseMapper:
             self.header["CDELT3"] = self.nom_freqwidth[key] * 1e9
 
             # save_maps[i] = self.maps[list(self.maps.keys())[i]]
-            sigma_smooth = (
-                8 / np.rad2deg(self.map_res) / 3600 / 2.355
-            )  # hard coded angular resolution to smooth with
+            sigma_smooth = self.map_smt / 3600 / np.rad2deg(self.map_res) / 2.355
             save_maps[i] = self.smoothed_maps(sigma_smooth)[list(self.maps.keys())[i]]
 
             if self.tods[0].unit == "Jy/pixel":
