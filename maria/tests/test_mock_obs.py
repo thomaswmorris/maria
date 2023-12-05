@@ -33,9 +33,6 @@ def test_sim_with_params():
         scan_options={"radius": 0.05, "speed": 0.05, "petals": 5},
         # Additional inputs:
         # ----------------------
-        weather_quantiles={
-            "column_water_vapor": 0.5
-        },  # Weather conditions specific for that site
         map_units="Jy/pixel",  # Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel
         # map_inbright = -6e-6,                        # Linearly scale the map to have this peak value.
         map_res=0.1 / 1000,  # degree, overwrites header information
@@ -50,5 +47,3 @@ def test_sim_with_params():
     )
     mapper.add_tods(tod)
     mapper.run()
-
-    # mapper.save_maps("/tmp/test.fits")
