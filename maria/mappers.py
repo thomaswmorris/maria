@@ -12,7 +12,7 @@ np.seterr(invalid="ignore")
 
 here, this_filename = os.path.split(__file__)
 
-MAPPER_CONFIGS = utils.io.read_yaml(f"{here}/configs/mappers.yml")
+MAPPER_CONFIGS = utils.read_yaml(f"{here}/configs/mappers.yml")
 MAPPERS = list((MAPPER_CONFIGS.keys()))
 
 
@@ -34,6 +34,7 @@ class BaseMapper:
     def __init__(self, **kwargs):
         self.tods = []
         self.map_res = kwargs.get("map_res", np.radians(1 / 60))
+        self.map_smt = kwargs.get("map_smooth", 8)
         self.map_width = kwargs.get("map_width", np.radians(5))
         self.map_height = kwargs.get("map_height", np.radians(5))
         self.map_filter = kwargs.get("filter", True)
@@ -64,7 +65,7 @@ class BaseMapper:
     def expand_tod(self, tod):
         coordinator = Coordinator(lat=tod.meta["latitude"], lon=tod.meta["longitude"])
 
-        tod.AZ, tod.EL = utils.coords.xy_to_lonlat(
+        tod.AZ, tod.EL = utils.xy_to_lonlat(
             tod.dets.offset_x.values[:, None],
             tod.dets.offset_y.values[:, None],
             tod.az,
@@ -147,13 +148,11 @@ class BaseMapper:
             self.header["CDELT3"] = self.nom_freqwidth[key] * 1e9
 
             # save_maps[i] = self.maps[list(self.maps.keys())[i]]
-            sigma_smooth = (
-                8 / np.rad2deg(self.map_res) / 3600 / 2.355
-            )  # hard coded angular resolution to smooth with
+            sigma_smooth = self.map_smt / 3600 / np.rad2deg(self.map_res) / 2.355
             save_maps[i] = self.smoothed_maps(sigma_smooth)[list(self.maps.keys())[i]]
 
             if self.tods[0].unit == "Jy/pixel":
-                save_maps[i] *= utils.units.KbrightToJyPix(
+                save_maps[i] *= utils.KbrightToJyPix(
                     self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
                 )
 
@@ -245,14 +244,14 @@ class BinMapper(BaseMapper):
                     u, s, v = np.linalg.svd(
                         sp.signal.detrend(tod.data[band_mask]), full_matrices=False
                     )
-                    DATA = (
-                        u[:, self._nmtr :] @ np.diag(s[self._nmtr :]) @ v[self._nmtr :]
+                    DATA = utils.mprod(
+                        u[:, self._nmtr :], np.diag(s[self._nmtr :]), v[self._nmtr :]
                     )
                 else:
                     DATA = sp.signal.detrend(tod.data[band_mask])
 
-                # X, Y = utils.coords.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
-                X, Y = utils.coords.lonlat_to_xy(RA, DEC, *tod.center_ra_dec)
+                # X, Y = utils.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
+                X, Y = utils.lonlat_to_xy(RA, DEC, *tod.center_ra_dec)
 
                 self.RA, self.DEC, self.DATA = RA, DEC, DATA
 
