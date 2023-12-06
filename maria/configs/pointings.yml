@@ -17,8 +17,9 @@ daisy:
   scan_options:
     radius: 2
     speed: 0.5
-    petals: 2.11
-    miss_factor: 0.1
+    petals: 3.18
+    miss_factor: 0.15
+    miss_freq: 1.41
 
 back_and_forth:
   description: ''

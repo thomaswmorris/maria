@@ -111,12 +111,8 @@ class BaseMapper:
         self.header["CRPIX1"] = self.maps[list(self.maps.keys())[0]].shape[0] / 2
         self.header["CRPIX2"] = self.maps[list(self.maps.keys())[0]].shape[1] / 2
 
-        if self.tods[0].pntunit == "degrees":
-            self.header["CRVAL1"] = self.tods[0].cntr[0]
-            self.header["CRVAL2"] = self.tods[0].cntr[1]
-        else:
-            self.header["CRVAL1"] = np.rad2deg(self.tods[0].cntr[0])
-            self.header["CRVAL2"] = np.rad2deg(self.tods[0].cntr[1])
+        self.header["CRVAL1"] = np.rad2deg(self.tods[0].cntr[0])
+        self.header["CRVAL2"] = np.rad2deg(self.tods[0].cntr[1])
 
         self.header["CTYPE1"] = "RA---SIN"
         self.header["CTYPE2"] = "DEC--SIN"

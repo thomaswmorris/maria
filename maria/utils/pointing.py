@@ -1,13 +1,20 @@
 import numpy as np
 
 
-def daisy_pattern_miss_center(phase, petals=5, radius=1, miss_factor=0.1):
+def daisy_pattern_miss_center(
+    phase, radius=1, petals=10 / np.pi, miss_factor=0.15, miss_freq=np.sqrt(2)
+):
     shifted_phase = phase + np.pi / 2
 
-    z1 = np.sin(phase) * np.exp(1j * phase / petals)
-    z2 = miss_factor * np.sin(shifted_phase) * np.exp(1j * shifted_phase / petals)
+    outer_z = radius * np.sin(phase) * np.exp(1j * phase / petals)
+    inner_z = (
+        miss_factor
+        * radius
+        * np.sin(shifted_phase)
+        * np.exp(1j * phase / (petals * miss_freq))
+    )
 
-    z = radius * (z1 - z2)
+    z = inner_z + outer_z
 
     return np.real(z), np.imag(z)
 
