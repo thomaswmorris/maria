@@ -19,7 +19,7 @@ class WhiteNoiseSimulation(base.BaseSimulation):
         )
 
 
-class OneOverEffNoiseSimulation(base.BaseSimulation):
+class PinkNoiseSimulation(base.BaseSimulation):
     """
     White noise! It's Gaussian.
     """
@@ -27,6 +27,7 @@ class OneOverEffNoiseSimulation(base.BaseSimulation):
     def __init__(self, array, pointing, site, **kwargs):
         super().__init__(array, pointing, site)
         self.pink_noise_level = kwargs.get("pink_noise_level", 2.3)
+        self.pink_noise_slope = kwargs.get("pink_noise_slope", 0.5)
 
     def _spectrum_noise(self, spectrum_func, size, dt, amp=2.0):
         """
@@ -49,7 +50,7 @@ class OneOverEffNoiseSimulation(base.BaseSimulation):
         return noise
 
     def _pink_spectrum(self, f, f_min=0, f_max=np.inf, amp=1.0):
-        s = (f / amp) ** -(0.5)
+        s = (f / amp) ** -(self.pink_noise_slope)
         s[np.logical_or(f < f_min, f > f_max)] = 0  # apply band pass
         return s
 

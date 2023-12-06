@@ -60,3 +60,4 @@ map:
 noise:
   white_noise_level: 1.e-2 # in Kelvin Rayleigh-Jeans equivalent
   pink_noise_level: 1.e-2 # in Kelvin Rayleigh-Jeans equivalent amplitude in fourier domain
+  pink_noise_slope: 0.5

@@ -88,7 +88,7 @@ class Simulation(BaseSimulation):
         if pink_noise_model is not None:
             noise_kwargs = self.parsed_kwargs["noise"]
             if "pink" in pink_noise_model:
-                self.pink_noise_sim = noise.OneOverEffNoiseSimulation(
+                self.pink_noise_sim = noise.PinkNoiseSimulation(
                     self.array, self.pointing, self.site, **noise_kwargs
                 )
             else:
