@@ -29,7 +29,8 @@ class Simulation(BaseSimulation):
         array: str or Array,
         pointing: str or Pointing,
         site: str or Site,
-        noise_model="white",
+        white_noise_model="white",
+        pink_noise_model="pink",
         atm_model=None,
         verbose=False,
         **kwargs,
@@ -48,7 +49,8 @@ class Simulation(BaseSimulation):
 
         self.atm_sim = None
         self.map_sim = None
-        self.noise_sim = None
+        self.white_noise_sim = None
+        self.pink_noise_sim = None
 
         self.sub_sims = []
 
@@ -72,17 +74,27 @@ class Simulation(BaseSimulation):
 
             self.sub_sims.append(self.atm_sim)
 
-        if noise_model is not None:
+        if white_noise_model is not None:
             noise_kwargs = self.parsed_kwargs["noise"]
-            if noise_model in ["white"]:
-                self.noise_sim = noise.WhiteNoiseSimulation(
+            if "white" in white_noise_model:
+                self.white_noise_sim = noise.WhiteNoiseSimulation(
                     self.array, self.pointing, self.site, **noise_kwargs
                 )
-
             else:
                 raise ValueError()
 
-            self.sub_sims.append(self.noise_sim)
+            self.sub_sims.append(self.white_noise_sim)
+
+        if pink_noise_model is not None:
+            noise_kwargs = self.parsed_kwargs["noise"]
+            if "pink" in pink_noise_model:
+                self.pink_noise_sim = noise.OneOverEffNoiseSimulation(
+                    self.array, self.pointing, self.site, **noise_kwargs
+                )
+            else:
+                raise ValueError()
+
+            self.sub_sims.append(self.pink_noise_sim)
 
         if "map_file" in kwargs.keys():
             map_kwargs = self.parsed_kwargs["map"]

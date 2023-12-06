@@ -19,10 +19,9 @@ def test_sim_with_params():
         pointing="daisy",  # Scanning strategy
         site="GBT",  # Site
         atm_model="single_layer",  # The atmospheric model, set to None if you want a noiseless observation.
-        # atm_model = None,              # The atmospheric model, set to None if you want a noiseless observation.
         # True sky input
         # ---------------------
-        map_file="maps/protocluster.fits",  # Input files must be a fits file.
+        map_file="maps/cluster.fits",  # Input files must be a fits file.
         # map_file can also be set to None if are only interested in the noise
         map_center=(150.0, 10),  # RA & Dec in degree
         # Defeault Observational setup
