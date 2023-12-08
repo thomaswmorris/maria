@@ -1,0 +1,38 @@
+,location,country,notes,latitude,longitude,altitude,timezone,training_start,training_end,training_years
+san_agustin,"Plains of San Agustín, New Mexico",USA,VLA,34.079,-107.618,2120,America/Denver,2000-01-01,2019-12-31,20.0
+san_antonio,San Antonio de los Cobres,Argentina,"LLAMA, QUBIC",-24.192,-66.475,4820,America/Argentina/Jujuy,2015-01-01,2019-12-31,5.0
+barrow,"Point Barrow, Alaska",USA,GML,71.323,-156.611,11,America/Anchorage,2000-01-01,2019-12-31,20.0
+san_basilio,"San Basilio, Sardinia",Italy,"SRT, MISTRAL",39.493,9.245,600,Europe/Rome,2000-01-01,2019-12-31,20.0
+boolardy,"Boolardy, Western Australia",Australia,"MRO, SKA",-26.697,116.631,395,Australia/Perth,2015-01-01,2019-12-31,5.0
+boulder,"Boulder, Colorado",USA,GML,40.009,-105.267,1621,America/Denver,2015-01-01,2019-12-31,5.0
+pic_de_bure,"Plateau de Bure, Haute-Alpes",France,NOEMA,44.634,5.908,2552,Europe/Paris,2015-01-01,2019-12-31,5.0
+cambridge,"Cambridge, Massachusetts",USA,"Harvard University, MIT",42.374,-71.111,8,America/New_York,2010-01-01,2019-12-31,10.0
+chajnantor,"Llano de Chajnantor, Antofagasta",Chile,"ACT, ALMA, APEX, SO, TAO",-23.006,-67.759,5040,America/Santiago,1940-01-01,2019-12-31,80.0
+chiang_mai,"Chiang Mai, Thailand",Thailand,TNRT,18.864,99.217,395,Asia/Bangkok,2015-01-01,2019-12-31,5.0
+daejeon,"Daejeon, South Korea",South Korea,TRAO,36.398,127.375,104,Asia/Seoul,2015-01-01,2019-12-31,5.0
+effelsberg,"Effelsberg, North Rhine-Westphalia",Germany,ERT,50.524,6.883,319,Europe/Berlin,2000-01-01,2019-12-31,20.0
+mount_gargash,"Mount Gargash, Isfahan",Iran,INO,33.674,51.319,3570,Asia/Tehran,2015-01-01,2019-12-31,5.0
+sao_giao,"São Gião, Coimbra",Portugal,SGRT,40.33,-7.813,704,Europe/Lisbon,2015-01-01,2019-12-31,5.0
+mount_graham,"Mount Graham, Arizona",USA,"LBT, VATT",32.702,-109.89,3178,America/Phoenix,2015-01-01,2019-12-31,5.0
+green_bank,"Green Bank, West Virginia",USA,Green Bank Observatory,38.433,-79.84,807,America/New_York,1980-01-01,2019-12-31,40.0
+hanle,"Hanle, Ladakh",India,Indian Astronomical Observatory,32.78,78.963,4450,Asia/Kolkata,2015-01-01,2019-12-31,5.0
+jodrell_bank,"Jodrell Bank, Cheshire",UK,Jodrell Bank Observatory,53.236,-2.307,77,Europe/London,2015-01-01,2019-12-31,5.0
+kitt_peak,"Kitt Peak, Arizona",USA,Kitt Peak Observatory,31.965,-111.599,2096,America/Phoenix,2015-01-01,2019-12-31,5.0
+mauna_kea,"Mauna Kea, Hawaii",USA,Mauna Kea Observatory,19.823,-155.475,4205,Pacific/Honolulu,1980-01-01,2019-12-31,40.0
+meerkat,"Meerkat National Park, Northern Cape",South Africa,"HERA, MeerKAT, SKA",-30.713,21.443,1075,Africa/Johannesburg,2000-01-01,2019-12-31,20.0
+metsahovi,"Metsähovi, Kirkkonummi",Finland,Metsähovi Radio Observatory,60.218,24.394,90,Europe/Helsinki,2015-01-01,2019-12-31,5.0
+minamimaki,"Minamimaki, Nagano",Japan,Nobeyama Observatory,35.942,138.476,1350,Asia/Tokyo,2015-01-01,2019-12-31,5.0
+narrabri,"Narrabri, New South Wales",Australia,ATCA,-30.314,149.562,237,Australia/Sydney,2015-01-01,2019-12-31,5.0
+ngari,"Ngari Prefecture, Tibet",China,AliCPT,32.326,80.026,5176,Asia/Shanghai,2000-01-01,2019-12-31,20.0
+sierra_negra,"Sierra Negra, Puebla",Mexico,"HAWC, LMT",18.986,-97.314,4640,America/Mexico_City,2000-01-01,2019-12-31,20.0
+owens_valley,"Owens Valley, California",USA,Owens Valley Radio Observatory,37.232,-118.295,1222,America/Los_Angeles,2015-01-01,2019-12-31,5.0
+cerro_pachon,"Cerro Pachón, Coquimbo",Chile,"Gemini, LSST, SOAR",-30.244,-70.74,2663,America/Santiago,2010-01-01,2019-12-31,10.0
+cerro_paranal,"Cerro Paranal, Antofagasta",Chile,VLT,-24.628,-70.405,2635,America/Santiago,2010-01-01,2019-12-31,10.0
+princeton,"Princeton, New Jersey",USA,Princeton University,40.345,-74.651,58,America/New_York,1940-01-01,2019-12-31,80.0
+qitai,"Qitai, Xinjiang",China,QTT,43.601,89.699,1780,Asia/Urumqi,2010-01-01,2019-12-31,10.0
+ridge_a,Ridge A,Antarctica,Best observing site on earth,-81.5,73.5,4053,Antarctica/South_Pole,2000-01-01,2019-12-31,20.0
+la_silla,"La Silla, Coquimbo",Chile,La Silla Observatory,-29.258,-70.737,2400,America/Santiago,2015-01-01,2019-12-31,5.0
+south_pole,South Pole,Antarctica,"BICEP2, DASI, GML, Keck, SPT",-90.0,0.0,2835,Antarctica/South_Pole,1980-01-01,2019-12-31,40.0
+summit_camp,"Summit Station, Greenland",Greenland,Greenland Telescope,72.583,-38.455,3202,America/Nuuk,2000-01-01,2019-12-31,20.0
+teide,"Mount Teide, Tenerife",Spain,Teide Observatory,28.301,-16.511,2390,Atlantic/Canary,2000-01-01,2019-12-31,20.0
+pico_veleta,"Pico Veleta, Granada",Spain,IRAM,37.066,-3.393,2850,Europe/Madrid,2010-01-01,2019-12-31,10.0

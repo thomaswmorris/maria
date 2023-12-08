@@ -1,0 +1,193 @@
+default:
+  description: A dummy array.
+  dets:
+    150 GHz:
+      n: 19
+      band_center: 150
+      band_width: 10
+  field_of_view: 1
+  geometry: hex
+  primary_size: 10
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation:
+
+
+ACT_PA4:
+  description: AdvACT Polarization Array 4
+  dets:
+    f150:
+      n: 375
+      band_center: 150
+      band_width: 10
+    f220:
+      n: 375
+      band_center: 220
+      band_width: 20
+  field_of_view: 0.8
+  geometry: hex
+  primary_size: 6
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+
+
+ALMA:
+  description: ALMA (Atacama Large Millimeter Array)
+  dets:
+    043GHz:
+      n: 66
+      band_center: 43
+      band_width: 16
+    078GHz:
+      n: 66
+      band_center: 78
+      band_width: 22
+    100GHz:
+      n: 66
+      band_center: 100
+      band_width: 32
+    144GHz:
+      n: 66
+      band_center: 144
+      band_width: 38
+    187GHz:
+      n: 66
+      band_center: 187
+      band_width: 48
+    243GHz:
+      n: 66
+      band_center: 243
+      band_width: 64
+    324GHz:
+      n: 66
+      band_center: 324
+      band_width: 98
+    447GHz:
+      n: 66
+      band_center: 447
+      band_width: 114
+    661GHz:
+      n: 66
+      band_center: 661
+      band_width: 118
+    869GHz:
+      n: 66
+      band_center: 869
+      band_width: 163
+
+  field_of_view: 0
+  baseline: 12000 # meters
+  geometry: hex
+  primary_size: 12
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+
+AtLAST:
+  description: AtLAST (Atacama Large-Aperture Submillimeter Telescope)
+  dets:
+    f027:
+      n: 750
+      band_center: 27
+      band_width: 5
+    f039:
+      n: 750
+      band_center: 39
+      band_width: 5
+    f093:
+      n: 750
+      band_center: 93
+      band_width: 10
+    f150:
+      n: 750
+      band_center: 150
+      band_width: 10
+    f225:
+      n: 750
+      band_center: 225
+      band_width: 30
+    f280:
+      n: 750
+      band_center: 280
+      band_width: 40
+  geometry: hex
+  field_of_view: 2.0
+  primary_size: 50
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: https://www.atlast.uio.no/
+
+MUSTANG-2:
+  description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
+  dets:
+    93GHz:
+      n: 217
+      band_center: 93
+      band_width: 10
+  field_of_view: 0.07
+  geometry: hex
+  primary_size: 100
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
+
+SCUBA-2:
+  description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
+  dets:
+    f350:
+      n: 5120
+      band_center: 350
+      band_width: 10
+    f650:
+      n: 5120
+      band_center: 650
+      band_width: 10
+  field_of_view: 0.12
+  geometry: hex
+  primary_size: 15
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/
+
+SO_SAT:
+  description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
+  dets:
+    f150:
+      n: 217
+      band_center: 150
+      band_width: 20
+  field_of_view: 10
+  geometry: hex
+  primary_size: 0.5
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/
