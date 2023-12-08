@@ -1,0 +1,63 @@
+# this is a master list of parameters that can be passed to a total simulation, along with default values
+# repeated parameters like "description" or "documentation" are not preserved in the simulation class.
+
+array: # defaults to a small test array
+  description:
+  dets:
+    f093:
+      n: 60
+      band_center: 90
+      band_width: 10
+    f150:
+      n: 60
+      band_center: 150
+      band_width: 20
+  field_of_view: 0.8
+  baseline: 0 # meters
+  geometry: hex
+  primary_size: 6
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  documentation: ''
+
+pointing: # defaults to a 45 degree stare due north
+  description: ''
+  start_time: 2022-02-10T06:00:00
+  integration_time: 60 # in seconds
+  pointing_frame: az_el
+  pointing_units: degrees
+  sample_rate: 20
+  scan_pattern: daisy
+  scan_center: [10, 4.5]
+  scan_options: {}
+
+site: # default to the ALMA site
+  description: ''
+  region: 'chajnantor'
+  latitude: -23.0294
+  longitude: -67.7548
+  altitude: 5064
+  documentation: ''
+  weather_quantiles: {}
+  pwv_rms_frac: 0.03
+
+atmosphere:
+  layer_height: 1000
+  min_atmosphere_beam_res: 4
+
+map:
+  map_file: ''
+  map_frame: 'ra_dec'
+  map_center: [10, 4.5]
+  map_res: 0.5
+  map_inbright: 1
+  map_units: K_RJ
+
+noise:
+  white_noise_level: 1.e-2 # in Kelvin Rayleigh-Jeans equivalent
+  pink_noise_level: 1.e-2 # in Kelvin Rayleigh-Jeans equivalent amplitude in fourier domain
+  pink_noise_slope: 0.5
