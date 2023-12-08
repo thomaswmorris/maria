@@ -1,0 +1,12 @@
+# List required packages in this file, one per line.
+
+astropy
+cmocean
+h5py
+healpy
+numpy
+pandas
+reproject
+scipy
+tables
+tqdm
