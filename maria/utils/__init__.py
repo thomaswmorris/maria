@@ -107,7 +107,7 @@ def daisy_pattern_miss_center(
 
 #     if scan_pattern == "daisy":
 #         dpox, dpoy = get_daisy_offsets(phase)
-#         return xy_to_lonlat(   # noqa F401
+#         return dx_dy_to_phi_theta(   # noqa F401
 #             scan_radius * dpox, scan_radius * dpoy, *scan_center
 #         )
 

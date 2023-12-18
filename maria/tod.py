@@ -7,7 +7,7 @@ import pandas as pd
 from astropy.io import fits as pyfits
 
 from . import utils
-from .coordinator import Coordinator
+from .coordinates import Coordinator
 
 
 class TOD:
@@ -34,7 +34,7 @@ class TOD:
                 lat=self.meta["latitude"], lon=self.meta["longitude"]
             )
 
-            self.AZ, self.EL = utils.coords.xy_to_lonlat(
+            self.AZ, self.EL = utils.coords.dx_dy_to_phi_theta(
                 self.dets.offset_x.values[:, None],
                 self.dets.offset_y.values[:, None],
                 self.az,

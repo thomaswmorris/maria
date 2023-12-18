@@ -18,7 +18,7 @@ def test_sim_with_params():
         array="MUSTANG-2",  # Array type
         pointing="daisy",  # Scanning strategy
         site="GBT",  # Site
-        atm_model="single_layer",  # The atmospheric model, set to None if you want a noiseless observation.
+        atmosphere_model="2d",  # The atmospheric model, set to None if you want a noiseless observation.
         # True sky input
         # ---------------------
         map_file="maps/cluster.fits",  # Input files must be a fits file.

@@ -3,11 +3,12 @@ import os
 from astropy.io import fits
 
 from . import utils
-from .array import Array, all_array_params, get_array
-from .coordinator import Coordinator
-from .pointing import POINTING_PARAMS, Pointing, get_pointing
-from .site import SITE_PARAMS, Site, get_site
+from .array import Array, get_array
+from .coordinates import Coordinates, dx_dy_to_phi_theta
+from .pointing import Pointing, get_pointing
+from .site import Site, get_site
 from .tod import TOD
+from .weather import Weather
 
 here, this_filename = os.path.split(__file__)
 
@@ -17,6 +18,9 @@ class InvalidSimulationParameterError(Exception):
         super().__init__(
             f"The parameters {invalid_keys} are not valid simulation parameters!"
         )
+
+
+master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
 
 
 def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
@@ -41,80 +45,115 @@ def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
     return parsed_kwargs
 
 
-master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
-
-
 class BaseSimulation:
     """
     The base class for a simulation. This is an ingredient in every simulation.
     """
 
-    def __init__(self, array, pointing, site, verbose=False, **kwargs):
-        # who does each kwarg belong to?
+    def __init__(
+        self,
+        array: Array or str = "default",
+        pointing: Pointing or str = "stare",
+        site: Site or str = "default",
+        verbose=False,
+        **kwargs,
+    ):
+        if hasattr(self, "boresight"):
+            return
 
         self.verbose = verbose
 
-        parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
+        self.data = {}
+
+        params = parse_sim_kwargs(kwargs, master_params)
 
         self.array = (
             array
             if isinstance(array, Array)
-            else get_array(array, **parsed_sim_kwargs["array"])
+            else get_array(array_name=array, **params["array"])
         )
         self.pointing = (
             pointing
             if isinstance(pointing, Pointing)
-            else get_pointing(pointing, **parsed_sim_kwargs["pointing"])
+            else get_pointing(scan_pattern=pointing, **params["pointing"])
         )
         self.site = (
             site
             if isinstance(site, Site)
-            else get_site(site, **parsed_sim_kwargs["site"])
+            else get_site(site_name=site, **params["site"])
         )
 
-        self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
+        self.boresight = Coordinates(
+            self.pointing.time,
+            self.pointing.phi,
+            self.pointing.theta,
+            location=self.site.earth_location,
+            frame=self.pointing.pointing_frame,
+        )
 
-        if self.pointing.pointing_frame == "az_el":
-            self.pointing.ra, self.pointing.dec = self.coordinator.transform(
-                self.pointing.time,
-                self.pointing.az,
-                self.pointing.el,
-                in_frame="az_el",
-                out_frame="ra_dec",
-            )
+        self.weather = Weather(
+            t=self.pointing.time.mean(),
+            region=self.site.region,
+            altitude=self.site.altitude,
+            quantiles=self.site.weather_quantiles,
+        )
 
-        if self.pointing.pointing_frame == "ra_dec":
-            self.pointing.az, self.pointing.el = self.coordinator.transform(
-                self.pointing.time,
-                self.pointing.ra,
-                self.pointing.dec,
-                in_frame="ra_dec",
-                out_frame="az_el",
-            )
+        det_az, det_el = dx_dy_to_phi_theta(
+            *self.array.offsets.T[..., None], self.boresight.az, self.boresight.el
+        )
 
-    @property
-    def params(self):
-        _params = {"array": {}, "pointing": {}, "site": {}}
-        for key in all_array_params:
-            _params["array"][key] = getattr(self.array, key)
-        for key in POINTING_PARAMS:
-            _params["pointing"][key] = getattr(self.pointing, key)
-        for key in SITE_PARAMS:
-            _params["site"][key] = getattr(self.site, key)
-        return _params
+        print("running base")
+        self.det_coords = Coordinates(
+            self.boresight.time,
+            det_az,
+            det_el,
+            location=self.site.earth_location,
+            frame="az_el",
+        )
+
+        # self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
+
+        # if self.pointing.pointing_frame == "az_el":
+        #     self.pointing.ra, self.pointing.dec = self.coordinator.transform(
+        #         self.pointing.time,
+        #         self.boresight.az,
+        #         self.boresight.el,
+        #         in_frame="az_el",
+        #         out_frame="ra_dec",
+        #     )
+
+        # if self.pointing.pointing_frame == "ra_dec":
+        #     self.boresight.az, self.boresight.el = self.coordinator.transform(
+        #         self.pointing.time,
+        #         self.pointing.ra,
+        #         self.pointing.dec,
+        #         in_frame="ra_dec",
+        #         out_frame="az_el",
+        #     )
+
+    # @property
+    # def params(self):
+    #     _params = {"array": {}, "pointing": {}, "site": {}}
+    #     for key in all_array_params:
+    #         _params["array"][key] = getattr(self.array, key)
+    #     for key in POINTING_PARAMS:
+    #         _params["pointing"][key] = getattr(self.pointing, key)
+    #     for key in SITE_PARAMS:
+    #         _params["site"][key] = getattr(self.site, key)
+    #     return _params
 
     def _run(self):
         raise NotImplementedError()
 
-    def run(self):
+    def run(self, combine: bool = True):
         self._run()
 
         tod = TOD()
 
-        tod.data = self.data  # this should be set in the _run() method
+        tod.data = sum(self.data.values()) if combine else self.data
         tod.time = self.pointing.time
-        tod.az = self.pointing.az
-        tod.el = self.pointing.el
+        tod.az = self.boresight.az
+        tod.el = self.boresight.el
         tod.ra = self.pointing.ra
         tod.dec = self.pointing.dec
         tod.cntr = self.pointing.scan_center

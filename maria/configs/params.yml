@@ -2,7 +2,7 @@
 # repeated parameters like "description" or "documentation" are not preserved in the simulation class.
 
 array: # defaults to a small test array
-  description:
+  array_description:
   dets:
     f093:
       n: 60
@@ -22,10 +22,10 @@ array: # defaults to a small test array
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation: ''
+  array_documentation: ''
 
 pointing: # defaults to a 45 degree stare due north
-  description: ''
+  pointing_description: ''
   start_time: 2022-02-10T06:00:00
   integration_time: 60 # in seconds
   pointing_frame: az_el
@@ -36,18 +36,22 @@ pointing: # defaults to a 45 degree stare due north
   scan_options: {}
 
 site: # default to the ALMA site
-  description: ''
+  site_description: ''
   region: 'chajnantor'
   latitude: -23.0294
   longitude: -67.7548
   altitude: 5064
-  documentation: ''
+  site_documentation: ''
   weather_quantiles: {}
   pwv_rms_frac: 0.03
 
 atmosphere:
-  layer_height: 1000
+  atmosphere_model: '2d'
+  atmosphere_model_options: {}
   min_atmosphere_beam_res: 4
+  min_atmosphere_height: 500
+  max_atmosphere_height: 5000
+  turbulent_outer_scale: 800
 
 map:
   map_file: ''

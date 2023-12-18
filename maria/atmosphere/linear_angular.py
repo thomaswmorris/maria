@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from .. import utils
 from .base import BaseAtmosphericSimulation, extrude
-from .single_layer import SingleLayerSimulation
+from .turbulent_layer import TurbulentLayer
 
 MIN_SAMPLES_PER_RIBBON = 2
 RIBBON_SAMPLE_DECAY = 4
@@ -43,7 +43,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         self.layer_sims = []
         for layer_height in self.layer_heights:
             self.layer_sims.append(
-                SingleLayerSimulation(
+                TurbulentLayer(
                     array,
                     pointing,
                     site,
@@ -156,7 +156,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 
 #         self.heights = (
 #             self.site.altitude
-#             + self.layer_depths[:, None] * np.sin(self.pointing.el)[None, :]
+#             + self.layer_depths[:, None] * np.sin(self.boresight.el)[None, :]
 #         )
 
 #         for attr in [
@@ -194,23 +194,23 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
 
 #         # the velocity of the atmosphere with respect to the array pointing
 #         self.AWV_X = (
-#             +self.wind_east * np.cos(self.pointing.az[None])
-#             - self.wind_north * np.sin(self.pointing.az[None])
+#             +self.wind_east * np.cos(self.boresight.az[None])
+#             - self.wind_north * np.sin(self.boresight.az[None])
 #         ) / self.layer_depths[:, None]
 #         self.AWV_Y = (
 #             (
-#                 -self.wind_east * np.sin(self.pointing.az[None])
-#                 + self.wind_north * np.cos(self.pointing.az[None])
+#                 -self.wind_east * np.sin(self.boresight.az[None])
+#                 + self.wind_north * np.cos(self.boresight.az[None])
 #             )
 #             / self.layer_depths[:, None]
-#             * np.sin(self.pointing.el[None])
+#             * np.sin(self.boresight.el[None])
 #         )
 
 #         center_lon, center_lat = utils.coords.get_center_lonlat(
-#             self.pointing.az, self.pointing.el
+#             self.boresight.az, self.boresight.el
 #         )
-#         self.pointing.dx, self.pointing.dy = utils.coords.lonlat_to_xy(
-#             self.pointing.az, self.pointing.el, center_lon, center_lat
+#         self.pointing.dx, self.pointing.dy = utils.coords.phi_theta_to_dx_dy(
+#             self.boresight.az, self.boresight.el, center_lon, center_lat
 #         )
 
 #         # the angular position of each detector over time WRT the atmosphere
