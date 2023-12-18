@@ -13,9 +13,6 @@ from .sky import MapMixin
 
 here, this_filename = os.path.split(__file__)
 
-
-here, this_filename = os.path.split(__file__)
-
 master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
 
 

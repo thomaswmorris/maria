@@ -3,7 +3,7 @@
 
 array: # defaults to a small test array
   array_description:
-  dets:
+  detector_config:
     f093:
       n: 60
       band_center: 90
@@ -55,9 +55,10 @@ atmosphere:
 
 map:
   map_file: ''
-  map_frame: 'ra_dec'
+  map_frame: ra_dec
   map_center: [10, 4.5]
-  map_res: 0.5
+  map_width: 0.5
+  map_height: 0.5
   map_inbright: 1
   map_units: K_RJ
 

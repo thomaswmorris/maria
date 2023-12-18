@@ -34,7 +34,10 @@ band_lists = []
 for array_name, config in ARRAY_CONFIGS.items():
     band_lists.append(
         "/".join(
-            [str(band_config["band_center"]) for band_config in config["dets"].values()]
+            [
+                str(band_config["band_center"])
+                for band_config in config["detector_config"].values()
+            ]
         )
     )
 supported_arrays_table.loc[:, "bands"] = band_lists
@@ -230,12 +233,12 @@ class Array:
 
     @classmethod
     def from_config(cls, config):
-        if isinstance(config["dets"], Mapping):
+        if isinstance(config["detector_config"], Mapping):
             field_of_view = config.get("field_of_view", 1)
             geometry = config.get("geometry", "hex")
             baseline = config.get("baseline", 0)  # default to zero baseline
             dets = generate_dets_from_config(
-                config["dets"],
+                bands=config["detector_config"],
                 field_of_view=field_of_view,
                 geometry=geometry,
                 baseline=baseline,

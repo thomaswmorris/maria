@@ -1,18 +1,19 @@
 import os
+from typing import Tuple
 
 import healpy as hp
 import numpy as np
 import scipy as sp
 from astropy.io import fits
 
-from . import utils
-from .coordinates import Coordinator
+from .. import utils
+from . import Map
 
 np.seterr(invalid="ignore")
 
 here, this_filename = os.path.split(__file__)
 
-MAPPER_CONFIGS = utils.io.read_yaml(f"{here}/configs/mappers.yml")
+MAPPER_CONFIGS = utils.io.read_yaml(f"{here}/../configs/mappers.yml")
 MAPPERS = list((MAPPER_CONFIGS.keys()))
 
 
@@ -26,26 +27,50 @@ class InvalidMapperError(Exception):
 
 class BaseMapper:
     """
-    The base class for modeling atmospheric fluctuations.
-
-    A model needs to have the functionality to generate spectra for any pointing data we supply it with.
+    The base class for mapping.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        center: Tuple[float, float] = (0, 0),
+        frame: str = "ra_dec",
+        width: float = np.radians(5),
+        height: float = np.radians(5),
+        res: float = np.radians(1 / 60),
+        filter_tods: bool = True,
+        smoothing: float = 8,
+        **kwargs,
+    ):
+        self.res = res
+        self.frame = frame
+        self.center = center
+        self.width = width
+        self.height = height
+        self.filter_tods = filter_tods
+        self.smoothing = smoothing
+
+        self.n_x = int(np.maximum(1, self.width / self.res))
+        self.n_y = int(np.maximum(1, self.height / self.res))
+
+        self.x_bins = np.linspace(-0.5 * self.width, 0.5 * self.width, self.n_x + 1)
+        self.y_bins = np.linspace(-0.5 * self.height, 0.5 * self.height, self.n_y + 1)
+
         self.tods = []
-        self.map_res = kwargs.get("map_res", np.radians(1 / 60))
-        self.map_smt = kwargs.get("map_smooth", 8)
-        self.map_width = kwargs.get("map_width", np.radians(5))
-        self.map_height = kwargs.get("map_height", np.radians(5))
-        self.map_filter = kwargs.get("filter", True)
+
+    def plot(self):
+        self.map.plot()
 
     @property
-    def maps(self):
-        return {
-            key: self.map_sums[key]
-            / np.where(self.map_cnts[key], self.map_cnts[key], np.nan)
-            for key in self.map_sums.keys()
-        }
+    def n_maps(self):
+        return len(self.maps)
+
+    # @property
+    # def maps(self):
+    #     return {
+    #         key: self.map_sums[key]
+    #         / np.where(self.map_cnts[key], self.map_cnts[key], np.nan)
+    #         for key in self.map_sums.keys()
+    #     }
 
     def smoothed_maps(self, smoothing=1):
         smoothed_maps = {}
@@ -62,32 +87,9 @@ class BaseMapper:
 
         return smoothed_maps
 
-    def expand_tod(self, tod):
-        coordinator = Coordinator(lat=tod.meta["latitude"], lon=tod.meta["longitude"])
-
-        tod.AZ, tod.EL = utils.coords.dx_dy_to_phi_theta(
-            tod.dets.offset_x.values[:, None],
-            tod.dets.offset_y.values[:, None],
-            tod.az,
-            tod.el,
-        )
-
-        tod.RA, tod.DEC = coordinator.transform(
-            tod.time,
-            tod.AZ,
-            tod.EL,
-            in_frame="az_el",
-            out_frame="ra_dec",
-        )
-
-        return tod
-
-    def add_tods(self, tods, synthetatic=True):
+    def add_tods(self, tods):
         for tod in np.atleast_1d(tods):
-            if synthetatic:
-                self.tods.append(self.expand_tod(tod))
-            else:
-                self.tods.append(tod)
+            self.tods.append(tod)
 
     @property
     def get_map_center_lonlat(self):
@@ -165,13 +167,6 @@ class BinMapper(BaseMapper):
         super().__init__(**kwargs)
 
         self._nmtr = kwargs.get("n_modes_to_remove", 0)
-        self.x_bins = np.arange(
-            -0.5 * self.map_width, 0.5 * self.map_width, self.map_res
-        )
-        self.y_bins = np.arange(
-            -0.5 * self.map_height, 0.5 * self.map_height, self.map_res
-        )
-        self.n_x, self.n_y = len(self.x_bins) - 1, len(self.y_bins) - 1
 
     def _fourier_filter(self, tod_dat, tod_time):
         ffilt = [0.08, 51.0]  # high-pass and low-pass filters, in Hz
@@ -221,21 +216,30 @@ class BinMapper(BaseMapper):
         self.ubands = sorted(
             [band for tod in self.tods for band in np.unique(tod.dets.band)]
         )
-        self.nom_freqs = {}
-        self.nom_freqwidth = {}
+
+        self.band_data = {}
+
+        # self.nom_freqwidth = []
         self.map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
         self.map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
 
-        for band in np.unique(self.ubands):
+        map_data = np.zeros((len(self.ubands), self.n_x, self.n_y))
+
+        for iband, band in enumerate(np.unique(self.ubands)):
+            self.band_data[band] = {}
+
             for tod in self.tods:
+                # compute detector offsets WRT the map
+                dx, dy = tod.coords.offsets(frame=self.frame, center=self.center)
+
                 band_mask = tod.dets.band == band
 
-                if self.map_filter:
+                # filter, if needed
+                if self.filter_tods:
                     tod.data[band_mask] = self._fourier_filter(
                         tod.data[band_mask], tod.time
                     )
 
-                RA, DEC = tod.RA[band_mask], tod.DEC[band_mask]
                 if self._nmtr > 0:
                     u, s, v = np.linalg.svd(
                         sp.signal.detrend(tod.data[band_mask]), full_matrices=False
@@ -246,28 +250,37 @@ class BinMapper(BaseMapper):
                 else:
                     DATA = sp.signal.detrend(tod.data[band_mask])
 
-                # X, Y = utils.coords.phi_theta_to_dx_dy(LON, LAT, *self.get_map_center_lonlat)
-                X, Y = utils.coords.phi_theta_to_dx_dy(RA, DEC, *tod.center_ra_dec)
-
-                self.RA, self.DEC, self.DATA = RA, DEC, DATA
-
                 map_sum = sp.stats.binned_statistic_2d(
-                    X.ravel(),
-                    Y.ravel(),
+                    dx[band_mask].ravel(),
+                    dy[band_mask].ravel(),
                     DATA.ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="sum",
                 )[0]
 
                 map_cnt = sp.stats.binned_statistic_2d(
-                    X.ravel(),
-                    Y.ravel(),
+                    dx[band_mask].ravel(),
+                    dy[band_mask].ravel(),
                     DATA.ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="count",
                 )[0]
+
                 self.map_sums[band] += map_sum
                 self.map_cnts[band] += map_cnt
 
-                self.nom_freqs[band] = tod.dets.band_center.mean()
-                self.nom_freqwidth[band] = tod.dets.band_width.mean()
+            self.band_data[band]["nom_freq"] = tod.dets.loc[
+                band_mask, "band_center"
+            ].mean()
+            # self.nom_freqwidth[band] = tod.dets.loc["band_width.mean()
+
+            mask = self.map_cnts[band] > 0
+            map_data[iband] = np.where(mask, self.map_sums[band], np.nan) / np.where(
+                mask, self.map_cnts[band], 1
+            )
+
+        self.map = Map(
+            data=map_data,
+            freqs=np.array([self.band_data[band]["nom_freq"] for band in self.ubands]),
+            center=self.center,
+        )

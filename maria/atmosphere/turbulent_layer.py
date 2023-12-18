@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sp
 
 from .. import utils
+from ..coords import get_center_phi_theta
 
 MIN_SAMPLES_PER_RIBBON = 2
 RIBBON_SAMPLE_DECAY = 2
@@ -72,10 +73,9 @@ class TurbulentLayer:
             print(f"{(layer_wind_east, layer_wind_north) = }")
 
         # compute the offset with respect to the center of the scan
-        center_az, center_el = utils.coords.get_center_lonlat(
+        center_az, center_el = get_center_phi_theta(
             self.boresight.az, self.boresight.el
         )
-
         dx, dy = self.boresight.offsets(frame="az_el", center=(center_az, center_el))
 
         # the angular position of each detector over time WRT the atmosphere
