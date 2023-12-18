@@ -4,7 +4,7 @@ from astropy.io import fits
 
 from . import utils
 from .array import Array, get_array
-from .coordinates import Coordinates, dx_dy_to_phi_theta
+from .coords import Coordinates, dx_dy_to_phi_theta
 from .pointing import Pointing, get_pointing
 from .site import Site, get_site
 from .tod import TOD
@@ -145,17 +145,32 @@ class BaseSimulation:
     def _run(self):
         raise NotImplementedError()
 
-    def run(self, combine: bool = True):
+    def run(self):
         self._run()
 
         tod = TOD()
 
-        tod.data = sum(self.data.values()) if combine else self.data
-        tod.time = self.pointing.time
-        tod.az = self.boresight.az
-        tod.el = self.boresight.el
-        tod.ra = self.pointing.ra
-        tod.dec = self.pointing.dec
+        tod._data = self.data
+
+        det_az, det_el = dx_dy_to_phi_theta(
+            self.array.dets.offset_x.values[:, None],
+            self.array.dets.offset_y.values[:, None],
+            self.boresight.az,
+            self.boresight.el,
+        )
+
+        tod.coords = Coordinates(
+            time=self.boresight.time,
+            phi=det_az,
+            theta=det_el,
+            frame="az_el",
+            location=self.site.earth_location,
+        )
+
+        tod.boresight = self.boresight
+        tod.dets = self.array.dets
+
+        tod.time = self.boresight.time
         tod.cntr = self.pointing.scan_center
         tod.pntunit = self.pointing.pointing_units
 
@@ -166,8 +181,6 @@ class BaseSimulation:
             else:
                 tod.unit = "K"
                 tod.header = fits.header.Header()
-
-        tod.dets = self.array.dets
 
         tod.meta = {
             "latitude": self.site.latitude,

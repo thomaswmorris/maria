@@ -1,6 +1,6 @@
 default:
   array_description: A dummy array.
-  dets:
+  detector_config:
     150 GHz:
       n: 19
       band_center: 150
@@ -19,7 +19,7 @@ default:
 
 ABS:
   array_description: Atacama B-Mode Search
-  dets:
+  detector_config:
     f150:
       n: 217
       band_center: 150
@@ -37,7 +37,7 @@ ABS:
 
 ACT_PA4:
   array_description: AdvACT Polarization Array 4
-  dets:
+  detector_config:
     f150:
       n: 375
       band_center: 150
@@ -60,7 +60,7 @@ ACT_PA4:
 
 ALMA:
   array_description: ALMA (Atacama Large Millimeter Array)
-  dets:
+  detector_config:
     043GHz:
       n: 66
       band_center: 43
@@ -116,7 +116,7 @@ ALMA:
 
 AtLAST:
   array_description: AtLAST (Atacama Large-Aperture Submillimeter Telescope)
-  dets:
+  detector_config:
     f027:
       n: 750
       band_center: 27
@@ -154,7 +154,7 @@ AtLAST:
 
 MUSTANG-2:
   array_description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
-  dets:
+  detector_config:
     93GHz:
       n: 217
       band_center: 93
@@ -172,7 +172,7 @@ MUSTANG-2:
 
 SCUBA-2:
   array_description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
-  dets:
+  detector_config:
     f350:
       n: 5120
       band_center: 350
@@ -194,7 +194,7 @@ SCUBA-2:
 
 SO_SAT:
   array_description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
-  dets:
+  detector_config:
     f150:
       n: 217
       band_center: 150
