@@ -6,7 +6,7 @@ import scipy as sp
 from astropy.io import fits
 
 from . import utils
-from .coordinator import Coordinator
+from .coordinates import Coordinator
 
 np.seterr(invalid="ignore")
 
@@ -65,7 +65,7 @@ class BaseMapper:
     def expand_tod(self, tod):
         coordinator = Coordinator(lat=tod.meta["latitude"], lon=tod.meta["longitude"])
 
-        tod.AZ, tod.EL = utils.coords.xy_to_lonlat(
+        tod.AZ, tod.EL = utils.coords.dx_dy_to_phi_theta(
             tod.dets.offset_x.values[:, None],
             tod.dets.offset_y.values[:, None],
             tod.az,
@@ -246,8 +246,8 @@ class BinMapper(BaseMapper):
                 else:
                     DATA = sp.signal.detrend(tod.data[band_mask])
 
-                # X, Y = utils.coords.lonlat_to_xy(LON, LAT, *self.get_map_center_lonlat)
-                X, Y = utils.coords.lonlat_to_xy(RA, DEC, *tod.center_ra_dec)
+                # X, Y = utils.coords.phi_theta_to_dx_dy(LON, LAT, *self.get_map_center_lonlat)
+                X, Y = utils.coords.phi_theta_to_dx_dy(RA, DEC, *tod.center_ra_dec)
 
                 self.RA, self.DEC, self.DATA = RA, DEC, DATA
 

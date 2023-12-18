@@ -27,41 +27,18 @@ class UnsupportedPointingError(Exception):
         )
 
 
-def get_pointing_config(pointing_name="default", **kwargs):
-    if pointing_name not in POINTING_CONFIGS.keys():
-        raise UnsupportedPointingError(pointing_name)
-    POINTING_CONFIG = POINTING_CONFIGS[pointing_name].copy()
+def get_pointing_config(scan_pattern="stare", **kwargs):
+    if scan_pattern not in POINTING_CONFIGS.keys():
+        raise UnsupportedPointingError(scan_pattern)
+    POINTING_CONFIG = POINTING_CONFIGS[scan_pattern].copy()
     for k, v in kwargs.items():
         POINTING_CONFIG[k] = v
     return POINTING_CONFIG
 
 
-def get_pointing(pointing_name="default", **kwargs):
-    return Pointing(**get_pointing_config(pointing_name, **kwargs))
-
-
-def get_offsets(scan_pattern, integration_time, sample_rate, **scan_options):
-    """
-    Returns x and y offsets
-    """
-
-    if scan_pattern == "stare":
-        return utils.pointing.get_stare_offsets(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    if scan_pattern == "daisy":
-        return utils.pointing.get_daisy_offsets_constant_speed(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    elif scan_pattern == "back_and_forth":
-        return utils.pointing.get_back_and_forth_offsets(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    else:
-        raise ValueError(f"'{scan_pattern}' is not a valid scan pattern.")
+def get_pointing(scan_pattern="stare", **kwargs):
+    pointing_config = get_pointing_config(scan_pattern, **kwargs)
+    return Pointing(**pointing_config)
 
 
 @dataclass
@@ -70,7 +47,7 @@ class Pointing:
     A dataclass containing time-ordered pointing data.
     """
 
-    description: str = ""
+    pointing_description: str = ""
     start_time: float | str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
     sample_rate: float = 20.0
@@ -136,16 +113,13 @@ class Pointing:
         else:
             raise ValueError('pointing units must be either "degrees" or "radians"')
 
-        theta, phi = utils.coords.xy_to_lonlat(
+        self.phi, self.theta = utils.coords.dx_dy_to_phi_theta(
             x_scan_offsets_radians, y_scan_offsets_radians, *self.scan_center_radians
         )
-
         if self.pointing_frame == "ra_dec":
-            self.ra, self.dec = theta, phi
+            self.ra, self.dec = self.phi, self.theta
         elif self.pointing_frame == "az_el":
-            self.az, self.el = theta, phi
-        elif self.pointing_frame == "dx_dy":
-            self.dx, self.dy = theta, phi
+            self.az, self.el = self.phi, self.theta
         else:
             raise ValueError("Not a valid pointing frame!")
 

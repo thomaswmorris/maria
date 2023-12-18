@@ -1,33 +1,35 @@
 import numpy as np
 
-from . import base
+from .base import BaseSimulation
 
 
-class WhiteNoiseSimulation(base.BaseSimulation):
+class NoiseMixin:
     """
     White noise! It's Gaussian.
     """
-
-    def __init__(self, array, pointing, site, **kwargs):
-        super().__init__(array, pointing, site)
-
-        self.white_noise_level = kwargs.get("white_noise_level", 1e-4)
 
     def _run(self):
-        self.data = self.white_noise_level * np.random.standard_normal(
-            size=(self.array.n_dets, self.pointing.n_time)
-        )
+        self._simulate_noise()
 
+    def _simulate_noise(self):
+        self.data["noise"] = np.zeros((self.array.n_dets, self.pointing.n_time))
 
-class PinkNoiseSimulation(base.BaseSimulation):
-    """
-    White noise! It's Gaussian.
-    """
+        if self.white_noise_level > 0:
+            self.data["noise"] += self.white_noise_level * np.random.standard_normal(
+                size=self.data["noise"].shape
+            )
 
-    def __init__(self, array, pointing, site, **kwargs):
-        super().__init__(array, pointing, site)
-        self.pink_noise_level = kwargs.get("pink_noise_level", 2.3)
-        self.pink_noise_slope = kwargs.get("pink_noise_slope", 0.5)
+        if self.pink_noise_level > 0:
+            dat = np.ones((self.array.n_dets, self.pointing.n_time))
+
+            for i in range(len(dat)):
+                dat[i] = self._spectrum_noise(
+                    spectrum_func=self._pink_spectrum,
+                    size=int(self.pointing.n_time),
+                    dt=self.pointing.time[1] - self.pointing.time[0],
+                )
+
+            self.data["noise"] += dat * self.pink_noise_level
 
     def _spectrum_noise(self, spectrum_func, size, dt, amp=2.0):
         """
@@ -54,14 +56,18 @@ class PinkNoiseSimulation(base.BaseSimulation):
         s[np.logical_or(f < f_min, f > f_max)] = 0  # apply band pass
         return s
 
-    def _run(self):
-        dat = np.ones((self.array.n_dets, self.pointing.n_time))
 
-        for i in range(len(dat)):
-            dat[i] = self._spectrum_noise(
-                spectrum_func=self._pink_spectrum,
-                size=int(self.pointing.n_time),
-                dt=self.pointing.time[1] - self.pointing.time[0],
-            )
+class NoiseSimulation(NoiseMixin, BaseSimulation):
+    def __init__(
+        self,
+        white_noise_level: float = 1e0,
+        pink_noise_level: float = 1e0,
+        pink_noise_slope: float = 0.5,
+        *args,
+        **kwargs
+    ):
+        super(NoiseSimulation, self).__init__(*args, **kwargs)
 
-        self.data = dat * self.pink_noise_level
+        self.white_noise_level = 1e-2
+        self.pink_noise_level = 1e-2
+        self.pink_noise_slope = 0.5

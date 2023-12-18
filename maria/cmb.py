@@ -1,3 +1,7 @@
+class CMBMixin:
+    ...
+
+
 # class CMBSimulation(base.BaseSimulation):
 #     """
 #     This simulates scanning over celestial sources.

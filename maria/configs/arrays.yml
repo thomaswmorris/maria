@@ -1,5 +1,5 @@
 default:
-  description: A dummy array.
+  array_description: A dummy array.
   dets:
     150 GHz:
       n: 19
@@ -14,11 +14,29 @@ default:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation:
+  array_documentation:
 
+
+ABS:
+  array_description: Atacama B-Mode Search
+  dets:
+    f150:
+      n: 217
+      band_center: 150
+      band_width: 10
+  field_of_view: 25
+  geometry: hex
+  primary_size: 0.5
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+  array_documentation: https://almascience.nrao.edu/about-alma/alma-basics
 
 ACT_PA4:
-  description: AdvACT Polarization Array 4
+  array_description: AdvACT Polarization Array 4
   dets:
     f150:
       n: 375
@@ -37,11 +55,11 @@ ACT_PA4:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+  array_documentation: https://almascience.nrao.edu/about-alma/alma-basics
 
 
 ALMA:
-  description: ALMA (Atacama Large Millimeter Array)
+  array_description: ALMA (Atacama Large Millimeter Array)
   dets:
     043GHz:
       n: 66
@@ -94,10 +112,10 @@ ALMA:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+  array_documentation: https://almascience.nrao.edu/about-alma/alma-basics
 
 AtLAST:
-  description: AtLAST (Atacama Large-Aperture Submillimeter Telescope)
+  array_description: AtLAST (Atacama Large-Aperture Submillimeter Telescope)
   dets:
     f027:
       n: 750
@@ -132,10 +150,10 @@ AtLAST:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation: https://www.atlast.uio.no/
+  array_documentation: https://www.atlast.uio.no/
 
 MUSTANG-2:
-  description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
+  array_description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
   dets:
     93GHz:
       n: 217
@@ -150,10 +168,10 @@ MUSTANG-2:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
+  array_documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
 
 SCUBA-2:
-  description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
+  array_description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
   dets:
     f350:
       n: 5120
@@ -172,10 +190,10 @@ SCUBA-2:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/
+  array_documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/
 
 SO_SAT:
-  description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
+  array_description: SCUBA-2 (Submillimetre Common-User Bolometer Array 2)
   dets:
     f150:
       n: 217
@@ -190,4 +208,4 @@ SO_SAT:
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/
+  array_documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/

@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass, field
 
+import astropy as ap
 import pandas as pd
 
 from . import utils
@@ -13,7 +14,7 @@ SITE_PARAMS = set()
 for key, config in SITE_CONFIGS.items():
     SITE_PARAMS |= set(config.keys())
 
-DISPLAY_COLUMNS = ["description", "region", "latitude", "longitude", "altitude"]
+DISPLAY_COLUMNS = ["site_description", "region", "latitude", "longitude", "altitude"]
 supported_sites_table = pd.DataFrame(SITE_CONFIGS).T
 all_sites = list(supported_sites_table.index.values)
 
@@ -41,7 +42,7 @@ def get_site(site_name="default", **kwargs):
 
 @dataclass
 class Site:
-    description: str = ""
+    site_description: str = ""
     region: str = "princeton"
     altitude: float = None  # in meters
     seasonal: bool = True
@@ -50,7 +51,7 @@ class Site:
     longitude: float = None  # in degrees
     weather_quantiles: dict = field(default_factory=dict)
     pwv_rms_frac: float = 0.03  # as a fraction of the total
-    documentation: str = ""
+    site_documentation: str = ""
 
     """
     A class containing time-ordered pointing data. Pass a supported site (found at weathergen.sites),
@@ -69,3 +70,7 @@ class Site:
 
         if self.altitude is None:
             self.altitude = supported_regions_table.loc[self.region].altitude
+
+        self.earth_location = ap.coordinates.EarthLocation.from_geodetic(
+            lon=self.longitude, lat=self.latitude
+        )

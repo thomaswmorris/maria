@@ -27,7 +27,7 @@ all_array_params = utils.io.read_yaml(f"{here}/configs/params.yml")["array"]
 
 ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/configs/arrays.yml")
 
-DISPLAY_COLUMNS = ["description", "field_of_view", "primary_size", "bands"]
+DISPLAY_COLUMNS = ["array_description", "field_of_view", "primary_size", "bands"]
 supported_arrays_table = pd.DataFrame(ARRAY_CONFIGS).T
 
 band_lists = []
@@ -97,11 +97,11 @@ def get_array_config(array_name=None, **kwargs):
     if array_name not in ARRAY_CONFIGS.keys():
         raise InvalidArrayError(array_name)
     array_config = ARRAY_CONFIGS[array_name].copy()
-    for k, v in kwargs.items():
-        if k in all_array_params.keys():
-            array_config[k] = v
+    for key, value in kwargs.items():
+        if key in all_array_params.keys():
+            array_config[key] = value
         else:
-            raise ValueError(f"'{k}' is not a valid argument for an array!")
+            raise ValueError(f"'{key}' is not a valid argument for an array!")
     return array_config
 
 
@@ -109,7 +109,8 @@ def get_array(array_name="default", **kwargs):
     """
     Get an array from a pre-defined config.
     """
-    return Array.from_config(get_array_config(array_name, **kwargs))
+    array_config = get_array_config(array_name=array_name, **kwargs)
+    return Array.from_config(array_config)
 
 
 REQUIRED_DET_CONFIG_KEYS = ["n", "band_center", "band_width"]
@@ -177,7 +178,7 @@ class Array:
     An array.
     """
 
-    description: str = ""
+    array_description: str = ""
     primary_size: float = 5  # in meters
     field_of_view: float = 1  # in deg
     geometry: str = "hex"
@@ -188,7 +189,7 @@ class Array:
     max_el_acc: float = np.inf  # in deg/s^2
     az_bounds: Tuple[float, float] = (0, 360)  # in degrees
     el_bounds: Tuple[float, float] = (0, 90)  # in degrees
-    documentation: str = ""
+    array_documentation: str = ""
     dets: pd.DataFrame = None  # dets, it's complicated
 
     def __repr__(self):
@@ -241,7 +242,7 @@ class Array:
             )
 
         return cls(
-            description=config["description"],
+            array_description=config["array_description"],
             primary_size=config["primary_size"],
             field_of_view=field_of_view,
             baseline=baseline,
@@ -252,7 +253,7 @@ class Array:
             max_el_acc=config["max_el_acc"],
             az_bounds=tuple(config["az_bounds"]),
             el_bounds=tuple(config["el_bounds"]),
-            documentation=config["documentation"],
+            array_documentation=config["array_documentation"],
             dets=dets,
         )
 
