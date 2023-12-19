@@ -189,7 +189,7 @@ class AtmosphereMixin:
                 self.data["atmosphere"][band_mask] = band_T_RJ_interpolator(
                     (
                         self.line_of_sight_pwv[band_mask],
-                        np.degrees(self.EL[band_mask]),
+                        np.degrees(self.det_coords.el[band_mask]),
                     )
                 )
 

@@ -34,18 +34,18 @@ class BaseMapper:
         self,
         center: Tuple[float, float] = (0, 0),
         frame: str = "ra_dec",
-        width: float = np.radians(5),
-        height: float = np.radians(5),
-        res: float = np.radians(1 / 60),
+        width: float = 5,
+        height: float = 5,
+        res: float = 1 / 60,
         filter_tods: bool = True,
         smoothing: float = 8,
         **kwargs,
     ):
         self.res = res
         self.frame = frame
-        self.center = center
-        self.width = width
-        self.height = height
+        self.center = np.radians(center)
+        self.width = np.radians(width)
+        self.height = np.radians(height)
         self.filter_tods = filter_tods
         self.smoothing = smoothing
 

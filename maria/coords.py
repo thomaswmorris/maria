@@ -41,6 +41,8 @@ FRAMES = {
         "astropy_theta": "alt",
         "phi": "az",
         "theta": "el",
+        "phi_name": "RA",
+        "theta_name": "Dec.",
     },
     "ra_dec": {
         "astropy_name": "icrs",
@@ -48,6 +50,8 @@ FRAMES = {
         "astropy_theta": "dec",
         "phi": "ra",
         "theta": "dec",
+        "phi_name": "RA",
+        "theta_name": "Dec.",
     },
     "galactic": {
         "astropy_name": "galactic",
@@ -55,6 +59,8 @@ FRAMES = {
         "astropy_theta": "b",
         "phi": "l",
         "theta": "b",
+        "phi_name": "RA",
+        "theta_name": "Dec.",
     },
 }
 
@@ -133,8 +139,6 @@ class Coordinates:
             DS_FID_POINTS_NEW_FRAME = np.swapaxes(
                 phi_theta_to_xyz(DS_FID_PHI_NEW_FRAME, DS_FID_THETA_NEW_FRAME), -2, -1
             )
-
-            print(DS_FID_POINTS_NEW_FRAME.shape)
 
             DS_TRANSFORM = DS_FID_POINTS_NEW_FRAME @ np.linalg.inv(DS_FID_POINTS)
 
