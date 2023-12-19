@@ -102,7 +102,6 @@ class BaseSimulation:
             *self.array.offsets.T[..., None], self.boresight.az, self.boresight.el
         )
 
-        print("running base")
         self.det_coords = Coordinates(
             self.boresight.time,
             det_az,

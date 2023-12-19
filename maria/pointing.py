@@ -3,11 +3,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytz
 
 from . import utils
+from .coords import FRAMES
 
 here, this_filename = os.path.split(__file__)
 
@@ -113,8 +115,12 @@ class Pointing:
         else:
             raise ValueError('pointing units must be either "degrees" or "radians"')
 
+        self.scan_offsets_radians = np.c_[
+            x_scan_offsets_radians, y_scan_offsets_radians
+        ].T
+
         self.phi, self.theta = utils.coords.dx_dy_to_phi_theta(
-            x_scan_offsets_radians, y_scan_offsets_radians, *self.scan_center_radians
+            *self.scan_offsets_radians, *self.scan_center_radians
         )
         if self.pointing_frame == "ra_dec":
             self.ra, self.dec = self.phi, self.theta
@@ -126,3 +132,32 @@ class Pointing:
         self.utc_time = (
             datetime.fromtimestamp(self.time_min).astimezone(pytz.utc).ctime()
         )
+
+    def plot(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+
+        max_scan_offset = self.scan_offsets_radians.ptp(axis=1).max()
+
+        if max_scan_offset < np.radians(0.5 / 60):
+            dx, dy = 3600 * np.degrees(self.scan_offsets_radians)
+            units = "arcsec."
+        elif max_scan_offset < np.radians(0.5):
+            dx, dy = 60 * np.degrees(self.scan_offsets_radians)
+            units = "arcmin."
+        else:
+            dx, dy = np.degrees(self.scan_offsets_radians)
+            units = "deg."
+
+        center_phi, center_theta = self.scan_center
+
+        label = (
+            f'{FRAMES[self.pointing_frame]["phi_name"]} = {center_phi} {self.pointing_units}'
+            f'\n{FRAMES[self.pointing_frame]["theta_name"]} = {center_theta} {self.pointing_units}'
+        )
+
+        ax.plot(dx, dy, lw=5e-1)
+        ax.scatter(0, 0, c="r", marker="x", label=label)
+        ax.set_xlabel(rf"$\Delta \, \theta_x$ [{units}]")
+        ax.set_ylabel(rf"$\Delta \, \theta_y$ [{units}]")
+        ax.legend()
