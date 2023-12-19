@@ -169,7 +169,7 @@ class AtmosphereMixin:
                 band_mask = self.array.dets.band.values == uband
 
                 det_nu_samples = np.linspace(
-                    self.array.band_min, self.array.band_max, 64
+                    self.array.band_min[band_mask], self.array.band_max[band_mask], 64
                 ).mean(axis=-1)
 
                 det_temperature_grid = sp.interpolate.interp1d(
