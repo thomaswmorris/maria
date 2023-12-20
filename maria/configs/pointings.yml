@@ -1,27 +1,17 @@
-default:
-  description:
+stare:
+  pointing_description: A stare.
   integration_time: 60
   scan_pattern: stare
   pointing_frame: az_el
   scan_center: [0, 45]
-  pointing_units: degrees
-  sample_rate: 10
-  scan_options: {}
-
-stare:
-  description: A 60-second zenith stare.
-  integration_time: 60
-  scan_pattern: stare
-  pointing_frame: az_el
-  scan_center: [0, 90]
-  pointing_units: degrees
+  degrees: True
   sample_rate: 20
   scan_options: {}
 
 daisy:
-  description: 'A daisy scan.'
+  pointing_description: A daisy scan.
   pointing_frame: ra_dec
-  pointing_units: degrees
+  degrees: True
   scan_pattern: daisy
   scan_center: [150., 10]
   sample_rate: 50
@@ -33,13 +23,13 @@ daisy:
     miss_freq: 1.41
 
 back_and_forth:
-  description: 'A back-and-forth scan.'
+  pointing_description: A back-and-forth scan.
   start_time: '2022-07-01T08:00:00'
   integration_time: 60
   scan_pattern: back_and_forth
   scan_center: [45, 45]
   pointing_frame: az_el
-  pointing_units: degrees
+  degrees: True
   sample_rate: 20
   scan_options:
     x_throw: 5

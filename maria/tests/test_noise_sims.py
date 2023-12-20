@@ -1,11 +1,11 @@
 import pytest
 
-from maria.noise import WhiteNoiseSimulation
+from maria.noise import NoiseSimulation
 
 
 @pytest.mark.noise
 def test_linear_angular_model():
-    sim = WhiteNoiseSimulation(
+    noise_sim = NoiseSimulation(
         array="MUSTANG-2", pointing="daisy", site="GBT", white_noise_level=1e0
     )
-    tod = sim.run()
+    tod = noise_sim.run()
