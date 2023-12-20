@@ -21,7 +21,7 @@ all_regions = list(supported_regions_table.index.values)
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         super().__init__(
-            f"The region '{invalid_region}' is not supported."
+            f'The region "{invalid_region}" is not supported.'
             f"Supported regions are:\n\n{supported_regions_table.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
 
@@ -68,6 +68,7 @@ class Weather:
     local_time: str = ""
     time_zone: str = ""
     quantiles: dict = field(default_factory=dict)
+    override: dict = field(default_factory=dict)
 
     def __post_init__(self):
         if self.region not in supported_regions_table.index.values:
@@ -138,5 +139,7 @@ class Weather:
 
     @property
     def pwv(self):
+        if "pwv" in self.override.keys():
+            return self.override["pwv"]
         z = np.linspace(self.altitude * g, self.geopotential.max(), 1024)
         return np.trapz(np.interp(z, self.geopotential, self.absolute_humidity), z / g)

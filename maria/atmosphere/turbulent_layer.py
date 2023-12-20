@@ -318,6 +318,6 @@ class TurbulentLayer:
     #     # this is "zenith-scaled"
     #     self.line_of_sight_pwv = (
     #         self.weather.pwv
-    #         * (1.0 + self.site.pwv_rms_frac * detector_values)
+    #         * (1.0 + self.pwv_rms_frac * detector_values)
     #         / np.sin(self.EL)
     #     )

@@ -54,7 +54,7 @@ class Pointing:
     integration_time: float = 60.0
     sample_rate: float = 20.0
     pointing_frame: str = "ra_dec"
-    pointing_units: str = "degrees"
+    degrees: bool = True
     scan_center: Tuple[float, float] = (4, 10.5)
     scan_pattern: str = "daisy_miss_center"
     scan_options: dict = field(default_factory=dict)
@@ -101,19 +101,17 @@ class Pointing:
             **self.scan_options,
         )
 
-        if self.pointing_units == "degrees":
+        if self.degrees:
             self.scan_center_radians = (
                 np.radians(self.scan_center[0]),
                 np.radians(self.scan_center[1]),
             )
             x_scan_offsets_radians = np.radians(x_scan_offsets)
             y_scan_offsets_radians = np.radians(y_scan_offsets)
-        elif self.pointing_units == "radians":
+        else:
             self.scan_center_radians = self.scan_center
             x_scan_offsets_radians = x_scan_offsets
             y_scan_offsets_radians = y_scan_offsets
-        else:
-            raise ValueError('pointing units must be either "degrees" or "radians"')
 
         self.scan_offsets_radians = np.c_[
             x_scan_offsets_radians, y_scan_offsets_radians
@@ -151,9 +149,11 @@ class Pointing:
 
         center_phi, center_theta = self.scan_center
 
+        pointing_units = "deg." if self.degrees else "rad."
+
         label = (
-            f'{FRAMES[self.pointing_frame]["phi_name"]} = {center_phi} {self.pointing_units}'
-            f'\n{FRAMES[self.pointing_frame]["theta_name"]} = {center_theta} {self.pointing_units}'
+            f'{FRAMES[self.pointing_frame]["phi_name"]} = {center_phi} {pointing_units}'
+            f'\n{FRAMES[self.pointing_frame]["theta_name"]} = {center_theta} {pointing_units}'
         )
 
         ax.plot(dx, dy, lw=5e-1)

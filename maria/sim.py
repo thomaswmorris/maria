@@ -10,6 +10,7 @@ from .base import BaseSimulation, parse_sim_kwargs
 from .cmb import CMBMixin
 from .noise import NoiseMixin
 from .sky import MapMixin
+from .weather import Weather
 
 here, this_filename = os.path.split(__file__)
 
@@ -46,8 +47,21 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 self.params[sub_type][k] = kwargs.get(k, v)
                 setattr(self, k, kwargs.get(k, v))
 
-        self._initialize_atmosphere()
-        self._initialize_map()
+        weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
+
+        self.weather = Weather(
+            t=self.pointing.time.mean(),
+            region=self.site.region,
+            altitude=self.site.altitude,
+            quantiles=self.site.weather_quantiles,
+            override=weather_override,
+        )
+
+        if self.atmosphere_model:
+            self._initialize_atmosphere()
+
+        if self.map_file:
+            self._initialize_map()
 
     def _run(self, units="K_RJ"):
         # number of bands are lost here

@@ -68,9 +68,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         )
         rel_layer_scaling /= np.sqrt(np.square(rel_layer_scaling).sum())
 
-        self.layer_scaling = (
-            self.site.pwv_rms_frac * self.weather.pwv * rel_layer_scaling
-        )
+        self.layer_scaling = self.pwv_rms_frac * self.weather.pwv * rel_layer_scaling
 
         self.line_of_sight_pwv = (
             self.weather.pwv + layer_values @ self.layer_scaling
@@ -107,7 +105,7 @@ class LinearAngularSimulation(BaseAtmosphericSimulation):
         # # this is "zenith-scaled"
         # self.line_of_sight_pwv = (
         #     self.weather.pwv
-        #     * (1.0 + self.site.pwv_rms_frac * detector_values)
+        #     * (1.0 + self.pwv_rms_frac * detector_values)
         #     / np.sin(self.EL)
         # )
 

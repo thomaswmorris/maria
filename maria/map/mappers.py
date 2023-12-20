@@ -1,7 +1,6 @@
 import os
 from typing import Tuple
 
-import healpy as hp
 import numpy as np
 import scipy as sp
 from astropy.io import fits
@@ -28,24 +27,28 @@ class InvalidMapperError(Exception):
 class BaseMapper:
     """
     The base class for mapping.
+
+    Units
     """
 
     def __init__(
         self,
         center: Tuple[float, float] = (0, 0),
+        width: float = 1,
+        height: float = 1,
+        res: float = 0.01,
         frame: str = "ra_dec",
-        width: float = 5,
-        height: float = 5,
-        res: float = 1 / 60,
         filter_tods: bool = True,
         smoothing: float = 8,
+        degrees: bool = True,
         **kwargs,
     ):
-        self.res = res
+        self.res = np.radians(res) if degrees else res
+        self.center = np.radians(center) if degrees else center
+        self.width = np.radians(width) if degrees else width
+        self.height = np.radians(height) if degrees else height
+        self.degrees = degrees
         self.frame = frame
-        self.center = np.radians(center)
-        self.width = np.radians(width)
-        self.height = np.radians(height)
         self.filter_tods = filter_tods
         self.smoothing = smoothing
 
@@ -90,17 +93,6 @@ class BaseMapper:
     def add_tods(self, tods):
         for tod in np.atleast_1d(tods):
             self.tods.append(tod)
-
-    @property
-    def get_map_center_lonlat(self):
-        for tod in self.tods:
-            mean_unit_vec = hp.ang2vec(
-                np.pi / 2 - tod.LAT.ravel(), tod.LON.ravel()
-            ).mean(axis=0)
-            mean_unit_vec /= np.sqrt(np.sum(np.square(mean_unit_vec)))
-            mean_unit_colat, mean_unit_lon = np.r_[hp.vec2ang(mean_unit_vec)]
-
-        return mean_unit_lon, np.pi / 2 - mean_unit_colat
 
     def save_maps(self, filepath):
         self.header = self.tods[0].header
@@ -223,7 +215,7 @@ class BinMapper(BaseMapper):
         self.map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
         self.map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
 
-        map_data = np.zeros((len(self.ubands), self.n_x, self.n_y))
+        self.map_data = np.zeros((len(self.ubands), self.n_x, self.n_y))
 
         for iband, band in enumerate(np.unique(self.ubands)):
             self.band_data[band] = {}
@@ -234,26 +226,23 @@ class BinMapper(BaseMapper):
 
                 band_mask = tod.dets.band == band
 
+                # raw_band_data = sp.signal.detrend(tod.data[band_mask])
+                band_data = tod.data[band_mask].copy()
+
                 # filter, if needed
                 if self.filter_tods:
-                    tod.data[band_mask] = self._fourier_filter(
-                        tod.data[band_mask], tod.time
-                    )
+                    band_data = self._fourier_filter(band_data, tod.time)
 
                 if self._nmtr > 0:
-                    u, s, v = np.linalg.svd(
-                        sp.signal.detrend(tod.data[band_mask]), full_matrices=False
-                    )
-                    DATA = (
+                    u, s, v = np.linalg.svd(band_data, full_matrices=False)
+                    band_data = (
                         u[:, self._nmtr :] @ np.diag(s[self._nmtr :]) @ v[self._nmtr :]
                     )
-                else:
-                    DATA = sp.signal.detrend(tod.data[band_mask])
 
                 map_sum = sp.stats.binned_statistic_2d(
                     dx[band_mask].ravel(),
                     dy[band_mask].ravel(),
-                    DATA.ravel(),
+                    band_data.ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="sum",
                 )[0]
@@ -261,10 +250,12 @@ class BinMapper(BaseMapper):
                 map_cnt = sp.stats.binned_statistic_2d(
                     dx[band_mask].ravel(),
                     dy[band_mask].ravel(),
-                    DATA.ravel(),
+                    band_data.ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="count",
                 )[0]
+
+                self.DATA = band_data
 
                 self.map_sums[band] += map_sum
                 self.map_cnts[band] += map_cnt
@@ -275,12 +266,15 @@ class BinMapper(BaseMapper):
             # self.nom_freqwidth[band] = tod.dets.loc["band_width.mean()
 
             mask = self.map_cnts[band] > 0
-            map_data[iband] = np.where(mask, self.map_sums[band], np.nan) / np.where(
-                mask, self.map_cnts[band], 1
-            )
+            self.map_data[iband] = np.where(
+                mask, self.map_sums[band], np.nan
+            ) / np.where(mask, self.map_cnts[band], 1)
 
         self.map = Map(
-            data=map_data,
+            data=self.map_data,
             freqs=np.array([self.band_data[band]["nom_freq"] for band in self.ubands]),
-            center=self.center,
+            width=np.degrees(self.width) if self.degrees else self.width,
+            height=np.degrees(self.height) if self.degrees else self.height,
+            center=np.degrees(self.center) if self.degrees else self.center,
+            degrees=self.degrees,
         )

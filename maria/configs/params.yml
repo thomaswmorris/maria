@@ -29,7 +29,7 @@ pointing: # defaults to a 45 degree stare due north
   start_time: 2022-02-10T06:00:00
   integration_time: 60 # in seconds
   pointing_frame: az_el
-  pointing_units: degrees
+  degrees: True
   sample_rate: 20
   scan_pattern: daisy
   scan_center: [10, 4.5]
@@ -43,7 +43,6 @@ site: # default to the ALMA site
   altitude: 5064
   site_documentation: ''
   weather_quantiles: {}
-  pwv_rms_frac: 0.03
 
 atmosphere:
   atmosphere_model: '2d'
@@ -52,15 +51,17 @@ atmosphere:
   min_atmosphere_height: 500
   max_atmosphere_height: 5000
   turbulent_outer_scale: 800
+  pwv_rms_frac: 0.03
+  pwv:
 
 map:
   map_file: ''
   map_frame: ra_dec
   map_center: [10, 4.5]
-  map_width: 0.5
-  map_height: 0.5
-  map_inbright: 1
+  map_res: 0.5
+  map_inbright:
   map_units: K_RJ
+  map_freqs: [150]
 
 noise:
   white_noise_level: 1.e-2 # in Kelvin Rayleigh-Jeans equivalent

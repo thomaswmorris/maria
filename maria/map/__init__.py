@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import List, Tuple
 
 import astropy as ap
 import matplotlib.pyplot as plt
@@ -16,18 +16,27 @@ class Map:
     This means that there might be non-square pixels
     """
 
-    data: np.array  # 3D array
-    freqs: np.array
+    freqs: List[float]
     center: Tuple[float, float]
-    height: float = np.radians(1)
-    width: float = np.radians(1)
+    width: float = 1
+    height: float = 1
+    degrees: bool = True
     inbright: float = 1
     header: ap.io.fits.header.Header = None
     frame: str = "ra_dec"
     units: str = "K"
+    data: np.array = None  # 3D array
 
     def __post_init__(self):
-        ...  # X, Y = np.meshgrid(self.x_side, self.y_side)
+        assert len(self.freqs) == self.n_freqs
+
+        assert self.data is not None
+
+        # self.res = np.radians(self.res) if self.degrees else self.res
+        # self.center = np.radians(self.center) if self.degrees else self.center
+
+        self.width = self.res * self.n_x
+        self.height = self.res * self.n_y
 
     @property
     def res(self):
@@ -46,19 +55,15 @@ class Map:
 
     @property
     def n_freqs(self):
-        return len(self.freqs)
-
-    @property
-    def shape(self):
-        return self.data.shape[-2:]
+        return self.data.shape[0]
 
     @property
     def n_x(self):
-        return self.shape[0]
+        return self.data.shape[2]
 
     @property
     def n_y(self):
-        return self.shape[1]
+        return self.data.shape[1]
 
     @property
     def x_side(self):
@@ -70,18 +75,17 @@ class Map:
         y = self.res * np.arange(self.n_y)
         return y - y.mean()
 
-    @property
-    def X_Y(self):
-        return np.meshgrid(self.x_side, self.y_side)
-
-    def plot(self, cmap="plasma", **kwargs):
+    def plot(self, cmap="plasma", units="degrees", **kwargs):
         for i_freq, freq in enumerate(self.freqs):
             header = fits.header.Header()
 
             header["RESTFRQ"] = freq
 
-            header["CDELT1"] = self.res  # degree
-            header["CDELT2"] = self.res  # degree
+            res_degrees = self.res if self.degrees else np.degrees(self.res)
+            center_degrees = self.center if self.degrees else np.degrees(self.center)
+
+            header["CDELT1"] = res_degrees  # degree
+            header["CDELT2"] = res_degrees  # degree
 
             header["CRPIX1"] = self.n_x / 2
             header["CRPIX2"] = self.n_y / 2
@@ -92,31 +96,38 @@ class Map:
             header["CUNIT2"] = "deg     "
             header["RADESYS"] = "FK5     "
 
-            header["CRVAL1"] = np.degrees(self.center[0])
-            header["CRVAL2"] = np.degrees(self.center[1])
-            wcs_input = WCS(header, naxis=2)
+            header["CRVAL1"] = center_degrees[0]
+            header["CRVAL2"] = center_degrees[1]
+            wcs_input = WCS(header, naxis=2)  # noqa F401
 
             fig = plt.figure()
 
-            ax = fig.add_subplot(1, 1, 1, projection=wcs_input)
+            ax = fig.add_subplot(1, 1, 1)  # , projection=wcs_input)
 
             ax.set_title(f"{freq} GHz")
 
-            map_im = ax.imshow(self.data.T, cmap=cmap, interpolation="none")
+            map_extent_radians = [
+                -self.width / 2,
+                self.width / 2,
+                -self.height / 2,
+                self.height / 2,
+            ]
+            if self.degrees:
+                map_extent_radians = np.radians(map_extent_radians)
+
+            if units == "degrees":
+                map_extent = np.degrees(map_extent_radians)
+            if units == "arcmin":
+                map_extent = 60 * np.degrees(map_extent_radians)
+            if units == "arcsec":
+                map_extent = 3600 * np.degrees(map_extent_radians)
+
+            map_im = ax.imshow(
+                self.data.T, cmap=cmap, interpolation="none", extent=map_extent
+            )
+
+            ax.set_xlabel(rf"$\Delta\,\theta_x$ [{units}]")
+            ax.set_ylabel(rf"$\Delta\,\theta_y$ [{units}]")
 
             cbar = fig.colorbar(map_im, ax=ax, shrink=1.0)
             cbar.set_label("mJy km/s/pixel")
-
-            ra, dec = ax.coords
-            ra.set_major_formatter("hh:mm:ss")
-            dec.set_major_formatter("dd:mm:ss")
-            ra.set_axislabel(r"RA [J2000]", size=11)
-            dec.set_axislabel(r"Dec [J2000]", size=11)
-            ra.set_separator(("h", "m"))
-
-            # pixel_sky_l = wcs_input.world_to_pixel(sky_l)
-            # pixel_sky_u = wcs_input.world_to_pixel(sky_u)
-            # ax.axis(
-            #     xmax=pixel_sky_l[0], ymin=pixel_sky_l[1], xmin=pixel_sky_u[0], ymax=pixel_sky_u[1]
-            # )
-            # plt.show()

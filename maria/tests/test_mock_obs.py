@@ -27,8 +27,7 @@ def test_sim_with_params():
         map_file="maps/cluster.fits",  # Input files must be a fits file.
         # map_file can also be set to None if are only interested in the noise
         map_center=(150.0, 10),  # RA & Dec in degree
-        map_width=map_size,
-        map_height=map_size,
+        map_res=0.1 / 1000,  # degree, overwrites header information
         # Defeault Observational setup
         # ----------------------------
         integration_time=600,  # seconds
