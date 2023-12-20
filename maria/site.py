@@ -50,7 +50,6 @@ class Site:
     latitude: float = None  # in degrees
     longitude: float = None  # in degrees
     weather_quantiles: dict = field(default_factory=dict)
-    pwv_rms_frac: float = 0.03  # as a fraction of the total
     site_documentation: str = ""
 
     """

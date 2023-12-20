@@ -8,7 +8,6 @@ from .coords import Coordinates, dx_dy_to_phi_theta
 from .pointing import Pointing, get_pointing
 from .site import Site, get_site
 from .tod import TOD
-from .weather import Weather
 
 here, this_filename = os.path.split(__file__)
 
@@ -65,23 +64,24 @@ class BaseSimulation:
 
         self.data = {}
 
-        params = parse_sim_kwargs(kwargs, master_params)
+        parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
-        self.array = (
-            array
-            if isinstance(array, Array)
-            else get_array(array_name=array, **params["array"])
-        )
-        self.pointing = (
-            pointing
-            if isinstance(pointing, Pointing)
-            else get_pointing(scan_pattern=pointing, **params["pointing"])
-        )
-        self.site = (
-            site
-            if isinstance(site, Site)
-            else get_site(site_name=site, **params["site"])
-        )
+        if type(array) is Array:
+            self.array = array
+        else:
+            self.array = get_array(array_name=array, **parsed_sim_kwargs["array"])
+
+        if type(pointing) is Pointing:
+            self.pointing = pointing
+        else:
+            self.pointing = get_pointing(
+                scan_pattern=pointing, **parsed_sim_kwargs["pointing"]
+            )
+
+        if type(site) is Site:
+            self.site = site
+        else:
+            self.site = get_site(site_name=site, **parsed_sim_kwargs["site"])
 
         self.boresight = Coordinates(
             self.pointing.time,
@@ -89,13 +89,6 @@ class BaseSimulation:
             self.pointing.theta,
             location=self.site.earth_location,
             frame=self.pointing.pointing_frame,
-        )
-
-        self.weather = Weather(
-            t=self.pointing.time.mean(),
-            region=self.site.region,
-            altitude=self.site.altitude,
-            quantiles=self.site.weather_quantiles,
         )
 
         det_az, det_el = dx_dy_to_phi_theta(
@@ -171,7 +164,7 @@ class BaseSimulation:
 
         tod.time = self.boresight.time
         tod.cntr = self.pointing.scan_center
-        tod.pntunit = self.pointing.pointing_units
+        # tod.pntunit = self.pointing.pointing_units
 
         if hasattr(self, "map_sim"):
             if self.map_sim is not None:

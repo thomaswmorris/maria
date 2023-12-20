@@ -162,15 +162,22 @@ class Coordinates:
             setattr(self, f'center_{FRAMES[new_frame]["phi"]}', center_phi)
             setattr(self, f'center_{FRAMES[new_frame]["theta"]}', center_theta)
 
-    def offsets(self, frame, center):
+    def offsets(self, frame, center, units="radians"):
         if frame == "az_el":
-            return phi_theta_to_dx_dy(self.az, self.el, *center)
+            dx, dy = phi_theta_to_dx_dy(self.az, self.el, *center)
+        elif frame == "ra_dec":
+            dx, dy = phi_theta_to_dx_dy(self.ra, self.dec, *center)
+        elif frame == "galactic":
+            dx, dy = phi_theta_to_dx_dy(self.l, self.b, *center)
 
-        if frame == "ra_dec":
-            return phi_theta_to_dx_dy(self.ra, self.dec, *center)
-
-        if frame == "galactic":
-            return phi_theta_to_dx_dy(self.l, self.b, *center)
+        if units == "radians":
+            return dx, dy
+        elif units == "degrees":
+            return np.degrees(dx), np.degrees(dy)
+        elif units == "arcmin":
+            return 60 * np.degrees(dx), 60 * np.degrees(dy)
+        elif units == "arcsec":
+            return 3600 * np.degrees(dx), 3600 * np.degrees(dy)
 
 
 # class Coordinator:

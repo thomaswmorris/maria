@@ -8,7 +8,9 @@ from astropy.io import fits as pyfits
 
 
 class TOD:
-    """ """
+    """
+    Time-ordered data.
+    """
 
     def __init__(self):
         pass
@@ -34,18 +36,10 @@ class TOD:
         """
 
         if array == "MUSTANG-2":
-            # self.coords.ra, self.coords.dec = self.coords.transform(
-            #     self.time,
-            #     self.AZ,
-            #     self.EL,
-            #     in_frame="az_el",
-            #     out_frame="ra_dec",
-            # )
-
             header = pyfits.header.Header()
 
             header["AZIMUTH"] = (self.coords.center_az, "radians")
-            header["ELEVATIO"] = (self.coords.center_el, "radians")
+            header["ELEVATION"] = (self.coords.center_el, "radians")
             header["BMAJ"] = (8.0, "arcsec")
             header["BMIN"] = (8.0, "arcsec")
             header["BPA"] = (0.0, "degrees")
@@ -140,7 +134,7 @@ class TOD:
 
 class KeyNotFoundError(Exception):
     def __init__(self, invalid_keys):
-        super().__init__(f"The key '{invalid_keys}' is not in the database. ")
+        super().__init__(f'The key "{invalid_keys}" is not in the database. ')
 
 
 def check_nested_keys(keys_found, data, keys):

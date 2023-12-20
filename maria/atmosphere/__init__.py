@@ -67,9 +67,9 @@ class AtmosphereMixin:
         )
 
         if self.atmosphere_model == "2d":
-            self.n_layers = 3
+            self.n_layers = 6
 
-            self.layer_depths = np.linspace(500, 5000, self.n_layers)
+            self.layer_depths = np.linspace(500, 3000, self.n_layers)
             self.layers = []
 
             for layer_index, layer_depth in enumerate(self.layer_depths):
@@ -119,9 +119,7 @@ class AtmosphereMixin:
         )
         rel_layer_scaling /= np.sqrt(np.square(rel_layer_scaling).sum(axis=0)[None])
 
-        self.layer_scaling = (
-            self.site.pwv_rms_frac * self.weather.pwv * rel_layer_scaling
-        )
+        self.layer_scaling = self.pwv_rms_frac * self.weather.pwv * rel_layer_scaling
 
         self.line_of_sight_pwv = (
             self.weather.pwv + (self.layer_scaling * turbulence).sum(axis=0)
@@ -142,7 +140,7 @@ class AtmosphereMixin:
     #     # this is "zenith-scaled"
     #     self.line_of_sight_pwv = (
     #         self.weather.pwv
-    #         * (1.0 + self.site.pwv_rms_frac * detector_values)
+    #         * (1.0 + self.pwv_rms_frac * detector_values)
     #         / np.sin(self.EL)
     #     )
 
