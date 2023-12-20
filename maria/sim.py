@@ -1,113 +1,78 @@
 import os
 
-import numpy as np
-
 from maria.array import Array
 from maria.pointing import Pointing
 from maria.site import Site
 
-from . import atmosphere, noise, sky, utils
+from . import utils
+from .atmosphere import AtmosphereMixin
 from .base import BaseSimulation, parse_sim_kwargs
+from .cmb import CMBMixin
+from .noise import NoiseMixin
+from .sky import MapMixin
+from .weather import Weather
 
 here, this_filename = os.path.split(__file__)
 
 master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
 
 
-class InvalidSimulationParameterError(Exception):
-    def __init__(self, invalid_keys):
-        super().__init__(
-            f"The parameters {invalid_keys} are not valid simulation parameters!"
-        )
-
-
-class Simulation(BaseSimulation):
+class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
     """A simulation! This is what users should touch, primarily."""
 
     def __init__(
         self,
-        array: str or Array,
-        pointing: str or Pointing,
-        site: str or Site,
-        white_noise_model="white",
-        pink_noise_model="pink",
-        atm_model=None,
-        verbose=False,
+        array: str or Array = "default",
+        pointing: str or Pointing = "default",
+        site: str or Site = "default",
+        verbose: bool = True,
         **kwargs,
     ):
-        self.parsed_kwargs = parse_sim_kwargs(kwargs, master_params, strict=True)
+        self.parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params, strict=True)
 
         super().__init__(
             array,
             pointing,
             site,
             verbose=verbose,
-            **self.parsed_kwargs["array"],
-            **self.parsed_kwargs["pointing"],
-            **self.parsed_kwargs["site"],
+            **self.parsed_sim_kwargs["array"],
+            **self.parsed_sim_kwargs["pointing"],
+            **self.parsed_sim_kwargs["site"],
         )
 
-        self.atm_sim = None
-        self.map_sim = None
-        self.white_noise_sim = None
-        self.pink_noise_sim = None
+        self.params = {}
+        for sub_type, sub_master_params in master_params.items():
+            self.params[sub_type] = {}
+            for k, v in sub_master_params.items():
+                self.params[sub_type][k] = kwargs.get(k, v)
+                setattr(self, k, kwargs.get(k, v))
 
-        self.sub_sims = []
+        weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
 
-        if atm_model is not None:
-            atm_kwargs = self.parsed_kwargs["atmosphere"]
-            if atm_model in ["single_layer", "SL"]:
-                self.atm_sim = atmosphere.SingleLayerSimulation(
-                    self.array, self.pointing, self.site, **atm_kwargs
-                )
-            elif atm_model in ["linear_angular", "LA"]:
-                self.atm_sim = atmosphere.LinearAngularSimulation(
-                    self.array, self.pointing, self.site, **atm_kwargs
-                )
-            elif atm_model in ["kolmogorov_taylor", "KT"]:
-                self.atm_sim = atmosphere.KolmogorovTaylorSimulation(
-                    self.array, self.pointing, self.site, **atm_kwargs
-                )
+        self.weather = Weather(
+            t=self.pointing.time.mean(),
+            region=self.site.region,
+            altitude=self.site.altitude,
+            quantiles=self.site.weather_quantiles,
+            override=weather_override,
+        )
 
-            else:
-                raise ValueError()
+        if self.atmosphere_model:
+            self._initialize_atmosphere()
 
-            self.sub_sims.append(self.atm_sim)
-
-        if white_noise_model is not None:
-            noise_kwargs = self.parsed_kwargs["noise"]
-            if "white" in white_noise_model:
-                self.white_noise_sim = noise.WhiteNoiseSimulation(
-                    self.array, self.pointing, self.site, **noise_kwargs
-                )
-            else:
-                raise ValueError()
-
-            self.sub_sims.append(self.white_noise_sim)
-
-        if pink_noise_model is not None:
-            noise_kwargs = self.parsed_kwargs["noise"]
-            if "pink" in pink_noise_model:
-                self.pink_noise_sim = noise.PinkNoiseSimulation(
-                    self.array, self.pointing, self.site, **noise_kwargs
-                )
-            else:
-                raise ValueError()
-
-            self.sub_sims.append(self.pink_noise_sim)
-
-        if "map_file" in kwargs.keys():
-            map_kwargs = self.parsed_kwargs["map"]
-            self.map_sim = sky.MapSimulation(
-                self.array, self.pointing, self.site, **map_kwargs
-            )
-
-            self.sub_sims.append(self.map_sim)
+        if self.map_file:
+            self._initialize_map()
 
     def _run(self, units="K_RJ"):
         # number of bands are lost here
-        self.data = np.zeros((self.array.n_dets, self.pointing.n_time))
+        self._simulate_noise()
 
-        for sim in self.sub_sims:
-            sim.run()
-            self.data += sim.data
+        if self.atmosphere_model:
+            self._simulate_atmospheric_emission()
+
+        if self.map_file:
+            self._sample_maps()
+
+        if hasattr(self, "cmb_sim"):
+            self.cmb_sim._run()
+            self.data += self.cmb_sim.data

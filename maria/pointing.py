@@ -3,11 +3,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytz
 
 from . import utils
+from .coords import FRAMES
 
 here, this_filename = os.path.split(__file__)
 
@@ -27,41 +29,18 @@ class UnsupportedPointingError(Exception):
         )
 
 
-def get_pointing_config(pointing_name="default", **kwargs):
-    if pointing_name not in POINTING_CONFIGS.keys():
-        raise UnsupportedPointingError(pointing_name)
-    POINTING_CONFIG = POINTING_CONFIGS[pointing_name].copy()
+def get_pointing_config(scan_pattern="stare", **kwargs):
+    if scan_pattern not in POINTING_CONFIGS.keys():
+        raise UnsupportedPointingError(scan_pattern)
+    POINTING_CONFIG = POINTING_CONFIGS[scan_pattern].copy()
     for k, v in kwargs.items():
         POINTING_CONFIG[k] = v
     return POINTING_CONFIG
 
 
-def get_pointing(pointing_name="default", **kwargs):
-    return Pointing(**get_pointing_config(pointing_name, **kwargs))
-
-
-def get_offsets(scan_pattern, integration_time, sample_rate, **scan_options):
-    """
-    Returns x and y offsets
-    """
-
-    if scan_pattern == "stare":
-        return utils.pointing.get_stare_offsets(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    if scan_pattern == "daisy":
-        return utils.pointing.get_daisy_offsets_constant_speed(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    elif scan_pattern == "back_and_forth":
-        return utils.pointing.get_back_and_forth_offsets(
-            integration_time=integration_time, sample_rate=sample_rate, **scan_options
-        )
-
-    else:
-        raise ValueError(f"'{scan_pattern}' is not a valid scan pattern.")
+def get_pointing(scan_pattern="stare", **kwargs):
+    pointing_config = get_pointing_config(scan_pattern, **kwargs)
+    return Pointing(**pointing_config)
 
 
 @dataclass
@@ -70,12 +49,12 @@ class Pointing:
     A dataclass containing time-ordered pointing data.
     """
 
-    description: str = ""
+    pointing_description: str = ""
     start_time: float | str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
     sample_rate: float = 20.0
     pointing_frame: str = "ra_dec"
-    pointing_units: str = "degrees"
+    degrees: bool = True
     scan_center: Tuple[float, float] = (4, 10.5)
     scan_pattern: str = "daisy_miss_center"
     scan_options: dict = field(default_factory=dict)
@@ -122,33 +101,63 @@ class Pointing:
             **self.scan_options,
         )
 
-        if self.pointing_units == "degrees":
+        if self.degrees:
             self.scan_center_radians = (
                 np.radians(self.scan_center[0]),
                 np.radians(self.scan_center[1]),
             )
             x_scan_offsets_radians = np.radians(x_scan_offsets)
             y_scan_offsets_radians = np.radians(y_scan_offsets)
-        elif self.pointing_units == "radians":
+        else:
             self.scan_center_radians = self.scan_center
             x_scan_offsets_radians = x_scan_offsets
             y_scan_offsets_radians = y_scan_offsets
-        else:
-            raise ValueError('pointing units must be either "degrees" or "radians"')
 
-        theta, phi = utils.coords.xy_to_lonlat(
-            x_scan_offsets_radians, y_scan_offsets_radians, *self.scan_center_radians
+        self.scan_offsets_radians = np.c_[
+            x_scan_offsets_radians, y_scan_offsets_radians
+        ].T
+
+        self.phi, self.theta = utils.coords.dx_dy_to_phi_theta(
+            *self.scan_offsets_radians, *self.scan_center_radians
         )
-
         if self.pointing_frame == "ra_dec":
-            self.ra, self.dec = theta, phi
+            self.ra, self.dec = self.phi, self.theta
         elif self.pointing_frame == "az_el":
-            self.az, self.el = theta, phi
-        elif self.pointing_frame == "dx_dy":
-            self.dx, self.dy = theta, phi
+            self.az, self.el = self.phi, self.theta
         else:
             raise ValueError("Not a valid pointing frame!")
 
         self.utc_time = (
             datetime.fromtimestamp(self.time_min).astimezone(pytz.utc).ctime()
         )
+
+    def plot(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+
+        max_scan_offset = self.scan_offsets_radians.ptp(axis=1).max()
+
+        if max_scan_offset < np.radians(0.5 / 60):
+            dx, dy = 3600 * np.degrees(self.scan_offsets_radians)
+            units = "arcsec."
+        elif max_scan_offset < np.radians(0.5):
+            dx, dy = 60 * np.degrees(self.scan_offsets_radians)
+            units = "arcmin."
+        else:
+            dx, dy = np.degrees(self.scan_offsets_radians)
+            units = "deg."
+
+        center_phi, center_theta = self.scan_center
+
+        pointing_units = "deg." if self.degrees else "rad."
+
+        label = (
+            f'{FRAMES[self.pointing_frame]["phi_name"]} = {center_phi} {pointing_units}'
+            f'\n{FRAMES[self.pointing_frame]["theta_name"]} = {center_theta} {pointing_units}'
+        )
+
+        ax.plot(dx, dy, lw=5e-1)
+        ax.scatter(0, 0, c="r", marker="x", label=label)
+        ax.set_xlabel(rf"$\Delta \, \theta_x$ [{units}]")
+        ax.set_ylabel(rf"$\Delta \, \theta_y$ [{units}]")
+        ax.legend()
