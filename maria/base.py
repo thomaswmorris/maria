@@ -166,13 +166,12 @@ class BaseSimulation:
         tod.cntr = self.pointing.scan_center
         # tod.pntunit = self.pointing.pointing_units
 
-        if hasattr(self, "map_sim"):
-            if self.map_sim is not None:
-                tod.unit = self.map_sim.input_map.units
-                tod.header = self.map_sim.input_map.header
-            else:
-                tod.unit = "K"
-                tod.header = fits.header.Header()
+        if self.map_file:
+            tod.unit = self.input_map.units
+            tod.header = self.input_map.header
+        else:
+            tod.unit = "K"
+            tod.header = fits.header.Header()
 
         tod.meta = {
             "latitude": self.site.latitude,
