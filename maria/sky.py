@@ -1,13 +1,12 @@
 import os
-from dataclasses import dataclass
 
 import astropy as ap
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 from astropy.io import fits  # noqa F401
 
-from . import base, utils
+from . import utils
+from .map import Map
 
 here, this_filename = os.path.split(__file__)
 
@@ -17,134 +16,65 @@ for key, config in MAP_CONFIGS.items():
     MAP_PARAMS |= set(config.keys())
 
 
-@dataclass
-class Map:
-    data: np.array  # 3D array
-    freqs: np.array
-    res: float
-    inbright: float
-    center: tuple
-    header: ap.io.fits.header.Header = None
-    frame: str = "ra_dec"
-    units: str = "K"
-
-    @property
-    def n_freqs(self):
-        return len(self.freqs)
-
-    @property
-    def shape(self):
-        return self.data.shape[-2:]
-
-    @property
-    def n_x(self):
-        return self.shape[0]
-
-    @property
-    def n_y(self):
-        return self.shape[1]
-
-    @property
-    def x_side(self):
-        x = self.res * np.arange(self.n_x)
-        return x - x.mean()
-
-    @property
-    def y_side(self):
-        y = self.res * np.arange(self.n_y)
-        return y - y.mean()
-
-    # @property
-    # def x_side(self):
-    #     return self.x_side + self.center[0]
-
-    # @property
-    # def y_side(self):
-    #     return self.y_side + self.center[1]
-
-    @property
-    def X_Y(self):
-        return np.meshgrid(self.x_side, self.y_side)
-
-    # @property
-    # def rel_X_Y(self):
-    #     return np.meshgrid(self.x_side, self.y_side)
-
-    def plot(self):
-        fig, ax = plt.subplots(1, 1, figsize=(4, 4), dpi=128)
-        map_extent = np.degrees(
-            [self.x_side.min(), self.x_side.max(), self.y_side.min(), self.y_side.max()]
-        )
-        map_im = ax.imshow(self.data[0], extent=map_extent)
-        if self.frame == "ra_dec":
-            ax.set_xlabel("RA (deg.)")
-            ax.set_ylabel("dec. (deg.)")
-        clb = fig.colorbar(mappable=map_im, shrink=0.8, aspect=32)
-        clb.set_label(self.units)
-
-
 class InvalidNBandsError(Exception):
     def __init__(self, invalid_nbands):
         super().__init__(
-            f"Number of bands  '{invalid_nbands}' don't match the cube size."
+            f"Number of bands '{invalid_nbands}' don't match the cube size."
             f"The input fits file must be an image or a cube that match the number of bands"
         )
 
 
-class BaseSkySimulation(base.BaseSimulation):
+class MapMixin:
     """
     This simulates scanning over celestial sources.
+
+    TODO: add errors
     """
 
-    def __init__(self, array, pointing, site, **kwargs):
-        super().__init__(array, pointing, site, **kwargs)
+    def _initialize_map(self):
+        if not self.map_file:
+            return
 
-        AZIM, ELEV = utils.coords.xy_to_lonlat(
-            self.array.offset_x[:, None],
-            self.array.offset_y[:, None],
-            self.pointing.az,
-            self.pointing.el,
-        )
+        self.input_map_file = self.map_file
+        hudl = ap.io.fits.open(self.map_file)
 
-        self.RA, self.DEC = self.coordinator.transform(
-            self.pointing.time,
-            AZIM,
-            ELEV,
-            in_frame="az_el",
-            out_frame="ra_dec",
-        )
+        map_data = hudl[0].data
+        if map_data.ndim < 2:
+            raise ValueError()
+        elif map_data.ndim == 2:
+            map_data = map_data[None]
 
-        self.X, self.Y = utils.coords.lonlat_to_xy(
-            self.RA, self.DEC, self.RA.mean(), self.DEC.mean()
-        )
+        map_n_freqs, map_n_y, map_n_x = map_data.shape
 
+        if map_n_freqs != len(self.map_freqs):
+            raise ValueError()
 
-class MapSimulation(BaseSkySimulation):
-    """
-    This simulates scanning over celestial sources.
-    """
+        map_width = self.map_res * map_n_x
+        map_height = self.map_res * map_n_y
 
-    def __init__(self, array, pointing, site, map_file, **kwargs):
-        super().__init__(array, pointing, site, **kwargs)
+        self.raw_map_data = map_data.copy()
 
-        self.input_map_file = map_file
-        hudl = ap.io.fits.open(map_file)
+        res_degrees = self.map_res if self.degrees else np.degrees(self.map_res)
 
-        freqs = np.unique(self.array.dets.band_center)
+        if self.map_units == "Jy/pixel":
+            for i, nu in enumerate(self.map_freqs):
+                map_data[i] = map_data[i] / utils.units.KbrightToJyPix(
+                    1e9 * 90, res_degrees, res_degrees
+                )
+
+        self.map_data = map_data
 
         self.input_map = Map(
-            data=hudl[0].data[None],
+            data=map_data,
             header=hudl[0].header,
-            freqs=np.atleast_1d(kwargs.get("map_freqs", freqs)),
-            res=np.radians(kwargs.get("map_res", 1 / 1000)),
-            center=np.radians(kwargs.get("map_center", (10.5, 4))),
-            frame=kwargs.get("map_frame", "ra_dec"),
-            inbright=kwargs.get("map_inbright", None),
-            units=kwargs.get("map_units", "K"),
-        )
-
-        self.map_X, self.map_Y = utils.coords.lonlat_to_xy(
-            self.RA, self.DEC, *self.input_map.center
+            freqs=np.atleast_1d(self.map_freqs),
+            width=np.radians(map_width) if self.degrees else map_width,
+            height=np.radians(map_height) if self.degrees else map_height,
+            center=np.radians(self.map_center) if self.degrees else map_height,
+            degrees=False,
+            frame=self.pointing_frame,
+            inbright=self.map_inbright,
+            units=self.map_units,
         )
 
         self.input_map.header["HISTORY"] = "History_input_adjustments"
@@ -160,34 +90,38 @@ class MapSimulation(BaseSkySimulation):
             )
             self.input_map.header["comment"] = "Amplitude is rescaled."
 
-        if self.input_map.units == "Jy/pixel":
-            for i, nu in enumerate(self.input_map.freqs):
-                self.input_map.data[i] = self.input_map.data[
-                    i
-                ] / utils.units.KbrightToJyPix(
-                    1e9 * nu,
-                    np.rad2deg(self.input_map.res),
-                    np.rad2deg(self.input_map.res),
-                )
-
     def _run(self, **kwargs):
         self.sample_maps()
-        self.data = self.map_samples
 
-    def sample_maps(self):
-        self.map_samples = np.zeros((self.RA.shape))
+    def _sample_maps(self):
+        dx, dy = self.det_coords.offsets(
+            frame=self.map_frame, center=self.input_map.center
+        )
+
+        self.data["map"] = np.zeros((dx.shape))
 
         for i, nu in enumerate(self.input_map.freqs):
-            det_freq_response = self.array.passbands(nu=np.array([nu]))[:, 0]
+            band_res_radians = 1.22 * (2.998e8 / (1e9 * nu)) / 100
 
-            det_mask = det_freq_response > -1e-3
+            band_res_pixels = band_res_radians / self.input_map.res
+
+            FWHM_TO_SIGMA = 2 * np.log(np.sqrt(8))
+
+            badn_beam_sigma_pixels = band_res_pixels / FWHM_TO_SIGMA
+
+            band_map_data = sp.ndimage.gaussian_filter(
+                self.input_map.data[i], sigma=badn_beam_sigma_pixels
+            )
+
+            det_freq_response = self.array.passbands(nu=np.array([nu]))[:, 0]
+            det_mask = det_freq_response > -np.inf  # -1e-3
 
             samples = sp.interpolate.RegularGridInterpolator(
                 (self.input_map.x_side, self.input_map.x_side),
-                self.input_map.data[i],
+                band_map_data,
                 bounds_error=False,
                 fill_value=0,
                 method="linear",
-            )((self.map_X[det_mask], self.map_Y[det_mask]))
+            )((dx[det_mask], dy[det_mask]))
 
-            self.map_samples[det_mask] = samples
+            self.data["map"][det_mask] = samples

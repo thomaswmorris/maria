@@ -2,17 +2,17 @@ import numpy as np
 import scipy as sp
 
 from .. import utils
-from .base import BaseAtmosphericSimulation, extrude
+from ..coords import get_center_phi_theta
 
 MIN_SAMPLES_PER_RIBBON = 2
-RIBBON_SAMPLE_DECAY = 4
+RIBBON_SAMPLE_DECAY = 2
 JITTER_LEVEL = 1e-4
 
 matern_callback = utils.functions.approximate_normalized_matern
 # matern_callback = utils.functions.normalized_matern
 
 
-class SingleLayerSimulation(BaseAtmosphericSimulation):
+class TurbulentLayer:
     """
     The simplest possible atmospheric model.
     This model is only appropriate for single instruments, i.e. when the baseline is zero.
@@ -21,97 +21,113 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
     def __init__(
         self,
         array,
-        pointing,
-        site,
-        layer_height=1e3,
-        min_atmosphere_beam_res=4,
+        boresight,
+        weather,
+        depth=1e3,
+        min_atmosphere_beam_res: float = 4,
+        turbulent_outer_scale: float = 800,
         verbose=False,
         **kwargs,
     ):
-        super().__init__(array, pointing, site, verbose=verbose, **kwargs)
-
-        self.min_beam_res = min_atmosphere_beam_res
-        self.layer_height = layer_height
+        self.array = array
+        self.boresight = boresight
+        self.weather = weather
+        self.depth = depth
 
         # this is approximately correct
-        self.layer_depth = self.layer_height / np.sin(np.mean(self.pointing.el))
+        # self.depth = self.depth / np.sin(np.mean(self.pointing.el))
 
         # this might change
-        self.angular_outer_scale = 500 / self.layer_depth
+        self.angular_outer_scale = turbulent_outer_scale / self.depth
 
         # returns the beam fwhm for each detector at the layer distance
-        self.physical_beam_fwhm = self.array.physical_fwhm(self.layer_height)
-        self.angular_beam_fwhm = self.physical_beam_fwhm / self.layer_depth
+        self.physical_beam_fwhm = self.array.physical_fwhm(self.depth)
+        self.angular_beam_fwhm = self.physical_beam_fwhm / self.depth
 
-        self.angular_resolution = self.angular_beam_fwhm.min() / self.min_beam_res
+        self.angular_resolution = self.angular_beam_fwhm.min() / min_atmosphere_beam_res
         if verbose:
             print(f"{self.angular_resolution = }")
 
-        layer_altitude = self.site.altitude + self.layer_height
+        self.layer_altitude = self.weather.altitude + self.depth / np.sin(
+            self.boresight.el
+        )
 
         layer_wind_north = sp.interpolate.interp1d(
             self.weather.altitude_levels, self.weather.wind_north, axis=0
-        )(layer_altitude)
+        )(self.layer_altitude)
         layer_wind_east = sp.interpolate.interp1d(
             self.weather.altitude_levels, self.weather.wind_east, axis=0
-        )(layer_altitude)
+        )(self.layer_altitude)
 
         angular_velocity_x = (
-            +layer_wind_east * np.cos(self.pointing.az)
-            - layer_wind_north * np.sin(self.pointing.az)
-        ) / self.layer_depth
+            +layer_wind_east * np.cos(self.boresight.az)
+            - layer_wind_north * np.sin(self.boresight.az)
+        ) / self.depth
 
         angular_velocity_y = (
-            -layer_wind_east * np.sin(self.pointing.az)
-            + layer_wind_north * np.cos(self.pointing.az)
-        ) / self.layer_depth
+            -layer_wind_east * np.sin(self.boresight.az)
+            + layer_wind_north * np.cos(self.boresight.az)
+        ) / self.depth
 
         if verbose:
             print(f"{(layer_wind_east, layer_wind_north) = }")
 
         # compute the offset with respect to the center of the scan
-        center_az, center_el = utils.coords.get_center_lonlat(
-            self.pointing.az, self.pointing.el
+        center_az, center_el = get_center_phi_theta(
+            self.boresight.az, self.boresight.el
         )
-        self.pointing.dx, self.pointing.dy = utils.coords.lonlat_to_xy(
-            self.pointing.az, self.pointing.el, center_az, center_el
-        )
+        dx, dy = self.boresight.offsets(frame="az_el", center=(center_az, center_el))
 
         # the angular position of each detector over time WRT the atmosphere
         # this has dimensions (det index, time index)
         self.boresight_angular_position = np.c_[
-            self.pointing.dx
-            + np.cumsum(angular_velocity_x * self.pointing.dt, axis=-1),
-            self.pointing.dy
-            + np.cumsum(angular_velocity_y * self.pointing.dt, axis=-1),
+            dx
+            + np.cumsum(angular_velocity_x * np.gradient(self.boresight.time), axis=-1),
+            dy
+            + np.cumsum(angular_velocity_y * np.gradient(self.boresight.time), axis=-1),
         ]
 
         # find the detector offsets which form a convex hull
         self.detector_offsets = np.c_[self.array.offset_x, self.array.offset_y]
-        doch = sp.spatial.ConvexHull(self.detector_offsets)
 
-        # pad each vertex in the convex hull by an appropriate amount
-        unit_circle_angles = np.linspace(0, 2 * np.pi, 32 + 1)[:-1]
+        # add a small circle of offsets to account for pesky zeros
+        unit_circle_complex = np.exp(1j * np.linspace(0, 2 * np.pi, 64 + 1)[:-1])
         unit_circle_offsets = np.c_[
-            np.cos(unit_circle_angles), np.sin(unit_circle_angles)
+            np.real(unit_circle_complex), np.imag(unit_circle_complex)
         ]
-        angular_padding_per_detector = 1.1 * self.angular_beam_fwhm
-        padded_doch_offsets = (
-            angular_padding_per_detector[doch.vertices][:, None, None]
-            * unit_circle_offsets[None, :]
-            + self.detector_offsets[doch.vertices][:, None]
-        ).reshape(-1, 2)
 
-        # take the convex hull of those padded vertices
-        padded_doch = sp.spatial.ConvexHull(padded_doch_offsets)
-        detector_padding = padded_doch_offsets[padded_doch.vertices]
+        # this is a convex hull for the array if it's staring
+        stare_convex_hull = sp.spatial.ConvexHull(
+            (
+                self.detector_offsets[None, :, None]
+                + self.array.angular_fwhm(depth)[:, None, None]
+                * unit_circle_offsets[None]
+            ).reshape(-1, 2)
+        )
+        stare_convex_hull_points = stare_convex_hull.points.reshape(-1, 2)[
+            stare_convex_hull.vertices
+        ]
 
-        # add the padded hull to the moving boresight
-        atmosphere_offsets = (
-            detector_padding[:, None] + self.boresight_angular_position[None]
-        ).reshape(-1, 2)
-        atmosphere_hull = sp.spatial.ConvexHull(atmosphere_offsets)
-        self.atmosphere_hull_points = atmosphere_offsets[atmosphere_hull.vertices]
+        # convex hull downsample index, to get to 1 second
+        chds_index = [
+            *np.arange(
+                0,
+                len(self.boresight.time),
+                int(np.maximum(np.gradient(self.boresight.time).mean(), 1)),
+            ),
+            -1,
+        ]
+
+        # this is a convex hull for the atmosphere
+        atmosphere_hull = sp.spatial.ConvexHull(
+            (
+                stare_convex_hull_points[None, :, None]
+                + self.boresight_angular_position[None, chds_index]
+            ).reshape(-1, 2)
+        )
+        self.atmosphere_hull_points = atmosphere_hull.points.reshape(-1, 2)[
+            atmosphere_hull.vertices
+        ]
 
         # R takes us from the real (dx, dy) to a more compact (cross_section, extrusion) frame
         self.res = utils.linalg.optimize_area_minimizing_rotation_matrix(
@@ -213,14 +229,12 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             print(f"{self.n_live_edge = }")
             print(f"{self.n_sample = }")
 
-        outer_scale = 0.1
-
         # sample upper {i,j}
         i, j = np.triu_indices(self.n_sample, k=1)
         COV_S_S = np.eye(self.n_sample) + JITTER_LEVEL
         COV_S_S[i, j] = matern_callback(
             np.sqrt(np.square(sample_positions[j] - sample_positions[i]).sum(axis=1))
-            / outer_scale,
+            / self.angular_outer_scale,
             5 / 6,
             n_test_points=256,
         )
@@ -233,7 +247,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
                     axis=2
                 )
             )
-            / outer_scale,
+            / self.angular_outer_scale,
             5 / 6,
             n_test_points=256,
         )
@@ -245,7 +259,7 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             np.sqrt(
                 np.square(live_edge_positions[j] - live_edge_positions[i]).sum(axis=1)
             )
-            / outer_scale,
+            / self.angular_outer_scale,
             5 / 6,
             n_test_points=256,
         )
@@ -261,10 +275,14 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             (self.n_extrusion, self.n_cross_section), dtype=np.float32
         )
 
-    def simulate_normalized_effective_water_vapor(self):
+        self.atmosphere_detector_points = (
+            self.detector_offsets[:, None] + self.boresight_angular_position[None]
+        ) @ self.R.T
+
+    def generate(self):
         n_steps = self.n_extrusion
 
-        extruded_values = extrude(
+        extruded_values = utils.linalg.extrude(
             values=self.shaped_values.ravel(),
             A=self.A,
             B=self.B,
@@ -279,10 +297,8 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             self.n_extrusion, self.n_cross_section
         )
 
-        trans_detector_angular_positions = (
-            self.detector_offsets[:, None] + self.boresight_angular_position[None]
-        ) @ self.R.T
-        detector_values = np.zeros(trans_detector_angular_positions.shape[:-1])
+    def sample(self):
+        detector_values = np.zeros(self.atmosphere_detector_points.shape[:-1])
         for uband in self.array.ubands:
             band_mask = self.array.dets.band == uband
             band_angular_fwhm = self.angular_beam_fwhm[band_mask].mean()
@@ -292,16 +308,16 @@ class SingleLayerSimulation(BaseAtmosphericSimulation):
             FILTERED_VALUES = utils.beam.separably_filter(self.shaped_values, F)
             detector_values[band_mask] = sp.interpolate.RegularGridInterpolator(
                 (self.cross_section_side, self.extrusion_side), FILTERED_VALUES.T
-            )(trans_detector_angular_positions[band_mask])
+            )(self.atmosphere_detector_points[band_mask])
 
         return detector_values
 
-    def simulate_integrated_water_vapor(self):
-        detector_values = self.simulate_normalized_effective_water_vapor()
+    # def simulate_integrated_water_vapor(self):
+    #     detector_values = self.simulate_normalized_effective_water_vapor()
 
-        # this is "zenith-scaled"
-        self.line_of_sight_pwv = (
-            self.weather.pwv
-            * (1.0 + self.site.pwv_rms_frac * detector_values)
-            / np.sin(self.EL)
-        )
+    #     # this is "zenith-scaled"
+    #     self.line_of_sight_pwv = (
+    #         self.weather.pwv
+    #         * (1.0 + self.pwv_rms_frac * detector_values)
+    #         / np.sin(self.EL)
+    #     )

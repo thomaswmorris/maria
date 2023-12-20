@@ -6,12 +6,11 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits as pyfits
 
-from . import utils
-from .coordinator import Coordinator
-
 
 class TOD:
-    """ """
+    """
+    Time-ordered data.
+    """
 
     def __init__(self):
         pass
@@ -24,35 +23,23 @@ class TOD:
 
         return tod_subset
 
+    @property
+    def data(self):
+        """
+        Combine all the fields.
+        """
+        return sum(self._data.values())
+
     def to_fits(self, filename, array="MUSTANG-2"):
         """
         safe tod to fits
         """
 
         if array == "MUSTANG-2":
-            coordinator = Coordinator(
-                lat=self.meta["latitude"], lon=self.meta["longitude"]
-            )
-
-            self.AZ, self.EL = utils.coords.xy_to_lonlat(
-                self.dets.offset_x.values[:, None],
-                self.dets.offset_y.values[:, None],
-                self.az,
-                self.el,
-            )
-
-            self.RA, self.DEC = coordinator.transform(
-                self.time,
-                self.AZ,
-                self.EL,
-                in_frame="az_el",
-                out_frame="ra_dec",
-            )
-
             header = pyfits.header.Header()
 
-            header["AZIMUTH"] = (self.center_az_el[0], "radians")
-            header["ELEVATIO"] = (self.center_az_el[1], "radians")
+            header["AZIMUTH"] = (self.coords.center_az, "radians")
+            header["ELEVATION"] = (self.coords.center_el, "radians")
             header["BMAJ"] = (8.0, "arcsec")
             header["BMIN"] = (8.0, "arcsec")
             header["BPA"] = (0.0, "degrees")
@@ -62,10 +49,13 @@ class TOD:
             header["SITEELEV"] = (self.meta["altitude"], "Site elevation (meters)")
 
             col01 = pyfits.Column(
-                name="DX   ", format="E", array=self.RA.flatten(), unit="radians"
+                name="DX   ", format="E", array=self.coords.ra.flatten(), unit="radians"
             )
             col02 = pyfits.Column(
-                name="DY   ", format="E", array=self.DEC.flatten(), unit="radians"
+                name="DY   ",
+                format="E",
+                array=self.coords.dec.flatten(),
+                unit="radians",
             )
             col03 = pyfits.Column(
                 name="FNU  ", format="E", array=self.data.flatten(), unit="Kelvin"
@@ -74,7 +64,9 @@ class TOD:
             col05 = pyfits.Column(
                 name="TIME ",
                 format="E",
-                array=((self.time - self.time[0]) * np.ones_like(self.RA)).flatten(),
+                array=(
+                    (self.time - self.time[0]) * np.ones_like(self.coords.ra)
+                ).flatten(),
                 unit="s",
             )
             col06 = pyfits.Column(name="COL  ", format="I")
@@ -83,12 +75,12 @@ class TOD:
                 name="PIXID",
                 format="I",
                 array=(
-                    np.arange(len(self.RA), dtype=np.int16).reshape(-1, 1)
-                    * np.ones_like(self.RA)
+                    np.arange(len(self.coords.ra), dtype=np.int16).reshape(-1, 1)
+                    * np.ones_like(self.coords.ra)
                 ).flatten(),
             )
             col09 = pyfits.Column(
-                name="SCAN ", format="I", array=np.zeros_like(self.RA).flatten()
+                name="SCAN ", format="I", array=np.zeros_like(self.coords.ra).flatten()
             )
             col10 = pyfits.Column(name="ELEV ", format="E")
 
@@ -116,10 +108,10 @@ class TOD:
             self.unit = "K"
             self.pntunit = "radians"
 
-            self.RA = np.reshape(raw["DX"], [ndet, nsamp])
-            self.DEC = np.reshape(raw["DY"], [ndet, nsamp])
-            self.ra = np.mean(self.RA, axis=0)
-            self.dec = np.mean(self.DEC, axis=0)
+            self.coords.ra = np.reshape(raw["DX"], [ndet, nsamp])
+            self.coords.dec = np.reshape(raw["DY"], [ndet, nsamp])
+            self.ra = np.mean(self.coords.ra, axis=0)
+            self.dec = np.mean(self.coords.dec, axis=0)
 
             self.time = np.reshape(raw["TIME"], [ndet, nsamp])
             self.time = np.mean(self.time, axis=0)
@@ -139,21 +131,10 @@ class TOD:
         with h5py.File(filename, "w") as f:
             f.create_dataset("")
 
-    def plot(self):
-        pass
-
-    @property
-    def center_ra_dec(self):
-        return utils.coords.get_center_lonlat(self.ra, self.dec)
-
-    @property
-    def center_az_el(self):
-        return utils.coords.get_center_lonlat(self.az, self.el)
-
 
 class KeyNotFoundError(Exception):
     def __init__(self, invalid_keys):
-        super().__init__(f"The key '{invalid_keys}' is not in the database. ")
+        super().__init__(f'The key "{invalid_keys}" is not in the database. ')
 
 
 def check_nested_keys(keys_found, data, keys):
