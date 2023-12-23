@@ -12,17 +12,6 @@ np.seterr(invalid="ignore")
 
 here, this_filename = os.path.split(__file__)
 
-MAPPER_CONFIGS = utils.io.read_yaml(f"{here}/../configs/mappers.yml")
-MAPPERS = list((MAPPER_CONFIGS.keys()))
-
-
-class InvalidMapperError(Exception):
-    def __init__(self, invalid_mapper):
-        print(
-            f"The mapper '{invalid_mapper}' is not in the database of default mappers."
-            f"Default mappers are: {MAPPERS}"
-        )
-
 
 class BaseMapper:
     """

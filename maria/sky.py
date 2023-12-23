@@ -10,11 +10,6 @@ from .map import Map
 
 here, this_filename = os.path.split(__file__)
 
-MAP_CONFIGS = utils.io.read_yaml(f"{here}/configs/sky.yml")
-MAP_PARAMS = set()
-for key, config in MAP_CONFIGS.items():
-    MAP_PARAMS |= set(config.keys())
-
 
 class InvalidNBandsError(Exception):
     def __init__(self, invalid_nbands):
@@ -59,7 +54,7 @@ class MapMixin:
         if self.map_units == "Jy/pixel":
             for i, nu in enumerate(self.map_freqs):
                 map_data[i] = map_data[i] / utils.units.KbrightToJyPix(
-                    1e9 * 90, res_degrees, res_degrees
+                    1e9 * nu, res_degrees, res_degrees
                 )
 
         self.map_data = map_data

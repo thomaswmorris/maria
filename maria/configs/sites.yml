@@ -1,4 +1,4 @@
-default:
+hoagie_haven:
   site_description: A dummy site, with great hoagies.
   region: princeton
   latitude: 40.352187
@@ -6,15 +6,15 @@ default:
   altitude: 62
   site_documentation: http://hoagiehaven.com/
 
-AliCPT:
-  site_description: Ali CMB Polarization Telescope
-  region: ngari
-  latitude: -32.326
-  longitude: 80.026
-  altitude: 5050
-  site_documentation: https://www.nist.gov/measuring-cosmos/ali-cmb-polarization-telescope-alicpt
+amundsen_scott:
+  site_description: Amundsen–Scott South Pole Station
+  region: south_pole
+  latitude: 0.000
+  longitude: -90.000
+  altitude: 2835
+  site_documentation: https://www.nsf.gov/geo/opp/support/southp.jsp
 
-ALMA:
+llano_de_chajnantor:
   site_description: Atacama Large Millimeter Array
   region: chajnantor
   latitude: -23.0294
@@ -22,29 +22,45 @@ ALMA:
   altitude: 5064
   site_documentation: https://www.almaobservatory.org/en/home/
 
-APEX:
-  site_description: Atacama Pathfinder Experiment
-  region: chajnantor
-  latitude: -23.0058
-  longitude: -67.7592
-  altitude: 5064
-  site_documentation: https://www.eso.org/public/teles-instr/apex/
-
-ACT:
-  site_description: Atacama Cosmology Telescope
+cerro_toco:
+  site_description: Cerro Toco
   region: chajnantor
   latitude: -22.9586
   longitude: -67.7878
   altitude: 5190
   site_documentation: https://act.princeton.edu/
 
-GBT:
-  site_description: Green Bank Telescope
+cerro_chajnantor:
+  site_description: Cerro Chajnantor
+  region: chajnantor
+  latitude: -22.9862
+  longitude: -67.7422
+  altitude: 5600
+  site_documentation: https://act.princeton.edu/
+
+green_bank:
+  site_description: Green Bank Observatory
   region: green_bank
   latitude: 38.4331
   longitude: -79.8398
   altitude: 825
-  site_documentation: https://greenbankobservatory.org/science/telescopes/gbt/
+  site_documentation: https://greenbankobservatory.org
+
+mauna_kea:
+  site_description: Mauna Kea Observatory
+  region: mauna_kea
+  latitude: 19.8228
+  longitude: -155.4770
+  altitude: 4092
+  site_documentation: https://www.maunakeaobservatories.org/
+
+teide:
+  site_description: Teide Observatory
+  region: teide
+  latitude: 28.3,
+  longitude: -16.5097
+  altitude: 2390
+  site_documentation: https://www.iac.es/en/observatorios-de-canarias/teide-observatory
 
 IRAM:
   site_description: IRAM 30m telescope
@@ -86,13 +102,7 @@ QUIJOTE:
   altitude: 2390
   site_documentation: https://research.iac.es/proyecto/quijote/pages/en/telescopes.php
 
-SPT:
-  site_description: South Pole Telescope
-  region: south_pole
-  latitude: 0.
-  longitude: -90.
-  altitude: 2800
-  site_documentation: https://astro.uchicago.edu/research/spt.php
+
 
 SRT:
   site_description: Sardinia Radio Telescope
