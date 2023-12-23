@@ -5,26 +5,11 @@ import time as ttime
 import h5py
 import numpy as np
 import scipy as sp
-
-# from .kolmogorov_taylor import KolmogorovTaylorSimulation
 from tqdm import tqdm
 
 from .. import utils
 from ..base import BaseSimulation
 from .turbulent_layer import TurbulentLayer  # noqa F401
-
-# how do we do the bands? this is a great question.
-# because all practical telescope instrumentation assume a constant band
-
-
-ATMOSPHERE_PARAMS = {
-    "min_depth": 500,
-    "max_depth": 3000,
-    "n_layers": 4,
-    "min_beam_res": 4,
-    "turbulent_outer_scale": 500,
-}
-
 
 here, this_filename = os.path.split(__file__)
 
@@ -67,12 +52,15 @@ class AtmosphereMixin:
         )
 
         if self.atmosphere_model == "2d":
-            self.n_layers = 6
+            n_atmosphere_layers = self.atmosphere_model_options.get("n_layers", 4)
+            layer_depths = np.linspace(
+                self.min_atmosphere_height,
+                self.max_atmosphere_height,
+                n_atmosphere_layers,
+            )
+            self.turbulent_layers = []
 
-            self.layer_depths = np.linspace(500, 3000, self.n_layers)
-            self.layers = []
-
-            for layer_index, layer_depth in enumerate(self.layer_depths):
+            for layer_index, layer_depth in enumerate(layer_depths):
                 layer = TurbulentLayer(
                     array=self.array,
                     boresight=self.boresight,
@@ -80,7 +68,7 @@ class AtmosphereMixin:
                     weather=self.weather,
                 )
 
-                self.layers.append(layer)
+                self.turbulent_layers.append(layer)
 
         if self.atmosphere_model == "3d":
             self.initialize_3d_atmosphere()
@@ -97,9 +85,11 @@ class AtmosphereMixin:
         Simulate layers of two-dimensional turbulence.
         """
 
-        layer_data = np.zeros((self.n_layers, self.array.n_dets, self.pointing.n_time))
+        layer_data = np.zeros(
+            (self.n_atmopshere_layers, self.array.n_dets, self.pointing.n_time)
+        )
 
-        for layer_index, layer in enumerate(self.layers):
+        for layer_index, layer in enumerate(self.turbulent_layers):
             layer.generate()
             layer_data[layer_index] = layer.sample()
 
