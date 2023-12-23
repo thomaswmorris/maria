@@ -58,7 +58,6 @@ map:
   map_file: ''
   map_frame: ra_dec
   map_center: [10, 4.5]
-  map_freq: 93
   map_res: 0.5
   map_inbright:
   map_units: K_RJ
