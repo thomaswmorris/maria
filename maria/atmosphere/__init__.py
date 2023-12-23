@@ -69,6 +69,7 @@ class AtmosphereMixin:
         if self.atmosphere_model == "2d":
             self.n_layers = 6
 
+            # hard coded!
             self.layer_depths = np.linspace(500, 3000, self.n_layers)
             self.layers = []
 
