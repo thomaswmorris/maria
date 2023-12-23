@@ -58,7 +58,6 @@ class MapMixin:
 
         if self.map_units == "Jy/pixel":
             for i, nu in enumerate(self.map_freqs):
-                print("nu,", nu)
                 map_data[i] = map_data[i] / utils.units.KbrightToJyPix(
                     1e9 * nu, res_degrees, res_degrees
                 )
@@ -103,14 +102,9 @@ class MapMixin:
 
         for i, nu in enumerate(self.input_map.freqs):
             band_res_radians = 1.22 * (299792458 / (1e9 * nu)) / self.array.primary_size
-
-            print(band_res_radians * 180 / np.pi * 3600)
             band_res_pixels = band_res_radians / self.input_map.res
-
             FWHM_TO_SIGMA = 2.355
-            print(FWHM_TO_SIGMA)
             band_beam_sigma_pixels = band_res_pixels / FWHM_TO_SIGMA
-            print(band_beam_sigma_pixels, self.input_map.res * 180 / np.pi * 3600)
 
             band_map_data = sp.ndimage.gaussian_filter(
                 self.input_map.data[i],

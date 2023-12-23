@@ -15,29 +15,49 @@ def test_sim():
 def test_sim_with_params():
     map_size = 0.1
 
+    pointing_center = (73.5287496858916, 2.961663679507145)
+    pixel_size = 8.71452898559111e-05
+    integration_time = 1 * 60.0
+    sample_rate = 100
+    scan_velocity = 38 / 3600
+
+    inputfile = "../../../maps/cluster.fits"
+    outfile_tbl = "/tmp/Cluster_45min_noisy_table.fits"
+    outfile_map = "/tmp/Cluster_45min_noisy_map.fits"
+
+    atm_model = "2d"
+    white_noise_level = 1.3e-2
+    pink_noise_level = 2.4
+
     sim = Simulation(
         # Mandatory minimal weither settings
         # ---------------------
         array="MUSTANG-2",  # Array type
         pointing="daisy",  # Scanning strategy
         site="GBT",  # Site
-        atmosphere_model="2d",  # The atmospheric model, set to None if you want a noiseless observation.
+        atmosphere_model=atm_model,  # atmospheric model
+        white_noise_level=white_noise_level,  # white noise level
+        pink_noise_level=pink_noise_level,  # pink noise level
         # True sky input
         # ---------------------
-        map_file="maps/cluster.fits",  # Input files must be a fits file.
-        # map_file can also be set to None if are only interested in the noise
-        map_center=(150.0, 10),  # RA & Dec in degree
-        map_res=0.1 / 1000,  # degree, overwrites header information
-        # Defeault Observational setup
-        # ----------------------------
-        integration_time=600,  # seconds
-        scan_center=(150.0, 10),  # degrees
-        pointing_frame="ra_dec",  # frame
-        scan_options={"radius": 0.05, "speed": 0.05, "petals": 5},
-        # Additional inputs:
-        # ----------------------
-        map_units="Jy/pixel",  # Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel
-        # map_inbright = -6e-6,                        # Linearly scale the map to have this peak value.
+        map_file=inputfile,  # Input files must be a fits file.
+        map_units="Jy/pixel",  # Units of the input map in Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel
+        map_res=pixel_size,  # resolution of the map
+        map_center=pointing_center,  # RA & Dec in degree
+        map_freqs=[93],
+        detector_config={"f093": {"n": 217, "band_center": 93, "band_width": 10}},
+        # MUSTANG-2 Observational setup
+        # ----------------------------s
+        scan_options={
+            "radius": 4.0 / 60.0,  # The radius of the Daisy scan in degrees
+            "speed": scan_velocity,  # scan velocity in when the scan goes through the center deg/s
+        },
+        integration_time=integration_time,  # Seconds
+        sample_rate=sample_rate,  # Hz
+        scan_center=pointing_center,  # Degrees
+        pointing_frame="ra_dec",  # Frame
+        start_time="2022-02-11T23:00:00",  # observation date
+        pwv_rms_frac=0.005,  # level of atmopsheric fluctuations
     )
 
     tod = sim.run()
@@ -45,12 +65,15 @@ def test_sim_with_params():
     mapper = BinMapper(
         center=(tod.boresight.center_ra, tod.boresight.center_dec),
         frame="ra_dec",
-        width=map_size,
-        height=map_size,
-        res=map_size / 64,
+        width=np.radians(10.0 / 60.0),
+        height=np.radians(10.0 / 60.0),
+        res=np.radians(2.0 / 3600.0),
+        degrees=False,
         filter_data=True,
         n_modes_to_remove=1,
     )
 
     mapper.add_tods(tod)
     mapper.run()
+
+    mapper.save_maps(outfile_map)
