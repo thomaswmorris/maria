@@ -88,14 +88,14 @@ class BaseMapper:
         self.header["comment"] = "Made Synthetic observations via maria code"
         self.header["comment"] = "Overwrote resolution and size of the output map"
 
-        self.header["CDELT1"] = np.rad2deg(self.map_res)
-        self.header["CDELT2"] = np.rad2deg(self.map_res)
+        self.header["CDELT1"] = np.rad2deg(self.res)
+        self.header["CDELT2"] = np.rad2deg(self.res)
 
-        self.header["CRPIX1"] = self.maps[list(self.maps.keys())[0]].shape[0] / 2
-        self.header["CRPIX2"] = self.maps[list(self.maps.keys())[0]].shape[1] / 2
+        self.header["CRPIX1"] = self.n_x / 2
+        self.header["CRPIX2"] = self.n_y / 2
 
-        self.header["CRVAL1"] = np.rad2deg(self.tods[0].cntr[0])
-        self.header["CRVAL2"] = np.rad2deg(self.tods[0].cntr[1])
+        self.header["CRVAL1"] = np.rad2deg(self.center[0])
+        self.header["CRVAL2"] = np.rad2deg(self.center[1])
 
         self.header["CTYPE1"] = "RA---SIN"
         self.header["CTYPE2"] = "DEC--SIN"
@@ -114,21 +114,18 @@ class BaseMapper:
         else:
             self.header["BUNIT"] = "Kelvin RJ"
 
-        save_maps = np.zeros(
-            (
-                len(self.maps.keys()),
-                self.maps[list(self.maps.keys())[0]].shape[0],
-                self.maps[list(self.maps.keys())[0]].shape[1],
-            )
-        )
-        for i, key in enumerate(self.maps.keys()):
+        save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
+
+        for i, key in enumerate(self.band_data.keys()):
             # what is this? --> Frequency information in the header
-            self.header["CRVAL3"] = self.nom_freqs[key] * 1e9
-            self.header["CDELT3"] = self.nom_freqwidth[key] * 1e9
+            self.header["CRVAL3"] = self.band_data[key]["nom_freq"] * 1e9
+            self.header["CDELT3"] = self.band_data[key]["nom_freqwidth"] * 1e9
 
             # save_maps[i] = self.maps[list(self.maps.keys())[i]]
-            sigma_smooth = self.map_smt / 3600 / np.rad2deg(self.map_res) / 2.355
-            save_maps[i] = self.smoothed_maps(sigma_smooth)[list(self.maps.keys())[i]]
+            sigma_smooth = self.smoothing / 3600 / np.rad2deg(self.res) / 2.355
+            save_maps[i] = self.smoothed_maps(sigma_smooth)[
+                list(self.band_data.keys())[i]
+            ]
 
             if self.tods[0].unit == "Jy/pixel":
                 save_maps[i] *= utils.units.KbrightToJyPix(
@@ -200,7 +197,6 @@ class BinMapper(BaseMapper):
 
         self.band_data = {}
 
-        # self.nom_freqwidth = []
         self.map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
         self.map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
 
@@ -252,7 +248,10 @@ class BinMapper(BaseMapper):
             self.band_data[band]["nom_freq"] = tod.dets.loc[
                 band_mask, "band_center"
             ].mean()
-            # self.nom_freqwidth[band] = tod.dets.loc["band_width.mean()
+
+            self.band_data[band]["nom_freqwidth"] = tod.dets.loc[
+                band_mask, "band_width"
+            ].mean()
 
             mask = self.map_cnts[band] > 0
             self.map_data[iband] = np.where(

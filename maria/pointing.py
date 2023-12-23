@@ -50,7 +50,7 @@ class Pointing:
     """
 
     pointing_description: str = ""
-    start_time: float | str = "2022-02-10T06:00:00"
+    start_time: str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
     sample_rate: float = 20.0
     pointing_frame: str = "ra_dec"
