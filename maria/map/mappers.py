@@ -41,6 +41,7 @@ class BaseMapper:
         filter_tods: bool = True,
         smoothing: float = 8,
         degrees: bool = True,
+        ffilter: float = 0.08,
         **kwargs,
     ):
         self.res = np.radians(res) if degrees else res
@@ -51,6 +52,7 @@ class BaseMapper:
         self.frame = frame
         self.filter_tods = filter_tods
         self.smoothing = smoothing
+        self.ffilter = ffilter
 
         self.n_x = int(np.maximum(1, self.width / self.res))
         self.n_y = int(np.maximum(1, self.height / self.res))
@@ -132,7 +134,6 @@ class BaseMapper:
             self.header["CRVAL3"] = self.band_data[key]["nom_freq"] * 1e9
             self.header["CDELT3"] = self.band_data[key]["nom_freqwidth"] * 1e9
 
-            # save_maps[i] = self.maps[list(self.maps.keys())[i]]
             sigma_smooth = self.smoothing / 3600 / np.rad2deg(self.res) / 2.355
             save_maps[i] = self.smoothed_maps(sigma_smooth)[
                 list(self.band_data.keys())[i]
@@ -158,7 +159,7 @@ class BinMapper(BaseMapper):
         self._nmtr = kwargs.get("n_modes_to_remove", 0)
 
     def _fourier_filter(self, tod_dat, tod_time):
-        ffilt = [0.08, 51.0]  # high-pass and low-pass filters, in Hz
+        ffilt = [self.ffilter, 51.0]  # high-pass and low-pass filters, in Hz
         width = 0.05
 
         n = len(tod_time)
