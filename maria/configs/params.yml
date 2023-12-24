@@ -4,7 +4,7 @@
 array: # defaults to a small test array
   array_description:
   detector_config:
-    f093:
+    f090:
       n: 60
       band_center: 90
       band_width: 10
@@ -50,6 +50,7 @@ atmosphere:
   min_atmosphere_beam_res: 4
   min_atmosphere_height: 500
   max_atmosphere_height: 5000
+  n_atmosphere_layers: 4
   turbulent_outer_scale: 800
   pwv_rms_frac: 0.03
   pwv:

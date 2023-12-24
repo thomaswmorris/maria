@@ -1,18 +1,16 @@
+import os
+
 import numpy as np
 import pytest
 
 from maria import Simulation
 from maria.map.mappers import BinMapper
 
-
-@pytest.mark.mock_obs
-def test_sim():
-    sim = Simulation(array="MUSTANG-2", pointing="daisy", site="GBT")
-    tod = sim.run()
+here, this_filename = os.path.split(__file__)
 
 
 @pytest.mark.mock_obs
-def test_sim_with_params():
+def test_mustang2():
     map_size = 0.1
 
     pointing_center = (73.5287496858916, 2.961663679507145)
@@ -21,7 +19,7 @@ def test_sim_with_params():
     sample_rate = 100
     scan_velocity = 38 / 3600
 
-    inputfile = "../../../maps/cluster.fits"
+    inputfile = f"{here}/../map/examples/cluster.fits"
     outfile_tbl = "/tmp/Cluster_45min_noisy_table.fits"
     outfile_map = "/tmp/Cluster_45min_noisy_map.fits"
 
@@ -34,7 +32,7 @@ def test_sim_with_params():
         # ---------------------
         array="MUSTANG-2",  # Array type
         pointing="daisy",  # Scanning strategy
-        site="GBT",  # Site
+        site="green_bank",  # Site
         atmosphere_model=atm_model,  # atmospheric model
         white_noise_level=white_noise_level,  # white noise level
         pink_noise_level=pink_noise_level,  # pink noise level
@@ -57,7 +55,7 @@ def test_sim_with_params():
         scan_center=pointing_center,  # Degrees
         pointing_frame="ra_dec",  # Frame
         start_time="2022-02-11T23:00:00",  # observation date
-        pwv_rms_frac=0.005,  # level of atmopsheric fluctuations
+        pwv_rms_frac=0.005,  # level of atmospheric fluctuations
     )
 
     tod = sim.run()

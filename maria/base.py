@@ -1,7 +1,5 @@
 import os
 
-from astropy.io import fits
-
 from . import utils
 from .array import Array, get_array
 from .coords import Coordinates, dx_dy_to_phi_theta
@@ -103,80 +101,17 @@ class BaseSimulation:
             frame="az_el",
         )
 
-        # self.coordinator = Coordinator(lat=self.site.latitude, lon=self.site.longitude)
-
-        # if self.pointing.pointing_frame == "az_el":
-        #     self.pointing.ra, self.pointing.dec = self.coordinator.transform(
-        #         self.pointing.time,
-        #         self.boresight.az,
-        #         self.boresight.el,
-        #         in_frame="az_el",
-        #         out_frame="ra_dec",
-        #     )
-
-        # if self.pointing.pointing_frame == "ra_dec":
-        #     self.boresight.az, self.boresight.el = self.coordinator.transform(
-        #         self.pointing.time,
-        #         self.pointing.ra,
-        #         self.pointing.dec,
-        #         in_frame="ra_dec",
-        #         out_frame="az_el",
-        #     )
-
-    # @property
-    # def params(self):
-    #     _params = {"array": {}, "pointing": {}, "site": {}}
-    #     for key in all_array_params:
-    #         _params["array"][key] = getattr(self.array, key)
-    #     for key in POINTING_PARAMS:
-    #         _params["pointing"][key] = getattr(self.pointing, key)
-    #     for key in SITE_PARAMS:
-    #         _params["site"][key] = getattr(self.site, key)
-    #     return _params
-
     def _run(self):
         raise NotImplementedError()
 
     def run(self):
         self._run()
 
-        tod = TOD()
-
-        tod._data = self.data
-
-        det_az, det_el = dx_dy_to_phi_theta(
-            self.array.dets.offset_x.values[:, None],
-            self.array.dets.offset_y.values[:, None],
-            self.boresight.az,
-            self.boresight.el,
+        tod = TOD(
+            data=self.data,
+            dets=self.array.dets,
+            boresight=self.boresight,
+            coords=self.det_coords,
         )
-
-        tod.coords = Coordinates(
-            time=self.boresight.time,
-            phi=det_az,
-            theta=det_el,
-            frame="az_el",
-            location=self.site.earth_location,
-        )
-
-        tod.boresight = self.boresight
-        tod.dets = self.array.dets
-
-        tod.time = self.boresight.time
-        tod.cntr = self.pointing.scan_center
-        # tod.pntunit = self.pointing.pointing_units
-
-        if self.map_file:
-            tod.unit = self.input_map.units
-            tod.header = self.input_map.header
-        else:
-            tod.unit = "K"
-            tod.header = fits.header.Header()
-
-        tod.meta = {
-            "latitude": self.site.latitude,
-            "longitude": self.site.longitude,
-            "altitude": self.site.altitude,
-        }
 
         return tod

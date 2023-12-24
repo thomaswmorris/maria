@@ -53,14 +53,14 @@ class AtmosphereMixin:
 
         if self.atmosphere_model == "2d":
             n_atmosphere_layers = self.atmosphere_model_options.get("n_layers", 4)
-            layer_depths = np.linspace(
+            self.turbulent_layer_depths = np.linspace(
                 self.min_atmosphere_height,
                 self.max_atmosphere_height,
                 n_atmosphere_layers,
             )
             self.turbulent_layers = []
 
-            for layer_index, layer_depth in enumerate(layer_depths):
+            for layer_index, layer_depth in enumerate(self.turbulent_layer_depths):
                 layer = TurbulentLayer(
                     array=self.array,
                     boresight=self.boresight,
@@ -86,7 +86,7 @@ class AtmosphereMixin:
         """
 
         layer_data = np.zeros(
-            (self.n_atmopshere_layers, self.array.n_dets, self.pointing.n_time)
+            (self.n_atmosphere_layers, self.array.n_dets, self.pointing.n_time)
         )
 
         for layer_index, layer in enumerate(self.turbulent_layers):
@@ -103,7 +103,8 @@ class AtmosphereMixin:
         turbulence = self._simulate_2d_turbulence()
 
         rel_layer_scaling = np.interp(
-            self.site.altitude + self.layer_depths[:, None, None] * np.sin(self.EL),
+            self.site.altitude
+            + self.turbulent_layer_depths[:, None, None] * np.sin(self.EL),
             self.weather.altitude_levels,
             self.weather.absolute_humidity,
         )

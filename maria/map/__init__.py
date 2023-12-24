@@ -32,9 +32,6 @@ class Map:
 
         assert self.data is not None
 
-        # self.res = np.radians(self.res) if self.degrees else self.res
-        # self.center = np.radians(self.center) if self.degrees else self.center
-
         self.width = self.res * self.n_x
         self.height = self.res * self.n_y
 
