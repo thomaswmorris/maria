@@ -4,7 +4,9 @@ import json
 import h5py
 import numpy as np
 import pandas as pd
-from astropy.io import fits as pyfits
+from astropy.io import fits as fits
+
+from .coords import Coordinates
 
 
 class TOD:
@@ -12,8 +14,20 @@ class TOD:
     Time-ordered data.
     """
 
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        boresight: Coordinates,
+        coords: Coordinates,
+        dets: pd.DataFrame,
+        data: dict = {},
+    ):
+        self.boresight = boresight
+        self.coords = coords
+        self.dets = dets
+        self._data = data
+        self.header = fits.header.Header()
+
+        self.units = "K"
 
     def subset(self, mask):
         tod_subset = copy.deepcopy(self)
@@ -24,11 +38,18 @@ class TOD:
         return tod_subset
 
     @property
+    def time(self):
+        return self.boresight.time
+
+    @property
     def data(self):
         """
         Combine all the fields.
         """
         return sum(self._data.values())
+
+    def to_h5(self, output_filename):
+        ...
 
     def to_fits(self, filename, array="MUSTANG-2"):
         """
@@ -36,7 +57,7 @@ class TOD:
         """
 
         if array == "MUSTANG-2":
-            header = pyfits.header.Header()
+            header = fits.header.Header()
 
             header["AZIMUTH"] = (self.coords.center_az, "radians")
             header["ELEVATION"] = (self.coords.center_el, "radians")
@@ -48,20 +69,20 @@ class TOD:
             header["SITELONG"] = (self.meta["longitude"], "Site Longitude")
             header["SITEELEV"] = (self.meta["altitude"], "Site elevation (meters)")
 
-            col01 = pyfits.Column(
+            col01 = fits.Column(
                 name="DX   ", format="E", array=self.coords.ra.flatten(), unit="radians"
             )
-            col02 = pyfits.Column(
+            col02 = fits.Column(
                 name="DY   ",
                 format="E",
                 array=self.coords.dec.flatten(),
                 unit="radians",
             )
-            col03 = pyfits.Column(
+            col03 = fits.Column(
                 name="FNU  ", format="E", array=self.data.flatten(), unit="Kelvin"
             )
-            col04 = pyfits.Column(name="UFNU ", format="E")
-            col05 = pyfits.Column(
+            col04 = fits.Column(name="UFNU ", format="E")
+            col05 = fits.Column(
                 name="TIME ",
                 format="E",
                 array=(
@@ -69,9 +90,9 @@ class TOD:
                 ).flatten(),
                 unit="s",
             )
-            col06 = pyfits.Column(name="COL  ", format="I")
-            col07 = pyfits.Column(name="ROW  ", format="I")
-            col08 = pyfits.Column(
+            col06 = fits.Column(name="COL  ", format="I")
+            col07 = fits.Column(name="ROW  ", format="I")
+            col08 = fits.Column(
                 name="PIXID",
                 format="I",
                 array=(
@@ -79,12 +100,12 @@ class TOD:
                     * np.ones_like(self.coords.ra)
                 ).flatten(),
             )
-            col09 = pyfits.Column(
+            col09 = fits.Column(
                 name="SCAN ", format="I", array=np.zeros_like(self.coords.ra).flatten()
             )
-            col10 = pyfits.Column(name="ELEV ", format="E")
+            col10 = fits.Column(name="ELEV ", format="E")
 
-            hdu = pyfits.BinTableHDU.from_columns(
+            hdu = fits.BinTableHDU.from_columns(
                 [col01, col02, col03, col04, col05, col06, col07, col08, col09, col10],
                 header=header,
             )
@@ -96,7 +117,7 @@ class TOD:
         read tod from fits
         """
         if array == "MUSTANG-2":
-            f = pyfits.open(filename)
+            f = fits.open(filename)
             raw = f[hdu].data
 
             pixid = raw["PIXID"]
@@ -104,9 +125,9 @@ class TOD:
             ndet = len(dets)
             nsamp = len(pixid) // len(dets)
 
-            self.header = pyfits.header.Header()
-            self.unit = "K"
-            self.pntunit = "radians"
+            self.header = fits.header.Header()
+            # self.unit = "K"
+            # self.pntunit = "radians"
 
             self.coords.ra = np.reshape(raw["DX"], [ndet, nsamp])
             self.coords.dec = np.reshape(raw["DY"], [ndet, nsamp])

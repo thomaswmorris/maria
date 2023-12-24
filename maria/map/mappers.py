@@ -5,7 +5,6 @@ import numpy as np
 import scipy as sp
 from astropy.io import fits
 
-from .. import utils
 from . import Map
 
 np.seterr(invalid="ignore")
@@ -109,10 +108,11 @@ class BaseMapper:
         self.header["comment"] = "Overwrote spectral position of the output map"
 
         self.header["BTYPE"] = "Intensity"
-        if self.tods[0].unit == "Jy/pixel":
-            self.header["BUNIT"] = "Jy/pixel "
-        else:
-            self.header["BUNIT"] = "Kelvin RJ"
+
+        # if self.tods[0].unit == "Jy/pixel":
+        #     self.header["BUNIT"] = "Jy/pixel "
+        # else:
+        self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
 
         save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
 
@@ -127,10 +127,10 @@ class BaseMapper:
                 list(self.band_data.keys())[i]
             ]
 
-            if self.tods[0].unit == "Jy/pixel":
-                save_maps[i] *= utils.units.KbrightToJyPix(
-                    self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
-                )
+            # if self.tods[0].unit == "Jy/pixel":
+            #     save_maps[i] *= utils.units.KbrightToJyPix(
+            #         self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
+            #     )
 
         fits.writeto(
             filename=filepath,

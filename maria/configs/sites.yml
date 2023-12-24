@@ -1,5 +1,5 @@
 hoagie_haven:
-  site_description: A dummy site, with great hoagies.
+  site_description: Hoagie Haven
   region: princeton
   latitude: 40.352187
   longitude: -74.651884
@@ -7,36 +7,36 @@ hoagie_haven:
   site_documentation: http://hoagiehaven.com/
 
 amundsen_scott:
-  site_description: Amundsen–Scott South Pole Station
+  site_description: Amundsen–Scott South Pole Station (Bicep, SPT)
   region: south_pole
   latitude: 0.000
   longitude: -90.000
   altitude: 2835
   site_documentation: https://www.nsf.gov/geo/opp/support/southp.jsp
 
-llano_de_chajnantor:
-  site_description: Atacama Large Millimeter Array
+cerro_chajnantor:
+  site_description: Cerro Chajnantor (CCAT, TAO)
   region: chajnantor
-  latitude: -23.0294
-  longitude: -67.7548
-  altitude: 5064
-  site_documentation: https://www.almaobservatory.org/en/home/
+  latitude: -22.9862
+  longitude: -67.7422
+  altitude: 5600
+  site_documentation: https://act.princeton.edu/
 
 cerro_toco:
-  site_description: Cerro Toco
+  site_description: Cerro Toco (ACT, POLARBEAR, SO)
   region: chajnantor
   latitude: -22.9586
   longitude: -67.7878
   altitude: 5190
   site_documentation: https://act.princeton.edu/
 
-cerro_chajnantor:
-  site_description: Cerro Chajnantor
+llano_de_chajnantor:
+  site_description: Llano de Chajnantor (ALMA)
   region: chajnantor
-  latitude: -22.9862
-  longitude: -67.7422
-  altitude: 5600
-  site_documentation: https://act.princeton.edu/
+  latitude: -23.0294
+  longitude: -67.7548
+  altitude: 5064
+  site_documentation: https://www.almaobservatory.org/en/home/
 
 green_bank:
   site_description: Green Bank Observatory
@@ -47,7 +47,7 @@ green_bank:
   site_documentation: https://greenbankobservatory.org
 
 mauna_kea:
-  site_description: Mauna Kea Observatory
+  site_description: Mauna Kea Observatory (JCMT)
   region: mauna_kea
   latitude: 19.8228
   longitude: -155.4770
@@ -55,14 +55,14 @@ mauna_kea:
   site_documentation: https://www.maunakeaobservatories.org/
 
 teide:
-  site_description: Teide Observatory
+  site_description: Teide Observatory (QUIJOTE)
   region: teide
-  latitude: 28.3,
+  latitude: 28.3
   longitude: -16.5097
   altitude: 2390
   site_documentation: https://www.iac.es/en/observatorios-de-canarias/teide-observatory
 
-IRAM:
+pico_veleta:
   site_description: IRAM 30m telescope
   region: pico_veleta
   latitude: 37.066161
@@ -70,41 +70,23 @@ IRAM:
   altitude: 2850
   site_documentation: https://iram-institute.org/observatories/30-meter-telescope/
 
-JCMT:
-  site_description: James Clerk Maxwell Telescope
-  region: mauna_kea
-  latitude: 19.8228
-  longitude: -155.4770
-  altitude: 4092
-  site_documentation: https://www.eaobservatory.org/jcmt/
-
-LMT:
-  site_description: Large Millimeter Telescope
+sierra_negra:
+  site_description: Sierra Negra (LMT)
   region: sierra_negra
   latitude: 18.9858
   longitude: -97.3147
   altitude: 4640
   site_documentation: http://lmtgtm.org/
 
-NOEMA:
-  site_description: Northern Extended Millimeter Array
+pic_de_bure:
+  site_description: Pic de Bure (NOEMA)
   region: pic_de_bure
   latitude: 44.63389
   longitude: 5.90792
   altitude: 2552
   site_documentation: https://iram-institute.org/observatories/noema/
 
-QUIJOTE:
-  site_description: Q-U-I JOint Tenerife Experiment
-  region: pico_veleta
-  latitude: 28.30026
-  longitude: -16.51012
-  altitude: 2390
-  site_documentation: https://research.iac.es/proyecto/quijote/pages/en/telescopes.php
-
-
-
-SRT:
+san_basilio:
   site_description: Sardinia Radio Telescope
   region: san_basilio
   latitude: 39.4928

@@ -41,11 +41,19 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         )
 
         self.params = {}
+
         for sub_type, sub_master_params in master_params.items():
             self.params[sub_type] = {}
-            for k, v in sub_master_params.items():
-                self.params[sub_type][k] = kwargs.get(k, v)
-                setattr(self, k, kwargs.get(k, v))
+            if sub_type in ["array", "site", "pointing"]:
+                sub_type_dataclass = getattr(self, sub_type)
+                for k in sub_type_dataclass.__dataclass_fields__.keys():
+                    v = getattr(sub_type_dataclass, k)
+                    setattr(self, k, v)
+                    self.params[sub_type][k] = v
+            else:
+                for k, v in sub_master_params.items():
+                    setattr(self, k, kwargs.get(k, v))
+                    self.params[sub_type][k] = v
 
         weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
 
