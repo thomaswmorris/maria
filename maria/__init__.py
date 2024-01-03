@@ -7,7 +7,7 @@ from ._version import get_versions
 __version__ = get_versions()["version"]
 del get_versions
 
-from . import array, pointing, site, utils, weather  # noqa F401
+from . import array, pointing, site, utils  # noqa F401
 from .array import all_arrays, get_array  # noqa F401
 from .map import Map, mappers  # noqa F401
 from .pointing import all_pointings, get_pointing  # noqa F401

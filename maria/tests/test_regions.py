@@ -3,7 +3,6 @@ import time
 import pytest
 
 import maria
-from maria.sim import Simulation
 from maria.weather import Weather
 
 
