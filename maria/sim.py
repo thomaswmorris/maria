@@ -66,7 +66,8 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         )
 
         if self.map_file:
-            assert os.path.exists(self.map_file)
+            if not os.path.exists(self.map_file):
+                raise FileNotFoundError(self.map_file)
             self._initialize_map()
 
         if self.atmosphere_model:
