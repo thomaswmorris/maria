@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '00 12 * * *'  # daily at 4AM
+    - cron: '00 12 * * *'  # daily at 7 AM
 
 jobs:
   run_tests:
@@ -25,9 +25,9 @@ jobs:
 
       - name: Install dependencies with pip
         run: |
-          pip install .
-          pip install -r requirements-dev.txt
-          pip list
+          set -vxeuo pipefail
+          python -m pip install .[dev]
+          python -m pip list
 
       - name: Test the code
         run: |
