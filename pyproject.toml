@@ -74,9 +74,9 @@ dev = [
 
 [tool.hatch.build.targets.sdist]
 exclude = [
-
   "maria/weather/data/*.h5",
   "maria/atmosphere/spectra/data/*.h5",
+  "maria/map/data/*.h5",
   "maria/tests",
   "docs",
 ]
