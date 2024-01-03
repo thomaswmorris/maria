@@ -44,7 +44,7 @@ class AtmosphereMixin:
         # self.min_atmosphere_height = min_atmosphere_height
         # self.max_atmosphere_height = max_atmosphere_height
 
-        self._spectrum_filepath = f"{here}/spectra/{self.site.region}.h5"
+        self._spectrum_filepath = f"{here}/../data/spectra/{self.site.region}.h5"
         self.spectrum = (
             AtmosphericSpectrum(filepath=self._spectrum_filepath)
             if os.path.exists(self._spectrum_filepath)
@@ -52,20 +52,26 @@ class AtmosphereMixin:
         )
 
         if self.atmosphere_model == "2d":
-            n_atmosphere_layers = self.atmosphere_model_options.get("n_layers", 4)
             self.turbulent_layer_depths = np.linspace(
                 self.min_atmosphere_height,
                 self.max_atmosphere_height,
-                n_atmosphere_layers,
+                self.n_atmosphere_layers,
             )
             self.turbulent_layers = []
 
-            for layer_index, layer_depth in enumerate(self.turbulent_layer_depths):
+            for _, layer_depth in enumerate(self.turbulent_layer_depths):
+                layer_res = (
+                    self.array.physical_fwhm(z=layer_depth).min()
+                    / self.min_atmosphere_beam_res
+                )  # in meters
+
                 layer = TurbulentLayer(
                     array=self.array,
                     boresight=self.boresight,
-                    depth=layer_depth,
                     weather=self.weather,
+                    depth=layer_depth,
+                    res=layer_res,
+                    turbulent_outer_scale=self.turbulent_outer_scale,
                 )
 
                 self.turbulent_layers.append(layer)
@@ -89,7 +95,11 @@ class AtmosphereMixin:
             (self.n_atmosphere_layers, self.array.n_dets, self.pointing.n_time)
         )
 
-        for layer_index, layer in enumerate(self.turbulent_layers):
+        layers = tqdm(self.turbulent_layers) if self.verbose else self.turbulent_layers
+        for layer_index, layer in enumerate(layers):
+            if self.verbose:
+                layers.set_description(f"Generating atmosphere at {layer.depth:.00f}m")
+
             layer.generate()
             layer_data[layer_index] = layer.sample()
 
@@ -116,9 +126,9 @@ class AtmosphereMixin:
             self.weather.pwv + (self.layer_scaling * turbulence).sum(axis=0)
         ) / np.sin(self.EL)
 
-        # layer_boundaries =  np.linspace(self.min_layer_height, self.max_layer_height, n_layers + 1)
+        # layer_boundaries =  np.linspace(self.min_layer_height, self.max_layer_height, n_atmosphere_layers + 1)
         # self.layer_heights = 0.5 * (layer_boundaries[1:] + layer_boundaries[:-1])
-        # self.n_layers = n_layers
+        # self.n_atmosphere_layers = n_atmosphere_layers
 
         # self.compute_autoregression_boundaries_2d(layer_depth)
         # self.min_beam_res = min_atmosphere_beam_res
@@ -153,9 +163,12 @@ class AtmosphereMixin:
                 (self.array.n_dets, self.pointing.n_time), dtype=np.float32
             )
 
-            for uband in tqdm(self.array.ubands, desc="Sampling atmosphere"):
+            pbar = tqdm(self.array.ubands)
+
+            for band in pbar:
+                pbar.set_description(f"Sampling atmosphere for band {band}")
                 # for uband in self.array.ubands:
-                band_mask = self.array.dets.band.values == uband
+                band_mask = self.array.dets.band.values == band
 
                 det_nu_samples = np.linspace(
                     self.array.band_min[band_mask], self.array.band_max[band_mask], 64

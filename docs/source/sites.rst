@@ -1,5 +1,5 @@
-Map simulations
-+++++++++++++++
+Customizing sites
++++++++++++++++++
 
 We can simulate observing (and later mapping) some celestial signal by supplying the simulation with a map to use as the ground truth.
 

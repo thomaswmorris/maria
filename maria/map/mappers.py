@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 from astropy.io import fits
 
+from .. import todder
 from . import Map
 
 np.seterr(invalid="ignore")
@@ -212,23 +213,26 @@ class BinMapper(BaseMapper):
 
                 band_mask = tod.dets.band == band
 
+                window = sp.signal.windows.tukey(tod.nt, alpha=0.1)
+
                 # raw_band_data = sp.signal.detrend(tod.data[band_mask])
-                band_data = tod.data[band_mask].copy()
+                d = sp.signal.detrend(tod.data[band_mask].copy()) * window
+                w = np.ones(tod.nd)[:, None] * window
+
+                if self._nmtr > 0:
+                    U, V = todder.utils.decompose(
+                        d, downsample_rate=np.maximum(tod.fs, 1)
+                    )
+                    d = U[:, self._nmtr :] @ V[self._nmtr :]
 
                 # filter, if needed
                 if self.filter_tods:
-                    band_data = self._fourier_filter(band_data, tod.time)
-
-                if self._nmtr > 0:
-                    u, s, v = np.linalg.svd(band_data, full_matrices=False)
-                    band_data = (
-                        u[:, self._nmtr :] @ np.diag(s[self._nmtr :]) @ v[self._nmtr :]
-                    )
+                    d = self._fourier_filter(d, tod.time)
 
                 map_sum = sp.stats.binned_statistic_2d(
                     dx[band_mask].ravel(),
                     dy[band_mask].ravel(),
-                    band_data.ravel(),
+                    d.ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="sum",
                 )[0]
@@ -236,12 +240,12 @@ class BinMapper(BaseMapper):
                 map_cnt = sp.stats.binned_statistic_2d(
                     dx[band_mask].ravel(),
                     dy[band_mask].ravel(),
-                    band_data.ravel(),
+                    w.ravel(),
                     bins=(self.x_bins, self.y_bins),
-                    statistic="count",
+                    statistic="sum",
                 )[0]
 
-                self.DATA = band_data
+                self.DATA = d
 
                 self.map_sums[band] += map_sum
                 self.map_cnts[band] += map_cnt

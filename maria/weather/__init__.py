@@ -86,7 +86,7 @@ class Weather:
             pytz.timezone(self.time_zone)
         ).ctime()
 
-        with h5py.File(f"{here}/data/{self.region}.h5", "r") as f:
+        with h5py.File(f"{here}/../data/weather/{self.region}.h5", "r") as f:
             self.utc_day_hour = get_utc_day_hour(self.t)
             self.utc_year_day = get_utc_year_day(self.t)
 

@@ -8,13 +8,13 @@ from . import utils
 from .atmosphere import AtmosphereMixin
 from .base import BaseSimulation, parse_sim_kwargs
 from .cmb import CMBMixin
+from .map import MapMixin
 from .noise import NoiseMixin
-from .sky import MapMixin
 from .weather import Weather
 
 here, this_filename = os.path.split(__file__)
 
-master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
+master_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")
 
 
 class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
@@ -65,11 +65,12 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             override=weather_override,
         )
 
+        if self.map_file:
+            assert os.path.exists(self.map_file)
+            self._initialize_map()
+
         if self.atmosphere_model:
             self._initialize_atmosphere()
-
-        if self.map_file:
-            self._initialize_map()
 
     def _run(self, units="K_RJ"):
         # number of bands are lost here
@@ -84,3 +85,9 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if hasattr(self, "cmb_sim"):
             self.cmb_sim._run()
             self.data += self.cmb_sim.data
+
+    def __repr__(self):
+        object_reprs = [
+            getattr(self, attr).__repr__() for attr in ["array", "site", "pointing"]
+        ]
+        return "\n\n".join(object_reprs)
