@@ -32,4 +32,4 @@ jobs:
       - name: Test the code
         run: |
           set -vxuo pipefail
-          pytest -s -vv -m
+          python -m pytest -s -vv
