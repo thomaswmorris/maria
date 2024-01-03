@@ -11,9 +11,6 @@ SPECTRUM_DATA_URL_BASE = (
     "https://github.com/thomaswmorris/maria/raw/master/maria/atmosphere/spectra"
 )
 
-if not os.path.exists(f"{here}/data"):
-    os.mkdir(f"{here}/data")
-
 
 class AtmosphericSpectrum:
     def __init__(self, region):

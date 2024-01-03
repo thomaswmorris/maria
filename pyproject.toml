@@ -74,7 +74,9 @@ dev = [
 
 [tool.hatch.build.targets.sdist]
 exclude = [
-  "*.h5",
-  "/tests",
-  "pkg/_compat.py",
+
+  "maria/weather/data/*.h5",
+  "maria/atmosphere/spectra/data/*.h5",
+  "maria/tests",
+  "docs",
 ]
