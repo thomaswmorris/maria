@@ -6,9 +6,9 @@ import h5py
 import numpy as np
 import pandas as pd
 import pytz
-import requests
 import scipy as sp
 
+from .. import utils
 from ..utils import get_utc_day_hour, get_utc_year_day
 from ..utils.constants import g
 from ..utils.weather import get_dew_point, relative_to_absolute_humidity
@@ -22,6 +22,9 @@ all_regions = list(supported_regions_table.index.values)
 WEATHER_DATA_URL_BASE = (
     "https://github.com/thomaswmorris/maria/raw/master/maria/weather/data"
 )
+WEATHER_DATA_CACHE_DIR = "/tmp/maria_cache/weather"
+
+MAX_CACHE_AGE_SECONDS = 86400
 
 
 class InvalidRegionError(Exception):
@@ -47,15 +50,7 @@ class Weather:
         if self.region not in all_regions:
             raise InvalidRegionError(self.region)
 
-        self._weather_path = f"{here}/data/{self.region}.h5"
-
-        # download the data as needed
-        if not os.path.exists(self._weather_path):
-            print("getting spectrum data...")
-            url = f"{WEATHER_DATA_URL_BASE}/{self.region}.h5"
-            r = requests.get(url)
-            with open(self._weather_path, "wb") as f:
-                f.write(r.content)
+        self.source_path = f"{here}/data/{self.region}.h5"
 
         if self.altitude is None:
             self.altitude = supported_regions_table.loc[self.region, "altitude"]
@@ -69,7 +64,18 @@ class Weather:
             pytz.timezone(self.time_zone)
         ).ctime()
 
-        with h5py.File(self._weather_path, "r") as f:
+        # if the data isn't in the module, use the cache
+        if os.path.exists(self.source_path):
+            self.from_cache = False
+        else:
+            self.source_path = f"{WEATHER_DATA_CACHE_DIR}/{self.region}.h5"
+            utils.io.fetch_cache(
+                source_url=f"{WEATHER_DATA_URL_BASE}/{self.region}.h5",
+                cache_path=self.source_path,
+            )
+            self.from_cache = True
+
+        with h5py.File(self.source_path, "r") as f:
             self.utc_day_hour = get_utc_day_hour(self.t)
             self.utc_year_day = get_utc_year_day(self.t)
 
