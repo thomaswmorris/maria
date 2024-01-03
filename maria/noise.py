@@ -64,7 +64,7 @@ class NoiseSimulation(NoiseMixin, BaseSimulation):
         pink_noise_level: float = 1e0,
         pink_noise_slope: float = 0.5,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super(NoiseSimulation, self).__init__(*args, **kwargs)
 
