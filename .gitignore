@@ -5,7 +5,7 @@
 *.mp4
 
 *.fits
-maria/map/data/*.fits
+!maria/map/data/*.fits
 
 notebooks/*
 
