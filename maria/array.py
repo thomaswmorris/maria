@@ -14,7 +14,7 @@ from matplotlib.patches import Patch
 from . import utils
 
 HEX_CODE_LIST = [
-    mpl.colors.to_hex(mpl.cm.get_cmap("Paired")(t))
+    mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
     for t in [*np.linspace(0.05, 0.95, 12)]
 ]
 
