@@ -71,3 +71,10 @@ dev = [
 "Homepage" = "https://github.com/thomaswmorris/maria"
 "Bug Reports" = "https://github.com/thomaswmorris/maria/issues"
 "Source" = "https://github.com/thomaswmorris/maria/"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "*.h5",
+  "/tests",
+  "pkg/_compat.py",
+]
