@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "maria"
-version = "0.9.4"
+version = "0.9.6"
 description = "Ground-based telescope simulations"
 readme = { file = "README.rst", content-type = "text/x-rst" }
 dependencies = [
@@ -76,7 +76,7 @@ dev = [
 exclude = [
   "maria/weather/data/*.h5",
   "maria/atmosphere/spectra/data/*.h5",
-  "maria/map/data/*.h5",
+  "maria/map/data/*.fits",
   "maria/tests",
   "docs",
 ]
