@@ -4,9 +4,6 @@
 *.png
 *.mp4
 
-*.fits
-!maria/map/data/*.fits
-
 notebooks/*
 
 # *.ipynb
