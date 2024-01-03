@@ -20,7 +20,7 @@ supported_regions_table = pd.read_csv(f"{here}/regions.csv", index_col=0)
 all_regions = list(supported_regions_table.index.values)
 
 WEATHER_DATA_URL_BASE = (
-    "https://github.com/thomaswmorris/maria/raw/master/maria/atmosphere/spectra"
+    "https://github.com/thomaswmorris/maria/raw/master/maria/weather/data"
 )
 
 

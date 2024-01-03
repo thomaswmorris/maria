@@ -8,7 +8,7 @@ from ...weather import InvalidRegionError, all_regions
 here, this_filename = os.path.split(__file__)
 
 SPECTRUM_DATA_URL_BASE = (
-    "https://github.com/thomaswmorris/maria/raw/master/maria/atmosphere/spectra"
+    "https://github.com/thomaswmorris/maria/raw/master/maria/atmosphere/spectra/data"
 )
 
 
