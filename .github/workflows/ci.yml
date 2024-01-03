@@ -28,6 +28,7 @@ jobs:
           set -vxeuo pipefail
           python -m pip install ".[dev]"
           python -m pip list
+          apt-get install tree
 
       - name: Test the code
         run: |
