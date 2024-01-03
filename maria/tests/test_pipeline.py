@@ -19,7 +19,7 @@ def test_mustang2():
     sample_rate = 100
     scan_velocity = 38 / 3600
 
-    inputfile = f"{here}/../data/maps/cluster.fits"
+    inputfile = f"{here}/../map/data/cluster.fits"
     outfile_tbl = "/tmp/Cluster_45min_noisy_table.fits"
     outfile_map = "/tmp/Cluster_45min_noisy_map.fits"
 

@@ -104,7 +104,6 @@ maria = "maria:main"
 [tool.setuptools]
 # If there are data files included in your packages that need to be
 # installed, specify them here.
-package-data = {"maria" = ["data/weather/*.h5", "data/spectra/*.h5", "data/examples/*.h5"]}
 
 [build-system]
 # These are the assumed default build requirements from pip:

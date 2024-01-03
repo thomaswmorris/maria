@@ -6,10 +6,12 @@ import h5py
 import numpy as np
 import pandas as pd
 import pytz
+import requests
 import scipy as sp
 
 from ..utils import get_utc_day_hour, get_utc_year_day
 from ..utils.constants import g
+from ..utils.weather import get_dew_point, relative_to_absolute_humidity
 
 here, this_filename = os.path.split(__file__)
 
@@ -17,46 +19,17 @@ DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude"]
 supported_regions_table = pd.read_csv(f"{here}/regions.csv", index_col=0)
 all_regions = list(supported_regions_table.index.values)
 
+WEATHER_DATA_URL_BASE = (
+    "https://github.com/thomaswmorris/maria/raw/master/maria/atmosphere/spectra"
+)
+
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         super().__init__(
-            f'The region "{invalid_region}" is not supported.'
+            f"The region '{invalid_region}' is not supported."
             f"Supported regions are:\n\n{supported_regions_table.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
-
-
-def get_vapor_pressure(air_temp, rel_hum):  # units are (°K, %)
-    T = air_temp - 273.15  # in °C
-    a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C
-    gamma = np.log(1e-2 * rel_hum) + b * T / (c + T)
-    return a * np.exp(gamma)
-
-
-def get_saturation_pressure(air_temp):  # units are (°K, %)
-    T = air_temp - 273.15  # in °C
-    a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C
-    return a * np.exp(b * T / (c + T))
-
-
-def get_dew_point(air_temp, rel_hum):  # units are (°K, %)
-    a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C
-    p_vap = get_vapor_pressure(air_temp, rel_hum)
-    return c * np.log(p_vap / a) / (b - np.log(p_vap / a)) + 273.15
-
-
-def get_relative_humidity(air_temp, dew_point):
-    T, DP = air_temp - 273.15, dew_point - 273.15  # in °C
-    b, c = 17.67, 238.88
-    return 1e2 * np.exp(b * DP / (c + DP) - b * T / (c + T))
-
-
-def relative_to_absolute_humidity(air_temp, rel_hum):
-    return 1e-2 * rel_hum * get_saturation_pressure(air_temp) / (461.5 * air_temp)
-
-
-def absolute_to_relative_humidity(air_temp, abs_hum):
-    return 1e2 * 461.5 * air_temp * abs_hum / get_saturation_pressure(air_temp)
 
 
 @dataclass
@@ -71,8 +44,18 @@ class Weather:
     override: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        if self.region not in supported_regions_table.index.values:
+        if self.region not in all_regions:
             raise InvalidRegionError(self.region)
+
+        self._weather_path = f"{here}/data/{self.region}.h5"
+
+        # download the data as needed
+        if not os.path.exists(self._weather_path):
+            print("getting spectrum data...")
+            url = f"{WEATHER_DATA_URL_BASE}/{self.region}.h5"
+            r = requests.get(url)
+            with open(self._weather_path, "wb") as f:
+                f.write(r.content)
 
         if self.altitude is None:
             self.altitude = supported_regions_table.loc[self.region, "altitude"]
@@ -86,7 +69,7 @@ class Weather:
             pytz.timezone(self.time_zone)
         ).ctime()
 
-        with h5py.File(f"{here}/../data/weather/{self.region}.h5", "r") as f:
+        with h5py.File(self._weather_path, "r") as f:
             self.utc_day_hour = get_utc_day_hour(self.t)
             self.utc_year_day = get_utc_year_day(self.t)
 
