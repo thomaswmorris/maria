@@ -1,50 +1,18 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "maria"  # Required
-version = "0.9.3"  # Required
-description = "Ground-based telescope simulations"  # Optional
-readme = { file = "README.rst", content-type = "text/x-rst" } # Optional
-requires-python = ">=3.9"
-
-license = {file = "LICENSE"}
-
-authors = [
-  { name = "Thomas Morris", email = "thomasmorris@princeton.edu" },
-  { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
-]
-
-maintainers = [
-  { name = "Thomas Morris", email = "thomasmorris@princeton.edu" },
-  { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
-]
-
-keywords = ["atmosphere", "cosmology", "astronomy"]  # Optional
-
-# Classifiers help users find your project by categorizing it.
-#
-# For a list of valid classifiers, see https://pypi.org/classifiers/
-classifiers = [  # Optional
-  "Development Status :: 4 - Beta",
-
-  # Indicate who your project is intended for
-  "Intended Audience :: Developers",
-  "Topic :: Software Development :: Build Tools",
-
-  # Pick your license as you wish
-  "License :: OSI Approved :: BSD License",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3 :: Only",
-]
-
-# This field lists other packages that your project depends on to run.
-# Any package you put here will be installed by pip when your project is
-# installed, so they must be valid existing projects.
+name = "maria"
+version = "0.9.3"
+description = "Ground-based telescope simulations"
+readme = { file = "README.rst", content-type = "text/x-rst" }
 dependencies = [
   "astropy",
   "cmocean",
   "h5py",
   "healpy",
+  "matplotlib",
   "numpy",
   "pandas",
   "reproject",
@@ -52,10 +20,30 @@ dependencies = [
   "tables",
   "tqdm",
 ]
+requires-python = ">=3.9"
+authors = [
+  { name = "Thomas Morris", email = "thomasmorris@princeton.edu" },
+  { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
+]
+maintainers = [
+  { name = "Thomas Morris", email = "thomasmorris@princeton.edu" },
+  { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
+]
+license = {file = "LICENSE"}
+keywords = ["atmosphere", "cosmology", "astronomy"]  # Optional
+classifiers = [  # Optional
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3 :: Only",
+]
 
 [project.optional-dependencies] # Optional
 dev = [
-  "check-manifest",
   "black",
   "coverage",
   "flake8",
@@ -79,34 +67,7 @@ dev = [
   "sphinx_rtd_theme",
 ]
 
-# List URLs that are relevant to your project
-#
-# This field corresponds to the "Project-URL" and "Home-Page" metadata fields:
-# https://packaging.python.org/specifications/core-metadata/#project-url-multiple-use
-# https://packaging.python.org/specifications/core-metadata/#home-page-optional
-#
-# Examples listed include a pattern for specifying where the package tracks
-# issues, where the source is hosted, where to say thanks to the package
-# maintainers, and where to support the project financially. The key is
-# what's used to render the link text on PyPI.
-[project.urls]  # Optional
+[project.urls]
 "Homepage" = "https://github.com/thomaswmorris/maria"
 "Bug Reports" = "https://github.com/thomaswmorris/maria/issues"
 "Source" = "https://github.com/thomaswmorris/maria/"
-
-# The following would provide a command line executable called `sample`
-# which executes the function `main` from this package when invoked.
-[project.scripts]  # Optional
-maria = "maria:main"
-
-# This is configuration specific to the `setuptools` build backend.
-# If you are using a different build backend, you will need to change this.
-[tool.setuptools]
-# If there are data files included in your packages that need to be
-# installed, specify them here.
-
-[build-system]
-# These are the assumed default build requirements from pip:
-# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=43.0.0", "wheel"]
-build-backend = "setuptools.build_meta"

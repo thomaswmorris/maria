@@ -26,10 +26,10 @@ jobs:
       - name: Install dependencies with pip
         run: |
           set -vxeuo pipefail
-          python -m pip install .[dev]
+          python -m pip install ".[dev]"
           python -m pip list
 
       - name: Test the code
         run: |
           set -vxuo pipefail
-          pytest -s -vv -m atmosphere
+          pytest -s -vv -m
