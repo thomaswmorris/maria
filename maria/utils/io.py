@@ -24,10 +24,11 @@ def fetch_cache(source_url, cache_path, max_cache_age=86400, refresh=False):
 
     # make the cache directory if it doesn't exist
     if not os.path.exists(cache_dir):
+        print(f"created cache at {cache_dir}")
         os.makedirs(cache_dir, exist_ok=True)
 
     if (not cache_is_ok(cache_path, max_cache_age=max_cache_age)) or refresh:
-        print("fetching spectrum data...")
+        print(f"updating cache from {source_url}")
         r = requests.get(source_url)
         with open(cache_path, "wb") as f:
             f.write(r.content)
