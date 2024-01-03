@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "maria"
-version = "0.9.5"
+version = "0.9.6"
 description = "Ground-based telescope simulations"
 readme = { file = "README.rst", content-type = "text/x-rst" }
 dependencies = [
