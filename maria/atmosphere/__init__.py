@@ -1,34 +1,16 @@
-# from .linear_angular import LinearAngularSimulation  # noqa F401
 import os
 import time as ttime
 
-import h5py
 import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
 from .. import utils
 from ..base import BaseSimulation
+from .spectra import AtmosphericSpectrum
 from .turbulent_layer import TurbulentLayer  # noqa F401
 
 here, this_filename = os.path.split(__file__)
-
-
-class AtmosphericSpectrum:
-    def __init__(self, filepath):
-        """
-        A dataclass to hold spectra as attributes
-        """
-        with h5py.File(filepath, "r") as f:
-            self.side_nu_GHz = f["side_nu_GHz"][:].astype(float)
-            self.side_elevation_deg = f["side_elevation_deg"][:].astype(float)
-            self.side_line_of_sight_pwv_mm = f["side_line_of_sight_pwv_mm"][:].astype(
-                float
-            )
-            self.temperature_rayleigh_jeans_K = f["temperature_rayleigh_jeans_K"][
-                :
-            ].astype(float)
-            self.phase_delay_um = f["phase_delay_um"][:].astype(float)
 
 
 class AtmosphereMixin:
@@ -41,15 +23,7 @@ class AtmosphereMixin:
 
         utils.validate_pointing(self.det_coords.az, self.det_coords.el)
 
-        # self.min_atmosphere_height = min_atmosphere_height
-        # self.max_atmosphere_height = max_atmosphere_height
-
-        self._spectrum_filepath = f"{here}/../data/spectra/{self.site.region}.h5"
-        self.spectrum = (
-            AtmosphericSpectrum(filepath=self._spectrum_filepath)
-            if os.path.exists(self._spectrum_filepath)
-            else None
-        )
+        self.spectrum = AtmosphericSpectrum(region=self.region)
 
         if self.atmosphere_model == "2d":
             self.turbulent_layer_depths = np.linspace(
