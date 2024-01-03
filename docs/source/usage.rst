@@ -5,4 +5,7 @@ Usage
    :maxdepth: 2
 
    simulations.rst
-   mapping.rst
+   .. maps.rst
+   .. arrays.rst
+   .. sites.rst
+   .. pointings.rst
