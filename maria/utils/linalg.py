@@ -33,7 +33,7 @@ def get_rotation_matrix_2d(a):
 
 def get_rotation_matrix_3d(angles, axis=0):
     shaped_angles = np.atleast_1d(angles)
-    R = np.ones(*shaped_angles.shape)[..., None, None] * np.eye(3)
+    R = np.ones(shaped_angles.shape)[..., None, None] * np.eye(3)
     j = [i for i in [0, 1, 2] if not i == axis]
     j0, j1 = np.meshgrid(j, j)
     R[..., j0, j1] = sp.linalg.expm(

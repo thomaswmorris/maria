@@ -2,7 +2,9 @@ import numpy as np
 import scipy as sp
 
 from .. import utils
-from ..coords import get_center_phi_theta
+from ..array import Array
+from ..coords import Coordinates, get_center_phi_theta
+from ..weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
 RIBBON_SAMPLE_DECAY = 2
@@ -20,19 +22,20 @@ class TurbulentLayer:
 
     def __init__(
         self,
-        array,
-        boresight,
-        weather,
-        depth=1e3,
-        min_atmosphere_beam_res: float = 4,
-        turbulent_outer_scale: float = 800,
-        verbose=False,
+        array: Array,
+        boresight: Coordinates,
+        weather: Weather,
+        depth: float,
+        res: float,
+        turbulent_outer_scale: float,
+        verbose: bool = False,
         **kwargs,
     ):
         self.array = array
         self.boresight = boresight
         self.weather = weather
         self.depth = depth
+        self.res = res
 
         # this is approximately correct
         # self.depth = self.depth / np.sin(np.mean(self.pointing.el))
@@ -41,10 +44,11 @@ class TurbulentLayer:
         self.angular_outer_scale = turbulent_outer_scale / self.depth
 
         # returns the beam fwhm for each detector at the layer distance
-        self.physical_beam_fwhm = self.array.physical_fwhm(self.depth)
-        self.angular_beam_fwhm = self.physical_beam_fwhm / self.depth
+        # self.physical_beam_fwhm = self.array.physical_fwhm(self.depth)
+        # self.angular_beam_fwhm = self.physical_beam_fwhm / self.depth
 
-        self.angular_resolution = self.angular_beam_fwhm.min() / min_atmosphere_beam_res
+        self.angular_resolution = self.res / self.depth
+
         if verbose:
             print(f"{self.angular_resolution = }")
 
@@ -130,12 +134,12 @@ class TurbulentLayer:
         ]
 
         # R takes us from the real (dx, dy) to a more compact (cross_section, extrusion) frame
-        self.res = utils.linalg.optimize_area_minimizing_rotation_matrix(
+        self.optres = utils.linalg.optimize_area_minimizing_rotation_matrix(
             self.atmosphere_hull_points
         )
 
-        assert self.res.success
-        self.R = utils.linalg.get_rotation_matrix_2d(self.res.x[0])
+        assert self.optres.success
+        self.R = utils.linalg.get_rotation_matrix_2d(self.optres.x[0])
 
         #
         #          ^      xxxxxxxxxxxx
@@ -299,13 +303,18 @@ class TurbulentLayer:
 
     def sample(self):
         detector_values = np.zeros(self.atmosphere_detector_points.shape[:-1])
-        for uband in self.array.ubands:
-            band_mask = self.array.dets.band == uband
-            band_angular_fwhm = self.angular_beam_fwhm[band_mask].mean()
+        for band in self.array.ubands:
+            # we assume the atmosphere looks the same for every nu in the band
+            band_mask = self.array.dets.band == band
+
+            band_angular_fwhm = self.array.angular_fwhm(z=self.depth)[band_mask].mean()
+
             F = utils.beam.make_beam_filter(
                 band_angular_fwhm, self.angular_resolution, self.array.beam_profile
             )
+
             FILTERED_VALUES = utils.beam.separably_filter(self.shaped_values, F)
+
             detector_values[band_mask] = sp.interpolate.RegularGridInterpolator(
                 (self.cross_section_side, self.extrusion_side), FILTERED_VALUES.T
             )(self.atmosphere_detector_points[band_mask])

@@ -23,7 +23,7 @@ HEX_CODE_LIST = [
 
 here, this_filename = os.path.split(__file__)
 
-all_array_params = utils.io.read_yaml(f"{here}/configs/params.yml")["array"]
+all_array_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")["array"]
 
 ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/configs/arrays.yml")
 
@@ -192,8 +192,8 @@ class Array:
     max_el_acc: float = np.inf  # in deg/s^2
     az_bounds: Tuple[float, float] = (0, 360)  # in degrees
     el_bounds: Tuple[float, float] = (0, 90)  # in degrees
-    array_documentation: str = ""
     dets: pd.DataFrame = None  # dets, it's complicated
+    array_documentation: str = ""
 
     def __repr__(self):
         nodef_f_vals = (
@@ -276,6 +276,29 @@ class Array:
     def band_max(self):
         return (self.dets.band_center + 0.5 * self.dets.band_width).values
 
+    @property
+    def fwhm(self):
+        """
+        Returns the angular FWHM (in radians) at infinite distance.
+        """
+        nu = self.dets.band_center.values  # in GHz
+        return utils.beam.angular_fwhm(
+            z=np.inf, fwhm_0=self.primary_size, n=1, f=1e9 * nu
+        )
+
+    def physical_fwhm(self, z):
+        """
+        Physical beam width (in meters) as a function of depth (in meters)
+        """
+        return z * self.angular_fwhm(z)
+
+    def angular_fwhm(self, z):  # noqa F401
+        """
+        Angular beam width (in radians) as a function of depth (in meters)
+        """
+        nu = self.dets.band_center.values  # in GHz
+        return utils.beam.angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, f=1e9 * nu)
+
     def passbands(self, nu):
         """
         Passband response as a function of nu (in GHz)
@@ -286,68 +309,59 @@ class Array:
         )
         return nu_mask.astype(float) / nu_mask.sum(axis=-1)[:, None]
 
-    def angular_fwhm(self, z):
-        return utils.beam.gaussian_beam_angular_fwhm(
-            z=z,
-            w_0=self.primary_size / np.sqrt(2 * np.log(2)),
-            f=self.dets.band_center.values,
-            n=1,
-        )
-
-    def physical_fwhm(self, z):
-        return z * self.angular_fwhm(z)
-
-    def angular_beam(self, r, z=np.inf, n=1, l=None, f=None):  # noqa F401
-        """
-        Beam response as a function of radius (in radians)
-        """
-        return self.beam_profile(r, self.angular_fwhm(z))
-
-    def physical_beam(self, r, z=np.inf, n=1, l=None, f=None):  # noqa F401
-        """
-        Beam response as a function of radius (in meters)
-        """
-        return self.beam_profile(r, self.physical_fwhm(z))
-
-    def plot_dets(self):
+    def plot_dets(self, units="deg"):
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=256)
 
         legend_handles = []
         for iub, uband in enumerate(self.ubands):
-            band_color = HEX_CODE_LIST[iub]
             band_mask = self.dets.band.values == uband
 
-            nom_freq = self.dets.band_center[band_mask].mean()
-            band_res_arcmins = 60 * np.degrees(
-                1.22 * 2.998e8 / (1e9 * nom_freq * self.primary_size)
-            )
+            fwhm = np.degrees(self.fwhm[band_mask])
+            offsets = np.degrees(self.offsets[band_mask])
 
-            offsets_arcmins = 60 * np.degrees(self.offsets[band_mask])
+            if units == "arcmin":
+                fwhm *= 60
+                offsets *= 60
+
+            if units == "arcsec":
+                fwhm *= 60
+                offsets *= 3600
+
+            band_color = HEX_CODE_LIST[iub]
+
+            # nom_freq = self.dets.band_center[band_mask].mean()
+            # band_res_arcmins = 2 * self.fwhm
+
+            # 60 * np.degrees(
+            #     1.22 * 2.998e8 / (1e9 * nom_freq * self.primary_size)
+            # )
+
+            # offsets_arcmins = 60 * np.degrees(self.offsets[band_mask])
 
             ax.add_collection(
                 EllipseCollection(
-                    widths=band_res_arcmins,
-                    heights=band_res_arcmins,
+                    widths=fwhm,
+                    heights=fwhm,
                     angles=0,
                     units="xy",
                     facecolors=band_color,
                     edgecolors="k",
                     lw=1e-1,
                     alpha=0.5,
-                    offsets=offsets_arcmins,
+                    offsets=offsets,
                     transOffset=ax.transData,
                 )
             )
 
             legend_handles.append(
                 Patch(
-                    label=f"{uband}, res = {band_res_arcmins:.01e} arcmin.",
+                    label=f"{uband}, res = {fwhm.mean():.03f} {units}",
                     color=band_color,
                 )
             )
 
-            ax.scatter(*offsets_arcmins.T, label=uband, s=5e-1, color=band_color)
+            ax.scatter(*offsets.T, label=uband, s=5e-1, color=band_color)
 
-        ax.set_xlabel(r"$\theta_x$ offset (arc min.)")
-        ax.set_ylabel(r"$\theta_y$ offset (arc min.)")
+        ax.set_xlabel(rf"$\theta_x$ offset ({units})")
+        ax.set_ylabel(rf"$\theta_y$ offset ({units})")
         ax.legend(handles=legend_handles)

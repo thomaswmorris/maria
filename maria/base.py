@@ -5,7 +5,7 @@ from .array import Array, get_array
 from .coords import Coordinates, dx_dy_to_phi_theta
 from .pointing import Pointing, get_pointing
 from .site import Site, get_site
-from .tod import TOD
+from .todder.tod import TOD
 
 here, this_filename = os.path.split(__file__)
 
@@ -17,7 +17,7 @@ class InvalidSimulationParameterError(Exception):
         )
 
 
-master_params = utils.io.read_yaml(f"{here}/configs/params.yml")
+master_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")
 
 
 def parse_sim_kwargs(kwargs, master_kwargs, strict=False):

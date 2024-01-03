@@ -180,113 +180,52 @@ class Coordinates:
             return 3600 * np.degrees(dx), 3600 * np.degrees(dy)
 
 
-# class Coordinator:
-#     # what three-dimensional rotation matrix takes (frame 1) to (frame 2) ?
-#     # we use astropy to compute this for a few test points, and then use the
-#     # answer it to efficiently broadcast very big arrays
+# def dx_dy_to_phi_theta(dx, dy, center_phi, center_theta):
+#     """
+#     Convert array offsets to e.g. az and el.
+#     """
+#     # Face north, and look up at the zenith. Here, the translation is
+#     #
+#     #
 
-#     def __init__(self, lon, lat):
-#         self.location = ap.coordinates.EarthLocation.from_geodetic(lon=lon, lat=lat)
+#     input_shape = np.shape(dx)
+#     _dx, _dy = np.atleast_1d(dx).ravel(), np.atleast_1d(dy).ravel()
 
-#         self.fid_p = np.radians(np.array([0, 0, 90]))
-#         self.fid_t = np.radians(np.array([90, 0, 0]))
-#         self.fid_xyz = np.c_[
-#             np.sin(self.fid_p) * np.cos(self.fid_t),
-#             np.cos(self.fid_p) * np.cos(self.fid_t),
-#             np.sin(self.fid_t),
-#         ]  # the XYZ coordinates of our fiducial test points on the unit sphere
+#     # if we're looking at phi=0, theta=pi/2, then we have:
+#     phi = np.arctan2(_dx, -_dy)
+#     theta = np.pi / 2 - np.sqrt(_dx**2 + _dy**2)
 
-#         # in order for this to be efficient, we need to use time-invariant frames
+#     x = np.cos(phi) * np.cos(theta)
+#     y = np.sin(phi) * np.cos(theta)
+#     z = np.sin(theta)
 
-#         # you are standing a the north pole looking toward lon = -90 (+x)
-#         # you are standing a the north pole looking toward lon = 0 (+y)
-#         # you are standing a the north pole looking up (+z)
+#     points = np.c_[x, y, z].T
+#     points = get_rotation_matrix_3d(angles=np.pi / 2 - center_theta, axis=1) @ points
+#     points = get_rotation_matrix_3d(angles=-center_phi, axis=2) @ points
 
-#     def transform(self, unix, phi, theta, in_frame, out_frame):
-#         _unix = np.atleast_2d(unix).copy()
-#         _phi = np.atleast_2d(phi).copy()
-#         _theta = np.atleast_2d(theta).copy()
+#     new_phi = np.arctan2(points[1], points[0]) % (2 * np.pi)
+#     new_theta = np.arcsin(points[2])
 
-#         if not _phi.shape == _theta.shape:
-#             raise ValueError("'phi' and 'theta' must be the same shape")
-#         if not 1 <= len(_phi.shape) == len(_theta.shape) <= 2:
-#             raise ValueError("'phi' and 'theta' must be either 1- or 2-dimensional")
-#         if not unix.shape[-1] == _phi.shape[-1] == _theta.shape[-1]:
-#             ("'unix', 'phi' and 'theta' must have the same shape in their last axis")
+#     return new_phi.reshape(input_shape), new_theta.reshape(input_shape)
 
-#         epoch = _unix.mean()
-#         obstime = ap.time.Time(epoch, format="unix")
-#         rad = ap.units.rad
 
-#         if in_frame == "az_el":
-#             self.c = ap.coordinates.SkyCoord(
-#                 az=self.fid_p * rad,
-#                 alt=self.fid_t * rad,
-#                 obstime=obstime,
-#                 frame="altaz",
-#                 location=self.location,
-#             )
-#         if in_frame == "ra_dec":
-#             self.c = ap.coordinates.SkyCoord(
-#                 ra=self.fid_p * rad,
-#                 dec=self.fid_t * rad,
-#                 obstime=obstime,
-#                 frame="icrs",
-#                 location=self.location,
-#             )
-#         # if in_frame == 'galactic':
-#         # self.c = ap.coordinates.SkyCoord(l  = self.fid_p * rad, b   = self.fid_t * rad, obstime = ot,
-#         # frame = 'galactic', location = self.location)
+# def phi_theta_to_dx_dy(phi, theta, center_phi, center_theta):
+#     """
+#     This is the inverse of the other one.
+#     """
+#     # Face north, and look up at the zenith. Here, the translation is
+#     input_shape = np.shape(phi)
+#     _phi, _theta = np.atleast_1d(phi).ravel(), np.atleast_1d(theta).ravel()
 
-#         if out_frame == "ra_dec":
-#             self._c = self.c.icrs
-#             self.rot_p, self.rot_t = self._c.ra.rad, self._c.dec.rad
-#         if out_frame == "az_el":
-#             self._c = self.c.altaz
-#             self.rot_p, self.rot_t = self._c.az.rad, self._c.alt.rad
+#     x = np.cos(_phi) * np.cos(_theta)
+#     y = np.sin(_phi) * np.cos(_theta)
+#     z = np.sin(_theta)
 
-#         # if out_frame == 'galactic': self._c = self.c.galactic; self.rot_p, self.rot_t = self._c.l.rad,  self._c.b.rad
+#     points = np.c_[x, y, z].T
+#     points = get_rotation_matrix_3d(angles=center_phi, axis=2) @ points
+#     points = get_rotation_matrix_3d(angles=center_theta - np.pi / 2, axis=1) @ points
 
-#         self.rot_xyz = np.c_[
-#             np.sin(self.rot_p) * np.cos(self.rot_t),
-#             np.cos(self.rot_p) * np.cos(self.rot_t),
-#             np.sin(self.rot_t),
-#         ]  # the XYZ coordinates of our rotated test points on the unit sphere
+#     p = np.angle(points[0] + 1j * points[1])
+#     r = np.arccos(points[2])
 
-#         self.R = np.linalg.lstsq(self.fid_xyz, self.rot_xyz, rcond=-1)[
-#             0
-#         ]  # what matrix takes us (fid_xyz -> rot_xyz)?
-
-#         if (in_frame, out_frame) == ("ra_dec", "az_el"):
-#             _phi -= (_unix - epoch) * (2 * np.pi / 86163.0905)
-
-#         trans_xyz = np.swapaxes(
-#             np.matmul(
-#                 np.swapaxes(
-#                     np.concatenate(
-#                         [
-#                             (np.sin(_phi) * np.cos(_theta))[None],
-#                             (np.cos(_phi) * np.cos(_theta))[None],
-#                             np.sin(_theta)[None],
-#                         ],
-#                         axis=0,
-#                     ),
-#                     0,
-#                     -1,
-#                 ),
-#                 self.R,
-#             ),
-#             0,
-#             -1,
-#         )
-
-#         trans_phi, trans_theta = np.arctan2(trans_xyz[0], trans_xyz[1]), np.arcsin(
-#             trans_xyz[2]
-#         )
-
-#         if (in_frame, out_frame) == ("az_el", "ra_dec"):
-#             trans_phi += (_unix - epoch) * (2 * np.pi / 86163.0905)
-
-#         return np.reshape(trans_phi % (2 * np.pi), phi.shape), np.reshape(
-#             trans_theta, theta.shape
-#         )
+#     return (r * np.sin(p)).reshape(input_shape), (-r * np.cos(p)).reshape(input_shape)

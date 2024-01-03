@@ -1,7 +1,9 @@
-Map simulations
-+++++++++++++++
+Customizing arrays
+++++++++++++++++++
 
-We can simulate observing (and later mapping) some celestial signal by supplying the simulation with a map to use as the ground truth.
+The ``array`` determines the characteristics of the observing instrument. We can make an array with::
+
+    my_array = maria.get_array('AtLAST')
 
 
 

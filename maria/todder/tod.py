@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits as fits
 
-from .coords import Coordinates
+from ..coords import Coordinates
 
 
 class TOD:
@@ -28,6 +28,11 @@ class TOD:
         self.header = fits.header.Header()
 
         self.units = "K"
+
+        self.fs = np.gradient(self.time).mean()
+        self.dt = 1.0 / self.fs
+
+        self.nd, self.nt = self.data.shape
 
     def subset(self, mask):
         tod_subset = copy.deepcopy(self)
