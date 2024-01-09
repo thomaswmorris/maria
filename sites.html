@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Usage" href="usage.html" /><link rel="prev" title="Installation" href="installation.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>Customizing sites - maria</title>
+        <title>Supported sites - maria</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -156,8 +156,9 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
+  <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Supported sites</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="usage.html">Usage</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="simulations.html">Simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="simulations.html#customizing-simulations">Customizing simulations</a></li>
@@ -203,21 +204,167 @@
           </label>
         </div>
         <article role="main">
-          <section id="customizing-sites">
-<h1>Customizing sites<a class="headerlink" href="#customizing-sites" title="Link to this heading">#</a></h1>
-<p>We can simulate observing (and later mapping) some celestial signal by supplying the simulation with a map to use as the ground truth.</p>
-<p>Simulations are made up of an array (defining the instrument), a site (where on earth it is), and a pointing (defining how it observes). Simulations for a few different telescopes might be instantiated as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># MUSTANG-2</span>
-<span class="n">mustang2_sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">,</span>
-                          <span class="n">site</span><span class="o">=</span><span class="s1">&#39;green_bank&#39;</span><span class="p">,</span>
-                          <span class="n">pointing</span><span class="o">=</span><span class="s1">&#39;daisy&#39;</span><span class="p">,</span>
-                          <span class="n">map_file</span><span class="o">=</span><span class="n">path_to_some_fits_file</span><span class="p">,</span>  <span class="c1"># Input files must be a fits file.</span>
-                          <span class="n">map_units</span><span class="o">=</span><span class="s1">&#39;Jy/pixel&#39;</span><span class="p">,</span>  <span class="c1"># Units of the input map in Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel</span>
-                          <span class="n">map_res</span><span class="o">=</span><span class="n">pixel_size</span><span class="p">,</span>
-                          <span class="n">map_center</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">),</span>  <span class="c1"># RA &amp; Dec. in degrees</span>
-                          <span class="n">map_freqs</span><span class="o">=</span><span class="p">[</span><span class="mi">90</span><span class="p">],</span>
-                          <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
+          <section id="supported-sites">
+<h1>Supported sites<a class="headerlink" href="#supported-sites" title="Link to this heading">#</a></h1>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>site</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>region</p></th>
+<th class="head"><p>altitude (meters)</p></th>
+<th class="head"><p>latitude (degrees)</p></th>
+<th class="head"><p>longitude (degrees)</p></th>
+<th class="head"><p>documentation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>hoagie_haven</p></td>
+<td><p>Hoagie Haven</p></td>
+<td><p>princeton</p></td>
+<td><p>62</p></td>
+<td><p>40.3522</p></td>
+<td><p>-74.6519</p></td>
+<td><p><a class="reference external" href="http://hoagiehaven.com/">http://hoagiehaven.com/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>amundsen_scott</p></td>
+<td><p>Amundsen–Scott South Pole Station (BICEP, SPT)</p></td>
+<td><p>south_pole</p></td>
+<td><p>2835</p></td>
+<td><p>0.0</p></td>
+<td><p>-90.0</p></td>
+<td><p><a class="reference external" href="https://www.nsf.gov/geo/opp/support/southp.jsp">https://www.nsf.gov/geo/opp/support/southp.jsp</a></p></td>
+</tr>
+<tr class="row-even"><td><p>cerro_chajnantor</p></td>
+<td><p>Cerro Chajnantor (CCAT, TAO)</p></td>
+<td><p>chajnantor</p></td>
+<td><p>5600</p></td>
+<td><p>-22.9862</p></td>
+<td><p>-67.7422</p></td>
+<td><p><a class="reference external" href="https://act.princeton.edu/">https://act.princeton.edu/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>cerro_pachon</p></td>
+<td><p>Rubin Observatory (LSST)</p></td>
+<td><p>cerro_pachon</p></td>
+<td><p>2663</p></td>
+<td><p>-30.2446</p></td>
+<td><p>-70.7494</p></td>
+<td><p><a class="reference external" href="https://rubinobservatory.org/about">https://rubinobservatory.org/about</a></p></td>
+</tr>
+<tr class="row-even"><td><p>cerro_paranal</p></td>
+<td><p>Cerro Paranal (VLT)</p></td>
+<td><p>cerro_paranal</p></td>
+<td><p>2635</p></td>
+<td><p>-24.6273</p></td>
+<td><p>-70.4042</p></td>
+<td><p><a class="reference external" href="https://www.eso.org/public/teles-instr/paranal-observatory/vlt/">https://www.eso.org/public/teles-instr/paranal-observatory/vlt/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>cerro_toco</p></td>
+<td><p>Cerro Toco (ACT, POLARBEAR, SO)</p></td>
+<td><p>chajnantor</p></td>
+<td><p>5190</p></td>
+<td><p>-22.9586</p></td>
+<td><p>-67.7878</p></td>
+<td><p><a class="reference external" href="https://act.princeton.edu/">https://act.princeton.edu/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>effelsberg</p></td>
+<td><p>Effelsberg (ERT)</p></td>
+<td><p>effelsberg</p></td>
+<td><p>319</p></td>
+<td><p>50.5247</p></td>
+<td><p>6.8828</p></td>
+<td><p><a class="reference external" href="https://www.mpifr-bonn.mpg.de/en/effelsberg">https://www.mpifr-bonn.mpg.de/en/effelsberg</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>green_bank</p></td>
+<td><p>Green Bank Observatory (MUSTANG-2)</p></td>
+<td><p>green_bank</p></td>
+<td><p>825</p></td>
+<td><p>38.4331</p></td>
+<td><p>-79.8398</p></td>
+<td><p><a class="reference external" href="https://greenbankobservatory.org">https://greenbankobservatory.org</a></p></td>
+</tr>
+<tr class="row-even"><td><p>llano_de_chajnantor</p></td>
+<td><p>Llano de Chajnantor (ALMA)</p></td>
+<td><p>chajnantor</p></td>
+<td><p>5064</p></td>
+<td><p>-23.0294</p></td>
+<td><p>-67.7548</p></td>
+<td><p><a class="reference external" href="https://www.almaobservatory.org/en/home/">https://www.almaobservatory.org/en/home/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>mauna_kea</p></td>
+<td><p>Mauna Kea Observatory (JCMT)</p></td>
+<td><p>mauna_kea</p></td>
+<td><p>4092</p></td>
+<td><p>19.8228</p></td>
+<td><p>-155.477</p></td>
+<td><p><a class="reference external" href="https://www.maunakeaobservatories.org/">https://www.maunakeaobservatories.org/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>meerkat</p></td>
+<td><p>Meerkat National Park (HERA, MeerKAT)</p></td>
+<td><p>meerkat</p></td>
+<td><p>1075.0</p></td>
+<td><p>-30.7132</p></td>
+<td><p>21.4431</p></td>
+<td><p><a class="reference external" href="https://www.protectedplanet.net/555703705?locale=en">https://www.protectedplanet.net/555703705?locale=en</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>pic_de_bure</p></td>
+<td><p>Pic de Bure (NOEMA)</p></td>
+<td><p>pic_de_bure</p></td>
+<td><p>2552</p></td>
+<td><p>44.6339</p></td>
+<td><p>5.9079</p></td>
+<td><p><a class="reference external" href="https://iram-institute.org/observatories/noema/">https://iram-institute.org/observatories/noema/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>pico_veleta</p></td>
+<td><p>IRAM 30m telescope</p></td>
+<td><p>pico_veleta</p></td>
+<td><p>2850</p></td>
+<td><p>37.0662</p></td>
+<td><p>-3.39272</p></td>
+<td><p><a class="reference external" href="https://iram-institute.org/observatories/30-meter-telescope/">https://iram-institute.org/observatories/30-meter-telescope/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>qitai</p></td>
+<td><p>Qitai Radio Telescope</p></td>
+<td><p>qitai</p></td>
+<td><p>1800</p></td>
+<td><p>43.6011</p></td>
+<td><p>89.6825</p></td>
+<td><p><a class="reference external" href="https://en.wikipedia.org/wiki/Qitai_Radio_Telescope">https://en.wikipedia.org/wiki/Qitai_Radio_Telescope</a></p></td>
+</tr>
+<tr class="row-even"><td><p>sierra_negra</p></td>
+<td><p>Sierra Negra (LMT)</p></td>
+<td><p>sierra_negra</p></td>
+<td><p>4640</p></td>
+<td><p>18.9858</p></td>
+<td><p>-97.3147</p></td>
+<td><p><a class="reference external" href="http://lmtgtm.org/">http://lmtgtm.org/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>srt</p></td>
+<td><p>Sardinia Radio Telescope (MISTRAL)</p></td>
+<td><p>san_basilio</p></td>
+<td><p>600</p></td>
+<td><p>39.4928</p></td>
+<td><p>9.245</p></td>
+<td><p><a class="reference external" href="https://en.wikipedia.org/wiki/Sardinia_Radio_Telescope">https://en.wikipedia.org/wiki/Sardinia_Radio_Telescope</a></p></td>
+</tr>
+<tr class="row-even"><td><p>summit_station</p></td>
+<td><p>Summit Station (Greenland Telescope)</p></td>
+<td><p>summit_camp</p></td>
+<td><p>3216</p></td>
+<td><p>72.5789</p></td>
+<td><p>-38.4596</p></td>
+<td><p><a class="reference external" href="https://geo-summit.org/">https://geo-summit.org/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>teide</p></td>
+<td><p>Teide Observatory (QUIJOTE)</p></td>
+<td><p>teide</p></td>
+<td><p>2390</p></td>
+<td><p>28.3007</p></td>
+<td><p>-16.511</p></td>
+<td><p><a class="reference external" href="https://www.iac.es/en/observatorios-de-canarias/teide-observatory">https://www.iac.es/en/observatorios-de-canarias/teide-observatory</a></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
 
@@ -226,8 +373,26 @@
       <footer>
         
         <div class="related-pages">
-          
-          
+          <a class="next-page" href="usage.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Usage</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="installation.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Installation</div>
+                
+              </div>
+            </a>
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
