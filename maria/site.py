@@ -1,8 +1,8 @@
 import os
 from dataclasses import dataclass, field
 
-import astropy as ap
 import pandas as pd
+from astropy.coordinates import EarthLocation
 
 from . import utils
 from .weather import InvalidRegionError, supported_regions_table
@@ -15,16 +15,23 @@ for key, config in SITE_CONFIGS.items():
     SITE_PARAMS |= set(config.keys())
 
 DISPLAY_COLUMNS = ["site_description", "region", "latitude", "longitude", "altitude"]
-supported_sites_table = pd.DataFrame(SITE_CONFIGS).T
-all_sites = list(supported_sites_table.index.values)
+site_data = pd.DataFrame(SITE_CONFIGS).T
+all_sites = list(site_data.index.values)
 
 
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(
             f"The site '{invalid_site}' is not supported. "
-            f"Supported sites are:\n\n{supported_sites_table.loc[:, DISPLAY_COLUMNS].to_string()}"
+            f"Supported sites are:\n\n{site_data.loc[:, DISPLAY_COLUMNS].to_string()}"
         )
+
+
+def get_location(site_name):
+    site = get_site(site_name)
+    return EarthLocation.from_geodetic(
+        lon=site.longitude, lat=site.latitude, height=site.altitude
+    )
 
 
 def get_site_config(site_name="default", **kwargs):
@@ -70,6 +77,6 @@ class Site:
         if self.altitude is None:
             self.altitude = supported_regions_table.loc[self.region].altitude
 
-        self.earth_location = ap.coordinates.EarthLocation.from_geodetic(
-            lon=self.longitude, lat=self.latitude
+        self.earth_location = EarthLocation.from_geodetic(
+            lon=self.longitude, lat=self.latitude, height=self.altitude
         )

@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 from astropy.io import fits
 
-from .. import todder
+from .. import utils
 from . import Map
 
 np.seterr(invalid="ignore")
@@ -220,9 +220,7 @@ class BinMapper(BaseMapper):
                 w = np.ones(tod.nd)[:, None] * window
 
                 if self._nmtr > 0:
-                    U, V = todder.utils.decompose(
-                        d, downsample_rate=np.maximum(tod.fs, 1)
-                    )
+                    U, V = utils.tod.decompose(d, downsample_rate=np.maximum(tod.fs, 1))
                     d = U[:, self._nmtr :] @ V[self._nmtr :]
 
                 # filter, if needed

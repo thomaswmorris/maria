@@ -12,6 +12,7 @@ from . import functions  # noqa F401
 from . import io  # noqa F401
 from . import linalg  # noqa F401
 from . import pointing  # noqa F401
+from . import tod  # noqa F401
 from . import units  # noqa F401
 
 

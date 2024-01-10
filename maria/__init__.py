@@ -13,5 +13,5 @@ from .map import Map, mappers  # noqa F401
 from .pointing import all_pointings, get_pointing  # noqa F401
 from .sim import Simulation  # noqa F401
 from .site import all_sites, get_site  # noqa F401
-from .todder import TOD  # noqa F401
+from .tod import TOD  # noqa F401
 from .weather import all_regions  # noqa F401

@@ -5,7 +5,7 @@ from .array import Array, get_array
 from .coords import Coordinates, dx_dy_to_phi_theta
 from .pointing import Pointing, get_pointing
 from .site import Site, get_site
-from .todder.tod import TOD
+from .tod import TOD
 
 here, this_filename = os.path.split(__file__)
 

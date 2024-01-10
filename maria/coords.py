@@ -24,12 +24,16 @@ def xyz_to_phi_theta(xyz):
     return np.arctan2(xyz[..., 1], xyz[..., 0]) % (2 * np.pi), np.arcsin(xyz[..., 2])
 
 
-def get_center_phi_theta(phi, theta):
+def get_center_phi_theta(phi, theta, keep_last_dim=False):
     """ """
     xyz = phi_theta_to_xyz(phi, theta)
 
-    center_xyz = xyz.mean(axis=tuple(range(xyz.ndim - 1)))
-    center_xyz /= np.sqrt(np.sum(np.square(center_xyz)))
+    if keep_last_dim:
+        center_xyz = xyz.mean(axis=tuple(range(xyz.ndim - 2)))
+        center_xyz /= np.sqrt(np.sum(np.square(center_xyz), axis=-1))[..., None]
+    else:
+        center_xyz = xyz.mean(axis=tuple(range(xyz.ndim - 1)))
+        center_xyz /= np.sqrt(np.sum(np.square(center_xyz)))
 
     return xyz_to_phi_theta(center_xyz)
 

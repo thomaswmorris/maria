@@ -76,7 +76,6 @@ dev = [
 exclude = [
   "maria/weather/data/*.h5",
   "maria/atmosphere/spectra/data/*.h5",
-  "maria/map/data/*.fits",
-  "maria/tests",
+  "data",
   "docs",
 ]

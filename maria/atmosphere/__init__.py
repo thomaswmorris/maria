@@ -19,8 +19,6 @@ class AtmosphereMixin:
         This assume that BaseSimulation.__init__() has been called.
         """
 
-        print("Initializing atmosphere")
-
         utils.validate_pointing(self.det_coords.az, self.det_coords.el)
 
         self.spectrum = AtmosphericSpectrum(region=self.region)
@@ -33,7 +31,11 @@ class AtmosphereMixin:
             )
             self.turbulent_layers = []
 
-            for _, layer_depth in enumerate(self.turbulent_layer_depths):
+            depths = enumerate(self.turbulent_layer_depths)
+            if self.verbose:
+                depths = tqdm(depths, desc="Initializing atmospheric layers")
+
+            for _, layer_depth in depths:
                 layer_res = (
                     self.array.physical_fwhm(z=layer_depth).min()
                     / self.min_atmosphere_beam_res

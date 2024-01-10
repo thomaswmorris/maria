@@ -28,7 +28,7 @@ all_array_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")["arr
 ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/configs/arrays.yml")
 
 DISPLAY_COLUMNS = ["array_description", "field_of_view", "primary_size", "bands"]
-supported_arrays_table = pd.DataFrame(ARRAY_CONFIGS).T
+array_data = pd.DataFrame(ARRAY_CONFIGS).T
 
 band_lists = []
 for array_name, config in ARRAY_CONFIGS.items():
@@ -40,16 +40,16 @@ for array_name, config in ARRAY_CONFIGS.items():
             ]
         )
     )
-supported_arrays_table.loc[:, "bands"] = band_lists
+array_data.loc[:, "bands"] = band_lists
 
-all_arrays = list(supported_arrays_table.index.values)
+all_arrays = list(array_data.index.values)
 
 
 class InvalidArrayError(Exception):
     def __init__(self, invalid_array):
         super().__init__(
             f"The array '{invalid_array}' is not supported."
-            f"Supported arrays are:\n\n{supported_arrays_table.loc[:, DISPLAY_COLUMNS].__repr__()}"
+            f"Supported arrays are:\n\n{array_data.loc[:, DISPLAY_COLUMNS].__repr__()}"
         )
 
 
