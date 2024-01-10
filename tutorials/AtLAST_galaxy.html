@@ -208,7 +208,7 @@
           <section id="AtLAST-extragalactic-observations">
 <h1>AtLAST extragalactic observations<a class="headerlink" href="#AtLAST-extragalactic-observations" title="Link to this heading">#</a></h1>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -218,15 +218,7 @@
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria</span> <span class="kn">import</span> <span class="n">Simulation</span><span class="p">,</span> <span class="n">mappers</span><span class="p">,</span> <span class="n">TOD</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">astropy.constants</span> <span class="kn">import</span> <span class="n">c</span>
@@ -237,7 +229,7 @@
 <section id="Physical-scaling">
 <h2>Physical scaling<a class="headerlink" href="#Physical-scaling" title="Link to this heading">#</a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate observed frequency and channel width in GHz</span>
@@ -250,7 +242,7 @@
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fits Image details</span>
@@ -318,10 +310,10 @@ Sampling rate:     100 Hz
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inputfile</span> <span class="o">=</span> <span class="s2">&quot;../../../maria/data/maps/galaxy.fits&quot;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inputfile</span> <span class="o">=</span> <span class="s2">&quot;../../../data/maps/galaxy.fits&quot;</span>
 
 <span class="n">noisy</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -342,7 +334,7 @@ Sampling rate:     100 Hz
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
@@ -380,7 +372,7 @@ Sampling rate:     100 Hz
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sky_l</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">((</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">FOV</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">FOV</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
@@ -425,17 +417,19 @@ Sampling rate:     100 Hz
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_galaxy_9_1.png" src="../_images/tutorials_AtLAST_galaxy_9_1.png" />
+<img alt="../_images/tutorials_AtLAST_galaxy_8_1.png" src="../_images/tutorials_AtLAST_galaxy_8_1.png" />
 </div>
 </div>
 </section>
 <section id="Run-the-sim">
 <h2>Run the sim<a class="headerlink" href="#Run-the-sim" title="Link to this heading">#</a></h2>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria</span> <span class="kn">import</span> <span class="n">Simulation</span><span class="p">,</span> <span class="n">mappers</span><span class="p">,</span> <span class="n">TOD</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
 
     <span class="c1"># Mandatory minimal weather settings</span>
     <span class="c1"># ---------------------</span>
@@ -472,13 +466,13 @@ Sampling rate:     100 Hz
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area docutils container">
+<div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Initializing atmosphere
+Initializing atmospheric layers: 4it [00:06,  1.54s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -490,8 +484,8 @@ Initializing atmosphere
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating atmosphere at 5000m: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:10&lt;00:00,  2.55s/it]
-Sampling atmosphere for band f950: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:02&lt;00:00,  2.68s/it]
+Generating atmosphere at 5000m: 100%|██████████| 4/4 [00:11&lt;00:00,  2.99s/it]
+Sampling atmosphere for band f950: 100%|██████████| 1/1 [00:02&lt;00:00,  2.69s/it]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -499,7 +493,7 @@ Sampling atmosphere for band f950: 100%|█████████████�
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ran atmospheric simulation in 20.8 seconds
+ran atmospheric simulation in 23.8 seconds
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -507,7 +501,7 @@ ran atmospheric simulation in 20.8 seconds
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Sampling map at 950.2685 GHz: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:04&lt;00:00,  4.01s/it]
+Sampling map at 950.2685 GHz: 100%|██████████| 1/1 [00:04&lt;00:00,  4.83s/it]
 </pre></div></div>
 </div>
 </section>
@@ -515,7 +509,7 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 <h2>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">#</a></h2>
 <p>In this section, we present the same array and TOD visualizations as in the MUSTANG-2 case, but this time for AtLAST:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">input_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;arcsec&#39;</span><span class="p">)</span>
@@ -531,11 +525,11 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_galaxy_14_0.png" src="../_images/tutorials_AtLAST_galaxy_14_0.png" />
+<img alt="../_images/tutorials_AtLAST_galaxy_13_0.png" src="../_images/tutorials_AtLAST_galaxy_13_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># visualize scanning patern</span>
@@ -595,14 +589,14 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_galaxy_15_0.png" src="../_images/tutorials_AtLAST_galaxy_15_0.png" />
+<img alt="../_images/tutorials_AtLAST_galaxy_14_0.png" src="../_images/tutorials_AtLAST_galaxy_14_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_galaxy_15_1.png" src="../_images/tutorials_AtLAST_galaxy_15_1.png" />
+<img alt="../_images/tutorials_AtLAST_galaxy_14_1.png" src="../_images/tutorials_AtLAST_galaxy_14_1.png" />
 </div>
 </div>
 </section>
@@ -610,7 +604,7 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 <h2>Map-Making<a class="headerlink" href="#Map-Making" title="Link to this heading">#</a></h2>
 <p>As previously mentioned, we must disable Fourier filtering. Additionally, we have adjusted the height and width of the map to match the realistic AtLAST field of view, which spans several degrees.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
@@ -632,7 +626,7 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
@@ -690,14 +684,14 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_galaxy_18_0.png" src="../_images/tutorials_AtLAST_galaxy_18_0.png" />
+<img alt="../_images/tutorials_AtLAST_galaxy_17_0.png" src="../_images/tutorials_AtLAST_galaxy_17_0.png" />
 </div>
 </div>
 </section>
 <section id="Save-&amp;-Visualize">
 <h2>Save &amp; Visualize<a class="headerlink" href="#Save-&-Visualize" title="Link to this heading">#</a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span><span class="o">.</span><span class="n">save_maps</span><span class="p">(</span><span class="n">outfile_map</span><span class="p">)</span>
@@ -705,7 +699,7 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># - Plot Mock observation</span>
@@ -747,7 +741,7 @@ Sampling map at 950.2685 GHz: 100%|███████████████
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_galaxy_21_0.png" src="../_images/tutorials_AtLAST_galaxy_21_0.png" />
+<img alt="../_images/tutorials_AtLAST_galaxy_20_0.png" src="../_images/tutorials_AtLAST_galaxy_20_0.png" />
 </div>
 </div>
 </section>
