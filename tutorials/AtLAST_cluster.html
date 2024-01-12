@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="AtLAST Predictions" href="AtLAST_cluster.html" /><link rel="prev" title="Tutorials" href="../tutorials.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="AtLAST extragalactic observations" href="AtLAST_galaxy.html" /><link rel="prev" title="Mock Observations with MUSTANG-2" href="MUSTANG-2_cluster.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>Mock Observations with MUSTANG-2 - maria</title>
+        <title>AtLAST Predictions - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
@@ -166,8 +166,8 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Mock Observations with MUSTANG-2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="AtLAST_cluster.html">AtLAST Predictions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">AtLAST Predictions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="AtLAST_galaxy.html">AtLAST extragalactic observations</a></li>
 </ul>
 </li>
@@ -206,11 +206,9 @@
           </label>
         </div>
         <article role="main">
-          <section id="Mock-Observations-with-MUSTANG-2">
-<h1>Mock Observations with MUSTANG-2<a class="headerlink" href="#Mock-Observations-with-MUSTANG-2" title="Link to this heading">#</a></h1>
-<p>We use Maria to generate synthetic mock observations for bolometric arrays installed on single-dish telescopes. We have developed a wrapper called ‘Simulation,’ which emulates telescopes like ACT, Toltec, GBT, and AtLAST. This wrapper generates time-ordered domain (TOD) data. By simulating distinct atmospheric layers corresponding to the designated site within the simulation, we allow the mock array to sweep across the input celestial sky while scanning through evolving atmosphere. As a result,
-the TODs produced combine elements of the real sky, atmospheric effects. This approach generates synthetic observations taking into account atmospheric filtering.</p>
-<p>This tutorial will guide you through the process of setting up the simulation tool and creating your own mock observations.</p>
+          <section id="AtLAST-Predictions">
+<h1>AtLAST Predictions<a class="headerlink" href="#AtLAST-Predictions" title="Link to this heading">#</a></h1>
+<p>Here, you can find another example of using this simulation tool for predictions. But now, in this scenario, we’ll adjust the parameters to align with a small instrument that could be mounted on AtLAST. AtLAST will have a broad 2-degree field of view (FOV) and offer a 10” resolution at 150 GHz. This configuration provides a more comprehensive, high spatial dynamic range, ideal for observing phenomena such as the Sunyaev-Zeldovich effect in galaxy clusters.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -223,6 +221,7 @@ the TODs produced combine elements of the real sky, atmospheric effects. This ap
 <span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
 <span class="kn">from</span> <span class="nn">astropy.wcs</span> <span class="kn">import</span> <span class="n">WCS</span>
 <span class="kn">from</span> <span class="nn">astropy</span> <span class="kn">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
+<span class="kn">from</span> <span class="nn">astropy.constants</span> <span class="kn">import</span> <span class="n">c</span>
 <span class="kn">from</span> <span class="nn">astropy.coordinates</span> <span class="kn">import</span> <span class="n">SkyCoord</span>
 </pre></div>
 </div>
@@ -237,74 +236,129 @@ the TODs produced combine elements of the real sky, atmospheric effects. This ap
 </pre></div>
 </div>
 </div>
-<section id="Setting-up-a-MUSTANG-2-Simulation">
-<h2>Setting up a MUSTANG-2 Simulation<a class="headerlink" href="#Setting-up-a-MUSTANG-2-Simulation" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class offers flexibility for customizing atmospheric simulations. You can configure it to replicate observatories like ‘AtLAST’ at the APEX site or simulate specific observations, such as MUSTANG-2, under different weather conditions by adjusting the ‘pwv_rms_frac’ parameter within the Simulation keywords.</p>
-<p>Additionally, the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class allows you to explore how different scanning strategies impact large-scale filtering. Standard strategies, like back-and-forth or Daisy scan patterns, are implemented for this purpose. For comprehensive documentation on all available keywords, please refer to our detailed documentation.</p>
-<p>Now, let’s initiate an example of a mock observation involving a galaxy cluster merger event at redshift 1, observed via the SZ effect, using the Mustang-2 instrument:</p>
-<section id="Hyper-params">
-<h3>Hyper params<a class="headerlink" href="#Hyper-params" title="Link to this heading">#</a></h3>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pointing_center</span> <span class="o">=</span> <span class="p">(</span><span class="mf">73.5287496858916</span><span class="p">,</span> <span class="mf">2.961663679507145</span><span class="p">)</span>
-<span class="n">pixel_size</span> <span class="o">=</span> <span class="mf">8.71452898559111e-05</span>
-<span class="n">integration_time</span> <span class="o">=</span> <span class="mi">45</span> <span class="o">*</span> <span class="mf">60.0</span>
-<span class="n">sample_rate</span> <span class="o">=</span> <span class="mi">100</span>
-<span class="n">scan_velocity</span> <span class="o">=</span> <span class="mi">53</span><span class="o">/</span><span class="mi">3600</span>
-
-<span class="n">inputfile</span> <span class="o">=</span> <span class="s2">&quot;../../../data/maps/cluster.fits&quot;</span>
-<span class="n">outfile_tbl</span> <span class="o">=</span> <span class="s2">&quot;/tmp/Cluster_45min_noisy_table.fits&quot;</span>
-<span class="n">outfile_map</span> <span class="o">=</span> <span class="s2">&quot;/tmp/Cluster_45min_noisy_map.fits&quot;</span>
-
-<span class="n">atm_model</span> <span class="o">=</span> <span class="s2">&quot;2d&quot;</span>
-<span class="n">white_noise_level</span> <span class="o">=</span> <span class="mf">2.e-3</span>
-<span class="n">pink_noise_level</span>  <span class="o">=</span> <span class="mf">2.4</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;/lustre/home/jvmarrewijk/eszee/Notebooks/thesis.mplstyle&#39;</span><span class="p">)</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-</section>
-<section id="Initialize">
-<h3>Initialize<a class="headerlink" href="#Initialize" title="Link to this heading">#</a></h3>
-<p>First we need to initialize the telescope and weather conditions</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
-    <span class="c1"># Mandatory minimal weither settings</span>
-    <span class="c1"># ---------------------</span>
-    <span class="n">array</span><span class="o">=</span><span class="s2">&quot;MUSTANG-2&quot;</span><span class="p">,</span>  <span class="c1"># Array type</span>
-    <span class="n">pointing</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>  <span class="c1"># Scanning strategy</span>
-    <span class="n">site</span><span class="o">=</span><span class="s2">&quot;green_bank&quot;</span><span class="p">,</span>  <span class="c1"># Site</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pointing_center</span>  <span class="o">=</span> <span class="p">(</span><span class="mf">260.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">)</span> <span class="c1">#RA and Dec in degrees</span>
 
-    <span class="n">atmosphere_model</span><span class="o">=</span><span class="n">atm_model</span><span class="p">,</span> <span class="c1">#atmospheric model</span>
-    <span class="n">white_noise_level</span><span class="o">=</span><span class="n">white_noise_level</span><span class="p">,</span> <span class="c1">#white noise level</span>
-    <span class="n">pink_noise_level</span><span class="o">=</span><span class="n">pink_noise_level</span><span class="p">,</span> <span class="c1">#pink noise level</span>
+<span class="n">pixel_size</span>       <span class="o">=</span> <span class="mf">0.0009765625</span> <span class="c1"># degree</span>
+<span class="n">integration_time</span> <span class="o">=</span> <span class="mf">8.6</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="c1">#seconds</span>
+<span class="n">FREQ</span>             <span class="o">=</span> <span class="mf">92.0</span> <span class="c1">#GHZ</span>
+
+<span class="n">scanning_speed</span>   <span class="o">=</span> <span class="mf">0.5</span> <span class="c1">#deg/s</span>
+<span class="n">sample_rate</span>      <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">225.</span> <span class="o">*</span> <span class="p">(</span><span class="n">scanning_speed</span><span class="o">/</span><span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">FREQ</span><span class="o">/</span><span class="mf">92.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>  <span class="c1">#Hz</span>
+
+<span class="n">field_of_view</span>    <span class="o">=</span> <span class="mf">0.25</span> <span class="c1"># deg</span>
+<span class="n">scanning_radius</span>  <span class="o">=</span> <span class="n">field_of_view</span>
+<span class="n">ndets</span>            <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mi">3000</span> <span class="o">*</span> <span class="p">(</span><span class="n">field_of_view</span><span class="o">/</span><span class="mf">0.25</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">FREQ</span><span class="o">/</span><span class="mf">92.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">ndets</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">)</span>
+<span class="n">inputfile</span> <span class="o">=</span> <span class="s2">&quot;../../../maps/big_cluster0.fits&quot;</span>
+
+<span class="n">outfile_map</span> <span class="o">=</span> <span class="s1">&#39;/lustre/home/jvmarrewijk/Single_dish_emulator/output/AtLAST_Cluster_</span><span class="si">{}</span><span class="s1">min_noisyTrue_map.fits&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="nb">int</span><span class="p">(</span><span class="n">integration_time</span><span class="o">/</span><span class="mi">60</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">atm_model</span>            <span class="o">=</span> <span class="s2">&quot;2d&quot;</span>    <span class="c1"># The atmospheric model, set to None if you want a noiseless observation.</span>
+<span class="n">white_noise_level</span>    <span class="o">=</span> <span class="mf">5e-5</span>
+<span class="n">pink_noise_level</span>     <span class="o">=</span> <span class="mf">0.05</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+3000.0 225.0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Input figure</span>
+<span class="n">hdu</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+<span class="n">header</span> <span class="o">=</span> <span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+
+<span class="n">wcs_input</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">naxis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
+CLUSTER =../DIANOGA/BH2015/D10 / cluster name                                    [astropy.io.fits.card]
+WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
+OUTTYPE =Comptonization y para / outputtype                                      [astropy.io.fits.card]
+</pre></div></div>
+</div>
+<section id="Fine-Tuning-Simulation-Parameters">
+<h2>Fine-Tuning Simulation Parameters<a class="headerlink" href="#Fine-Tuning-Simulation-Parameters" title="Link to this heading">#</a></h2>
+<p>To make predictions for AtLAST, several adjustments are required. Firstly, we need to change the pointing center. AtLAST is located near the APEX telescope in the southern hemisphere, so we set the pointing center to a Declination of -10. Additionally, we need to chance the atmospheric conditions. The defeault is set to mid-February at 6 am UT, which is an ideal time for observing with MUSTANG-2 on the GBT but not for AtLAST at Chajnantor. To achieve this, we modify the <code class="docutils literal notranslate"><span class="pre">start_time</span></code> key to
+August. This change also necessitates adjusting the Right Ascension (RA) of the pointing to ensure that the source remains above the horizon during the observation.</p>
+<p>Furthermore, we overwrite the field of view to be 2 degrees and set the scan radius of the daisy scan to 1.3 degrees. We also adjust the detector bandwidth to 52 GHz with a total of 2000 detectors, and set a scan period of 120 seconds.</p>
+<p>Now, it’s important to note that we haven’t yet developed a mapper that can handle AtLAST’s large FOV. Most of the contamination will likely be a common mode in the atmosphere, which needs proper Fourier filtering. This aspect is still a work in progress. Therefore, for the time being, we conduct noiseless observations by setting <code class="docutils literal notranslate"><span class="pre">atm_model</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+
+    <span class="c1"># Mandatory weather settings</span>
+    <span class="c1"># ---------------------</span>
+    <span class="n">array</span>    <span class="o">=</span> <span class="s2">&quot;AtLAST&quot;</span><span class="p">,</span>
+    <span class="n">pointing</span> <span class="o">=</span> <span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
+    <span class="n">site</span>     <span class="o">=</span> <span class="s2">&quot;APEX&quot;</span><span class="p">,</span>
+
+    <span class="c1"># Noise settings:</span>
+    <span class="c1"># ----------------</span>
+    <span class="n">atmosphere_model</span>  <span class="o">=</span> <span class="n">atm_model</span><span class="p">,</span>
+    <span class="n">white_noise_level</span> <span class="o">=</span> <span class="n">white_noise_level</span><span class="p">,</span>
+    <span class="n">pink_noise_level</span>  <span class="o">=</span> <span class="n">pink_noise_level</span><span class="p">,</span>
+    <span class="n">pwv_rms_frac</span>      <span class="o">=</span> <span class="mf">0.07</span><span class="p">,</span>
 
     <span class="c1"># True sky input</span>
     <span class="c1"># ---------------------</span>
-    <span class="n">map_file</span><span class="o">=</span><span class="n">inputfile</span><span class="p">,</span>          <span class="c1"># Input files must be a fits file.</span>
-    <span class="n">map_units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">,</span>        <span class="c1"># Units of the input map in Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel</span>
-    <span class="n">map_res</span><span class="o">=</span><span class="n">pixel_size</span><span class="p">,</span>          <span class="c1"># resolution of the map</span>
-    <span class="n">map_center</span><span class="o">=</span><span class="n">pointing_center</span><span class="p">,</span>  <span class="c1"># RA &amp; Dec in degree</span>
-    <span class="n">map_freqs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">93</span><span class="p">],</span>
+    <span class="n">map_file</span>   <span class="o">=</span> <span class="n">inputfile</span><span class="p">,</span>
+    <span class="n">map_units</span>  <span class="o">=</span> <span class="s2">&quot;Jy/pixel&quot;</span><span class="p">,</span>
+    <span class="n">map_res</span>    <span class="o">=</span> <span class="n">pixel_size</span><span class="p">,</span>
+    <span class="n">map_center</span> <span class="o">=</span> <span class="n">pointing_center</span><span class="p">,</span>
+    <span class="n">map_freqs</span>  <span class="o">=</span> <span class="p">[</span><span class="n">FREQ</span><span class="p">],</span>
 
-    <span class="c1"># MUSTANG-2 Observational setup</span>
-    <span class="c1"># ----------------------------s</span>
-    <span class="n">scan_options</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;radius&quot;</span><span class="p">:</span>  <span class="mf">4.0</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">,</span>  <span class="c1"># The radius of the Daisy scan in degrees</span>
-        <span class="s2">&quot;speed&quot;</span><span class="p">:</span>  <span class="n">scan_velocity</span> <span class="c1"># scan velocity in when the scan goes through the center deg/s</span>
-    <span class="p">},</span>
+    <span class="c1"># AtLAST Observational setup</span>
+    <span class="c1"># ----------------------------</span>
+    <span class="n">integration_time</span> <span class="o">=</span> <span class="n">integration_time</span><span class="p">,</span>
+    <span class="n">sample_rate</span>      <span class="o">=</span> <span class="n">sample_rate</span><span class="p">,</span>
+    <span class="n">scan_center</span>      <span class="o">=</span> <span class="n">pointing_center</span><span class="p">,</span>
+    <span class="n">start_time</span>       <span class="o">=</span> <span class="s2">&quot;2022-08-01T23:00:00&quot;</span><span class="p">,</span>
+    <span class="n">pointing_frame</span>   <span class="o">=</span> <span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
 
-    <span class="n">integration_time</span><span class="o">=</span><span class="n">integration_time</span><span class="p">,</span>  <span class="c1"># Seconds</span>
-    <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span>  <span class="c1"># Hz</span>
-    <span class="n">scan_center</span><span class="o">=</span><span class="n">pointing_center</span><span class="p">,</span>  <span class="c1"># Degrees</span>
-    <span class="n">pointing_frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>  <span class="c1"># Frame</span>
-    <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2022-02-11T23:00:00&quot;</span><span class="p">,</span> <span class="c1"># observation date</span>
-    <span class="n">pwv_rms_frac</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="c1">#level of atmospheric fluctuations</span>
-    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">field_of_view</span>    <span class="o">=</span> <span class="n">field_of_view</span><span class="p">,</span>
+    <span class="n">detector_config</span>  <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;f090&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">ndets</span><span class="p">,</span>
+                                 <span class="s2">&quot;band_center&quot;</span><span class="p">:</span> <span class="n">FREQ</span><span class="p">,</span>
+                                 <span class="s2">&quot;band_width&quot;</span><span class="p">:</span> <span class="mf">52.0</span>
+                                <span class="p">}</span>
+                       <span class="p">},</span>
+
+    <span class="n">scan_options</span>     <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;speed&quot;</span><span class="p">:</span>  <span class="n">scanning_speed</span><span class="p">,</span>
+                        <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">scanning_radius</span><span class="p">,</span>
+                        <span class="s2">&quot;petals&quot;</span><span class="p">:</span> <span class="mf">2.11</span>
+                       <span class="p">},</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -314,15 +368,14 @@ the TODs produced combine elements of the real sky, atmospheric effects. This ap
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Initializing atmospheric layers: 4it [00:22,  5.74s/it]
+WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
+CLUSTER =../DIANOGA/BH2015/D10 / cluster name                                    [astropy.io.fits.card]
+WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
+OUTTYPE =Comptonization y para / outputtype                                      [astropy.io.fits.card]
 </pre></div></div>
 </div>
-</section>
-<section id="Obtaining-time-ordered-data-(TODs)">
-<h3>Obtaining time-ordered data (TODs)<a class="headerlink" href="#Obtaining-time-ordered-data-(TODs)" title="Link to this heading">#</a></h3>
-<p>To acquire time-ordered data (TODs), you only need to run the script. The TOD object contains time stamps, coordinates (in RA and Dec), and the intensity of each scan for every detector. The intensity units are consistently expressed in surface brightness temperature units: Kelvin Rayleigh-Jeans (Even if the input map is given in Jy/pixel. We convert the units under the hood).</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -332,70 +385,23 @@ Initializing atmospheric layers: 4it [00:22,  5.74s/it]
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
+<div class="output_area docutils container">
 <div class="highlight"><pre>
-Generating atmosphere at 5000m: 100%|██████████| 4/4 [01:48&lt;00:00, 27.22s/it]
-Sampling atmosphere for band 93GHz: 100%|██████████| 1/1 [00:22&lt;00:00, 22.96s/it]
-Sampling map at 93 GHz: 100%|██████████| 1/1 [00:29&lt;00:00, 29.71s/it]
+ran atmospheric simulation in 347.7 seconds
 </pre></div></div>
 </div>
-<p>The above class generates a synthethic TOD. However, if you would rather use a real tod, such as for instance those from MUSTANG-2 observations. You can also run the following set of commands (for now commented out):</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># fname = &quot;/Users/jvanmarr/Documents/Papers/mock_obs/sims/data/Signal_TOD-AGBT21B_206_01-s12.fits&quot;</span>
-
-<span class="c1"># tod = TOD()</span>
-<span class="c1"># tod.from_fits(filename=fname, format=&quot;MUSTANG-2&quot;)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># tod.to_fits(outfile_table)</span>
 </pre></div>
 </div>
 </div>
 </section>
-<section id="Usefull-visualizations:">
-<h3>Usefull visualizations:<a class="headerlink" href="#Usefull-visualizations:" title="Link to this heading">#</a></h3>
-<p>Before proceeding, we first need to adjust the input sky as specified in the Simulation class above.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Input figure</span>
-<span class="n">hdu</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
-<span class="n">hdu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">hdu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
-<span class="n">header</span> <span class="o">=</span> <span class="n">hdu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
-
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CDELT1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pixel_size</span>  <span class="c1"># degree</span>
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CDELT2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pixel_size</span>  <span class="c1"># degree</span>
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CTYPE1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;RA---SIN&quot;</span>
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CUNIT1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;deg     &quot;</span>
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CTYPE2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;DEC--SIN&quot;</span>
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CUNIT2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;deg     &quot;</span>
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CRVAL1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">header</span><span class="p">[</span><span class="s2">&quot;CRVAL2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-
-<span class="n">wcs_input</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">naxis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p>Now, let’s visualize the scanning strategy and the TOD. The top two panels display the scanning trajectory in the elevation and azimuthal plane, while on the right, we present it on the celestial plane. This allows you to check if the scanning pattern aligns with the astronomical source.</p>
-<p>The two bottom panels show the mean powerspectra and time series of the observations.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-dict_keys([&#39;noise&#39;, &#39;atmosphere&#39;, &#39;map&#39;])
-</pre></div></div>
-</div>
+<section id="Visualizing-the-TOD-Data">
+<h2>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">#</a></h2>
+<p>In this section, we present the same array and TOD visualizations as in the MUSTANG-2 case, but this time for AtLAST:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -415,7 +421,7 @@ dict_keys([&#39;noise&#39;, &#39;atmosphere&#39;, &#39;map&#39;])
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;az (deg)&quot;</span><span class="p">),</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;el (deg)&quot;</span><span class="p">)</span>
 
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">wcs_input</span><span class="p">)</span>
-<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
 
 <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">coords</span>
 <span class="n">ra</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="s2">&quot;hh:mm:ss&quot;</span><span class="p">)</span>
@@ -438,27 +444,26 @@ dict_keys([&#39;noise&#39;, &#39;atmosphere&#39;, &#39;map&#39;])
 <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Raw time streams&#39;</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">8</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">1e11</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">i</span><span class="p">),</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">1.2e-1</span><span class="p">,</span><span class="mf">1e-2</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;y = f$^{-(8/3)}$&quot;</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">rotation</span> <span class="o">=</span> <span class="o">-</span><span class="mi">64</span><span class="p">)</span>
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Real&quot;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
     <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;map&#39;</span><span class="p">:</span>
         <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{f}</span><span class="s2">$ [Hz]&quot;</span><span class="p">),</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{P}</span><span class="s2">_{\rm Hz}[K_{\rm RJ}^2~{\rm Hz}^{-1}]$&quot;</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="mf">1e-11</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">)</span>
-
-
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="mf">1e-16</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">)</span>
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [minutes]&#39;</span><span class="p">),</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;$I_\nu$ [$K_{\rm RJ}$]&#39;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">tod</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Real&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">tod</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Real&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -467,37 +472,45 @@ dict_keys([&#39;noise&#39;, &#39;atmosphere&#39;, &#39;map&#39;])
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_18_0.png" src="../_images/tutorials_MUSTANG-2_cluster_18_0.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_11_0.png" src="../_images/tutorials_AtLAST_cluster_11_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_18_1.png" src="../_images/tutorials_MUSTANG-2_cluster_18_1.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_11_1.png" src="../_images/tutorials_AtLAST_cluster_11_1.png" />
 </div>
 </div>
-</section>
-</section>
-<section id="Mapping-the-TODs">
-<h2>Mapping the TODs<a class="headerlink" href="#Mapping-the-TODs" title="Link to this heading">#</a></h2>
-<p>To transform the TODs into images, you’ll require a mapper. While you have the option to create your custom mapper using the saved TODs, we have also included a pre-implemented choice for your convenience. This built-in mapper follows a straightforward approach: it first fourier fitlers the time-streams to remove any noise smaller than the resolution of the dish and larger than the FOV. You can turn this filtering of by setting <code class="docutils literal notranslate"><span class="pre">map_filter=False</span></code>. Then, we also remove the common mode in the
-timestream. We do this by removing the first eigenmode (set by <code class="docutils literal notranslate"><span class="pre">n_modes_to_remove=1</span></code>). Then, the mapper structures the TOD on the specified grid. Notably, the mapper is designed to effectively eliminate correlated atmospheric noise among different scans, thereby enhancing the quality of the resulting images.</p>
-<p>An example of how to run the mapper on the TOD is as follows:</p>
+<section id="Map-Making">
+<h3>Map-Making<a class="headerlink" href="#Map-Making" title="Link to this heading">#</a></h3>
+<p>As previously mentioned, we must disable Fourier filtering. Additionally, we have adjusted the height and width of the map to match the realistic AtLAST field of view, which spans several degrees.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># scan velocity</span>
+<span class="n">fov</span>               <span class="o">=</span> <span class="p">(</span><span class="n">field_of_view</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">arcsec</span><span class="p">)</span>
+<span class="n">scn_velocity</span>      <span class="o">=</span> <span class="n">scanning_speed</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span>
+<span class="n">filter_freq</span>       <span class="o">=</span> <span class="p">(</span><span class="n">scn_velocity</span><span class="o">/</span><span class="n">fov</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">boresight</span><span class="o">.</span><span class="n">center_ra</span><span class="p">,</span> <span class="n">tod</span><span class="o">.</span><span class="n">boresight</span><span class="o">.</span><span class="n">center_dec</span><span class="p">),</span>
                    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
-                   <span class="n">width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">10.</span><span class="o">/</span><span class="mf">60.</span><span class="p">),</span>
-                   <span class="n">height</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">10.</span><span class="o">/</span><span class="mf">60.</span><span class="p">),</span>
-                   <span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">2.</span><span class="o">/</span><span class="mf">3600.</span><span class="p">),</span>
+                   <span class="n">width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span>
+                   <span class="n">height</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span>
+                   <span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">4.</span><span class="o">/</span><span class="mf">3600.</span><span class="p">),</span>
+                   <span class="n">smoothing</span><span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
                    <span class="n">degrees</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                    <span class="n">filter_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                   <span class="n">ffilter</span> <span class="o">=</span> <span class="mf">0.08</span><span class="p">,</span>
+                   <span class="n">ffilter</span> <span class="o">=</span><span class="n">filter_freq</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
                    <span class="n">n_modes_to_remove</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                   <span class="p">)</span>
 
@@ -506,9 +519,8 @@ timestream. We do this by removing the first eigenmode (set by <code class="docu
 </pre></div>
 </div>
 </div>
-<p>The mapper utilizes the array information specified in the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class. Below, I show the detector positions in the plane of the sky. The adjacent figure illustrates how many times a detector passed over a pixel on the map, which is related to map sensitivity and the specialized scanning strategy mentioned earlier.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
@@ -558,6 +570,7 @@ timestream. We do this by removing the first eigenmode (set by <code class="docu
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\theta_x$ (arcmin)&quot;</span><span class="p">),</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\theta_y$ (arcmin)&quot;</span><span class="p">)</span>
 <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Counts&quot;</span><span class="p">)</span>
+
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -566,33 +579,26 @@ timestream. We do this by removing the first eigenmode (set by <code class="docu
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_22_0.png" src="../_images/tutorials_MUSTANG-2_cluster_22_0.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_15_0.png" src="../_images/tutorials_AtLAST_cluster_15_0.png" />
 </div>
 </div>
 </section>
-<section id="Visualizing-the-maps">
-<h2>Visualizing the maps<a class="headerlink" href="#Visualizing-the-maps" title="Link to this heading">#</a></h2>
-<p>As interesting as the detector setup, power spectra, and time series are, the goal of this module is to create synthetic images. In order to do that, we first save the maps to fits files, simply by running <code class="docutils literal notranslate"><span class="pre">mapper.save_maps()</span></code>. This will output the fits and update the header according to the newly set observations. The units of the fits file are the same as specified in the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class, so in Jy/pixel or in Kelvin Rayleigh Jeans. The saved fits file is a cube with axis (number of
-bands, pixels, pixels).</p>
+<section id="Save-&amp;-Visualize">
+<h3>Save &amp; Visualize<a class="headerlink" href="#Save-&-Visualize" title="Link to this heading">#</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span><span class="o">.</span><span class="n">save_maps</span><span class="p">(</span><span class="n">outfile_map</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<p>Below, we will visualize the maps we made, this is the final product.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sky_l</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span>
-    <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span> <span class="o">/</span> <span class="mi">60</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
-<span class="p">)</span>
-<span class="n">sky_u</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span>
-    <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">2.5</span> <span class="o">/</span> <span class="mi">60</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">2.5</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sky_l</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">((</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+<span class="n">sky_u</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">((</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">forward</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -601,8 +607,8 @@ bands, pixels, pixels).</p>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">wcs_input</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;True Sky&quot;</span><span class="p">)</span>
 <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-    <span class="n">hdu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">,</span>
-    <span class="n">vmin</span><span class="o">=-</span><span class="mf">0.4</span><span class="p">,</span>
+    <span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">),</span>
     <span class="n">vmax</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">cmap</span><span class="o">=</span><span class="n">cmocean</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">deep</span><span class="p">,</span>
 <span class="p">)</span>
@@ -623,6 +629,8 @@ bands, pixels, pixels).</p>
 <span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
+<span class="nb">print</span><span class="p">(</span><span class="n">outfile_map</span><span class="p">)</span>
+
 <span class="c1"># - Plot Mock observation</span>
 <span class="n">outputfile</span> <span class="o">=</span> <span class="n">outfile_map</span>
 
@@ -634,13 +642,19 @@ bands, pixels, pixels).</p>
 <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">forward</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">wcs_output</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Synthetic Observation&quot;</span><span class="p">)</span>
 
-<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-    <span class="n">hdu_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">mapper</span><span class="o">.</span><span class="n">res</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mi">4</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">4</span>
-<span class="p">)</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">hdu_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">mapper</span><span class="o">.</span><span class="n">res</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+      <span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
+      <span class="n">vmax</span><span class="o">=-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
+              <span class="p">)</span>
+
+<span class="c1"># im = ax.imshow(hdu_out[0].data[0]*1e6, cmap=cmap,</span>
+<span class="c1">#       vmin=-3*np.nanstd(hdu_out[0].data[0] * 1e6),</span>
+<span class="c1">#       vmax=3*np.nanstd(hdu_out[0].data[0] * 1e6),</span>
+<span class="c1"># )</span>
 
 <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="c1"># cbar.set_label(r&quot;$I_\nu$ $[\mu K_{RJ}]$&quot;)</span>
 <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;S$_{93~\rm GHz}$ [MJy/sr]&quot;</span><span class="p">)</span>
 
 <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">coords</span>
@@ -653,10 +667,8 @@ bands, pixels, pixels).</p>
 <span class="n">pixel_sky_l</span> <span class="o">=</span> <span class="n">wcs_output</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky_l</span><span class="p">)</span>
 <span class="n">pixel_sky_u</span> <span class="o">=</span> <span class="n">wcs_output</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky_u</span><span class="p">)</span>
 
-<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span>
-    <span class="n">xmin</span><span class="o">=</span><span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymin</span><span class="o">=</span><span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xmax</span><span class="o">=</span><span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymax</span><span class="o">=</span><span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="p">)</span>
-
+<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span> <span class="o">=</span> <span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymin</span> <span class="o">=</span> <span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;/lustre/home/jvmarrewijk/Single_dish_emulator/paper_plots/AtLAST_noiesemap.pdf&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -665,16 +677,44 @@ bands, pixels, pixels).</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_26_0.png" src="../_images/tutorials_MUSTANG-2_cluster_26_0.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_18_0.png" src="../_images/tutorials_AtLAST_cluster_18_0.png" />
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+/lustre/home/jvmarrewijk/Single_dish_emulator/output/AtLAST_Cluster_8min_noisyTrue_map.fits
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
+CLUSTER =../DIANOGA/BH2015/D10 / cluster name                                    [astropy.io.fits.card]
+WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
+OUTTYPE =Comptonization y para / outputtype                                      [astropy.io.fits.card]
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_26_1.png" src="../_images/tutorials_MUSTANG-2_cluster_26_1.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_18_3.png" src="../_images/tutorials_AtLAST_cluster_18_3.png" />
 </div>
 </div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
 </section>
 </section>
 
@@ -683,23 +723,23 @@ bands, pixels, pixels).</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="AtLAST_cluster.html">
+          <a class="next-page" href="AtLAST_galaxy.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">AtLAST Predictions</div>
+                <div class="title">AtLAST extragalactic observations</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../tutorials.html">
+          <a class="prev-page" href="MUSTANG-2_cluster.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Tutorials</div>
+                <div class="title">Mock Observations with MUSTANG-2</div>
                 
               </div>
             </a>
@@ -733,16 +773,13 @@ bands, pixels, pixels).</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Mock Observations with MUSTANG-2</a><ul>
-<li><a class="reference internal" href="#Setting-up-a-MUSTANG-2-Simulation">Setting up a MUSTANG-2 Simulation</a><ul>
-<li><a class="reference internal" href="#Hyper-params">Hyper params</a></li>
-<li><a class="reference internal" href="#Initialize">Initialize</a></li>
-<li><a class="reference internal" href="#Obtaining-time-ordered-data-(TODs)">Obtaining time-ordered data (TODs)</a></li>
-<li><a class="reference internal" href="#Usefull-visualizations:">Usefull visualizations:</a></li>
+<li><a class="reference internal" href="#">AtLAST Predictions</a><ul>
+<li><a class="reference internal" href="#Fine-Tuning-Simulation-Parameters">Fine-Tuning Simulation Parameters</a></li>
+<li><a class="reference internal" href="#Visualizing-the-TOD-Data">Visualizing the TOD Data</a><ul>
+<li><a class="reference internal" href="#Map-Making">Map-Making</a></li>
+<li><a class="reference internal" href="#Save-&amp;-Visualize">Save &amp; Visualize</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#Mapping-the-TODs">Mapping the TODs</a></li>
-<li><a class="reference internal" href="#Visualizing-the-maps">Visualizing the maps</a></li>
 </ul>
 </li>
 </ul>
