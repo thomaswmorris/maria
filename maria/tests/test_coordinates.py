@@ -1,18 +1,23 @@
 import numpy as np
 import pytest
 
-from ..utils.coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
+from ..coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
 
 
 def test_offsets_transform():
-    # test that the inverse works
-    center_phi, center_theta = 3 * np.pi / 4, np.pi / 3
-    phi, theta = dx_dy_to_phi_theta(0, np.radians(1), np.radians(130), np.radians(40))
-    assert np.isclose(np.degrees(phi), 130) and np.isclose(np.degrees(theta), 41)
+    OFFSETS_SIZE = 256
 
-    # test that the inverse works
-    in_dx, in_dy = 1e-2 * np.random.standard_normal(size=(2, 100))
-    phi, theta = dx_dy_to_phi_theta(in_dx, in_dy, center_phi, center_theta)
-    out_dx, out_dy = phi_theta_to_dx_dy(phi, theta, center_phi, center_theta)
-    assert np.isclose(in_dx, out_dx, atol=1e-6).all()
-    assert np.isclose(in_dy, out_dy, atol=1e-6).all()
+    for cphi in np.random.uniform(low=0, high=2 * np.pi, size=16):
+        for ctheta in np.random.uniform(low=-np.pi / 2, high=np.pi / 2, size=16):
+            dx = np.radians(
+                60 * np.random.uniform(low=-0.5, high=+0.5, size=OFFSETS_SIZE)
+            )
+            dy = np.radians(
+                60 * np.random.uniform(low=-0.5, high=+0.5, size=OFFSETS_SIZE)
+            )
+
+            _phi, _theta = dx_dy_to_phi_theta(dx, dy, cphi, ctheta)
+            _dx, _dy = phi_theta_to_dx_dy(_phi, _theta, cphi, ctheta)
+
+            assert (dx - _dx).std() < 1e-8
+            assert (dy - _dy).std() < 1e-8

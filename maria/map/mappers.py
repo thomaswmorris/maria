@@ -248,13 +248,8 @@ class BinMapper(BaseMapper):
                 self.map_sums[band] += map_sum
                 self.map_cnts[band] += map_cnt
 
-            self.band_data[band]["nom_freq"] = tod.dets.loc[
-                band_mask, "band_center"
-            ].mean()
-
-            self.band_data[band]["nom_freqwidth"] = tod.dets.loc[
-                band_mask, "band_width"
-            ].mean()
+            self.band_data[band]["nom_freq"] = tod.dets.bands[band].center
+            self.band_data[band]["nom_freqwidth"] = tod.dets.bands[band].width
 
             mask = self.map_cnts[band] > 0
             self.map_data[iband] = np.where(

@@ -8,34 +8,34 @@ import numpy as np
 import pandas as pd
 import pytz
 
-from . import utils
-from .coords import FRAMES
+from .. import coords, utils
+from . import patterns
 
 here, this_filename = os.path.split(__file__)
 
-POINTING_CONFIGS = utils.io.read_yaml(f"{here}/configs/pointings.yml")
-POINTING_PARAMS = set()
-for key, config in POINTING_CONFIGS.items():
-    POINTING_PARAMS |= set(config.keys())
-supported_pointings_table = pd.DataFrame(POINTING_CONFIGS).T
-all_pointings = list(supported_pointings_table.index.values)
+pointing_configs = utils.io.read_yaml(f"{here}/pointings.yml")
+pointing_params = set()
+for key, config in pointing_configs.items():
+    pointing_params |= set(config.keys())
+pointing_data = pd.DataFrame(pointing_configs).T
+all_pointings = list(pointing_data.index.values)
 
 
 class UnsupportedPointingError(Exception):
     def __init__(self, invalid_pointing):
         super().__init__(
-            f"The site '{invalid_pointing}' is not in the database of default pointings. "
-            f"Default pointings are:\n\n{supported_pointings_table.to_string()}"
+            f"""The site '{invalid_pointing}' is not in the database of default pointings."""
+            f"""Default pointings are:\n\n{pointing_data.to_string()}"""
         )
 
 
 def get_pointing_config(scan_pattern="stare", **kwargs):
-    if scan_pattern not in POINTING_CONFIGS.keys():
+    if scan_pattern not in pointing_configs.keys():
         raise UnsupportedPointingError(scan_pattern)
-    POINTING_CONFIG = POINTING_CONFIGS[scan_pattern].copy()
+    pointing_config = pointing_configs[scan_pattern].copy()
     for k, v in kwargs.items():
-        POINTING_CONFIG[k] = v
-    return POINTING_CONFIG
+        pointing_config[k] = v
+    return pointing_config
 
 
 def get_pointing(scan_pattern="stare", **kwargs):
@@ -68,7 +68,7 @@ class Pointing:
             "integration_time" not in kwargs.keys()
         ):
             raise ValueError(
-                'One of "end_time" or "integration_time" must be in the pointing kwargs.'
+                """One of 'end_time' or 'integration_time' must be in the pointing kwargs."""
             )
 
     def __post_init__(self):
@@ -76,7 +76,7 @@ class Pointing:
 
         self.scan_center = tuple(self.scan_center)
 
-        for k, v in POINTING_CONFIGS[self.scan_pattern]["scan_options"].items():
+        for k, v in pointing_configs[self.scan_pattern]["scan_options"].items():
             if k not in self.scan_options.keys():
                 self.scan_options[k] = v
 
@@ -95,7 +95,7 @@ class Pointing:
         self.n_time = len(self.time)
 
         # this is in pointing_units
-        x_scan_offsets, y_scan_offsets = getattr(utils.pointing, self.scan_pattern)(
+        x_scan_offsets, y_scan_offsets = getattr(patterns, self.scan_pattern)(
             integration_time=self.integration_time,
             sample_rate=self.sample_rate,
             **self.scan_options,
@@ -117,7 +117,7 @@ class Pointing:
             x_scan_offsets_radians, y_scan_offsets_radians
         ].T
 
-        self.phi, self.theta = utils.coords.dx_dy_to_phi_theta(
+        self.phi, self.theta = coords.dx_dy_to_phi_theta(
             *self.scan_offsets_radians, *self.scan_center_radians
         )
         if self.pointing_frame == "ra_dec":
@@ -152,8 +152,8 @@ class Pointing:
         pointing_units = "deg." if self.degrees else "rad."
 
         label = (
-            f'{FRAMES[self.pointing_frame]["phi_name"]} = {center_phi} {pointing_units}'
-            f'\n{FRAMES[self.pointing_frame]["theta_name"]} = {center_theta} {pointing_units}'
+            f"""{coords.frames[self.pointing_frame]['phi_name']} = {center_phi} {pointing_units}"""
+            f"""{coords.frames[self.pointing_frame]['theta_name']} = {center_theta} {pointing_units}"""
         )
 
         ax.plot(dx, dy, lw=5e-1)

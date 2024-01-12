@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from .. import utils
+from .. import coords, utils
 from ..base import BaseSimulation
 from .spectra import AtmosphericSpectrum
 from .turbulent_layer import TurbulentLayer  # noqa F401
@@ -123,7 +123,7 @@ class AtmosphereMixin:
 
     @property
     def EL(self):
-        return utils.coords.dx_dy_to_phi_theta(
+        return coords.dx_dy_to_phi_theta(
             self.array.offset_x[:, None],
             self.array.offset_y[:, None],
             self.boresight.az,
@@ -139,12 +139,15 @@ class AtmosphereMixin:
                 (self.array.n_dets, self.pointing.n_time), dtype=np.float32
             )
 
-            pbar = tqdm(self.array.ubands)
+            ubands = self.array.ubands
+            if self.verbose:
+                ubands = tqdm(ubands)
 
-            for band in pbar:
-                pbar.set_description(f"Sampling atmosphere for band {band}")
+            for band in ubands:
+                if self.verbose:
+                    ubands.set_description(f"Sampling atmosphere for band {band}")
                 # for uband in self.array.ubands:
-                band_mask = self.array.dets.band.values == band
+                band_mask = self.array.dets.band == band
 
                 det_nu_samples = np.linspace(
                     self.array.band_min[band_mask], self.array.band_max[band_mask], 64

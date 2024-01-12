@@ -11,7 +11,8 @@ import pandas as pd
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from . import utils
+from .. import utils
+from .dets import Detectors
 
 HEX_CODE_LIST = [
     mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
@@ -23,9 +24,9 @@ HEX_CODE_LIST = [
 
 here, this_filename = os.path.split(__file__)
 
-all_array_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")["array"]
+all_array_params = utils.io.read_yaml(f"{here}/../configs/default_params.yml")["array"]
 
-ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/configs/arrays.yml")
+ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/arrays.yml")
 
 DISPLAY_COLUMNS = ["array_description", "field_of_view", "primary_size", "bands"]
 array_data = pd.DataFrame(ARRAY_CONFIGS).T
@@ -42,7 +43,7 @@ for array_name, config in ARRAY_CONFIGS.items():
     )
 array_data.loc[:, "bands"] = band_lists
 
-all_arrays = list(array_data.index.values)
+all_arrays = list(array_data.index)
 
 
 class InvalidArrayError(Exception):
@@ -51,49 +52,6 @@ class InvalidArrayError(Exception):
             f"The array '{invalid_array}' is not supported."
             f"Supported arrays are:\n\n{array_data.loc[:, DISPLAY_COLUMNS].__repr__()}"
         )
-
-
-def generate_array_offsets(geometry, field_of_view, n):
-    valid_array_types = ["flower", "hex", "square"]
-
-    if geometry == "flower":
-        phi = np.pi * (3.0 - np.sqrt(5.0))  # golden angle in radians
-        dzs = np.zeros(n).astype(complex)
-        for i in range(n):
-            dzs[i] = np.sqrt((i / (n - 1)) * 2) * np.exp(1j * phi * i)
-        od = np.abs(np.subtract.outer(dzs, dzs))
-        dzs *= field_of_view / od.max()
-        return np.c_[np.real(dzs), np.imag(dzs)]
-    if geometry == "hex":
-        return generate_hex_offsets(n, field_of_view)
-    if geometry == "square":
-        dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (
-            2 * np.sqrt(2)
-        )
-        DX, DY = np.meshgrid(dxy_, dxy_)
-        return np.c_[DX.ravel()[:n], DY.ravel()[:n]]
-
-    raise ValueError(
-        "Please specify a valid array type. Valid array types are:\n"
-        + "\n".join(valid_array_types)
-    )
-
-
-def generate_hex_offsets(n, d):
-    angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
-    zs = np.array([0])
-    layer = 0
-    while len(zs) < n:
-        for angle in angles:
-            for z in layer * np.exp(1j * angle) + np.arange(layer) * np.exp(
-                1j * (angle + 2 * np.pi / 3)
-            ):
-                zs = np.append(zs, z)
-        layer += 1
-    zs -= zs.mean()
-    zs *= 0.5 * d / np.abs(zs).max()
-
-    return np.c_[np.real(np.array(zs[:n])), np.imag(np.array(zs[:n]))]
 
 
 def get_array_config(array_name=None, **kwargs):
@@ -114,65 +72,6 @@ def get_array(array_name="default", **kwargs):
     """
     array_config = get_array_config(array_name=array_name, **kwargs)
     return Array.from_config(array_config)
-
-
-REQUIRED_DET_CONFIG_KEYS = ["n", "band_center", "band_width"]
-
-
-def generate_dets_from_config(
-    bands: Mapping,
-    field_of_view: float,
-    geometry: str = "hex",
-    baseline: float = 0,
-    randomize_offsets: bool = True,
-):
-    dets = pd.DataFrame(
-        columns=[
-            "band",
-            "band_center",
-            "band_width",
-            "offset_x",
-            "offset_y",
-            "baseline_x",
-            "baseline_y",
-        ],
-        dtype=float,
-    )
-
-    for band, band_config in bands.items():
-        if not all(key in band_config.keys() for key in REQUIRED_DET_CONFIG_KEYS):
-            raise ValueError(f"Each band must have keys {REQUIRED_DET_CONFIG_KEYS}")
-
-        band_dets = pd.DataFrame(index=np.arange(band_config["n"]))
-        band_dets.loc[:, "band"] = band
-        band_dets.loc[:, "band_center"] = band_config["band_center"]
-        band_dets.loc[:, "band_width"] = band_config["band_width"]
-
-        det_offsets_radians = np.radians(
-            generate_array_offsets(geometry, field_of_view, len(band_dets))
-        )
-
-        # should we make another function for this?
-        det_baselines_meters = generate_array_offsets(
-            geometry, baseline, len(band_dets)
-        )
-
-        # if randomize_offsets:
-        #     np.random.shuffle(offsets_radians)  # this is a stupid function.
-
-        band_dets.loc[:, "offset_x"] = det_offsets_radians[:, 0]
-        band_dets.loc[:, "offset_y"] = det_offsets_radians[:, 1]
-        band_dets.loc[:, "baseline_x"] = det_baselines_meters[:, 0]
-        band_dets.loc[:, "baseline_y"] = det_baselines_meters[:, 1]
-        band_dets.loc[:, "baseline_z"] = 0
-
-        dets = pd.concat([dets, band_dets])
-        dets.index = np.arange(len(dets))
-
-    for key in ["offset_x", "offset_y", "baseline_x", "baseline_y"]:
-        dets.loc[:, key] = dets.loc[:, key].astype(float)
-
-    return dets
 
 
 @dataclass
@@ -205,15 +104,15 @@ class Array:
 
     @property
     def ubands(self):
-        return np.unique(self.dets.band)
+        return self.dets.ubands
 
     @property
     def offset_x(self):
-        return self.dets.offset_x.values
+        return self.dets.offset_x
 
     @property
     def offset_y(self):
-        return self.dets.offset_y.values
+        return self.dets.offset_y
 
     @property
     def offsets(self):
@@ -221,11 +120,11 @@ class Array:
 
     @property
     def baseline_x(self):
-        return self.dets.baseline_x.values
+        return self.dets.baseline_x
 
     @property
     def baseline_y(self):
-        return self.dets.baseline_y.values
+        return self.dets.baseline_y
 
     @property
     def baselines(self):
@@ -237,7 +136,7 @@ class Array:
             field_of_view = config.get("field_of_view", 1)
             geometry = config.get("geometry", "hex")
             baseline = config.get("baseline", 0)  # default to zero baseline
-            dets = generate_dets_from_config(
+            dets = Detectors.generate(
                 bands=config["detector_config"],
                 field_of_view=field_of_view,
                 geometry=geometry,
@@ -266,22 +165,22 @@ class Array:
 
     @property
     def n_dets(self):
-        return len(self.dets)
+        return self.dets.n
 
     @property
     def band_min(self):
-        return (self.dets.band_center - 0.5 * self.dets.band_width).values
+        return self.dets.band_center - 0.5 * self.dets.band_width
 
     @property
     def band_max(self):
-        return (self.dets.band_center + 0.5 * self.dets.band_width).values
+        return self.dets.band_center + 0.5 * self.dets.band_width
 
     @property
     def fwhm(self):
         """
         Returns the angular FWHM (in radians) at infinite distance.
         """
-        nu = self.dets.band_center.values  # in GHz
+        nu = self.dets.band_center  # in GHz
         return utils.beam.angular_fwhm(
             z=np.inf, fwhm_0=self.primary_size, n=1, f=1e9 * nu
         )
@@ -296,7 +195,7 @@ class Array:
         """
         Angular beam width (in radians) as a function of depth (in meters)
         """
-        nu = self.dets.band_center.values  # in GHz
+        nu = self.dets.band_center  # in GHz
         return utils.beam.angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, f=1e9 * nu)
 
     def passbands(self, nu):
@@ -310,11 +209,11 @@ class Array:
         return nu_mask.astype(float) / nu_mask.sum(axis=-1)[:, None]
 
     def plot_dets(self, units="deg"):
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=256)
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=160)
 
         legend_handles = []
         for iub, uband in enumerate(self.ubands):
-            band_mask = self.dets.band.values == uband
+            band_mask = self.dets.band == uband
 
             fwhm = np.degrees(self.fwhm[band_mask])
             offsets = np.degrees(self.offsets[band_mask])

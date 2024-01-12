@@ -20,11 +20,15 @@ master_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")
 class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
     """A simulation! This is what users should touch, primarily."""
 
+    @classmethod
+    def from_config(cls, config: dict = {}, **params):
+        return cls(**params)
+
     def __init__(
         self,
         array: str or Array = "default",
-        pointing: str or Pointing = "default",
-        site: str or Site = "default",
+        pointing: str or Pointing = "stare",
+        site: str or Site = "hoagie_haven",
         verbose: bool = True,
         **kwargs,
     ):

@@ -4,11 +4,60 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 
-from .utils.coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
+
+def dx_dy_to_phi_theta(dx, dy, cphi, ctheta):
+    """
+    A fast and well-conditioned to convert from local dx/dy coordinates to phi/theta coordinates.
+    """
+
+    if not dx.shape == dy.shape:
+        raise ValueError(
+            f"The shapes of 'dx' and 'dy' must be the same. Got shapes {np.shape(dx)} and {np.shape(dy)}"
+        )
+
+    r = np.sqrt(dx**2 + dy**2)  # distance from the center
+    p = np.arctan2(dx, -dy)  # 0 at the bottom, increases CCW to pi at the top
+
+    # if we're looking at the north pole, we have (lon, lat) = (p, pi/2 - r)
+    # a projection looking from the east
+    proj_from_east = (np.sin(r) * np.cos(p) + 1j * np.cos(r)) * np.exp(
+        1j * (ctheta - np.pi / 2)
+    )
+    phi = cphi + np.arctan2(np.sin(r) * np.sin(p), np.real(proj_from_east))
+    theta = np.arcsin(np.imag(proj_from_east))
+
+    return (
+        phi,
+        theta,
+    )
+
+
+def phi_theta_to_dx_dy(phi, theta, cphi, ctheta):
+    """
+    A fast and well-conditioned to convert from phi/theta coordinates to local dx/dy coordinates.
+    """
+
+    if not phi.shape == theta.shape:
+        raise ValueError(
+            f"The shapes of 'phi' and 'theta' must be the same. Got shapes {np.shape(phi)} and {np.shape(theta)}"
+        )
+
+    dphi = phi - cphi
+    proj_from_east = (np.cos(dphi) * np.cos(theta) + 1j * np.sin(theta)) * np.exp(
+        1j * (np.pi / 2 - ctheta)
+    )
+    dz = np.sin(dphi) * np.cos(theta) + 1j * np.real(proj_from_east)
+    r = np.abs(dz)
+    dz *= np.arcsin(r) / r
+
+    # negative, because we're looking at the observer
+    return np.real(dz), -np.imag(dz)
 
 
 def phi_theta_to_xyz(phi, theta):
-    """ """
+    """
+    Project a longitude and lattitude onto the unit sphere.
+    """
     x = np.cos(phi) * np.cos(theta)
     y = np.sin(phi) * np.cos(theta)
     z = np.sin(theta)
@@ -20,7 +69,9 @@ def phi_theta_to_xyz(phi, theta):
 
 
 def xyz_to_phi_theta(xyz):
-    """ """
+    """
+    Find the longitude and latitude of a 3-vector.
+    """
     return np.arctan2(xyz[..., 1], xyz[..., 0]) % (2 * np.pi), np.arcsin(xyz[..., 2])
 
 
@@ -38,7 +89,7 @@ def get_center_phi_theta(phi, theta, keep_last_dim=False):
     return xyz_to_phi_theta(center_xyz)
 
 
-FRAMES = {
+frames = {
     "az_el": {
         "astropy_name": "altaz",
         "astropy_phi": "az",
@@ -114,7 +165,7 @@ class Coordinates:
             DS_FID_PHI * u.rad,
             DS_FID_THETA * u.rad,
             obstime=Time(DS_FID_TIME, format="unix"),
-            frame=FRAMES[frame]["astropy_name"],
+            frame=frames[frame]["astropy_name"],
             location=location,
         )
 
@@ -134,10 +185,10 @@ class Coordinates:
                 DS_FID_COORDS_NEW_FRAME = DS_FID_COORDS.galactic
 
             DS_FID_PHI_NEW_FRAME = getattr(
-                DS_FID_COORDS_NEW_FRAME, FRAMES[new_frame]["astropy_phi"]
+                DS_FID_COORDS_NEW_FRAME, frames[new_frame]["astropy_phi"]
             ).rad
             DS_FID_THETA_NEW_FRAME = getattr(
-                DS_FID_COORDS_NEW_FRAME, FRAMES[new_frame]["astropy_theta"]
+                DS_FID_COORDS_NEW_FRAME, frames[new_frame]["astropy_theta"]
             ).rad
 
             DS_FID_POINTS_NEW_FRAME = np.swapaxes(
@@ -149,22 +200,21 @@ class Coordinates:
             self.TRANSFORMS[new_frame] = sp.interpolate.interp1d(
                 downsample_time, DS_TRANSFORM, axis=0
             )(time)
-            # self.TRANSFORMS[new_frame] /= np.abs(np.linalg.det(self.TRANSFORMS[new_frame]))[:, None, None]
 
             new_points = (self.TRANSFORMS[new_frame] @ _points[..., None])[..., 0]
 
             new_phi = np.arctan2(new_points[..., 1], new_points[..., 0]) % (2 * np.pi)
             new_theta = np.arcsin(new_points[..., 2])
 
-            setattr(self, FRAMES[new_frame]["phi"], new_phi.reshape(np.shape(phi)))
+            setattr(self, frames[new_frame]["phi"], new_phi.reshape(np.shape(phi)))
             setattr(
-                self, FRAMES[new_frame]["theta"], new_theta.reshape(np.shape(theta))
+                self, frames[new_frame]["theta"], new_theta.reshape(np.shape(theta))
             )
 
             center_phi, center_theta = get_center_phi_theta(new_phi, new_theta)
 
-            setattr(self, f'center_{FRAMES[new_frame]["phi"]}', center_phi)
-            setattr(self, f'center_{FRAMES[new_frame]["theta"]}', center_theta)
+            setattr(self, f'center_{frames[new_frame]["phi"]}', center_phi)
+            setattr(self, f'center_{frames[new_frame]["theta"]}', center_theta)
 
     def offsets(self, frame, center, units="radians"):
         if frame == "az_el":
@@ -182,54 +232,3 @@ class Coordinates:
             return 60 * np.degrees(dx), 60 * np.degrees(dy)
         elif units == "arcsec":
             return 3600 * np.degrees(dx), 3600 * np.degrees(dy)
-
-
-# def dx_dy_to_phi_theta(dx, dy, center_phi, center_theta):
-#     """
-#     Convert array offsets to e.g. az and el.
-#     """
-#     # Face north, and look up at the zenith. Here, the translation is
-#     #
-#     #
-
-#     input_shape = np.shape(dx)
-#     _dx, _dy = np.atleast_1d(dx).ravel(), np.atleast_1d(dy).ravel()
-
-#     # if we're looking at phi=0, theta=pi/2, then we have:
-#     phi = np.arctan2(_dx, -_dy)
-#     theta = np.pi / 2 - np.sqrt(_dx**2 + _dy**2)
-
-#     x = np.cos(phi) * np.cos(theta)
-#     y = np.sin(phi) * np.cos(theta)
-#     z = np.sin(theta)
-
-#     points = np.c_[x, y, z].T
-#     points = get_rotation_matrix_3d(angles=np.pi / 2 - center_theta, axis=1) @ points
-#     points = get_rotation_matrix_3d(angles=-center_phi, axis=2) @ points
-
-#     new_phi = np.arctan2(points[1], points[0]) % (2 * np.pi)
-#     new_theta = np.arcsin(points[2])
-
-#     return new_phi.reshape(input_shape), new_theta.reshape(input_shape)
-
-
-# def phi_theta_to_dx_dy(phi, theta, center_phi, center_theta):
-#     """
-#     This is the inverse of the other one.
-#     """
-#     # Face north, and look up at the zenith. Here, the translation is
-#     input_shape = np.shape(phi)
-#     _phi, _theta = np.atleast_1d(phi).ravel(), np.atleast_1d(theta).ravel()
-
-#     x = np.cos(_phi) * np.cos(_theta)
-#     y = np.sin(_phi) * np.cos(_theta)
-#     z = np.sin(_theta)
-
-#     points = np.c_[x, y, z].T
-#     points = get_rotation_matrix_3d(angles=center_phi, axis=2) @ points
-#     points = get_rotation_matrix_3d(angles=center_theta - np.pi / 2, axis=1) @ points
-
-#     p = np.angle(points[0] + 1j * points[1])
-#     r = np.arccos(points[2])
-
-#     return (r * np.sin(p)).reshape(input_shape), (-r * np.cos(p)).reshape(input_shape)

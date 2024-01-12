@@ -4,12 +4,12 @@ from dataclasses import dataclass, field
 import pandas as pd
 from astropy.coordinates import EarthLocation
 
-from . import utils
-from .weather import InvalidRegionError, supported_regions_table
+from .. import utils
+from ..weather import InvalidRegionError, supported_regions_table
 
 here, this_filename = os.path.split(__file__)
 
-SITE_CONFIGS = utils.io.read_yaml(f"{here}/configs/sites.yml")
+SITE_CONFIGS = utils.io.read_yaml(f"{here}/sites.yml")
 SITE_PARAMS = set()
 for key, config in SITE_CONFIGS.items():
     SITE_PARAMS |= set(config.keys())
@@ -22,8 +22,8 @@ all_sites = list(site_data.index.values)
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(
-            f"The site '{invalid_site}' is not supported. "
-            f"Supported sites are:\n\n{site_data.loc[:, DISPLAY_COLUMNS].to_string()}"
+            f"""The site '{invalid_site}' is not supported."""
+            f"""Supported sites are:\n\n{site_data.loc[:, DISPLAY_COLUMNS].to_string()}"""
         )
 
 
