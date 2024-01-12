@@ -44,7 +44,7 @@ def make_beam_filter(fwhm, res, beam_profile=None, buffer=1):
     n_side = int(np.maximum(filter_width / res, 3))
 
     filter_side = np.linspace(-filter_width / 2, filter_width / 2, n_side)
-    X, Y = np.meshgrid(filter_side, filter_side, indexing="ij")
+    X, Y = np.meshgrid(filter_side, filter_side, indexing='ij')
     R = np.sqrt(np.square(X) + np.square(Y))
     F = beam_profile(R, fwhm / 2)
 

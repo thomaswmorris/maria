@@ -19,42 +19,42 @@ def test_mustang2():
     sample_rate = 100
     scan_velocity = 38 / 3600
 
-    inputfile = f"{here}/../../data/maps/cluster.fits"
-    outfile_tbl = "/tmp/Cluster_45min_noisy_table.fits"
-    outfile_map = "/tmp/Cluster_45min_noisy_map.fits"
+    inputfile = f'{here}/../../data/maps/cluster.fits'
+    outfile_tbl = '/tmp/Cluster_45min_noisy_table.fits'
+    outfile_map = '/tmp/Cluster_45min_noisy_map.fits'
 
-    atm_model = "2d"
+    atm_model = '2d'
     white_noise_level = 1.3e-2
     pink_noise_level = 2.4
 
     sim = Simulation(
         # Mandatory minimal weither settings
         # ---------------------
-        array="MUSTANG-2",  # Array type
-        pointing="daisy",  # Scanning strategy
-        site="green_bank",  # Site
+        array='MUSTANG-2',  # Array type
+        pointing='daisy',  # Scanning strategy
+        site='green_bank',  # Site
         atmosphere_model=atm_model,  # atmospheric model
         white_noise_level=white_noise_level,  # white noise level
         pink_noise_level=pink_noise_level,  # pink noise level
         # True sky input
         # ---------------------
         map_file=inputfile,  # Input files must be a fits file.
-        map_units="Jy/pixel",  # Units of the input map in Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel
+        map_units='Jy/pixel',  # Units of the input map in Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel
         map_res=pixel_size,  # resolution of the map
         map_center=pointing_center,  # RA & Dec in degree
         map_freqs=[93],
-        detector_config={"f093": {"n": 217, "band_center": 93, "band_width": 10}},
+        detector_config={'f093': {'n': 217, 'band_center': 93, 'band_width': 10}},
         # MUSTANG-2 Observational setup
         # ----------------------------s
         scan_options={
-            "radius": 4.0 / 60.0,  # The radius of the Daisy scan in degrees
-            "speed": scan_velocity,  # scan velocity in when the scan goes through the center deg/s
+            'radius': 4.0 / 60.0,  # The radius of the Daisy scan in degrees
+            'speed': scan_velocity,  # scan velocity in when the scan goes through the center deg/s
         },
         integration_time=integration_time,  # Seconds
         sample_rate=sample_rate,  # Hz
         scan_center=pointing_center,  # Degrees
-        pointing_frame="ra_dec",  # Frame
-        start_time="2022-02-11T23:00:00",  # observation date
+        pointing_frame='ra_dec',  # Frame
+        start_time='2022-02-11T23:00:00',  # observation date
         pwv_rms_frac=0.005,  # level of atmospheric fluctuations
     )
 
@@ -62,7 +62,7 @@ def test_mustang2():
 
     mapper = BinMapper(
         center=(tod.coords.center_ra, tod.coords.center_dec),
-        frame="ra_dec",
+        frame='ra_dec',
         width=np.radians(10.0 / 60.0),
         height=np.radians(10.0 / 60.0),
         res=np.radians(2.0 / 3600.0),

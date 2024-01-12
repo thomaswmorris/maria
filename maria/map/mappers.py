@@ -8,7 +8,7 @@ from astropy.io import fits
 from .. import utils
 from . import Map
 
-np.seterr(invalid="ignore")
+np.seterr(invalid='ignore')
 
 here, this_filename = os.path.split(__file__)
 
@@ -26,7 +26,7 @@ class BaseMapper:
         width: float = 1,
         height: float = 1,
         res: float = 0.01,
-        frame: str = "ra_dec",
+        frame: str = 'ra_dec',
         filter_tods: bool = True,
         smoothing: float = 8,
         degrees: bool = True,
@@ -87,42 +87,42 @@ class BaseMapper:
 
     def save_maps(self, filepath):
         self.header = self.tods[0].header
-        self.header["comment"] = "Made Synthetic observations via maria code"
-        self.header["comment"] = "Overwrote resolution and size of the output map"
+        self.header['comment'] = 'Made Synthetic observations via maria code'
+        self.header['comment'] = 'Overwrote resolution and size of the output map'
 
-        self.header["CDELT1"] = np.rad2deg(self.res)
-        self.header["CDELT2"] = np.rad2deg(self.res)
+        self.header['CDELT1'] = np.rad2deg(self.res)
+        self.header['CDELT2'] = np.rad2deg(self.res)
 
-        self.header["CRPIX1"] = self.n_x / 2
-        self.header["CRPIX2"] = self.n_y / 2
+        self.header['CRPIX1'] = self.n_x / 2
+        self.header['CRPIX2'] = self.n_y / 2
 
-        self.header["CRVAL1"] = np.rad2deg(self.center[0])
-        self.header["CRVAL2"] = np.rad2deg(self.center[1])
+        self.header['CRVAL1'] = np.rad2deg(self.center[0])
+        self.header['CRVAL2'] = np.rad2deg(self.center[1])
 
-        self.header["CTYPE1"] = "RA---SIN"
-        self.header["CTYPE2"] = "DEC--SIN"
-        self.header["CUNIT1"] = "deg     "
-        self.header["CUNIT2"] = "deg     "
-        self.header["CTYPE3"] = "FREQ    "
-        self.header["CUNIT3"] = "Hz      "
-        self.header["CRPIX3"] = 1.000000000000e00
+        self.header['CTYPE1'] = 'RA---SIN'
+        self.header['CTYPE2'] = 'DEC--SIN'
+        self.header['CUNIT1'] = 'deg     '
+        self.header['CUNIT2'] = 'deg     '
+        self.header['CTYPE3'] = 'FREQ    '
+        self.header['CUNIT3'] = 'Hz      '
+        self.header['CRPIX3'] = 1.000000000000e00
 
-        self.header["comment"] = "Overwrote pointing location of the output map"
-        self.header["comment"] = "Overwrote spectral position of the output map"
+        self.header['comment'] = 'Overwrote pointing location of the output map'
+        self.header['comment'] = 'Overwrote spectral position of the output map'
 
-        self.header["BTYPE"] = "Intensity"
+        self.header['BTYPE'] = 'Intensity'
 
         # if self.tods[0].unit == "Jy/pixel":
         #     self.header["BUNIT"] = "Jy/pixel "
         # else:
-        self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
+        self.header['BUNIT'] = 'Kelvin RJ'  # tods are always in Kelvin
 
         save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
 
         for i, key in enumerate(self.band_data.keys()):
             # what is this? --> Frequency information in the header
-            self.header["CRVAL3"] = self.band_data[key]["nom_freq"] * 1e9
-            self.header["CDELT3"] = self.band_data[key]["nom_freqwidth"] * 1e9
+            self.header['CRVAL3'] = self.band_data[key]['nom_freq'] * 1e9
+            self.header['CDELT3'] = self.band_data[key]['nom_freqwidth'] * 1e9
 
             sigma_smooth = self.smoothing / 3600 / np.rad2deg(self.res) / 2.355
             save_maps[i] = self.smoothed_maps(sigma_smooth)[
@@ -146,7 +146,7 @@ class BinMapper(BaseMapper):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._nmtr = kwargs.get("n_modes_to_remove", 0)
+        self._nmtr = kwargs.get('n_modes_to_remove', 0)
 
     def _fourier_filter(self, tod_dat, tod_time):
         ffilt = [self.ffilter, 51.0]  # high-pass and low-pass filters, in Hz
@@ -232,7 +232,7 @@ class BinMapper(BaseMapper):
                     dy[band_mask].ravel(),
                     d.ravel(),
                     bins=(self.x_bins, self.y_bins),
-                    statistic="sum",
+                    statistic='sum',
                 )[0]
 
                 map_cnt = sp.stats.binned_statistic_2d(
@@ -240,7 +240,7 @@ class BinMapper(BaseMapper):
                     dy[band_mask].ravel(),
                     w.ravel(),
                     bins=(self.x_bins, self.y_bins),
-                    statistic="sum",
+                    statistic='sum',
                 )[0]
 
                 self.DATA = d
@@ -248,8 +248,8 @@ class BinMapper(BaseMapper):
                 self.map_sums[band] += map_sum
                 self.map_cnts[band] += map_cnt
 
-            self.band_data[band]["nom_freq"] = tod.dets.bands[band].center
-            self.band_data[band]["nom_freqwidth"] = tod.dets.bands[band].width
+            self.band_data[band]['nom_freq'] = tod.dets.bands[band].center
+            self.band_data[band]['nom_freqwidth'] = tod.dets.bands[band].width
 
             mask = self.map_cnts[band] > 0
             self.map_data[iband] = np.where(
@@ -258,7 +258,7 @@ class BinMapper(BaseMapper):
 
         self.map = Map(
             data=self.map_data,
-            freqs=np.array([self.band_data[band]["nom_freq"] for band in self.ubands]),
+            freqs=np.array([self.band_data[band]['nom_freq'] for band in self.ubands]),
             width=np.degrees(self.width) if self.degrees else self.width,
             height=np.degrees(self.height) if self.degrees else self.height,
             center=np.degrees(self.center) if self.degrees else self.center,

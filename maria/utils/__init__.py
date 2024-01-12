@@ -36,11 +36,11 @@ def validate_pointing(azim, elev):
     el_min = np.atleast_1d(elev).min()
     if el_min < np.radians(10):
         warnings.warn(
-            f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
+            f'Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)'
         )
     if el_min <= 0:
         raise PointingError(
-            f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)"
+            f'Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)'
         )
 
 

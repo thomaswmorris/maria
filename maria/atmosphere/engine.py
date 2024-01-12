@@ -32,10 +32,10 @@ def extrude(
 
 
 DEFAULT_ATMOSPHERE_CONFIG = {
-    "min_depth": 500,
-    "max_depth": 3000,
-    "n_layers": 4,
-    "min_beam_res": 4,
+    'min_depth': 500,
+    'max_depth': 3000,
+    'n_layers': 4,
+    'min_beam_res': 4,
 }
 
 

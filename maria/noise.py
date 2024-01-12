@@ -12,11 +12,11 @@ class NoiseMixin:
         self._simulate_noise()
 
     def _simulate_noise(self):
-        self.data["noise"] = np.zeros((self.array.n_dets, self.pointing.n_time))
+        self.data['noise'] = np.zeros((self.array.n_dets, self.pointing.n_time))
 
         if self.white_noise_level > 0:
-            self.data["noise"] += self.white_noise_level * np.random.standard_normal(
-                size=self.data["noise"].shape
+            self.data['noise'] += self.white_noise_level * np.random.standard_normal(
+                size=self.data['noise'].shape
             )
 
         if self.pink_noise_level > 0:
@@ -29,7 +29,7 @@ class NoiseMixin:
                     dt=self.pointing.time[1] - self.pointing.time[0],
                 )
 
-            self.data["noise"] += dat * self.pink_noise_level
+            self.data['noise'] += dat * self.pink_noise_level
 
     def _spectrum_noise(self, spectrum_func, size, dt, amp=2.0):
         """
@@ -39,7 +39,7 @@ class NoiseMixin:
             size, dt
         )  # real-fft frequencies (not the negative ones)
         spectrum = np.zeros_like(
-            freqs, dtype="complex"
+            freqs, dtype='complex'
         )  # make complex numbers for spectrum
         spectrum[1:] = spectrum_func(
             freqs[1:]

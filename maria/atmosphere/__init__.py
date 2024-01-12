@@ -1,5 +1,4 @@
 import os
-import time as ttime
 
 import numpy as np
 import scipy as sp
@@ -23,7 +22,7 @@ class AtmosphereMixin:
 
         self.spectrum = AtmosphericSpectrum(region=self.region)
 
-        if self.atmosphere_model == "2d":
+        if self.atmosphere_model == '2d':
             self.turbulent_layer_depths = np.linspace(
                 self.min_atmosphere_height,
                 self.max_atmosphere_height,
@@ -33,7 +32,7 @@ class AtmosphereMixin:
 
             depths = enumerate(self.turbulent_layer_depths)
             if self.verbose:
-                depths = tqdm(depths, desc="Initializing atmospheric layers")
+                depths = tqdm(depths, desc='Initializing atmospheric layers')
 
             for _, layer_depth in depths:
                 layer_res = (
@@ -52,14 +51,14 @@ class AtmosphereMixin:
 
                 self.turbulent_layers.append(layer)
 
-        if self.atmosphere_model == "3d":
+        if self.atmosphere_model == '3d':
             self.initialize_3d_atmosphere()
 
     def _simulate_atmospheric_fluctuations(self):
-        if self.atmosphere_model == "2d":
+        if self.atmosphere_model == '2d':
             self._simulate_2d_atmospheric_fluctuations()
 
-        if self.atmosphere_model == "3d":
+        if self.atmosphere_model == '3d':
             self._simulate_3d_atmospheric_fluctuations()
 
     def _simulate_2d_turbulence(self):
@@ -74,7 +73,7 @@ class AtmosphereMixin:
         layers = tqdm(self.turbulent_layers) if self.verbose else self.turbulent_layers
         for layer_index, layer in enumerate(layers):
             if self.verbose:
-                layers.set_description(f"Generating atmosphere at {layer.depth:.00f}m")
+                layers.set_description(f'Generating atmosphere at {layer.depth:.00f}m')
 
             layer.generate()
             layer_data[layer_index] = layer.sample()
@@ -130,12 +129,10 @@ class AtmosphereMixin:
             self.boresight.el,
         )[1]
 
-    def _simulate_atmospheric_emission(self, units="K_RJ"):
-        start_time = ttime.monotonic()
-
-        if units == "K_RJ":  # Kelvin Rayleigh-Jeans
+    def _simulate_atmospheric_emission(self, units='K_RJ'):
+        if units == 'K_RJ':  # Kelvin Rayleigh-Jeans
             self._simulate_atmospheric_fluctuations()
-            self.data["atmosphere"] = np.empty(
+            self.data['atmosphere'] = np.empty(
                 (self.array.n_dets, self.pointing.n_time), dtype=np.float32
             )
 
@@ -145,7 +142,7 @@ class AtmosphereMixin:
 
             for band in ubands:
                 if self.verbose:
-                    ubands.set_description(f"Sampling atmosphere for band {band}")
+                    ubands.set_description(f'Sampling atmosphere for band {band}')
                 # for uband in self.array.ubands:
                 band_mask = self.array.dets.band == band
 
@@ -167,21 +164,16 @@ class AtmosphereMixin:
                     det_temperature_grid,
                 )
 
-                self.data["atmosphere"][band_mask] = band_T_RJ_interpolator(
+                self.data['atmosphere'][band_mask] = band_T_RJ_interpolator(
                     (
                         self.line_of_sight_pwv[band_mask],
                         np.degrees(self.det_coords.el[band_mask]),
                     )
                 )
 
-        if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸
-            self._simulate_atmospheric_emission(self, units="K_RJ")
-            self.data["atmosphere"] = 1.8 * (self.data["atmosphere"] - 273.15) + 32
-
-        if self.verbose:
-            print(
-                f"ran atmospheric simulation in {ttime.monotonic() - start_time:.01f} seconds"
-            )
+        if units == 'F_RJ':  # Fahrenheit Rayleigh-Jeans 🇺🇸
+            self._simulate_atmospheric_emission(self, units='K_RJ')
+            self.data['atmosphere'] = 1.8 * (self.data['atmosphere'] - 273.15) + 32
 
 
 class AtmosphereSimulation(BaseSimulation, AtmosphereMixin):

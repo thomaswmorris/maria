@@ -90,32 +90,32 @@ def get_center_phi_theta(phi, theta, keep_last_dim=False):
 
 
 frames = {
-    "az_el": {
-        "astropy_name": "altaz",
-        "astropy_phi": "az",
-        "astropy_theta": "alt",
-        "phi": "az",
-        "theta": "el",
-        "phi_name": "RA",
-        "theta_name": "Dec.",
+    'az_el': {
+        'astropy_name': 'altaz',
+        'astropy_phi': 'az',
+        'astropy_theta': 'alt',
+        'phi': 'az',
+        'theta': 'el',
+        'phi_name': 'RA',
+        'theta_name': 'Dec.',
     },
-    "ra_dec": {
-        "astropy_name": "icrs",
-        "astropy_phi": "ra",
-        "astropy_theta": "dec",
-        "phi": "ra",
-        "theta": "dec",
-        "phi_name": "RA",
-        "theta_name": "Dec.",
+    'ra_dec': {
+        'astropy_name': 'icrs',
+        'astropy_phi': 'ra',
+        'astropy_theta': 'dec',
+        'phi': 'ra',
+        'theta': 'dec',
+        'phi_name': 'RA',
+        'theta_name': 'Dec.',
     },
-    "galactic": {
-        "astropy_name": "galactic",
-        "astropy_phi": "l",
-        "astropy_theta": "b",
-        "phi": "l",
-        "theta": "b",
-        "phi_name": "RA",
-        "theta_name": "Dec.",
+    'galactic': {
+        'astropy_name': 'galactic',
+        'astropy_phi': 'l',
+        'astropy_theta': 'b',
+        'phi': 'l',
+        'theta': 'b',
+        'phi_name': 'RA',
+        'theta_name': 'Dec.',
     },
 }
 
@@ -164,31 +164,31 @@ class Coordinates:
         DS_FID_COORDS = SkyCoord(
             DS_FID_PHI * u.rad,
             DS_FID_THETA * u.rad,
-            obstime=Time(DS_FID_TIME, format="unix"),
-            frame=frames[frame]["astropy_name"],
+            obstime=Time(DS_FID_TIME, format='unix'),
+            frame=frames[frame]['astropy_name'],
             location=location,
         )
 
         self.TRANSFORMS = {}
 
-        for new_frame in ["ra_dec", "az_el", "galactic"]:
+        for new_frame in ['ra_dec', 'az_el', 'galactic']:
             if new_frame == self.frame:
                 DS_FID_COORDS_NEW_FRAME = DS_FID_COORDS
 
-            elif new_frame == "az_el":
+            elif new_frame == 'az_el':
                 DS_FID_COORDS_NEW_FRAME = DS_FID_COORDS.altaz
 
-            elif new_frame == "ra_dec":
+            elif new_frame == 'ra_dec':
                 DS_FID_COORDS_NEW_FRAME = DS_FID_COORDS.icrs
 
-            elif new_frame == "galactic":
+            elif new_frame == 'galactic':
                 DS_FID_COORDS_NEW_FRAME = DS_FID_COORDS.galactic
 
             DS_FID_PHI_NEW_FRAME = getattr(
-                DS_FID_COORDS_NEW_FRAME, frames[new_frame]["astropy_phi"]
+                DS_FID_COORDS_NEW_FRAME, frames[new_frame]['astropy_phi']
             ).rad
             DS_FID_THETA_NEW_FRAME = getattr(
-                DS_FID_COORDS_NEW_FRAME, frames[new_frame]["astropy_theta"]
+                DS_FID_COORDS_NEW_FRAME, frames[new_frame]['astropy_theta']
             ).rad
 
             DS_FID_POINTS_NEW_FRAME = np.swapaxes(
@@ -206,9 +206,9 @@ class Coordinates:
             new_phi = np.arctan2(new_points[..., 1], new_points[..., 0]) % (2 * np.pi)
             new_theta = np.arcsin(new_points[..., 2])
 
-            setattr(self, frames[new_frame]["phi"], new_phi.reshape(np.shape(phi)))
+            setattr(self, frames[new_frame]['phi'], new_phi.reshape(np.shape(phi)))
             setattr(
-                self, frames[new_frame]["theta"], new_theta.reshape(np.shape(theta))
+                self, frames[new_frame]['theta'], new_theta.reshape(np.shape(theta))
             )
 
             center_phi, center_theta = get_center_phi_theta(new_phi, new_theta)
@@ -216,19 +216,19 @@ class Coordinates:
             setattr(self, f'center_{frames[new_frame]["phi"]}', center_phi)
             setattr(self, f'center_{frames[new_frame]["theta"]}', center_theta)
 
-    def offsets(self, frame, center, units="radians"):
-        if frame == "az_el":
+    def offsets(self, frame, center, units='radians'):
+        if frame == 'az_el':
             dx, dy = phi_theta_to_dx_dy(self.az, self.el, *center)
-        elif frame == "ra_dec":
+        elif frame == 'ra_dec':
             dx, dy = phi_theta_to_dx_dy(self.ra, self.dec, *center)
-        elif frame == "galactic":
+        elif frame == 'galactic':
             dx, dy = phi_theta_to_dx_dy(self.l, self.b, *center)
 
-        if units == "radians":
+        if units == 'radians':
             return dx, dy
-        elif units == "degrees":
+        elif units == 'degrees':
             return np.degrees(dx), np.degrees(dy)
-        elif units == "arcmin":
+        elif units == 'arcmin':
             return 60 * np.degrees(dx), 60 * np.degrees(dy)
-        elif units == "arcsec":
+        elif units == 'arcsec':
             return 3600 * np.degrees(dx), 3600 * np.degrees(dy)

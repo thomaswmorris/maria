@@ -7,27 +7,27 @@ import pandas as pd
 from .band import Band
 
 HEX_CODE_LIST = [
-    mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
+    mpl.colors.to_hex(mpl.colormaps.get_cmap('Paired')(t))
     for t in [*np.linspace(0.05, 0.95, 12)]
 ]
 
-REQUIRED_DET_CONFIG_KEYS = ["n", "band_center", "band_width"]
+REQUIRED_DET_CONFIG_KEYS = ['n', 'band_center', 'band_width']
 
 det_columns = {
-    "band": "str",
-    "offset_x": "float",
-    "offset_y": "float",
-    "baseline_x": "float",
-    "baseline_y": "float",
-    "baseline_z": "float",
-    "pol_angle": "float",
+    'band': 'str',
+    'offset_x': 'float',
+    'offset_y': 'float',
+    'baseline_x': 'float',
+    'baseline_y': 'float',
+    'baseline_z': 'float',
+    'pol_angle': 'float',
 }
 
 
 def generate_array_offsets(geometry, field_of_view, n):
-    valid_array_types = ["flower", "hex", "square"]
+    valid_array_types = ['flower', 'hex', 'square']
 
-    if geometry == "flower":
+    if geometry == 'flower':
         phi = np.pi * (3.0 - np.sqrt(5.0))  # golden angle in radians
         dzs = np.zeros(n).astype(complex)
         for i in range(n):
@@ -35,9 +35,9 @@ def generate_array_offsets(geometry, field_of_view, n):
         od = np.abs(np.subtract.outer(dzs, dzs))
         dzs *= field_of_view / od.max()
         return np.c_[np.real(dzs), np.imag(dzs)]
-    if geometry == "hex":
+    if geometry == 'hex':
         return generate_hex_offsets(n, field_of_view)
-    if geometry == "square":
+    if geometry == 'square':
         dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (
             2 * np.sqrt(2)
         )
@@ -45,8 +45,8 @@ def generate_array_offsets(geometry, field_of_view, n):
         return np.c_[DX.ravel()[:n], DY.ravel()[:n]]
 
     raise ValueError(
-        "Please specify a valid array type. Valid array types are:\n"
-        + "\n".join(valid_array_types)
+        'Please specify a valid array type. Valid array types are:\n'
+        + '\n'.join(valid_array_types)
     )
 
 
@@ -73,37 +73,38 @@ class Detectors:
         cls,
         bands: Mapping,
         field_of_view: float = 1,
-        geometry: str = "hex",
+        geometry: str = 'hex',
         baseline: float = 0,
+        offsets: np.array = None,
     ):
         ubands = {}
         det_params = {
             col: []
             for col in [
-                "band",
-                "offset_x",
-                "offset_y",
-                "baseline_x",
-                "baseline_y",
-                "baseline_z",
-                "pol_angle",
+                'band',
+                'offset_x',
+                'offset_y',
+                'baseline_x',
+                'baseline_y',
+                'baseline_z',
+                'pol_angle',
             ]
         }
 
         for band_key, band_config in bands.items():
             if not all(key in band_config.keys() for key in REQUIRED_DET_CONFIG_KEYS):
-                raise ValueError(f"Each band must have keys {REQUIRED_DET_CONFIG_KEYS}")
+                raise ValueError(f'Each band must have keys {REQUIRED_DET_CONFIG_KEYS}')
 
-            band_name = band_config.get("band_name", band_key)
+            band_name = band_config.get('band_name', band_key)
 
-            n = band_config["n"]
+            n = band_config['n']
 
-            det_params["band"].extend(n * [band_name])
+            det_params['band'].extend(n * [band_name])
 
             ubands[band_key] = Band(
                 name=band_name,
-                center=band_config["band_center"],
-                width=band_config["band_width"],
+                center=band_config['band_center'],
+                width=band_config['band_width'],
             )
 
             det_offsets_radians = np.radians(
@@ -116,13 +117,13 @@ class Detectors:
             # if randomize_offsets:
             #     np.random.shuffle(offsets_radians)  # this is a stupid function.
 
-            det_params["offset_x"].extend(det_offsets_radians[:, 0])
-            det_params["offset_y"].extend(det_offsets_radians[:, 1])
-            det_params["baseline_x"].extend(det_baselines_meters[:, 0])
-            det_params["baseline_y"].extend(det_baselines_meters[:, 1])
-            det_params["baseline_z"].extend(0 * det_baselines_meters[:, 1])
+            det_params['offset_x'].extend(det_offsets_radians[:, 0])
+            det_params['offset_y'].extend(det_offsets_radians[:, 1])
+            det_params['baseline_x'].extend(det_baselines_meters[:, 0])
+            det_params['baseline_y'].extend(det_baselines_meters[:, 1])
+            det_params['baseline_z'].extend(0 * det_baselines_meters[:, 1])
 
-            det_params["pol_angle"].extend(n * [0.0])
+            det_params['pol_angle'].extend(n * [0.0])
 
         return cls(det_params, bands=ubands)
 
@@ -153,7 +154,7 @@ class Detectors:
 
     @property
     def df(self):
-        df = pd.DataFrame(columns=det_columns, dtype="float")
+        df = pd.DataFrame(columns=det_columns, dtype='float')
 
         for col, dtype in det_columns.items():
             df.loc[:, col] = self.params[col]

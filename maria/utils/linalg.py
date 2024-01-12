@@ -55,7 +55,7 @@ def optimize_area_minimizing_rotation_matrix(points):
         lambda p: log_dimension_ratio(p[0]),
         x0=[test_angles[np.argmin(test_ratios)]],
         bounds=[(0, np.pi)],
-        method="Nelder-Mead",
+        method='Nelder-Mead',
     )
 
     return res
@@ -63,7 +63,7 @@ def optimize_area_minimizing_rotation_matrix(points):
 
 def mprod(*M):
     if not len(M) > 0:
-        raise ValueError("You must specify at least one matrix!")
+        raise ValueError('You must specify at least one matrix!')
     res = M[0]
     for M_ in M[1:]:
         res = np.matmul(res, M_)

@@ -13,11 +13,11 @@ here, this_filename = os.path.split(__file__)
 class InvalidSimulationParameterError(Exception):
     def __init__(self, invalid_keys):
         super().__init__(
-            f"The parameters {invalid_keys} are not valid simulation parameters!"
+            f'The parameters {invalid_keys} are not valid simulation parameters!'
         )
 
 
-master_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")
+master_params = utils.io.read_yaml(f'{here}/configs/default_params.yml')
 
 
 def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
@@ -49,13 +49,13 @@ class BaseSimulation:
 
     def __init__(
         self,
-        array: Array or str = "default",
-        pointing: Pointing or str = "stare",
-        site: Site or str = "default",
+        array: Array or str = 'default',
+        pointing: Pointing or str = 'stare',
+        site: Site or str = 'default',
         verbose=False,
         **kwargs,
     ):
-        if hasattr(self, "boresight"):
+        if hasattr(self, 'boresight'):
             return
 
         self.verbose = verbose
@@ -67,19 +67,19 @@ class BaseSimulation:
         if type(array) is Array:
             self.array = array
         else:
-            self.array = get_array(array_name=array, **parsed_sim_kwargs["array"])
+            self.array = get_array(array_name=array, **parsed_sim_kwargs['array'])
 
         if type(pointing) is Pointing:
             self.pointing = pointing
         else:
             self.pointing = get_pointing(
-                scan_pattern=pointing, **parsed_sim_kwargs["pointing"]
+                scan_pattern=pointing, **parsed_sim_kwargs['pointing']
             )
 
         if type(site) is Site:
             self.site = site
         else:
-            self.site = get_site(site_name=site, **parsed_sim_kwargs["site"])
+            self.site = get_site(site_name=site, **parsed_sim_kwargs['site'])
 
         self.boresight = Coordinates(
             self.pointing.time,
@@ -98,7 +98,7 @@ class BaseSimulation:
             det_az,
             det_el,
             location=self.site.earth_location,
-            frame="az_el",
+            frame='az_el',
         )
 
     def _run(self):
