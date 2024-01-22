@@ -4,6 +4,6 @@ Customizing
 .. toctree::
    :maxdepth: 2
 
-   arrays.rst
+   instruments.rst
    sites.rst
    pointings.rst
