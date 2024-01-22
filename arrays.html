@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>Customizing arrays - maria</title>
+        <title>Customizing instruments - maria</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -205,15 +205,15 @@
           </label>
         </div>
         <article role="main">
-          <section id="customizing-arrays">
-<h1>Customizing arrays<a class="headerlink" href="#customizing-arrays" title="Link to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">array</span></code> determines the characteristics of the observing instrument. We can make an array with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_array</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_array</span><span class="p">(</span><span class="s1">&#39;AtLAST&#39;</span><span class="p">)</span>
+          <section id="customizing-instruments">
+<h1>Customizing instruments<a class="headerlink" href="#customizing-instruments" title="Link to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">instrument</span></code> determines the characteristics of the observing instrument. We can make an instrument with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;AtLAST&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Simulations are made up of an array (defining the instrument), a site (where on earth it is), and a pointing (defining how it observes). Simulations for a few different telescopes might be instantiated as:</p>
+<p>Simulations are made up of an instrument (defining the instrument), a site (where on earth it is), and a pointing (defining how it observes). Simulations for a few different telescopes might be instantiated as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># MUSTANG-2</span>
-<span class="n">mustang2_sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">,</span>
+<span class="n">mustang2_sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">,</span>
                           <span class="n">site</span><span class="o">=</span><span class="s1">&#39;green_bank&#39;</span><span class="p">,</span>
                           <span class="n">pointing</span><span class="o">=</span><span class="s1">&#39;daisy&#39;</span><span class="p">,</span>
                           <span class="n">map_file</span><span class="o">=</span><span class="n">path_to_some_fits_file</span><span class="p">,</span>  <span class="c1"># Input files must be a fits file.</span>
