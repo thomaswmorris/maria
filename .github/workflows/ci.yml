@@ -1,0 +1,37 @@
+name: Unit Tests
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '00 12 * * *'  # daily at 7 AM
+
+jobs:
+  run_tests:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+      fail-fast: false
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies with pip
+        run: |
+          set -vxeuo pipefail
+          python -m pip install ".[dev]"
+          python -m pip list
+          sudo apt-get install tree
+          tree
+
+      - name: Test the code
+        run: |
+          set -vxuo pipefail
+          python -m pytest -s -vv
