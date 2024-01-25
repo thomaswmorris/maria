@@ -2,7 +2,6 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from operator import attrgetter
-from typing import Tuple
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -12,9 +11,9 @@ from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from .. import utils
-from .band import Band, BandList, generate_bands # noqa F401
-from .dets import Detectors, generate_detectors # noqa F401
-from .beam import compute_angular_fwhm, construct_beam_filter
+from .band import Band, BandList, generate_bands  # noqa F401
+from .beam import compute_angular_fwhm, construct_beam_filter  # noqa F401
+from .dets import Detectors, generate_detectors  # noqa F401
 
 HEX_CODE_LIST = [
     mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
@@ -26,11 +25,16 @@ HEX_CODE_LIST = [
 
 here, this_filename = os.path.split(__file__)
 
-#all_instrument_params = utils.io.read_yaml(f"{here}/../configs/default_params.yml")["instrument"]
+# all_instrument_params = utils.io.read_yaml(f"{here}/../configs/default_params.yml")["instrument"]
 
 INSTRUMENT_CONFIGS = utils.io.read_yaml(f"{here}/instruments.yml")
 
-INSTRUMENT_DISPLAY_COLUMNS = ["instrument_description", "field_of_view", "primary_size", "bands"]
+INSTRUMENT_DISPLAY_COLUMNS = [
+    "instrument_description",
+    "field_of_view",
+    "primary_size",
+    "bands",
+]
 instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T
 
 for instrument_name, config in INSTRUMENT_CONFIGS.items():
@@ -81,11 +85,8 @@ class Instrument:
     dets: pd.DataFrame = None  # dets, it's complicated
     documentation: str = ""
 
-
     @classmethod
     def from_config(cls, config):
-
-       
         if isinstance(config.get("bands"), Mapping):
             dets = Detectors.generate(
                 bands_config=config.pop("bands"),
@@ -97,12 +98,7 @@ class Instrument:
         else:
             raise ValueError("'bands' must be a dictionary of bands.")
 
-
-        return cls(
-            bands=dets.bands,
-            dets=dets,
-            **config
-        )
+        return cls(bands=dets.bands, dets=dets, **config)
 
     def __repr__(self):
         nodef_f_vals = (
@@ -115,7 +111,7 @@ class Instrument:
                 nodef_f_repr.append(f"{name}={value.__short_repr__()}")
             else:
                 nodef_f_repr.append(f"{name}={value}")
-        
+
         return f"{self.__class__.__name__}({', '.join(nodef_f_repr)})"
 
     @property
@@ -145,7 +141,6 @@ class Instrument:
     @property
     def baselines(self):
         return np.c_[self.baseline_x, self.baseline_y]
-
 
     @staticmethod
     def beam_profile(r, fwhm):
@@ -181,13 +176,11 @@ class Instrument:
     #     """
     #     return construct_beam_filter(self.angular_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-
     # def physical_beam_filter(self, z, res, beam_profile=None, buffer=1):  # noqa F401
     #     """
     #     Angular beam width (in radians) as a function of depth (in meters)
     #     """
     #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
-
 
     def plot_dets(self, units="deg"):
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=160)

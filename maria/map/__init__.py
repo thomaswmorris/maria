@@ -43,7 +43,9 @@ class Map:
 
     def __repr__(self):
         nodef_f_vals = (
-            (f.name, attrgetter(f.name)(self)) for f in fields(self) if f.name not in ["data", "header"]
+            (f.name, attrgetter(f.name)(self))
+            for f in fields(self)
+            if f.name not in ["data", "header"]
         )
 
         nodef_f_repr = ", ".join(f"{name}={value}" for name, value in nodef_f_vals)
@@ -230,7 +232,7 @@ class MapMixin:
         freqs = tqdm(self.input_map.freqs) if self.verbose else self.input_map.freqs
         for i, nu in enumerate(freqs):
             if self.verbose:
-                freqs.set_description(f"Sampling input map")
+                freqs.set_description("Sampling input map")
 
             # nu is in GHz, f is in Hz
             nu_fwhm = beam.compute_angular_fwhm(

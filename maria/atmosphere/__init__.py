@@ -103,29 +103,34 @@ class AtmosphereMixin:
         ).sum(axis=0)
 
     def _simulate_atmospheric_emission(self, units="K_RJ"):
-
         if units == "K_RJ":  # Kelvin Rayleigh-Jeans
             self._simulate_atmospheric_fluctuations()
             self.data["atmosphere"] = np.empty(
                 (self.instrument.n_dets, self.pointing.n_time), dtype=np.float32
             )
 
-
-            bands = tqdm(self.instrument.dets.bands) if self.verbose else self.instrument.dets.bands
+            bands = (
+                tqdm(self.instrument.dets.bands)
+                if self.verbose
+                else self.instrument.dets.bands
+            )
 
             for band in bands:
                 band_index = self.instrument.dets(band=band.name).uid
 
                 if self.verbose:
-                    bands.set_description(
-                        f"Computing atm. emission ({band.name})"
-                    )
+                    bands.set_description(f"Computing atm. emission ({band.name})")
 
                 # multiply by 1e9 to go from GHz to Hz
-                det_power_grid = 1e9 * 1.380649e-23 * np.trapz(
-                    self.atmosphere_spectrum.emission * band.passband(self.atmosphere_spectrum.side_nu),
-                    self.atmosphere_spectrum.side_nu,
-                    axis=-1,
+                det_power_grid = (
+                    1e9
+                    * 1.380649e-23
+                    * np.trapz(
+                        self.atmosphere_spectrum.emission
+                        * band.passband(self.atmosphere_spectrum.side_nu),
+                        self.atmosphere_spectrum.side_nu,
+                        axis=-1,
+                    )
                 )
 
                 band_power_interpolator = sp.interpolate.RegularGridInterpolator(
@@ -145,15 +150,22 @@ class AtmosphereMixin:
                     )
                 )
 
-            bands = tqdm(self.instrument.dets.bands) if self.verbose else self.instrument.dets.bands
+            bands = (
+                tqdm(self.instrument.dets.bands)
+                if self.verbose
+                else self.instrument.dets.bands
+            )
 
             for band in bands:
                 band_index = self.instrument.dets(band=band.name).uid
 
                 if self.verbose:
                     bands.set_description(f"Computing atm. transmission ({band.name})")
-                
-                rel_T_RJ_spectrum = band.passband(self.atmosphere_spectrum.side_nu) * self.atmosphere_spectrum.side_nu ** 2
+
+                rel_T_RJ_spectrum = (
+                    band.passband(self.atmosphere_spectrum.side_nu)
+                    * self.atmosphere_spectrum.side_nu**2
+                )
 
                 # multiply by 1e9 to go from GHz to Hz
                 self.det_transmission_grid = np.trapz(
@@ -182,7 +194,6 @@ class AtmosphereMixin:
                         np.degrees(self.det_coords.el[band_index]),
                     )
                 )
-
 
         if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸
             self._simulate_atmospheric_emission(self, units="K_RJ")

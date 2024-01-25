@@ -4,32 +4,31 @@ from ..sim.base import BaseSimulation
 
 
 class NoiseMixin:
-
     def _run(self):
         self._simulate_noise()
 
     def _simulate_noise(self):
-
         self.data["noise"] = np.zeros((self.instrument.n_dets, self.pointing.n_time))
 
         for band in self.instrument.dets.bands:
-
             band_index = self.instrument.dets(band=band.name).uid
-            
+
             if band.white_noise > 0:
-                self.data["noise"][band_index] += np.sqrt(self.pointing.sample_rate) * band.white_noise * np.random.standard_normal(
-                    size=(len(band_index), self.pointing.n_time)
+                self.data["noise"][band_index] += (
+                    np.sqrt(self.pointing.sample_rate)
+                    * band.white_noise
+                    * np.random.standard_normal(
+                        size=(len(band_index), self.pointing.n_time)
+                    )
                 )
 
             if band.pink_noise > 0:
-
                 for i in band_index:
                     self.data["noise"][i] += band.pink_noise * self._spectrum_noise(
                         spectrum_func=self._pink_spectrum,
                         size=int(self.pointing.n_time),
                         dt=self.pointing.dt,
                     )
-
 
     def _spectrum_noise(self, spectrum_func, size, dt, amp=2.0):
         """
