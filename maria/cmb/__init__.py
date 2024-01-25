@@ -6,8 +6,8 @@ class CMBMixin:
 #     """
 #     This simulates scanning over celestial sources.
 #     """
-#     def __init__(self, array, pointing, site, map_file, add_cmb=False, **kwargs):
-#         super().__init__(array, pointing, site)
+#     def __init__(self, instrument, pointing, site, map_file, add_cmb=False, **kwargs):
+#         super().__init__(instrument, pointing, site)
 
 #         pass
 
@@ -25,8 +25,8 @@ class CMBMixin:
 #         results = camb.get_results(pars)
 #         powers = results.get_cmb_power_spectra(pars, CMB_unit="K")["total"][:, 0]
 
-#         self.CMB_PS = np.empty((len(self.array.ubands), len(powers)))
-#         for i in range(len(self.array.ubands)):
+#         self.CMB_PS = np.empty((len(self.instrument.ubands), len(powers)))
+#         for i in range(len(self.instrument.ubands)):
 #             self.CMB_PS[i] = powers
 
 
@@ -50,7 +50,7 @@ class CMBMixin:
 #         )[0]
 
 #         self.CMB_map += utils.Tcmb
-#         self.CMB_map *= utils.KcmbToKbright(np.unique(self.array.dets.band_center)[bandnumber])
+#         self.CMB_map *= utils.KcmbToKbright(np.unique(self.instrument.dets.band_center)[bandnumber])
 
 #     #self._cmb_imager(i)
 #         #         cmb_data = sp.interpolate.RegularGridInterpolator(

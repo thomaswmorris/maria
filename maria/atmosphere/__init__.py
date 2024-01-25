@@ -5,7 +5,7 @@ import scipy as sp
 from tqdm import tqdm
 
 from .. import utils
-from ..base import BaseSimulation
+from ..sim.base import BaseSimulation
 from .spectra import AtmosphericSpectrum
 from .turbulent_layer import TurbulentLayer
 from .weather import Weather  # noqa F401
@@ -21,7 +21,7 @@ class AtmosphereMixin:
 
         utils.validate_pointing(self.det_coords.az, self.det_coords.el)
 
-        self.spectrum = AtmosphericSpectrum(region=self.region)
+        self.atmosphere_spectrum = AtmosphericSpectrum(region=self.region)
 
         if self.atmosphere_model == "2d":
             self.turbulent_layer_depths = np.linspace(
@@ -37,12 +37,12 @@ class AtmosphereMixin:
 
             for _, layer_depth in depths:
                 layer_res = (
-                    self.array.physical_fwhm(z=layer_depth).min()
+                    self.instrument.physical_fwhm(z=layer_depth).min()
                     / self.min_atmosphere_beam_res
                 )  # in meters
 
                 layer = TurbulentLayer(
-                    array=self.array,
+                    instrument=self.instrument,
                     boresight=self.boresight,
                     weather=self.weather,
                     depth=layer_depth,
@@ -68,13 +68,13 @@ class AtmosphereMixin:
         """
 
         layer_data = np.zeros(
-            (self.n_atmosphere_layers, self.array.n_dets, self.pointing.n_time)
+            (self.n_atmosphere_layers, self.instrument.n_dets, self.pointing.n_time)
         )
 
         layers = tqdm(self.turbulent_layers) if self.verbose else self.turbulent_layers
         for layer_index, layer in enumerate(layers):
             if self.verbose:
-                layers.set_description(f"Generating atmosphere at {layer.depth:.00f}m")
+                layers.set_description(f"Generating atmosphere (z={layer.depth:.00f}m)")
 
             layer.generate()
             layer_data[layer_index] = layer.sample()
@@ -98,53 +98,91 @@ class AtmosphereMixin:
 
         self.layer_scaling = self.pwv_rms_frac * self.weather.pwv * rel_layer_scaling
 
-        self.effective_zenith_pwv = self.weather.pwv + (
+        self.zenith_scaled_pwv = self.weather.pwv + (
             self.layer_scaling * turbulence
         ).sum(axis=0)
 
     def _simulate_atmospheric_emission(self, units="K_RJ"):
+
         if units == "K_RJ":  # Kelvin Rayleigh-Jeans
             self._simulate_atmospheric_fluctuations()
             self.data["atmosphere"] = np.empty(
-                (self.array.n_dets, self.pointing.n_time), dtype=np.float32
+                (self.instrument.n_dets, self.pointing.n_time), dtype=np.float32
             )
 
-            band_names = self.array.dets.bands.keys()
-            if self.verbose:
-                band_names = tqdm(band_names)
 
-            for band_name in band_names:
-                band = self.array.dets.bands[band_name]
+            bands = tqdm(self.instrument.dets.bands) if self.verbose else self.instrument.dets.bands
+
+            for band in bands:
+                band_index = self.instrument.dets(band=band.name).uid
 
                 if self.verbose:
-                    band_names.set_description(
-                        f"Sampling atmosphere for band {band_name}"
+                    bands.set_description(
+                        f"Computing atm. emission ({band.name})"
                     )
 
-                band_mask = self.array.dets.band == band_name
-
-                det_temperature_grid = np.trapz(
-                    self.spectrum.emission * band.passband(self.spectrum.side_nu),
-                    self.spectrum.side_nu,
+                # multiply by 1e9 to go from GHz to Hz
+                det_power_grid = 1e9 * 1.380649e-23 * np.trapz(
+                    self.atmosphere_spectrum.emission * band.passband(self.atmosphere_spectrum.side_nu),
+                    self.atmosphere_spectrum.side_nu,
                     axis=-1,
                 )
 
-                band_T_RJ_interpolator = sp.interpolate.RegularGridInterpolator(
+                band_power_interpolator = sp.interpolate.RegularGridInterpolator(
                     (
-                        self.spectrum.side_zenith_pwv,
-                        self.spectrum.side_base_temperature,
-                        self.spectrum.side_elevation,
+                        self.atmosphere_spectrum.side_zenith_pwv,
+                        self.atmosphere_spectrum.side_base_temperature,
+                        self.atmosphere_spectrum.side_elevation,
                     ),
-                    det_temperature_grid,
+                    det_power_grid,
                 )
 
-                self.data["atmosphere"][band_mask] = band_T_RJ_interpolator(
+                self.data["atmosphere"][band_index] = band_power_interpolator(
                     (
-                        self.effective_zenith_pwv[band_mask],
+                        self.zenith_scaled_pwv[band_index],
                         self.weather.temperature[0],
-                        np.degrees(self.det_coords.el[band_mask]),
+                        np.degrees(self.det_coords.el[band_index]),
                     )
                 )
+
+            bands = tqdm(self.instrument.dets.bands) if self.verbose else self.instrument.dets.bands
+
+            for band in bands:
+                band_index = self.instrument.dets(band=band.name).uid
+
+                if self.verbose:
+                    bands.set_description(f"Computing atm. transmission ({band.name})")
+                
+                rel_T_RJ_spectrum = band.passband(self.atmosphere_spectrum.side_nu) * self.atmosphere_spectrum.side_nu ** 2
+
+                # multiply by 1e9 to go from GHz to Hz
+                self.det_transmission_grid = np.trapz(
+                    rel_T_RJ_spectrum * self.atmosphere_spectrum.transmission,
+                    self.atmosphere_spectrum.side_nu,
+                    axis=-1,
+                ) / np.trapz(
+                    rel_T_RJ_spectrum,
+                    self.atmosphere_spectrum.side_nu,
+                    axis=-1,
+                )
+
+                band_transmission_interpolator = sp.interpolate.RegularGridInterpolator(
+                    (
+                        self.atmosphere_spectrum.side_zenith_pwv,
+                        self.atmosphere_spectrum.side_base_temperature,
+                        self.atmosphere_spectrum.side_elevation,
+                    ),
+                    self.det_transmission_grid,
+                )
+
+                self.atmospheric_transmission = band_transmission_interpolator(
+                    (
+                        self.zenith_scaled_pwv[band_index],
+                        self.weather.temperature[0],
+                        np.degrees(self.det_coords.el[band_index]),
+                    )
+                )
+
 
         if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸
             self._simulate_atmospheric_emission(self, units="K_RJ")

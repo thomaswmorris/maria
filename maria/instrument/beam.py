@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp  # noqa F401
 
 
-def angular_fwhm(fwhm_0, z=np.inf, n=1, f=None, l=None):  # noqa F401
+def compute_angular_fwhm(fwhm_0, z=np.inf, n=1, f=None, l=None):  # noqa F401
     """
     Returns the angular full width at half maximum of a Gaussian beam at distance `z` in
     refractive index `n`. Supply either the wavelength `l` in meters or the frequency `f` in Hz.
@@ -23,11 +23,11 @@ def angular_fwhm(fwhm_0, z=np.inf, n=1, f=None, l=None):  # noqa F401
     return 2 * w_0 * np.sqrt(1 / z**2 + 1 / z_r**2)
 
 
-def physical_fwhm(fwhm_0, z=np.inf, n=1, f=None, l=None):  # noqa F401
-    return z * angular_fwhm(fwhm_0=fwhm_0, z=z, n=n, f=f, l=l)
+def compute_physical_fwhm(fwhm_0, z=np.inf, n=1, f=None, l=None):  # noqa F401
+    return z * compute_angular_fwhm(fwhm_0=fwhm_0, z=z, n=n, f=f, l=l)
 
 
-def make_beam_filter(fwhm, res, beam_profile=None, buffer=1):
+def construct_beam_filter(fwhm, res, beam_profile=None, buffer=1):
     """
     Make a beam filter for an image.
     """

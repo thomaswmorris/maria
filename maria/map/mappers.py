@@ -193,18 +193,18 @@ class BinMapper(BaseMapper):
         return filter
 
     def run(self):
-        self.ubands = sorted(
+        self.band = sorted(
             [band for tod in self.tods for band in np.unique(tod.dets.band)]
         )
 
         self.band_data = {}
 
-        self.map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
-        self.map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.ubands}
+        self.map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
+        self.map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
 
-        self.map_data = np.zeros((len(self.ubands), self.n_x, self.n_y))
+        self.map_data = np.zeros((len(self.band), self.n_x, self.n_y))
 
-        for iband, band in enumerate(np.unique(self.ubands)):
+        for iband, band in enumerate(np.unique(self.band)):
             self.band_data[band] = {}
 
             for tod in self.tods:
@@ -248,8 +248,8 @@ class BinMapper(BaseMapper):
                 self.map_sums[band] += map_sum
                 self.map_cnts[band] += map_cnt
 
-            self.band_data[band]["nom_freq"] = tod.dets.bands[band].center
-            self.band_data[band]["nom_freqwidth"] = tod.dets.bands[band].width
+            self.band_data[band]["nom_freq"] = tod.dets.nom_freq.mean()
+            self.band_data[band]["nom_freqwidth"] = 30
 
             mask = self.map_cnts[band] > 0
             self.map_data[iband] = np.where(
@@ -258,7 +258,7 @@ class BinMapper(BaseMapper):
 
         self.map = Map(
             data=self.map_data,
-            freqs=np.array([self.band_data[band]["nom_freq"] for band in self.ubands]),
+            freqs=np.array([self.band_data[band]["nom_freq"] for band in self.band]),
             width=np.degrees(self.width) if self.degrees else self.width,
             height=np.degrees(self.height) if self.degrees else self.height,
             center=np.degrees(self.center) if self.degrees else self.center,

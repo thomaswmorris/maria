@@ -36,7 +36,7 @@ def test_mustang2():
     sim = Simulation(
         # Mandatory minimal weither settings
         # ---------------------
-        array="MUSTANG-2",  # Array type
+        instrument="MUSTANG-2",  # Instrument type
         pointing="daisy",  # Scanning strategy
         site="green_bank",  # Site
         atmosphere_model=atm_model,  # atmospheric model
@@ -49,7 +49,7 @@ def test_mustang2():
         map_res=pixel_size,  # resolution of the map
         map_center=pointing_center,  # RA & Dec in degree
         map_freqs=[93],
-        detector_config={"f093": {"n": 217, "band_center": 93, "band_width": 10}},
+        bands={"f093": {"n_dets": 217, "band_center": 93, "band_width": 10}},
         # MUSTANG-2 Observational setup
         # ----------------------------s
         scan_options={

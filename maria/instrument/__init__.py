@@ -12,7 +12,9 @@ from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from .. import utils
-from .dets import Detectors
+from .band import Band, BandList, generate_bands # noqa F401
+from .dets import Detectors, generate_detectors # noqa F401
+from .beam import compute_angular_fwhm, construct_beam_filter
 
 HEX_CODE_LIST = [
     mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
@@ -24,74 +26,97 @@ HEX_CODE_LIST = [
 
 here, this_filename = os.path.split(__file__)
 
-all_array_params = utils.io.read_yaml(f"{here}/../configs/default_params.yml")["array"]
+#all_instrument_params = utils.io.read_yaml(f"{here}/../configs/default_params.yml")["instrument"]
 
-ARRAY_CONFIGS = utils.io.read_yaml(f"{here}/arrays.yml")
+INSTRUMENT_CONFIGS = utils.io.read_yaml(f"{here}/instruments.yml")
 
-ARRAY_DISPLAY_COLUMNS = ["array_description", "field_of_view", "primary_size", "bands"]
-array_data = pd.DataFrame(ARRAY_CONFIGS).reindex(ARRAY_DISPLAY_COLUMNS).T
+INSTRUMENT_DISPLAY_COLUMNS = ["instrument_description", "field_of_view", "primary_size", "bands"]
+instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T
 
-for array_name, config in ARRAY_CONFIGS.items():
-    array_data.at[array_name, "bands"] = list(config["detector_config"].keys())
+for instrument_name, config in INSTRUMENT_CONFIGS.items():
+    instrument_data.at[instrument_name, "bands"] = list(config["bands"].keys())
 
-all_arrays = list(array_data.index)
+all_instruments = list(instrument_data.index)
 
 
-class InvalidArrayError(Exception):
-    def __init__(self, invalid_array):
+class InvalidInstrumentError(Exception):
+    def __init__(self, invalid_instrument):
         super().__init__(
-            f"The array '{invalid_array}' is not supported."
-            f"Supported arrays are:\n\n{array_data.__repr__()}"
+            f"The instrument '{invalid_instrument}' is not supported."
+            f"Supported instruments are:\n\n{instrument_data.__repr__()}"
         )
 
 
-def get_array_config(array_name=None, **kwargs):
-    if array_name not in ARRAY_CONFIGS.keys():
-        raise InvalidArrayError(array_name)
-    array_config = ARRAY_CONFIGS[array_name].copy()
-    for key, value in kwargs.items():
-        if key in all_array_params.keys():
-            array_config[key] = value
-        else:
-            raise ValueError(f"'{key}' is not a valid argument for an array!")
-    return array_config
+def get_instrument_config(instrument_name=None, **kwargs):
+    if instrument_name not in INSTRUMENT_CONFIGS.keys():
+        raise InvalidInstrumentError(instrument_name)
+    instrument_config = INSTRUMENT_CONFIGS[instrument_name].copy()
+    return instrument_config
 
 
-def get_array(array_name="default", **kwargs):
+def get_instrument(instrument_name="default", **kwargs):
     """
-    Get an array from a pre-defined config.
+    Get an instrument from a pre-defined config.
     """
-    array_config = get_array_config(array_name=array_name, **kwargs)
-    return Array.from_config(array_config)
+    if instrument_name not in INSTRUMENT_CONFIGS.keys():
+        raise InvalidInstrumentError(instrument_name)
+    instrument_config = INSTRUMENT_CONFIGS[instrument_name].copy()
+    instrument_config.update(kwargs)
+    return Instrument.from_config(instrument_config)
 
 
 @dataclass
-class Array:
+class Instrument:
     """
-    An array.
+    An instrument.
     """
 
-    array_description: str = ""
+    description: str = ""
     primary_size: float = 5  # in meters
     field_of_view: float = 1  # in deg
     geometry: str = "hex"
     baseline: float = 0
-    max_az_vel: float = 0  # in deg/s
-    max_el_vel: float = np.inf  # in deg/s
-    max_az_acc: float = 0  # in deg/s^2
-    max_el_acc: float = np.inf  # in deg/s^2
-    az_bounds: Tuple[float, float] = (0, 360)  # in degrees
-    el_bounds: Tuple[float, float] = (0, 90)  # in degrees
+    bath_temp: float = 0
+    bands: BandList = None
     dets: pd.DataFrame = None  # dets, it's complicated
-    array_documentation: str = ""
+    documentation: str = ""
+
+
+    @classmethod
+    def from_config(cls, config):
+
+       
+        if isinstance(config.get("bands"), Mapping):
+            dets = Detectors.generate(
+                bands_config=config.pop("bands"),
+                field_of_view=config.get("field_of_view", 1),
+                geometry=config.get("geometry", "hex"),
+                baseline=config.get("baseline", 0),
+            )
+
+        else:
+            raise ValueError("'bands' must be a dictionary of bands.")
+
+
+        return cls(
+            bands=dets.bands,
+            dets=dets,
+            **config
+        )
 
     def __repr__(self):
         nodef_f_vals = (
             (f.name, attrgetter(f.name)(self)) for f in fields(self) if f.name != "dets"
         )
 
-        nodef_f_repr = ", ".join(f"{name}={value}" for name, value in nodef_f_vals)
-        return f"{self.__class__.__name__}({nodef_f_repr})"
+        nodef_f_repr = []
+        for name, value in nodef_f_vals:
+            if name == "bands":
+                nodef_f_repr.append(f"{name}={value.__short_repr__()}")
+            else:
+                nodef_f_repr.append(f"{name}={value}")
+        
+        return f"{self.__class__.__name__}({', '.join(nodef_f_repr)})"
 
     @property
     def ubands(self):
@@ -121,34 +146,6 @@ class Array:
     def baselines(self):
         return np.c_[self.baseline_x, self.baseline_y]
 
-    @classmethod
-    def from_config(cls, config):
-        if isinstance(config["detector_config"], Mapping):
-            field_of_view = config.get("field_of_view", 1)
-            geometry = config.get("geometry", "hex")
-            baseline = config.get("baseline", 0)  # default to zero baseline
-            dets = Detectors.generate(
-                bands=config["detector_config"],
-                field_of_view=field_of_view,
-                geometry=geometry,
-                baseline=baseline,
-            )
-
-        return cls(
-            array_description=config["array_description"],
-            primary_size=config["primary_size"],
-            field_of_view=field_of_view,
-            baseline=baseline,
-            geometry=geometry,
-            max_az_vel=config["max_az_vel"],
-            max_el_vel=config["max_el_vel"],
-            max_az_acc=config["max_az_acc"],
-            max_el_acc=config["max_el_acc"],
-            az_bounds=tuple(config["az_bounds"]),
-            el_bounds=tuple(config["el_bounds"]),
-            array_documentation=config["array_documentation"],
-            dets=dets,
-        )
 
     @staticmethod
     def beam_profile(r, fwhm):
@@ -163,10 +160,14 @@ class Array:
         """
         Returns the angular FWHM (in radians) at infinite distance.
         """
+        return self.angular_fwhm(z=np.inf)
+
+    def angular_fwhm(self, z):  # noqa F401
+        """
+        Angular beam width (in radians) as a function of depth (in meters)
+        """
         nu = self.dets.band_center  # in GHz
-        return utils.beam.angular_fwhm(
-            z=np.inf, fwhm_0=self.primary_size, n=1, f=1e9 * nu
-        )
+        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, f=1e9 * nu)
 
     def physical_fwhm(self, z):
         """
@@ -174,22 +175,19 @@ class Array:
         """
         return z * self.angular_fwhm(z)
 
-    def angular_fwhm(self, z):  # noqa F401
-        """
-        Angular beam width (in radians) as a function of depth (in meters)
-        """
-        nu = self.dets.band_center  # in GHz
-        return utils.beam.angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, f=1e9 * nu)
+    # def angular_beam_filter(self, z, res, beam_profile=None, buffer=1):  # noqa F401
+    #     """
+    #     Angular beam width (in radians) as a function of depth (in meters)
+    #     """
+    #     return construct_beam_filter(self.angular_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-    def passband(self, nu):
-        """
-        Passband response per detector as a function of nu (in GHz)
-        """
-        _nu = np.atleast_1d(nu)
-        nu_mask = (_nu[None] > self.band_min[:, None]) & (
-            _nu[None] < self.band_max[:, None]
-        )
-        return nu_mask.astype(float) / nu_mask.sum(axis=-1)[:, None]
+
+    # def physical_beam_filter(self, z, res, beam_profile=None, buffer=1):  # noqa F401
+    #     """
+    #     Angular beam width (in radians) as a function of depth (in meters)
+    #     """
+    #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
+
 
     def plot_dets(self, units="deg"):
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=160)
