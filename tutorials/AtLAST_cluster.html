@@ -349,7 +349,7 @@ August. This change also necessitates adjusting the Right Ascension (RA) of the 
     <span class="n">pointing_frame</span>   <span class="o">=</span> <span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
 
     <span class="n">field_of_view</span>    <span class="o">=</span> <span class="n">field_of_view</span><span class="p">,</span>
-    <span class="n">detector_config</span>  <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;f090&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">ndets</span><span class="p">,</span>
+    <span class="n">bands</span>  <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;f090&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">ndets</span><span class="p">,</span>
                                  <span class="s2">&quot;band_center&quot;</span><span class="p">:</span> <span class="n">FREQ</span><span class="p">,</span>
                                  <span class="s2">&quot;band_width&quot;</span><span class="p">:</span> <span class="mf">52.0</span>
                                 <span class="p">}</span>
@@ -533,7 +533,7 @@ ran atmospheric simulation in 347.7 seconds
 <span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Detector setup for one band&quot;</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">uband</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">ubands</span><span class="p">:</span>
+<span class="k">for</span> <span class="n">uband</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">bands</span><span class="p">:</span>
     <span class="n">band_mask</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">dets</span><span class="o">.</span><span class="n">band</span> <span class="o">==</span> <span class="n">uband</span>
 
     <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>

@@ -41,7 +41,7 @@ We can also pass other arguments to the ``Simulation``, which will overwrite the
                     atmosphere_model='2d',
                     array=# defaults to a small test array
                     array_description:
-                    detector_config = {
+                    bands = {
                         f093: {'n':60, 'band_center':90, 'band_width':10}
                         f150: {'n':60, 'band_center':150, 'band_width':20}
                         }
