@@ -5,7 +5,6 @@ from datetime import datetime
 import numpy as np
 import pytz
 
-from . import beam  # noqa F401
 from . import constants  # noqa F401
 from . import functions  # noqa F401
 from . import io  # noqa F401

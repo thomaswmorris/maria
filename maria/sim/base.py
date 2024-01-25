@@ -1,11 +1,11 @@
 import os
 
-from . import utils
-from .array import Array, get_array
-from .coords import Coordinates, dx_dy_to_phi_theta
-from .pointing import Pointing, get_pointing
-from .site import Site, get_site
-from .tod import TOD
+from .. import utils
+from ..instrument import Instrument, get_instrument
+from ..coords import Coordinates, dx_dy_to_phi_theta
+from ..pointing import Pointing, get_pointing
+from ..site import Site, get_site
+from ..tod import TOD
 
 here, this_filename = os.path.split(__file__)
 
@@ -17,7 +17,7 @@ class InvalidSimulationParameterError(Exception):
         )
 
 
-master_params = utils.io.read_yaml(f"{here}/configs/default_params.yml")
+master_params = utils.io.read_yaml(f"{here}/default_params.yml")
 
 
 def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
@@ -49,7 +49,7 @@ class BaseSimulation:
 
     def __init__(
         self,
-        array: Array or str = "default",
+        instrument: Instrument or str = "default",
         pointing: Pointing or str = "stare",
         site: Site or str = "default",
         verbose=False,
@@ -64,10 +64,10 @@ class BaseSimulation:
 
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
-        if type(array) is Array:
-            self.array = array
+        if type(instrument) is Instrument:
+            self.instrument = instrument
         else:
-            self.array = get_array(array_name=array, **parsed_sim_kwargs["array"])
+            self.instrument = get_instrument(instrument_name=instrument, **parsed_sim_kwargs["instrument"])
 
         if type(pointing) is Pointing:
             self.pointing = pointing
@@ -90,7 +90,7 @@ class BaseSimulation:
         )
 
         det_az, det_el = dx_dy_to_phi_theta(
-            *self.array.offsets.T[..., None], self.boresight.az, self.boresight.el
+            *self.instrument.offsets.T[..., None], self.boresight.az, self.boresight.el
         )
 
         self.det_coords = Coordinates(
@@ -109,8 +109,8 @@ class BaseSimulation:
 
         tod = TOD(
             data=self.data,
-            dets=self.array.dets,
-            boresight=self.boresight,
+            dets=self.instrument.dets.df,
+            #boresight=self.boresight,
             coords=self.det_coords,
         )
 

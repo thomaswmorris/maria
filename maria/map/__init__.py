@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
+from operator import attrgetter
 from typing import List, Tuple
 
 import astropy as ap
@@ -10,6 +11,7 @@ from astropy.wcs import WCS
 from tqdm import tqdm
 
 from .. import utils
+from ..instrument import beam
 
 
 @dataclass
@@ -29,7 +31,7 @@ class Map:
     header: ap.io.fits.header.Header = None
     frame: str = "ra_dec"
     units: str = "K"
-    data: np.array = None  # 3D array
+    data: np.array = None  # 3D instrument
 
     def __post_init__(self):
         assert len(self.freqs) == self.n_freqs
@@ -38,6 +40,14 @@ class Map:
 
         self.width = self.res * self.n_x
         self.height = self.res * self.n_y
+
+    def __repr__(self):
+        nodef_f_vals = (
+            (f.name, attrgetter(f.name)(self)) for f in fields(self) if f.name not in ["data", "header"]
+        )
+
+        nodef_f_repr = ", ".join(f"{name}={value}" for name, value in nodef_f_vals)
+        return f"{self.__class__.__name__}({nodef_f_repr})"
 
     @property
     def res(self):
@@ -123,7 +133,7 @@ class Map:
             if units == "arcsec":
                 map_extent = 3600 * np.degrees(map_extent_radians)
 
-            vmin, vmax = np.nanpercentile(self.data, q=[5, 95])
+            vmin, vmax = np.nanpercentile(self.data, q=[1, 99])
 
             map_im = ax.imshow(
                 self.data.T,
@@ -220,28 +230,28 @@ class MapMixin:
         freqs = tqdm(self.input_map.freqs) if self.verbose else self.input_map.freqs
         for i, nu in enumerate(freqs):
             if self.verbose:
-                freqs.set_description(f"Sampling map at {nu} GHz")
+                freqs.set_description(f"Sampling input map")
 
             # nu is in GHz, f is in Hz
-            nu_fwhm = utils.beam.angular_fwhm(
-                fwhm_0=self.array.primary_size, z=np.inf, f=1e9 * nu
+            nu_fwhm = beam.compute_angular_fwhm(
+                fwhm_0=self.instrument.primary_size, z=np.inf, f=1e9 * nu
             )
-            nu_map_filter = utils.beam.make_beam_filter(
+            nu_map_filter = beam.construct_beam_filter(
                 fwhm=nu_fwhm, res=self.input_map.res
             )
-            filtered_nu_map_data = utils.beam.separably_filter(
+            filtered_nu_map_data = beam.separably_filter(
                 self.input_map.data[i], nu_map_filter
             )
 
-            # band_res_radians = 1.22 * (299792458 / (1e9 * nu)) / self.array.primary_size
+            # band_res_radians = 1.22 * (299792458 / (1e9 * nu)) / self.instrument.primary_size
             # band_res_pixels = band_res_radians / self.input_map.res
             # FWHM_TO_SIGMA = 2.355
             # band_beam_sigma_pixels = band_res_pixels / FWHM_TO_SIGMA
 
-            # # band_beam_filter = self.array.
+            # # band_beam_filter = self.instrument.
 
             # # filtered_map_data = sp.ndimage.convolve()
-            det_freq_response = self.array.dets.passband(nu=np.array([nu]))[:, 0]
+            det_freq_response = self.instrument.dets.passband(nu=np.array([nu]))[:, 0]
             det_mask = det_freq_response > -np.inf  # -1e-3
 
             samples = sp.interpolate.RegularGridInterpolator(
@@ -251,5 +261,8 @@ class MapMixin:
                 fill_value=0,
                 method="linear",
             )((dx[det_mask], dy[det_mask]))
+
+            if hasattr(self, "atmospheric_transmission"):
+                samples *= self.atmospheric_transmission
 
             self.data["map"][det_mask] = samples

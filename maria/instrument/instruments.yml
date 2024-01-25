@@ -1,0 +1,206 @@
+default:
+  description: A dummy instrument.
+  bands:
+    f150:
+      n_dets: 19
+      band_center: 150
+      band_width: 10
+      efficiency: 1
+  field_of_view: 1
+  geometry: hex
+  primary_size: 10
+  documentation:
+
+
+MUSTANG-2:
+  description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
+  bands:
+    f093:
+      n_dets: 217
+      # file: data/mustang2/passbands/f093.csv
+      band_center: 90
+      band_width: 30
+      efficiency: 0.5
+      white_noise: 266.e-6 # in K_RJ s^-1/2
+      pink_noise: 1.e-1 # in K_RJ s^-1/2
+  field_of_view: 0.07 # in degrees
+  geometry: hex
+  primary_size: 100 # in meters
+  bath_temp: 100.e-3 # in K
+  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
+
+ABS:
+  description: Atacama B-Mode Search
+  bands:
+    f150:
+      n_dets: 217
+      band_center: 150
+      band_width: 10
+      efficiency: 1
+  field_of_view: 25
+  geometry: hex
+  primary_size: 0.5
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+
+
+ACT-PA4:
+  description: AdvACT Polarization Array 4
+  bands:
+    f150:
+      n_dets: 750
+      band_center: 150
+      band_width: 10
+    f220:
+      n_dets: 750
+      band_center: 220
+      band_width: 20
+  field_of_view: 0.8
+  geometry: hex
+  primary_size: 6
+  documentation: https://act.princeton.edu/overview/camera-specifications/advact
+
+
+ACT-PA5:
+  description: AdvACT Polarization Array 5
+  bands:
+    f150:
+      n_dets: 750
+      band_center: 150
+      band_width: 10
+    f220:
+      n_dets: 750
+      band_center: 220
+      band_width: 20
+  field_of_view: 0.8
+  geometry: hex
+  primary_size: 6
+  documentation: https://act.princeton.edu/overview/camera-specifications/advact
+
+
+ACT-PA7:
+  description: AdvACT Polarization Array 5
+  bands:
+    f030:
+      n_dets: 50
+      band_center: 30
+      band_width: 10
+    f040:
+      n_dets: 50
+      band_center: 40
+      band_width: 10
+  field_of_view: 0.8
+  geometry: hex
+  primary_size: 6
+  documentation: https://act.princeton.edu/overview/camera-specifications/advact
+
+
+ALMA:
+  description: ALMA (Atacama Large Millimeter Array)
+  bands:
+    f043:
+      n_dets: 66
+      band_center: 43
+      band_width: 16
+    f078:
+      n_dets: 66
+      band_center: 78
+      band_width: 22
+    f100:
+      n_dets: 66
+      band_center: 100
+      band_width: 32
+    f144:
+      n_dets: 66
+      band_center: 144
+      band_width: 38
+    f187:
+      n_dets: 66
+      band_center: 187
+      band_width: 48
+    f243:
+      n_dets: 66
+      band_center: 243
+      band_width: 64
+    f324:
+      n_dets: 66
+      band_center: 324
+      band_width: 98
+    f447:
+      n_dets: 66
+      band_center: 447
+      band_width: 114
+    f661:
+      n_dets: 66
+      band_center: 661
+      band_width: 118
+    f869:
+      n_dets: 66
+      band_center: 869
+      band_width: 163
+
+  field_of_view: 0
+  baseline: 12000 # meters
+  geometry: hex
+  primary_size: 12
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+
+AtLAST:
+  description: AtLAST (Atacama Large-Aperture Submillimeter Telescope)
+  bands:
+    f027:
+      n_dets: 750
+      band_center: 27
+      band_width: 5
+    f039:
+      n_dets: 750
+      band_center: 39
+      band_width: 5
+    f093:
+      n_dets: 750
+      band_center: 93
+      band_width: 10
+    f150:
+      n_dets: 750
+      band_center: 150
+      band_width: 10
+    f225:
+      n_dets: 750
+      band_center: 225
+      band_width: 30
+    f280:
+      n_dets: 750
+      band_center: 280
+      band_width: 40
+  geometry: hex
+  field_of_view: 2.0
+  primary_size: 50
+  documentation: https://www.atlast.uio.no/
+
+
+SCUBA-2:
+  description: SCUBA-2 (Submillimetre Common-User Bolometer Instrument 2)
+  bands:
+    f350:
+      n_dets: 5120
+      band_center: 350
+      band_width: 10
+    f650:
+      n_dets: 5120
+      band_center: 650
+      band_width: 10
+  field_of_view: 0.12
+  geometry: hex
+  primary_size: 15
+  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/
+
+SO_SAT:
+  description: SCUBA-2 (Submillimetre Common-User Bolometer Instrument 2)
+  bands:
+    f150:
+      n_dets: 217
+      band_center: 150
+      band_width: 20
+  field_of_view: 10
+  geometry: hex
+  primary_size: 0.5
+  documentation: https://www.eaobservatory.org/jcmt/instrumentation/continuum/scuba-2/

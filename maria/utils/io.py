@@ -16,7 +16,7 @@ def read_yaml(path):
     return res if res is not None else {}
 
 
-def fetch_cache(source_url, cache_path, max_cache_age=86400, refresh=False):
+def fetch_cache(source_url, cache_path, max_cache_age=7*86400, refresh=False):
     """
     Download the cache if needed
     """

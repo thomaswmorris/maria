@@ -1,9 +1,9 @@
 # this is a master list of parameters that can be passed to a total simulation, along with default values
 # repeated parameters like "description" or "documentation" are not preserved in the simulation class.
 
-array: # defaults to a small test array
-  array_description:
-  detector_config:
+instrument: # defaults to a small test instrument
+  instrument_description:
+  bands:
     f090:
       n: 60
       band_center: 90
@@ -22,7 +22,7 @@ array: # defaults to a small test array
   max_el_vel: 2
   max_az_acc: 1
   max_el_acc: 0.25
-  array_documentation: ''
+  instrument_documentation: ''
 
 pointing: # defaults to a 45 degree stare due north
   pointing_description: ''

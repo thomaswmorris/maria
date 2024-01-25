@@ -8,7 +8,7 @@ import scipy as sp
 from astropy.io import fits
 
 from .. import site
-from ..array.dets import Detectors
+from ..instrument.dets import Detectors
 from ..coords import Coordinates, get_center_phi_theta
 
 
@@ -64,11 +64,11 @@ class TOD:
         )
 
         dets = Detectors.generate(
-            bands={
-                "93GHz": {
-                    "n": n_dets,
+            bands_config={
+                "f093": {
+                    "n_dets": n_dets,
                     "band_center": 93,
-                    "band_width": 10,
+                    "band_width": 30,
                 }
             }
         )

@@ -2,8 +2,12 @@ import numpy as np
 import scipy as sp
 
 from .. import utils
-from ..array import Array
+from ..instrument import Instrument
+
+from ..instrument.beam import construct_beam_filter, separably_filter
+
 from ..coords import Coordinates, get_center_phi_theta
+
 from .weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
@@ -22,7 +26,7 @@ class TurbulentLayer:
 
     def __init__(
         self,
-        array: Array,
+        instrument: Instrument,
         boresight: Coordinates,
         weather: Weather,
         depth: float,
@@ -31,7 +35,7 @@ class TurbulentLayer:
         verbose: bool = False,
         **kwargs,
     ):
-        self.array = array
+        self.instrument = instrument
         self.boresight = boresight
         self.weather = weather
         self.depth = depth
@@ -44,7 +48,7 @@ class TurbulentLayer:
         self.angular_outer_scale = turbulent_outer_scale / self.depth
 
         # returns the beam fwhm for each detector at the layer distance
-        # self.physical_beam_fwhm = self.array.physical_fwhm(self.depth)
+        # self.physical_beam_fwhm = self.instrument.physical_fwhm(self.depth)
         # self.angular_beam_fwhm = self.physical_beam_fwhm / self.depth
 
         self.angular_resolution = self.res / self.depth
@@ -92,7 +96,7 @@ class TurbulentLayer:
         ]
 
         # find the detector offsets which form a convex hull
-        self.detector_offsets = np.c_[self.array.offset_x, self.array.offset_y]
+        self.detector_offsets = np.c_[self.instrument.offset_x, self.instrument.offset_y]
 
         # add a small circle of offsets to account for pesky zeros
         unit_circle_complex = np.exp(1j * np.linspace(0, 2 * np.pi, 64 + 1)[:-1])
@@ -100,11 +104,11 @@ class TurbulentLayer:
             np.real(unit_circle_complex), np.imag(unit_circle_complex)
         ]
 
-        # this is a convex hull for the array if it's staring
+        # this is a convex hull for the instrument if it's staring
         stare_convex_hull = sp.spatial.ConvexHull(
             (
                 self.detector_offsets[None, :, None]
-                + self.array.angular_fwhm(depth)[:, None, None]
+                + self.instrument.angular_fwhm(depth)[:, None, None]
                 * unit_circle_offsets[None]
             ).reshape(-1, 2)
         )
@@ -303,21 +307,18 @@ class TurbulentLayer:
 
     def sample(self):
         detector_values = np.zeros(self.atmosphere_detector_points.shape[:-1])
-        for band in self.array.ubands:
+        for band in self.instrument.bands:
             # we assume the atmosphere looks the same for every nu in the band
-            band_mask = self.array.dets.band == band
 
-            band_angular_fwhm = self.array.angular_fwhm(z=self.depth)[band_mask].mean()
+            band_index = self.instrument.dets(band=band.name).uid
+            band_angular_fwhm = self.instrument.angular_fwhm(z=self.depth)[band_index].mean()
 
-            F = utils.beam.make_beam_filter(
-                band_angular_fwhm, self.angular_resolution, self.array.beam_profile
-            )
+            F = construct_beam_filter(fwhm=band_angular_fwhm, res=self.angular_resolution, beam_profile=self.instrument.beam_profile)
+            FILTERED_VALUES = separably_filter(self.shaped_values, F)
 
-            FILTERED_VALUES = utils.beam.separably_filter(self.shaped_values, F)
-
-            detector_values[band_mask] = sp.interpolate.RegularGridInterpolator(
+            detector_values[band_index] = sp.interpolate.RegularGridInterpolator(
                 (self.cross_section_side, self.extrusion_side), FILTERED_VALUES.T
-            )(self.atmosphere_detector_points[band_mask])
+            )(self.atmosphere_detector_points[band_index])
 
         return detector_values
 
