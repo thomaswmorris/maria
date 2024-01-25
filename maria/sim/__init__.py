@@ -4,15 +4,14 @@ from maria.instrument import Instrument
 from maria.pointing import Pointing
 from maria.site import Site
 
-from .base import BaseSimulation, parse_sim_kwargs, master_params
-
-from .. import utils
 from ..atmosphere import AtmosphereMixin, Weather
 from ..cmb import CMBMixin
 from ..map import MapMixin
 from ..noise import NoiseMixin
+from .base import BaseSimulation, master_params, parse_sim_kwargs
 
 here, this_filename = os.path.split(__file__)
+
 
 class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
     """A simulation! This is what users should touch, primarily."""
@@ -90,6 +89,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
     def __repr__(self):
         object_reprs = [
-            getattr(self, attr).__repr__() for attr in ["instrument", "site", "pointing"]
+            getattr(self, attr).__repr__()
+            for attr in ["instrument", "site", "pointing"]
         ]
         return "\n\n".join(object_reprs)

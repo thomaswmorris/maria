@@ -2,12 +2,9 @@ import numpy as np
 import scipy as sp
 
 from .. import utils
-from ..instrument import Instrument
-
-from ..instrument.beam import construct_beam_filter, separably_filter
-
 from ..coords import Coordinates, get_center_phi_theta
-
+from ..instrument import Instrument
+from ..instrument.beam import construct_beam_filter, separably_filter
 from .weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
@@ -96,7 +93,9 @@ class TurbulentLayer:
         ]
 
         # find the detector offsets which form a convex hull
-        self.detector_offsets = np.c_[self.instrument.offset_x, self.instrument.offset_y]
+        self.detector_offsets = np.c_[
+            self.instrument.offset_x, self.instrument.offset_y
+        ]
 
         # add a small circle of offsets to account for pesky zeros
         unit_circle_complex = np.exp(1j * np.linspace(0, 2 * np.pi, 64 + 1)[:-1])
@@ -311,9 +310,15 @@ class TurbulentLayer:
             # we assume the atmosphere looks the same for every nu in the band
 
             band_index = self.instrument.dets(band=band.name).uid
-            band_angular_fwhm = self.instrument.angular_fwhm(z=self.depth)[band_index].mean()
+            band_angular_fwhm = self.instrument.angular_fwhm(z=self.depth)[
+                band_index
+            ].mean()
 
-            F = construct_beam_filter(fwhm=band_angular_fwhm, res=self.angular_resolution, beam_profile=self.instrument.beam_profile)
+            F = construct_beam_filter(
+                fwhm=band_angular_fwhm,
+                res=self.angular_resolution,
+                beam_profile=self.instrument.beam_profile,
+            )
             FILTERED_VALUES = separably_filter(self.shaped_values, F)
 
             detector_values[band_index] = sp.interpolate.RegularGridInterpolator(

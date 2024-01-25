@@ -1,8 +1,8 @@
 import os
 
 from .. import utils
-from ..instrument import Instrument, get_instrument
 from ..coords import Coordinates, dx_dy_to_phi_theta
+from ..instrument import Instrument, get_instrument
 from ..pointing import Pointing, get_pointing
 from ..site import Site, get_site
 from ..tod import TOD
@@ -67,7 +67,9 @@ class BaseSimulation:
         if type(instrument) is Instrument:
             self.instrument = instrument
         else:
-            self.instrument = get_instrument(instrument_name=instrument, **parsed_sim_kwargs["instrument"])
+            self.instrument = get_instrument(
+                instrument_name=instrument, **parsed_sim_kwargs["instrument"]
+            )
 
         if type(pointing) is Pointing:
             self.pointing = pointing
@@ -110,7 +112,7 @@ class BaseSimulation:
         tod = TOD(
             data=self.data,
             dets=self.instrument.dets.df,
-            #boresight=self.boresight,
+            # boresight=self.boresight,
             coords=self.det_coords,
         )
 

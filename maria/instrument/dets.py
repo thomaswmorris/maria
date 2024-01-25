@@ -1,12 +1,11 @@
 import os
 from collections.abc import Mapping
-from dataclasses import dataclass, field
 
 import matplotlib as mpl
 import numpy as np
 import pandas as pd
 
-from .band import Band, BandList, generate_bands # noqa F401
+from .band import Band, BandList, generate_bands  # noqa F401
 
 here, this_filename = os.path.split(__file__)
 
@@ -74,29 +73,30 @@ def generate_hex_offsets(n, d):
     return np.c_[np.real(np.array(zs[:n])), np.imag(np.array(zs[:n]))]
 
 
-
-def generate_detectors(        
-        bands_config: Mapping,
-        field_of_view: float = 1,
-        geometry: str = "hex",
-        baseline: float = 0,
-    ):
-
+def generate_detectors(
+    bands_config: Mapping,
+    field_of_view: float = 1,
+    geometry: str = "hex",
+    baseline: float = 0,
+):
     dets = pd.DataFrame(columns=list(DET_COLUMN_TYPES.keys()), dtype=object)
 
     for band_key, band_config in bands_config.items():
-
         band_name = band_config.get("band_name", band_key)
 
-        band_dets = pd.DataFrame(columns=dets.columns, index=np.arange(band_config["n_dets"]))
-        band_dets.loc[:, 'band'] = band_name
+        band_dets = pd.DataFrame(
+            columns=dets.columns, index=np.arange(band_config["n_dets"])
+        )
+        band_dets.loc[:, "band"] = band_name
 
         det_offsets_radians = np.radians(
             generate_instrument_offsets(geometry, field_of_view, len(band_dets))
         )
 
         # should we make another function for this?
-        det_baselines_meters = generate_instrument_offsets(geometry, baseline, len(band_dets))
+        det_baselines_meters = generate_instrument_offsets(
+            geometry, baseline, len(band_dets)
+        )
 
         # if randomize_offsets:
         #     np.random.shuffle(offsets_radians)  # this is a stupid function.
@@ -114,8 +114,6 @@ def generate_detectors(
 
         dets = pd.concat([dets, band_dets], axis=0)
 
-
-
     dets.loc[:, "uid"] = np.arange(len(dets))
     dets.index = np.arange(len(dets))
 
@@ -124,8 +122,8 @@ def generate_detectors(
 
     return dets
 
-class Detectors:
 
+class Detectors:
     def __repr__(self):
         return self.df.__repr__()
 
@@ -148,7 +146,7 @@ class Detectors:
         bands = BandList(self.bands[band])
         mask = self.band == band
         return Detectors(bands=bands, df=self.df.loc[mask])
-        
+
     @classmethod
     def generate(
         cls,
@@ -157,16 +155,14 @@ class Detectors:
         geometry: str = "hex",
         baseline: float = 0,
     ):
-
-        dets_df = generate_detectors(        
-                bands_config=bands_config,
-                field_of_view=field_of_view,
-                geometry=geometry,
-                baseline=baseline,
-            )
+        dets_df = generate_detectors(
+            bands_config=bands_config,
+            field_of_view=field_of_view,
+            geometry=geometry,
+            baseline=baseline,
+        )
 
         bands = generate_bands(bands_config=bands_config)
-
 
         return cls(df=dets_df, bands=bands)
 

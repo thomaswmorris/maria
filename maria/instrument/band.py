@@ -1,9 +1,9 @@
+import os
 from dataclasses import dataclass
+from typing import Sequence
 
 import numpy as np
 import pandas as pd
-from typing import Sequence
-import os
 
 BAND_FIELD_TYPES = {
     "center": "float",
@@ -13,12 +13,11 @@ BAND_FIELD_TYPES = {
 
 here, this_filename = os.path.split(__file__)
 
-def generate_bands(bands_config):
 
+def generate_bands(bands_config):
     bands = []
 
     for band_key, band_config in bands_config.items():
-
         band_name = band_config.get("band_name", band_key)
         band_file = band_config.get("file")
 
@@ -50,7 +49,6 @@ def generate_bands(bands_config):
 
 
 class BandList(Sequence):
-
     def __init__(self, bands: list = []):
         self.bands = bands
 
@@ -67,13 +65,15 @@ class BandList(Sequence):
                 raise ValueError(f"BandList has no band named {index}.")
             return self.bands[self.names.index(index)]
         else:
-            raise ValueError(f"Invalid index {index}. A bandList must be indexed by either an integer or a string.")
+            raise ValueError(
+                f"Invalid index {index}. A bandList must be indexed by either an integer or a string."
+            )
 
     def __len__(self):
         return len(self.bands)
 
     def __repr__(self):
-        #return f"BandList([{', '.join(self.names)}])"
+        # return f"BandList([{', '.join(self.names)}])"
         return self.bands.__repr__()
 
     def __short_repr__(self):
@@ -86,13 +86,14 @@ class BandList(Sequence):
     @property
     def summary(self) -> pd.DataFrame:
         table = pd.DataFrame(columns=list(BAND_FIELD_TYPES.keys()), index=self.names)
-        
+
         for attr, dtype in BAND_FIELD_TYPES.items():
             for band in self.bands:
                 table.at[band.name, attr] = getattr(band, attr)
             table[attr] = table[attr].astype(dtype)
 
         return table
+
 
 @dataclass
 class Band:
@@ -149,9 +150,7 @@ class Band:
             return np.exp(-0.5 * np.square((_nu - self.center) / band_sigma))
 
         if self.type == "flat":
-            return np.where(
-                (_nu > self.nu_min) & (_nu < self.nu_max), 1., 0.
-            )
+            return np.where((_nu > self.nu_min) & (_nu < self.nu_max), 1.0, 0.0)
 
         elif self.type == "custom":
             return np.interp(_nu, self._nu, self._pb)

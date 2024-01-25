@@ -1,20 +1,19 @@
 import os
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Tuple
 
 import matplotlib.pyplot as plt
-from .. import coords
 import numpy as np
 import pandas as pd
 import pytz
-import warnings
 
-from .. import utils
+from .. import coords, utils
 from . import patterns
 
-MAX_VELOCITY_WARN = 20 # in deg/s
-MAX_ACCELERATION_WARN = 10 # in deg/s
+MAX_VELOCITY_WARN = 20  # in deg/s
+MAX_ACCELERATION_WARN = 10  # in deg/s
 
 here, this_filename = os.path.split(__file__)
 
@@ -122,17 +121,37 @@ class Pointing:
             x_scan_offsets_radians, y_scan_offsets_radians
         ].T
 
-        scan_velocity_radians = np.gradient(self.scan_offsets_radians, axis=1, edge_order=0) / np.gradient(self.time)
-        scan_acceleration_radians = np.gradient(scan_velocity_radians, axis=1, edge_order=0) / np.gradient(self.time)
+        scan_velocity_radians = np.gradient(
+            self.scan_offsets_radians, axis=1, edge_order=0
+        ) / np.gradient(self.time)
+        scan_acceleration_radians = np.gradient(
+            scan_velocity_radians, axis=1, edge_order=0
+        ) / np.gradient(self.time)
 
-        max_velocity = np.degrees(np.sqrt(np.sum(scan_velocity_radians**2, axis=0))).max()
-        max_acceleration = np.degrees(np.sqrt(np.sum(scan_acceleration_radians**2, axis=0))).max()
+        max_velocity = np.degrees(
+            np.sqrt(np.sum(scan_velocity_radians**2, axis=0))
+        ).max()
+        max_acceleration = np.degrees(
+            np.sqrt(np.sum(scan_acceleration_radians**2, axis=0))
+        ).max()
 
         if max_velocity > MAX_VELOCITY_WARN:
-            warnings.warn((f"The maximum velocity of the boresight ({max_velocity:.01f} deg/s) is physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."), stacklevel=2)
+            warnings.warn(
+                (
+                    f"The maximum velocity of the boresight ({max_velocity:.01f} deg/s) is physically "
+                    "unrealistic. If this is undesired, double-check the parameters for your scan strategy."
+                ),
+                stacklevel=2,
+            )
 
         if max_acceleration > MAX_ACCELERATION_WARN:
-            warnings.warn((f"The maximum acceleration of the boresight ({max_acceleration:.01f} deg/s^2) is physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."), stacklevel=2)
+            warnings.warn(
+                (
+                    f"The maximum acceleration of the boresight ({max_acceleration:.01f} deg/s^2) is physically "
+                    "unrealistic. If this is undesired, double-check the parameters for your scan strategy."
+                ),
+                stacklevel=2,
+            )
 
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
             *self.scan_offsets_radians, *self.scan_center_radians
