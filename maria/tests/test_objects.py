@@ -3,9 +3,9 @@ import pytest
 import maria
 
 
-@pytest.mark.parametrize("array_name", maria.all_arrays)
-def test_get_array(array_name):
-    array = maria.get_array(array_name)
+@pytest.mark.parametrize("instrument_name", maria.all_instruments)
+def test_get_instrument(instrument_name):
+    instrument = maria.get_instrument(instrument_name)
 
 
 @pytest.mark.parametrize("pointing_name", maria.all_pointings)
