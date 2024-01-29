@@ -1,4 +1,7 @@
 import os
+import warnings
+
+import numpy as np
 
 from .. import utils
 from ..coords import Coordinates, dx_dy_to_phi_theta
@@ -90,6 +93,22 @@ class BaseSimulation:
             location=self.site.earth_location,
             frame=self.pointing.pointing_frame,
         )
+
+        if self.pointing.max_vel > np.radians(self.instrument.vel_limit):
+            raise warnings.warn(
+                (
+                    f"The maximum velocity of the boresight ({np.degrees(self.pointing.max_vel):.01f} deg/s) exceeds "
+                    f"the maximum velocity of the instrument ({self.instrument.vel_limit:.01f} deg/s)."
+                ),
+            )
+
+        if self.pointing.max_acc > np.radians(self.instrument.acc_limit):
+            raise warnings.warn(
+                (
+                    f"The maximum acceleration of the boresight ({np.degrees(self.pointing.max_acc):.01f} deg/s^2) exceeds "
+                    f"the maximum acceleration of the instrument ({self.instrument.acc_limit:.01f} deg/s^2)."
+                ),
+            )
 
         det_az, det_el = dx_dy_to_phi_theta(
             *self.instrument.offsets.T[..., None], self.boresight.az, self.boresight.el

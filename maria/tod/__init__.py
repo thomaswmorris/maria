@@ -105,10 +105,21 @@ class TOD:
 
         self.units = units
 
-        self.fs = np.gradient(self.time).mean()
-        self.dt = 1.0 / self.fs
+    @property
+    def dt(self):
+        return np.diff(self.time).mean()
 
-        self.nd, self.nt = self.data.shape
+    @property
+    def fs(self):
+        return 1 / self.dt
+
+    @property
+    def nd(self):
+        return self.data.shape[0]
+
+    @property
+    def nt(self):
+        return self.data.shape[-1]
 
     def subset(self, det_mask=None, time_mask=None, band: str = None):
         if band is not None:

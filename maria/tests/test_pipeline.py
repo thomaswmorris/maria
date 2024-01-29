@@ -71,13 +71,20 @@ def test_mustang2():
         frame="ra_dec",
         width=np.radians(10.0 / 60.0),
         height=np.radians(10.0 / 60.0),
-        res=np.radians(2.0 / 3600.0),
+        res=np.radians(4.0 / 3600.0),
         degrees=False,
-        filter_data=True,
-        n_modes_to_remove=1,
+        tod_postprocessing={
+            "remove_modes": {"n": 1},
+            "filter": {"f": 0.08},
+            "despline": {"spacing": 10},
+        },
+        map_postprocessing={
+            "gaussian_filter": {"sigma": 1},
+            "median_filter": {"size": 1},
+        },
+        tods=[tod],
     )
 
-    mapper.add_tods(tod)
     mapper.run()
 
     mapper.save_maps(outfile_map)

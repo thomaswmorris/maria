@@ -1,11 +1,12 @@
 import os
-from typing import Tuple
+from typing import Sequence, Tuple
 
 import numpy as np
 import scipy as sp
 from astropy.io import fits
 
 from .. import utils
+from ..tod import TOD
 from . import Map
 
 np.seterr(invalid="ignore")
@@ -16,8 +17,6 @@ here, this_filename = os.path.split(__file__)
 class BaseMapper:
     """
     The base class for mapping.
-
-    Units
     """
 
     def __init__(
@@ -27,11 +26,8 @@ class BaseMapper:
         height: float = 1,
         res: float = 0.01,
         frame: str = "ra_dec",
-        filter_tods: bool = True,
-        smoothing: float = 8,
         degrees: bool = True,
-        ffilter: float = 0.08,
-        **kwargs,
+        tods: Sequence[TOD] = [],
     ):
         self.res = np.radians(res) if degrees else res
         self.center = np.radians(center) if degrees else center
@@ -39,9 +35,6 @@ class BaseMapper:
         self.height = np.radians(height) if degrees else height
         self.degrees = degrees
         self.frame = frame
-        self.filter_tods = filter_tods
-        self.smoothing = smoothing
-        self.ffilter = ffilter
 
         self.n_x = int(np.maximum(1, self.width / self.res))
         self.n_y = int(np.maximum(1, self.height / self.res))
@@ -49,37 +42,16 @@ class BaseMapper:
         self.x_bins = np.linspace(-0.5 * self.width, 0.5 * self.width, self.n_x + 1)
         self.y_bins = np.linspace(-0.5 * self.height, 0.5 * self.height, self.n_y + 1)
 
-        self.tods = []
+        self.tods = list(np.atleast_1d(tods))
 
     def plot(self):
+        if not hasattr(self, "map"):
+            raise RuntimeError("Mapper has not been run yet.")
         self.map.plot()
 
     @property
     def n_maps(self):
         return len(self.maps)
-
-    # @property
-    # def maps(self):
-    #     return {
-    #         key: self.map_sums[key]
-    #         / np.where(self.map_cnts[key], self.map_cnts[key], np.nan)
-    #         for key in self.map_sums.keys()
-    #     }
-
-    def smoothed_maps(self, smoothing=1):
-        smoothed_maps = {}
-
-        for key in self.map_sums.keys():
-            SUMS = sp.ndimage.gaussian_filter(
-                self.map_sums[key], sigma=(smoothing, smoothing)
-            )
-            CNTS = sp.ndimage.gaussian_filter(
-                self.map_cnts[key], sigma=(smoothing, smoothing)
-            )
-
-            smoothed_maps[key] = SUMS / CNTS
-
-        return smoothed_maps
 
     def add_tods(self, tods):
         for tod in np.atleast_1d(tods):
@@ -124,10 +96,7 @@ class BaseMapper:
             self.header["CRVAL3"] = self.band_data[key]["nom_freq"] * 1e9
             self.header["CDELT3"] = self.band_data[key]["nom_freqwidth"] * 1e9
 
-            sigma_smooth = self.smoothing / 3600 / np.rad2deg(self.res) / 2.355
-            save_maps[i] = self.smoothed_maps(sigma_smooth)[
-                list(self.band_data.keys())[i]
-            ]
+            save_maps[i] = self.map.data[i]
 
             # if self.tods[0].unit == "Jy/pixel":
             #     save_maps[i] *= utils.units.KbrightToJyPix(
@@ -143,54 +112,30 @@ class BaseMapper:
 
 
 class BinMapper(BaseMapper):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        center: Tuple[float, float] = (0, 0),
+        width: float = 1,
+        height: float = 1,
+        res: float = 0.01,
+        frame: str = "ra_dec",
+        degrees: bool = True,
+        tod_postprocessing: dict = {},
+        map_postprocessing: dict = {},
+        tods: Sequence[TOD] = [],
+    ):
+        super().__init__(
+            center=center,
+            width=width,
+            height=height,
+            res=res,
+            frame=frame,
+            degrees=degrees,
+            tods=tods,
+        )
 
-        self._nmtr = kwargs.get("n_modes_to_remove", 0)
-
-    def _fourier_filter(self, tod_dat, tod_time):
-        ffilt = [self.ffilter, 51.0]  # high-pass and low-pass filters, in Hz
-        width = 0.05
-
-        n = len(tod_time)
-        dt = tod_time[1] - tod_time[0]
-        freqs = np.fft.fftfreq(n, dt)
-
-        ndet, nint = tod_dat.shape
-        tfft = np.fft.fft(tod_dat)
-
-        lpf = np.ones(n)
-        hpf = np.ones(n)
-        if ffilt[1] != 0:
-            lpf = self._lpcos_filter(
-                freqs, [ffilt[1] * (1 - width), ffilt[1] * (1 + width)]
-            )
-        if ffilt[0] != 0:
-            hpf = self._hpcos_filter(
-                freqs, [ffilt[0] * (1 - width), ffilt[0] * (1 + width)]
-            )
-
-        filt = np.outer(np.ones(ndet), hpf * lpf)
-        filttod = np.real(np.fft.ifft(tfft * filt))
-        return filttod
-
-    def _lpcos_filter(self, k, par):
-        k1 = par[0]
-        k2 = par[1]
-        filter = k * 0.0
-        filter[k < k1] = 1.0
-        filter[k >= k1] = 0.5 * (1 + np.cos(np.pi * (k[k >= k1] - k1) / (k2 - k1)))
-        filter[k > k2] = 0.0
-        return filter
-
-    def _hpcos_filter(self, k, par):
-        k1 = par[0]
-        k2 = par[1]
-        filter = k * 0.0
-        filter[k < k1] = 0.0
-        filter[k >= k1] = 0.5 * (1 - np.cos(np.pi * (k[k >= k1] - k1) / (k2 - k1)))
-        filter[k > k2] = 1.0
-        return filter
+        self.tod_postprocessing = tod_postprocessing
+        self.map_postprocessing = map_postprocessing
 
     def run(self):
         self.band = sorted(
@@ -199,8 +144,8 @@ class BinMapper(BaseMapper):
 
         self.band_data = {}
 
-        self.map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
-        self.map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
+        self.raw_map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
+        self.raw_map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
 
         self.map_data = np.zeros((len(self.band), self.n_x, self.n_y))
 
@@ -213,24 +158,49 @@ class BinMapper(BaseMapper):
 
                 band_mask = tod.dets.band == band
 
-                window = sp.signal.windows.tukey(tod.nt, alpha=0.1)
+                D = tod.data.copy()[band_mask]
 
-                # raw_band_data = sp.signal.detrend(tod.data[band_mask])
-                d = sp.signal.detrend(tod.data[band_mask].copy()) * window
-                w = np.ones(tod.nd)[:, None] * window
+                if "highpass" in self.tod_postprocessing.keys():
+                    D = sp.signal.detrend(D, axis=-1)
 
-                if self._nmtr > 0:
-                    U, V = utils.tod.decompose(d, downsample_rate=np.maximum(tod.fs, 1))
-                    d = U[:, self._nmtr :] @ V[self._nmtr :]
+                    D = utils.signal.highpass(
+                        D,
+                        fc=self.tod_postprocessing["highpass"]["f"],
+                        fs=tod.fs,
+                        order=self.tod_postprocessing["highpass"].get("order", 1),
+                        method="bessel",
+                    )
 
-                # filter, if needed
-                if self.filter_tods:
-                    d = self._fourier_filter(d, tod.time)
+                if "remove_modes" in self.tod_postprocessing.keys():
+                    n_modes_to_remove = self.tod_postprocessing["remove_modes"]["n"]
+
+                    U, V = utils.signal.decompose(
+                        D, downsample_rate=np.maximum(int(tod.fs / 16), 1), mode="uv"
+                    )
+                    D = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
+
+                if "despline" in self.tod_postprocessing.keys():
+                    B = utils.signal.get_bspline_basis(
+                        tod.time,
+                        dk=self.tod_postprocessing["despline"].get("knot_spacing", 10),
+                        order=self.tod_postprocessing["despline"].get(
+                            "spline_order", 3
+                        ),
+                    )
+
+                    A = np.linalg.inv(B @ B.T) @ B @ D.T
+
+                    D -= A.T @ B
+
+                # windowing
+                W = np.ones(D.shape[0])[:, None] * sp.signal.windows.tukey(
+                    D.shape[-1], alpha=0.1
+                )
 
                 map_sum = sp.stats.binned_statistic_2d(
                     dx[band_mask].ravel(),
                     dy[band_mask].ravel(),
-                    d.ravel(),
+                    (D * W).ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="sum",
                 )[0]
@@ -238,23 +208,40 @@ class BinMapper(BaseMapper):
                 map_cnt = sp.stats.binned_statistic_2d(
                     dx[band_mask].ravel(),
                     dy[band_mask].ravel(),
-                    w.ravel(),
+                    W.ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="sum",
                 )[0]
 
-                self.DATA = d
+                self.DATA = D
 
-                self.map_sums[band] += map_sum
-                self.map_cnts[band] += map_cnt
+                self.raw_map_sums[band] += map_sum
+                self.raw_map_cnts[band] += map_cnt
 
             self.band_data[band]["nom_freq"] = tod.dets.nom_freq.mean()
             self.band_data[band]["nom_freqwidth"] = 30
 
-            mask = self.map_cnts[band] > 0
-            self.map_data[iband] = np.where(
-                mask, self.map_sums[band], np.nan
-            ) / np.where(mask, self.map_cnts[band], 1)
+            band_map_numer = self.raw_map_sums[band].copy()
+            band_map_denom = self.raw_map_cnts[band].copy()
+
+            if "gaussian_filter" in self.map_postprocessing.keys():
+                sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
+
+                band_map_numer = sp.ndimage.gaussian_filter(band_map_numer, sigma=sigma)
+                band_map_denom = sp.ndimage.gaussian_filter(band_map_denom, sigma=sigma)
+
+            band_map_data = band_map_numer / band_map_denom
+
+            mask = band_map_denom > 0
+
+            if "median_filter" in self.map_postprocessing.keys():
+                band_map_data = sp.ndimage.median_filter(
+                    band_map_data, size=self.map_postprocessing["median_filter"]["size"]
+                )
+
+            self.map_data[iband] = np.where(mask, band_map_numer, np.nan) / np.where(
+                mask, band_map_denom, 1
+            )
 
         self.map = Map(
             data=self.map_data,

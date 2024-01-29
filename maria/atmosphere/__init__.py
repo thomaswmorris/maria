@@ -122,15 +122,25 @@ class AtmosphereMixin:
                     bands.set_description(f"Computing atm. emission ({band.name})")
 
                 # multiply by 1e9 to go from GHz to Hz
-                det_power_grid = (
-                    1e9
-                    * 1.380649e-23
-                    * np.trapz(
-                        self.atmosphere_spectrum.emission
-                        * band.passband(self.atmosphere_spectrum.side_nu),
-                        self.atmosphere_spectrum.side_nu,
-                        axis=-1,
-                    )
+                # det_power_grid = (
+                #     1e9
+                #     * 1.380649e-23
+                #     * np.trapz(
+                #         self.atmosphere_spectrum.emission
+                #         * band.passband(self.atmosphere_spectrum.side_nu),
+                #         self.atmosphere_spectrum.side_nu,
+                #         axis=-1,
+                #     )
+                # )
+
+                # this is NOT power
+                det_power_grid = np.sum(
+                    self.atmosphere_spectrum.emission
+                    * band.passband(self.atmosphere_spectrum.side_nu),
+                    axis=-1,
+                )
+                det_power_grid /= np.sum(
+                    band.passband(self.atmosphere_spectrum.side_nu), axis=-1
                 )
 
                 band_power_interpolator = sp.interpolate.RegularGridInterpolator(
