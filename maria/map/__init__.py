@@ -135,7 +135,7 @@ class Map:
             if units == "arcsec":
                 map_extent = 3600 * np.degrees(map_extent_radians)
 
-            vmin, vmax = np.nanpercentile(self.data, q=[1, 99])
+            vmin, vmax = np.nanpercentile(self.data, q=[0.1, 99.9])
 
             map_im = ax.imshow(
                 self.data.T,

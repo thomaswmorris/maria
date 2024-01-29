@@ -84,6 +84,8 @@ class Instrument:
     bands: BandList = None
     dets: pd.DataFrame = None  # dets, it's complicated
     documentation: str = ""
+    vel_limit: float = 5  # in deg/s
+    acc_limit: float = 2  # in deg/s^2
 
     @classmethod
     def from_config(cls, config):

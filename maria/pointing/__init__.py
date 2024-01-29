@@ -12,8 +12,8 @@ import pytz
 from .. import coords, utils
 from . import patterns
 
-MAX_VELOCITY_WARN = 20  # in deg/s
-MAX_ACCELERATION_WARN = 10  # in deg/s
+MAX_VELOCITY_WARN = np.radians(10)  # in deg/s
+MAX_ACCELERATION_WARN = np.radians(10)  # in deg/s
 
 here, this_filename = os.path.split(__file__)
 
@@ -128,27 +128,23 @@ class Pointing:
             scan_velocity_radians, axis=1, edge_order=0
         ) / np.gradient(self.time)
 
-        max_velocity = np.degrees(
-            np.sqrt(np.sum(scan_velocity_radians**2, axis=0))
-        ).max()
-        max_acceleration = np.degrees(
-            np.sqrt(np.sum(scan_acceleration_radians**2, axis=0))
-        ).max()
+        self.max_vel = np.sqrt(np.sum(scan_velocity_radians**2, axis=0)).max()
+        self.max_acc = np.sqrt(np.sum(scan_acceleration_radians**2, axis=0)).max()
 
-        if max_velocity > MAX_VELOCITY_WARN:
+        if self.max_vel > MAX_VELOCITY_WARN:
             warnings.warn(
                 (
-                    f"The maximum velocity of the boresight ({max_velocity:.01f} deg/s) is physically "
-                    "unrealistic. If this is undesired, double-check the parameters for your scan strategy."
+                    f"The maximum velocity of the boresight ({np.degrees(self.max_vel):.01f} deg/s) is "
+                    "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
                 ),
                 stacklevel=2,
             )
 
-        if max_acceleration > MAX_ACCELERATION_WARN:
+        if self.max_acc > MAX_ACCELERATION_WARN:
             warnings.warn(
                 (
-                    f"The maximum acceleration of the boresight ({max_acceleration:.01f} deg/s^2) is physically "
-                    "unrealistic. If this is undesired, double-check the parameters for your scan strategy."
+                    f"The maximum acceleration of the boresight ({np.degrees(self.max_acc):.01f} deg/s^2) is "
+                    "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
                 ),
                 stacklevel=2,
             )
