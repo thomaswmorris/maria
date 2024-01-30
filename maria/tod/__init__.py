@@ -25,6 +25,21 @@ class TOD:
         """
         return sum(self._data.values())
 
+    @property
+    @lru_cache(maxsize=None)
+    def data_calibrated(self):
+        """
+        Combine all the fields into the total.
+        """
+        T_ant = np.zeros(self.data.shape)
+        if "atmosphere" in self._data.keys():
+            T_ant += 0.8 * self._data["atmosphere"]
+        if "map" in self._data.keys():
+            T_ant += 0.3 * self._data["map"]
+        if "noise" in self._data.keys():
+            T_ant += 1.0 * self._data["noise"]
+        return T_ant / 0.3
+
     @staticmethod
     def from_fits(fname: str, format: str, **kwargs):
         if format.lower() == "mustang-2":
