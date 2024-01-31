@@ -86,10 +86,10 @@ class BaseMapper:
 
         self.header["BTYPE"] = "Intensity"
 
-        # if self.tods[0].unit == "Jy/pixel":
-        #     self.header["BUNIT"] = "Jy/pixel "
-        # else:
-        self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
+        if self.tods[0].unit == "Jy/pixel":
+            self.header["BUNIT"] = "Jy/pixel "
+        else:
+            self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
 
         save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
 
@@ -99,10 +99,10 @@ class BaseMapper:
 
             save_maps[i] = self.map.data[i]
 
-            # if self.tods[0].unit == "Jy/pixel":
-            #     save_maps[i] *= utils.units.KbrightToJyPix(
-            #         self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
-            #     )
+            if self.tods[0].unit == "Jy/pixel":
+                save_maps[i] *= utils.units.KbrightToJyPix(
+                    self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
+                )
 
         fits.writeto(
             filename=filepath,

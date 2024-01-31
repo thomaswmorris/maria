@@ -83,6 +83,9 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if self.map_file:
             self._sample_maps()
 
+            if hasattr(self, "atmospheric_transmission"):
+                self.data["map"] *= self.atmospheric_transmission
+
         if hasattr(self, "cmb_sim"):
             self.cmb_sim._run()
             self.data += self.cmb_sim.data
