@@ -128,11 +128,16 @@ class BaseSimulation:
     def run(self):
         self._run()
 
+        abscal = 1.0
+        if hasattr(self, "atmospheric_transmission"):
+            abscal /= self.atmospheric_transmission.mean()
+
         tod = TOD(
             data=self.data,
             dets=self.instrument.dets.df,
             # boresight=self.boresight,
             coords=self.det_coords,
+            abscal=abscal,
         )
 
         return tod

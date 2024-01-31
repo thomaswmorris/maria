@@ -24,14 +24,10 @@ class NoiseMixin:
 
             if band.pink_noise > 0:
                 for i in band_index:
-                    self.data["noise"][i] += (
-                        np.sqrt(self.pointing.sample_rate)
-                        * band.pink_noise
-                        * self._spectrum_noise(
-                            spectrum_func=self._pink_spectrum,
-                            size=int(self.pointing.n_time),
-                            dt=self.pointing.dt,
-                        )
+                    self.data["noise"][i] += band.pink_noise * self._spectrum_noise(
+                        spectrum_func=self._pink_spectrum,
+                        size=int(self.pointing.n_time),
+                        dt=self.pointing.dt,
                     )
 
     def _spectrum_noise(self, spectrum_func, size, dt, amp=2.0):
