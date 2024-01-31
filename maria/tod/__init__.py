@@ -23,7 +23,22 @@ class TOD:
         """
         Combine all the fields into the total.
         """
-        return sum(self._data.values())
+        return sum(self._data.values())  # * self.abscal
+
+    @property
+    @lru_cache(maxsize=None)
+    def data_calibrated(self):
+        """
+        Combine all the fields into the total.
+        """
+        T_ant = np.zeros(self.data.shape)
+        if "atmosphere" in self._data.keys():
+            T_ant += 0.3 * self._data["atmosphere"]
+        if "map" in self._data.keys():
+            T_ant += 0.3 * self._data["map"]
+        if "noise" in self._data.keys():
+            T_ant += 1.0 * self._data["noise"]
+        return T_ant / 0.3 * self.abscal
 
     @staticmethod
     def from_fits(fname: str, format: str, **kwargs):
@@ -82,11 +97,13 @@ class TOD:
         units: dict = {},
         dets: pd.DataFrame = None,
         boresight: Coordinates = None,
+        abscal: float = 1.0,
     ):
         self.coords = coords
         self.dets = dets
         self._data = data
         self.header = fits.header.Header()
+        self.abscal = abscal
 
         # if no boresight is supplied, infer it from the inputs
         if boresight is not None:
