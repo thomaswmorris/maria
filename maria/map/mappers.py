@@ -27,6 +27,7 @@ class BaseMapper:
         res: float = 0.01,
         frame: str = "ra_dec",
         degrees: bool = True,
+        calibrate: bool = False,
         tods: Sequence[TOD] = [],
     ):
         self.res = np.radians(res) if degrees else res
@@ -34,6 +35,7 @@ class BaseMapper:
         self.width = np.radians(width) if degrees else width
         self.height = np.radians(height) if degrees else height
         self.degrees = degrees
+        self.calibrate = calibrate
         self.frame = frame
 
         self.n_x = int(np.maximum(1, self.width / self.res))
@@ -84,24 +86,23 @@ class BaseMapper:
 
         self.header["BTYPE"] = "Intensity"
 
-        # if self.tods[0].unit == "Jy/pixel":
-        #     self.header["BUNIT"] = "Jy/pixel "
-        # else:
-        self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
+        if self.tods[0].unit == "Jy/pixel":
+            self.header["BUNIT"] = "Jy/pixel "
+        else:
+            self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
 
         save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
 
         for i, key in enumerate(self.band_data.keys()):
-            # what is this? --> Frequency information in the header
             self.header["CRVAL3"] = self.band_data[key]["nom_freq"] * 1e9
             self.header["CDELT3"] = self.band_data[key]["nom_freqwidth"] * 1e9
 
             save_maps[i] = self.map.data[i]
 
-            # if self.tods[0].unit == "Jy/pixel":
-            #     save_maps[i] *= utils.units.KbrightToJyPix(
-            #         self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
-            #     )
+            if self.tods[0].unit == "Jy/pixel":
+                save_maps[i] *= utils.units.KbrightToJyPix(
+                    self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
+                )
 
         fits.writeto(
             filename=filepath,
@@ -120,6 +121,7 @@ class BinMapper(BaseMapper):
         res: float = 0.01,
         frame: str = "ra_dec",
         degrees: bool = True,
+        calibrate: bool = False,
         tod_postprocessing: dict = {},
         map_postprocessing: dict = {},
         tods: Sequence[TOD] = [],
@@ -131,6 +133,7 @@ class BinMapper(BaseMapper):
             res=res,
             frame=frame,
             degrees=degrees,
+            calibrate=calibrate,
             tods=tods,
         )
 
@@ -158,7 +161,10 @@ class BinMapper(BaseMapper):
 
                 band_mask = tod.dets.band == band
 
-                D = tod.data.copy()[band_mask]
+                if self.calibrate:
+                    D = tod.data_calibrated.copy()[band_mask]
+                else:
+                    D = tod.data.copy()[band_mask]
 
                 if "highpass" in self.tod_postprocessing.keys():
                     D = sp.signal.detrend(D, axis=-1)
