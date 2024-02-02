@@ -86,10 +86,12 @@ class BaseMapper:
 
         self.header["BTYPE"] = "Intensity"
 
-        if self.tods[0].unit == "Jy/pixel":
+        if self.map.units == "Jy/pixel":
             self.header["BUNIT"] = "Jy/pixel "
-        else:
+        elif self.map.units == "K_RJ":
             self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
+        else:
+            raise ValueError(f"Units {self.map.units} not implemented.")
 
         save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
 
@@ -99,7 +101,7 @@ class BaseMapper:
 
             save_maps[i] = self.map.data[i]
 
-            if self.tods[0].unit == "Jy/pixel":
+            if self.map.units == "Jy/pixel":
                 save_maps[i] *= utils.units.KbrightToJyPix(
                     self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
                 )
@@ -166,11 +168,17 @@ class BinMapper(BaseMapper):
                 else:
                     D = tod.data.copy()[band_mask]
 
-                if "highpass" in self.tod_postprocessing.keys():
-                    D = sp.signal.detrend(D, axis=-1)
+                # windowing
+                W = np.ones(D.shape[0])[:, None] * sp.signal.windows.tukey(
+                    D.shape[-1], alpha=0.1
+                )
 
-                    D = utils.signal.highpass(
-                        D,
+                WD = W * sp.signal.detrend(D, axis=-1)
+                del D
+
+                if "highpass" in self.tod_postprocessing.keys():
+                    WD = utils.signal.highpass(
+                        WD,
                         fc=self.tod_postprocessing["highpass"]["f"],
                         fs=tod.fs,
                         order=self.tod_postprocessing["highpass"].get("order", 1),
@@ -181,9 +189,9 @@ class BinMapper(BaseMapper):
                     n_modes_to_remove = self.tod_postprocessing["remove_modes"]["n"]
 
                     U, V = utils.signal.decompose(
-                        D, downsample_rate=np.maximum(int(tod.fs / 16), 1), mode="uv"
+                        WD, downsample_rate=np.maximum(int(tod.fs / 16), 1), mode="uv"
                     )
-                    D = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
+                    WD = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
 
                 if "despline" in self.tod_postprocessing.keys():
                     B = utils.signal.get_bspline_basis(
@@ -194,19 +202,14 @@ class BinMapper(BaseMapper):
                         ),
                     )
 
-                    A = np.linalg.inv(B @ B.T) @ B @ D.T
+                    A = np.linalg.inv(B @ B.T) @ B @ WD.T
 
-                    D -= A.T @ B
-
-                # windowing
-                W = np.ones(D.shape[0])[:, None] * sp.signal.windows.tukey(
-                    D.shape[-1], alpha=0.1
-                )
+                    WD -= A.T @ B
 
                 map_sum = sp.stats.binned_statistic_2d(
                     dx[band_mask].ravel(),
                     dy[band_mask].ravel(),
-                    (D * W).ravel(),
+                    WD.ravel(),
                     bins=(self.x_bins, self.y_bins),
                     statistic="sum",
                 )[0]
@@ -219,7 +222,7 @@ class BinMapper(BaseMapper):
                     statistic="sum",
                 )[0]
 
-                self.DATA = D
+                self.DATA = WD
 
                 self.raw_map_sums[band] += map_sum
                 self.raw_map_cnts[band] += map_cnt
