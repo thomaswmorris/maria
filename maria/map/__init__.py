@@ -30,7 +30,7 @@ class Map:
     inbright: float = 1
     header: ap.io.fits.header.Header = None
     frame: str = "ra_dec"
-    units: str = "K"
+    units: str = "K_RJ"
     data: np.array = None  # 3D instrument
 
     def __post_init__(self):
