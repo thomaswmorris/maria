@@ -33,7 +33,7 @@ class TOD:
         """
         T_ant = np.zeros(self.data.shape)
         if "atmosphere" in self._data.keys():
-            T_ant += 0.3 * self._data["atmosphere"]
+            T_ant += 0.8 * self._data["atmosphere"]
         if "map" in self._data.keys():
             T_ant += 0.3 * self._data["map"]
         if "noise" in self._data.keys():
