@@ -33,7 +33,7 @@ class TOD:
         """
         T_ant = np.zeros(self.data.shape)
         if "atmosphere" in self._data.keys():
-            T_ant += 0.3 * self._data["atmosphere"]
+            T_ant += 0.8 * self._data["atmosphere"]
         if "map" in self._data.keys():
             T_ant += 0.3 * self._data["map"]
         if "noise" in self._data.keys():
@@ -45,11 +45,55 @@ class TOD:
         if format.lower() == "mustang-2":
             return TOD._from_mustang2(fname=fname, **kwargs)
 
+        if format.lower() == "atlast":
+            return TOD._from_atlast(fname=fname, **kwargs)
+
         if format.lower() == "abs":
             ...
 
         if format.lower() == "act":
             ...
+
+    @classmethod
+    def _from_atlast(
+        cls, fname: str, hdu: int = 1, band_center: int = 93, band_width: int = 52
+    ):
+        f = fits.open(fname)
+        raw = f[hdu].data
+
+        det_uids, det_counts = np.unique(raw["PIXID"], return_counts=True)
+
+        if det_counts.std() > 0:
+            raise ValueError("Cannot reshape a ragged TOD.")
+
+        n_dets = len(det_uids)
+        n_samp = det_counts.max()
+
+        data = {"data": raw["FNU"].astype("float32").reshape((n_dets, n_samp))}
+
+        ra = raw["dx"].astype(float).reshape((n_dets, n_samp))
+        dec = raw["dy"].astype(float).reshape((n_dets, n_samp))
+        t = 1.6e9 + raw["time"].astype(float).reshape((n_dets, n_samp)).mean(axis=0)
+
+        coords = Coordinates(
+            time=t,
+            phi=ra,
+            theta=dec,
+            location=site.get_location("llano_de_chajnantor"),
+            frame="ra_dec",
+        )
+
+        dets = Detectors.generate(
+            bands_config={
+                "f093": {
+                    "n_dets": n_dets,
+                    "band_center": band_center,
+                    "band_width": band_width,
+                }
+            }
+        )
+
+        return cls(coords=coords, dets=dets, data=data, units={"data": "K"})
 
     @classmethod
     def _from_mustang2(cls, fname: str, hdu: int = 1):
