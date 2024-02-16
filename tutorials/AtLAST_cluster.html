@@ -221,8 +221,8 @@
 <span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
 <span class="kn">from</span> <span class="nn">astropy.wcs</span> <span class="kn">import</span> <span class="n">WCS</span>
 <span class="kn">from</span> <span class="nn">astropy</span> <span class="kn">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
-<span class="kn">from</span> <span class="nn">astropy.constants</span> <span class="kn">import</span> <span class="n">c</span>
 <span class="kn">from</span> <span class="nn">astropy.coordinates</span> <span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">import</span> <span class="nn">os</span>
 </pre></div>
 </div>
 </div>
@@ -230,9 +230,8 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria</span> <span class="kn">import</span> <span class="n">Simulation</span>
-<span class="kn">from</span> <span class="nn">maria.map</span> <span class="kn">import</span> <span class="n">mappers</span>
-<span class="kn">from</span> <span class="nn">maria</span> <span class="kn">import</span> <span class="n">TOD</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria</span> <span class="kn">import</span> <span class="n">Simulation</span><span class="p">,</span> <span class="n">TOD</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
 </pre></div>
 </div>
 </div>
@@ -241,13 +240,44 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;/lustre/home/jvmarrewijk/eszee/Notebooks/thesis.mplstyle&#39;</span><span class="p">)</span>
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<span class="n">cmap</span> <span class="o">=</span> <span class="s2">&quot;RdBu_r&quot;</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">circle_mask</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">,</span> <span class="n">rcirc</span><span class="p">):</span>
+        <span class="n">ny</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">y</span><span class="p">,</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="n">ny</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x</span><span class="o">-</span><span class="n">xc</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">xc</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">yc</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">yc</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="p">(</span><span class="n">r</span> <span class="o">&lt;</span> <span class="n">rcirc</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">r_theta</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">):</span>
+    <span class="c1"># returns the radius rr and the angle phi for point (xc,yc)</span>
+    <span class="n">ny</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">yp</span><span class="p">,</span> <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">ny</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span>
+    <span class="n">yp</span> <span class="o">=</span> <span class="n">yp</span> <span class="o">-</span> <span class="n">yc</span>
+    <span class="n">xp</span> <span class="o">=</span> <span class="n">xp</span> <span class="o">-</span> <span class="n">xc</span>
+    <span class="n">rr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">yp</span><span class="p">,</span><span class="mf">2.</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span><span class="mf">2.</span><span class="p">))</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">yp</span><span class="p">,</span> <span class="n">xp</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">rr</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inputfile</span> <span class="o">=</span> <span class="s2">&quot;../maria/maps/big_cluster0.fits&quot;</span>
+<span class="n">outfile_map</span> <span class="o">=</span> <span class="s1">&#39;/lustre/home/jvmarrewijk/Single_dish_emulator/output/AtLAST_cluster.fits&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pointing_center</span>  <span class="o">=</span> <span class="p">(</span><span class="mf">260.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">)</span> <span class="c1">#RA and Dec in degrees</span>
@@ -263,35 +293,17 @@
 <span class="n">scanning_radius</span>  <span class="o">=</span> <span class="n">field_of_view</span>
 <span class="n">ndets</span>            <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mi">3000</span> <span class="o">*</span> <span class="p">(</span><span class="n">field_of_view</span><span class="o">/</span><span class="mf">0.25</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">FREQ</span><span class="o">/</span><span class="mf">92.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">ndets</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">)</span>
-<span class="n">inputfile</span> <span class="o">=</span> <span class="s2">&quot;../../../maps/big_cluster0.fits&quot;</span>
-
-<span class="n">outfile_map</span> <span class="o">=</span> <span class="s1">&#39;/lustre/home/jvmarrewijk/Single_dish_emulator/output/AtLAST_Cluster_</span><span class="si">{}</span><span class="s1">min_noisyTrue_map.fits&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-    <span class="nb">int</span><span class="p">(</span><span class="n">integration_time</span><span class="o">/</span><span class="mi">60</span><span class="p">),</span>
-<span class="p">)</span>
-
-<span class="n">atm_model</span>            <span class="o">=</span> <span class="s2">&quot;2d&quot;</span>    <span class="c1"># The atmospheric model, set to None if you want a noiseless observation.</span>
-<span class="n">white_noise_level</span>    <span class="o">=</span> <span class="mf">5e-5</span>
-<span class="n">pink_noise_level</span>     <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">atm_model</span>            <span class="o">=</span> <span class="s2">&quot;2d&quot;</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-3000.0 225.0
-</pre></div></div>
-</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Input figure</span>
 <span class="n">hdu</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
 <span class="n">header</span> <span class="o">=</span> <span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
-
 <span class="n">wcs_input</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">naxis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -314,22 +326,20 @@ August. This change also necessitates adjusting the Right Ascension (RA) of the 
 <p>Furthermore, we overwrite the field of view to be 2 degrees and set the scan radius of the daisy scan to 1.3 degrees. We also adjust the detector bandwidth to 52 GHz with a total of 2000 detectors, and set a scan period of 120 seconds.</p>
 <p>Now, it’s important to note that we haven’t yet developed a mapper that can handle AtLAST’s large FOV. Most of the contamination will likely be a common mode in the atmosphere, which needs proper Fourier filtering. This aspect is still a work in progress. Therefore, for the time being, we conduct noiseless observations by setting <code class="docutils literal notranslate"><span class="pre">atm_model</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
 
     <span class="c1"># Mandatory weather settings</span>
     <span class="c1"># ---------------------</span>
-    <span class="n">array</span>    <span class="o">=</span> <span class="s2">&quot;AtLAST&quot;</span><span class="p">,</span>
-    <span class="n">pointing</span> <span class="o">=</span> <span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
-    <span class="n">site</span>     <span class="o">=</span> <span class="s2">&quot;APEX&quot;</span><span class="p">,</span>
+    <span class="n">instrument</span> <span class="o">=</span> <span class="s2">&quot;AtLAST&quot;</span><span class="p">,</span>
+    <span class="n">pointing</span>   <span class="o">=</span> <span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
+    <span class="n">site</span>       <span class="o">=</span> <span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span>
 
     <span class="c1"># Noise settings:</span>
     <span class="c1"># ----------------</span>
     <span class="n">atmosphere_model</span>  <span class="o">=</span> <span class="n">atm_model</span><span class="p">,</span>
-    <span class="n">white_noise_level</span> <span class="o">=</span> <span class="n">white_noise_level</span><span class="p">,</span>
-    <span class="n">pink_noise_level</span>  <span class="o">=</span> <span class="n">pink_noise_level</span><span class="p">,</span>
     <span class="n">pwv_rms_frac</span>      <span class="o">=</span> <span class="mf">0.07</span><span class="p">,</span>
 
     <span class="c1"># True sky input</span>
@@ -349,9 +359,11 @@ August. This change also necessitates adjusting the Right Ascension (RA) of the 
     <span class="n">pointing_frame</span>   <span class="o">=</span> <span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
 
     <span class="n">field_of_view</span>    <span class="o">=</span> <span class="n">field_of_view</span><span class="p">,</span>
-    <span class="n">bands</span>  <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;f090&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">ndets</span><span class="p">,</span>
+    <span class="n">bands</span>            <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;f090&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n_dets&quot;</span><span class="p">:</span> <span class="n">ndets</span><span class="p">,</span>
                                  <span class="s2">&quot;band_center&quot;</span><span class="p">:</span> <span class="n">FREQ</span><span class="p">,</span>
-                                 <span class="s2">&quot;band_width&quot;</span><span class="p">:</span> <span class="mf">52.0</span>
+                                 <span class="s2">&quot;band_width&quot;</span><span class="p">:</span> <span class="mf">52.0</span><span class="p">,</span>
+                                 <span class="s2">&quot;white_noise&quot;</span><span class="p">:</span> <span class="mf">266e-6</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">52</span><span class="o">/</span><span class="mf">37.4</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">/</span> <span class="mf">1.113</span><span class="p">,</span>
+                                 <span class="s2">&quot;pink_noise&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="o">*</span><span class="mf">0.3</span> <span class="o">/</span> <span class="mf">1.113</span><span class="p">,</span>
                                 <span class="p">}</span>
                        <span class="p">},</span>
 
@@ -359,6 +371,8 @@ August. This change also necessitates adjusting the Right Ascension (RA) of the 
                         <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">scanning_radius</span><span class="p">,</span>
                         <span class="s2">&quot;petals&quot;</span><span class="p">:</span> <span class="mf">2.11</span>
                        <span class="p">},</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -368,46 +382,57 @@ August. This change also necessitates adjusting the Right Ascension (RA) of the 
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
-CLUSTER =../DIANOGA/BH2015/D10 / cluster name                                    [astropy.io.fits.card]
-WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
-OUTTYPE =Comptonization y para / outputtype                                      [astropy.io.fits.card]
+Initializing atmospheric layers: 4it [01:06, 16.59s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">tods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area docutils container">
+<div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-ran atmospheric simulation in 347.7 seconds
+Generating atmosphere (z=5000m): 100%|████████████| 4/4 [04:33&lt;00:00, 68.45s/it]
+Computing atm. emission (f090): 100%|████████████| 1/1 [03:25&lt;00:00, 205.48s/it]
+Computing atm. transmission (f090): 100%|████████| 1/1 [03:05&lt;00:00, 185.81s/it]
+Sampling input map: 100%|████████████████████████| 1/1 [02:00&lt;00:00, 120.78s/it]
+Generating atmosphere (z=5000m): 100%|████████████| 4/4 [02:49&lt;00:00, 42.50s/it]
+Computing atm. emission (f090): 100%|████████████| 1/1 [05:41&lt;00:00, 341.69s/it]
+Computing atm. transmission (f090): 100%|████████| 1/1 [03:31&lt;00:00, 211.02s/it]
+Sampling input map: 100%|████████████████████████| 1/1 [02:03&lt;00:00, 123.52s/it]
+Generating atmosphere (z=5000m): 100%|████████████| 4/4 [02:10&lt;00:00, 32.52s/it]
+Computing atm. emission (f090): 100%|████████████| 1/1 [03:11&lt;00:00, 191.78s/it]
+Computing atm. transmission (f090): 100%|████████| 1/1 [03:06&lt;00:00, 186.17s/it]
+Sampling input map: 100%|████████████████████████| 1/1 [02:05&lt;00:00, 125.34s/it]
+Generating atmosphere (z=5000m): 100%|████████████| 4/4 [02:40&lt;00:00, 40.06s/it]
+Computing atm. emission (f090): 100%|████████████| 1/1 [06:01&lt;00:00, 361.57s/it]
+Computing atm. transmission (f090): 100%|████████| 1/1 [05:07&lt;00:00, 307.29s/it]
+Sampling input map: 100%|████████████████████████| 1/1 [03:09&lt;00:00, 189.85s/it]
+Generating atmosphere (z=5000m): 100%|████████████| 4/4 [02:47&lt;00:00, 41.84s/it]
+Computing atm. emission (f090): 100%|████████████| 1/1 [03:25&lt;00:00, 205.65s/it]
+Computing atm. transmission (f090): 100%|████████| 1/1 [03:16&lt;00:00, 196.68s/it]
+Sampling input map: 100%|████████████████████████| 1/1 [02:39&lt;00:00, 159.16s/it]
 </pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># tod.to_fits(outfile_table)</span>
-</pre></div>
-</div>
 </div>
 </section>
 <section id="Visualizing-the-TOD-Data">
 <h2>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">#</a></h2>
 <p>In this section, we present the same array and TOD visualizations as in the MUSTANG-2 case, but this time for AtLAST:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># visualize scanning patern</span>
 <span class="c1"># -----------------------</span>
+<span class="n">tod</span> <span class="o">=</span> <span class="n">tods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">cmap</span> <span class="o">=</span> <span class="s2">&quot;RdBu_r&quot;</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -438,32 +463,35 @@ ran atmospheric simulation in 347.7 seconds
 
 <span class="c1"># visualize powerspectrum</span>
 <span class="c1"># -----------------------</span>
-<span class="n">f</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">data_calibrated</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width_ratios&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">]})</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Raw time streams&#39;</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">8</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">1e11</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">i</span><span class="p">),</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">1e11</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">i</span><span class="p">),</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">1.1e-2</span><span class="p">,</span><span class="mf">1e0</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;y = f$^{-3}$&quot;</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">rotation</span> <span class="o">=</span> <span class="o">-</span><span class="mf">62.5</span><span class="p">)</span>
 
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Real&quot;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-    <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;map&#39;</span><span class="p">:</span>
-        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">*</span><span class="mf">0.3</span><span class="o">/</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">tod</span><span class="o">.</span><span class="n">abscal</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C3&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;atmosphere&#39;</span><span class="p">:</span>
+        <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">*</span><span class="mf">0.8</span><span class="o">/</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">tod</span><span class="o">.</span><span class="n">abscal</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;C1&quot;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;noise&#39;</span><span class="p">:</span>
+        <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">/</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">tod</span><span class="o">.</span><span class="n">abscal</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;C2&quot;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;white+pink noise&#39;</span><span class="p">)</span>
 
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Combined&quot;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{f}</span><span class="s2">$ [Hz]&quot;</span><span class="p">),</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{P}</span><span class="s2">_{\rm Hz}[K_{\rm RJ}^2~{\rm Hz}^{-1}]$&quot;</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="mf">1e-16</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mf">2e2</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">)</span>
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [minutes]&#39;</span><span class="p">),</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;$I_\nu$ [$K_{\rm RJ}$]&#39;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">tod</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Real&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">tod</span><span class="o">.</span><span class="n">data_calibrated</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Real&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -472,55 +500,49 @@ ran atmospheric simulation in 347.7 seconds
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_cluster_11_0.png" src="../_images/tutorials_AtLAST_cluster_11_0.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_12_0.png" src="../_images/tutorials_AtLAST_cluster_12_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_cluster_11_1.png" src="../_images/tutorials_AtLAST_cluster_11_1.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_12_1.png" src="../_images/tutorials_AtLAST_cluster_12_1.png" />
 </div>
 </div>
 <section id="Map-Making">
 <h3>Map-Making<a class="headerlink" href="#Map-Making" title="Link to this heading">#</a></h3>
 <p>As previously mentioned, we must disable Fourier filtering. Additionally, we have adjusted the height and width of the map to match the realistic AtLAST field of view, which spans several degrees.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># scan velocity</span>
 <span class="n">fov</span>               <span class="o">=</span> <span class="p">(</span><span class="n">field_of_view</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">arcsec</span><span class="p">)</span>
 <span class="n">scn_velocity</span>      <span class="o">=</span> <span class="n">scanning_speed</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span>
-<span class="n">filter_freq</span>       <span class="o">=</span> <span class="p">(</span><span class="n">scn_velocity</span><span class="o">/</span><span class="n">fov</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
+<span class="n">filter_freq</span>       <span class="o">=</span> <span class="p">(</span><span class="n">scn_velocity</span><span class="o">/</span><span class="n">fov</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="mf">0.1</span>
 
-<span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">boresight</span><span class="o">.</span><span class="n">center_ra</span><span class="p">,</span> <span class="n">tod</span><span class="o">.</span><span class="n">boresight</span><span class="o">.</span><span class="n">center_dec</span><span class="p">),</span>
-                   <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
-                   <span class="n">width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span>
-                   <span class="n">height</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span>
-                   <span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">4.</span><span class="o">/</span><span class="mf">3600.</span><span class="p">),</span>
-                   <span class="n">smoothing</span><span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-                   <span class="n">degrees</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                   <span class="n">filter_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                   <span class="n">ffilter</span> <span class="o">=</span><span class="n">filter_freq</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
-                   <span class="n">n_modes_to_remove</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                  <span class="p">)</span>
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
+    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">center_ra</span><span class="p">,</span> <span class="n">tod</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">center_dec</span><span class="p">),</span>
+    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span>
+    <span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">4.</span><span class="o">/</span><span class="mf">3600.</span><span class="p">),</span>
+    <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">calibrate</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">tod_postprocessing</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="s2">&quot;highpass&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">filter_freq</span><span class="p">},</span> <span class="s2">&quot;despline&quot;</span><span class="p">:{}},</span>
+    <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}},</span>
+<span class="p">)</span>
 
-<span class="n">mapper</span><span class="o">.</span><span class="n">add_tods</span><span class="p">(</span><span class="n">tod</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tods</span><span class="p">)):</span>
+    <span class="n">mapper</span><span class="o">.</span><span class="n">add_tods</span><span class="p">(</span><span class="n">tods</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
 <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
@@ -533,8 +555,8 @@ ran atmospheric simulation in 347.7 seconds
 <span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Detector setup for one band&quot;</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">uband</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">bands</span><span class="p">:</span>
-    <span class="n">band_mask</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">dets</span><span class="o">.</span><span class="n">band</span> <span class="o">==</span> <span class="n">uband</span>
+<span class="k">for</span> <span class="n">uband</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">bands</span><span class="p">:</span>
+    <span class="n">band_mask</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">dets</span><span class="o">.</span><span class="n">band</span> <span class="o">==</span> <span class="n">uband</span>
 
     <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
         <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">boresight</span><span class="o">.</span><span class="n">ra</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">boresight</span><span class="o">.</span><span class="n">ra</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span>
@@ -544,8 +566,8 @@ ran atmospheric simulation in 347.7 seconds
         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Scanning Pattern&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
-        <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">offset_x</span><span class="p">[</span><span class="n">band_mask</span><span class="p">]),</span>
-        <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">offset_y</span><span class="p">[</span><span class="n">band_mask</span><span class="p">]),</span>
+        <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">offset_x</span><span class="p">),</span>
+        <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">offset_y</span><span class="p">),</span>
         <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">uband</span><span class="si">}</span><span class="s2"> mean&quot;</span><span class="p">,</span>
         <span class="n">lw</span><span class="o">=</span><span class="mf">5e-1</span><span class="p">,</span>
         <span class="n">c</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span>
@@ -553,7 +575,7 @@ ran atmospheric simulation in 347.7 seconds
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\theta_x$ offset (arcminutes)&quot;</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\theta_y$ offset (arcminutes)&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="c1"># axes[0].legend()</span>
 
 <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
     <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">((</span><span class="n">mapper</span><span class="o">.</span><span class="n">x_bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">mapper</span><span class="o">.</span><span class="n">x_bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
@@ -563,14 +585,13 @@ ran atmospheric simulation in 347.7 seconds
 <span class="n">im</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span>
     <span class="n">xs</span><span class="p">,</span>
     <span class="n">ys</span><span class="p">,</span>
-    <span class="n">mapper</span><span class="o">.</span><span class="n">map_cnts</span><span class="p">[</span><span class="n">tod</span><span class="o">.</span><span class="n">dets</span><span class="o">.</span><span class="n">band</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">mapper</span><span class="o">.</span><span class="n">raw_map_cnts</span><span class="p">[</span><span class="n">tod</span><span class="o">.</span><span class="n">dets</span><span class="o">.</span><span class="n">band</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
     <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Photon counts in band &quot;</span> <span class="o">+</span> <span class="n">tod</span><span class="o">.</span><span class="n">dets</span><span class="o">.</span><span class="n">band</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
 <span class="p">)</span>
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\theta_x$ (arcmin)&quot;</span><span class="p">),</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\theta_y$ (arcmin)&quot;</span><span class="p">)</span>
 <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Counts&quot;</span><span class="p">)</span>
-
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -586,7 +607,7 @@ ran atmospheric simulation in 347.7 seconds
 <section id="Save-&amp;-Visualize">
 <h3>Save &amp; Visualize<a class="headerlink" href="#Save-&-Visualize" title="Link to this heading">#</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span><span class="o">.</span><span class="n">save_maps</span><span class="p">(</span><span class="n">outfile_map</span><span class="p">)</span>
@@ -594,68 +615,30 @@ ran atmospheric simulation in 347.7 seconds
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sky_l</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">((</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
-<span class="n">sky_u</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">((</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">pointing_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">forward</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1"># - Plot Input sky</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">wcs_input</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;True Sky&quot;</span><span class="p">)</span>
-<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-    <span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">,</span>
-    <span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">),</span>
-    <span class="n">vmax</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">cmap</span><span class="o">=</span><span class="n">cmocean</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">deep</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;S$_{93~\rm GHz}$ [MJy/sr]&quot;</span><span class="p">)</span>
-
-<span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">coords</span>
-<span class="n">ra</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="s2">&quot;hh:mm:ss&quot;</span><span class="p">)</span>
-<span class="n">dec</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="s2">&quot;dd:mm:ss&quot;</span><span class="p">)</span>
-<span class="n">ra</span><span class="o">.</span><span class="n">set_axislabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;RA [J2000]&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
-<span class="n">dec</span><span class="o">.</span><span class="n">set_axislabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Dec [J2000]&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
-<span class="n">ra</span><span class="o">.</span><span class="n">set_separator</span><span class="p">((</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">))</span>
-
-<span class="n">pixel_sky_l</span> <span class="o">=</span> <span class="n">wcs_input</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky_l</span><span class="p">)</span>
-<span class="n">pixel_sky_u</span> <span class="o">=</span> <span class="n">wcs_input</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky_u</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span>
-    <span class="n">xmin</span><span class="o">=</span><span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymin</span><span class="o">=</span><span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xmax</span><span class="o">=</span><span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymax</span><span class="o">=</span><span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">outfile_map</span><span class="p">)</span>
-
-<span class="c1"># - Plot Mock observation</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Plot Mock observation</span>
 <span class="n">outputfile</span> <span class="o">=</span> <span class="n">outfile_map</span>
 
 <span class="n">hdu_out</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span>
 <span class="n">wcs_output</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">hdu_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">,</span> <span class="n">naxis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="c1"># - Plot</span>
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">forward</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">wcs_output</span><span class="p">)</span>
 
-<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">hdu_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">mapper</span><span class="o">.</span><span class="n">res</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
-      <span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
-      <span class="n">vmax</span><span class="o">=-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">pixel_size</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
-              <span class="p">)</span>
-
-<span class="c1"># im = ax.imshow(hdu_out[0].data[0]*1e6, cmap=cmap,</span>
-<span class="c1">#       vmin=-3*np.nanstd(hdu_out[0].data[0] * 1e6),</span>
-<span class="c1">#       vmax=3*np.nanstd(hdu_out[0].data[0] * 1e6),</span>
-<span class="c1"># )</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+    <span class="n">hdu_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="o">=-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">hdu_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">hdu_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span>
+    <span class="n">rasterized</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
 
 <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-<span class="c1"># cbar.set_label(r&quot;$I_\nu$ $[\mu K_{RJ}]$&quot;)</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;S$_{93~\rm GHz}$ [MJy/sr]&quot;</span><span class="p">)</span>
+<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;I$_{\nu}$ [$\mu$K$_{\rm RJ}$]&quot;</span><span class="p">)</span>
 
 <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">coords</span>
 <span class="n">ra</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="s2">&quot;hh:mm:ss&quot;</span><span class="p">)</span>
@@ -664,54 +647,18 @@ ran atmospheric simulation in 347.7 seconds
 <span class="n">dec</span><span class="o">.</span><span class="n">set_axislabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Dec [J2000]&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
 <span class="n">ra</span><span class="o">.</span><span class="n">set_separator</span><span class="p">((</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">))</span>
 
-<span class="n">pixel_sky_l</span> <span class="o">=</span> <span class="n">wcs_output</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky_l</span><span class="p">)</span>
-<span class="n">pixel_sky_u</span> <span class="o">=</span> <span class="n">wcs_output</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky_u</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">invert_xaxis</span><span class="p">()</span>
 
-<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span> <span class="o">=</span> <span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymin</span> <span class="o">=</span> <span class="n">pixel_sky_l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">pixel_sky_u</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;/lustre/home/jvmarrewijk/Single_dish_emulator/paper_plots/AtLAST_noiesemap.pdf&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_cluster_18_0.png" src="../_images/tutorials_AtLAST_cluster_18_0.png" />
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-/lustre/home/jvmarrewijk/Single_dish_emulator/output/AtLAST_Cluster_8min_noisyTrue_map.fits
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
-CLUSTER =../DIANOGA/BH2015/D10 / cluster name                                    [astropy.io.fits.card]
-WARNING: The following header keyword is invalid or follows an unrecognized non-standard convention:
-OUTTYPE =Comptonization y para / outputtype                                      [astropy.io.fits.card]
-</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_cluster_18_3.png" src="../_images/tutorials_AtLAST_cluster_18_3.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
+<img alt="../_images/tutorials_AtLAST_cluster_18_0.png" src="../_images/tutorials_AtLAST_cluster_18_0.png" />
 </div>
 </div>
 </section>
