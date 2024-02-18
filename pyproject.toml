@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs", "setuptools_scm"]
 build-backend = "hatchling.build"
 
 [project]
 name = "maria"
-version = "0.9.7"
+dynamic = ["version"]
 description = "Ground-based telescope simulations"
 readme = { file = "README.rst", content-type = "text/x-rst" }
 dependencies = [
@@ -80,3 +80,16 @@ exclude = [
   "data",
   "docs",
 ]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["maria"]
+
+[tool.setuptools_scm]
+version_file = "maria/_version.py"
+
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "maria/_version.py"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"

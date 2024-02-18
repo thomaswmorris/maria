@@ -315,8 +315,8 @@ class TOD:
         if format.lower() == "mustang-2":
             header = fits.header.Header()
 
-            header["AZIMUTH"] = (self.coords.center_az, "radians")
-            header["ELEVATION"] = (self.coords.center_el, "radians")
+            header["AZIM"] = (self.coords.center_az, "radians")
+            header["ELEV"] = (self.coords.center_el, "radians")
             header["BMAJ"] = (8.0, "arcsec")
             header["BMIN"] = (8.0, "arcsec")
             header["BPA"] = (0.0, "degrees")
