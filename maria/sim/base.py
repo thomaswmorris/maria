@@ -1,5 +1,4 @@
 import os
-import warnings
 
 import numpy as np
 
@@ -9,6 +8,7 @@ from ..instrument import Instrument, get_instrument
 from ..pointing import Pointing, get_pointing
 from ..site import Site, get_site
 from ..tod import TOD
+from ..utils.errors import PointingError
 
 here, this_filename = os.path.split(__file__)
 
@@ -95,7 +95,7 @@ class BaseSimulation:
         )
 
         if self.pointing.max_vel > np.radians(self.instrument.vel_limit):
-            raise warnings.warn(
+            raise PointingError(
                 (
                     f"The maximum velocity of the boresight ({np.degrees(self.pointing.max_vel):.01f} deg/s) exceeds "
                     f"the maximum velocity of the instrument ({self.instrument.vel_limit:.01f} deg/s)."
@@ -103,7 +103,7 @@ class BaseSimulation:
             )
 
         if self.pointing.max_acc > np.radians(self.instrument.acc_limit):
-            raise warnings.warn(
+            raise PointingError(
                 (
                     f"The maximum acceleration of the boresight ({np.degrees(self.pointing.max_acc):.01f} deg/s^2) exceeds "
                     f"the maximum acceleration of the instrument ({self.instrument.acc_limit:.01f} deg/s^2)."
