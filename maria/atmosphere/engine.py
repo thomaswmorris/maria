@@ -1,11 +1,4 @@
-import os
-
 import numpy as np
-
-# how do we do the bands? this is a great question.
-# because all practical telescope instrumentation assume a constant band
-
-here, this_filename = os.path.split(__file__)
 
 
 def extrude(
