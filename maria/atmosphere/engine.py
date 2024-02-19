@@ -1,5 +1,5 @@
 import numpy as np
-
+import dask.array as da
 
 def extrude(
     values: np.array,
@@ -13,6 +13,7 @@ def extrude(
 ):
     # muy rapido
     BUFFER = np.zeros((n_steps + n_i) * n_j)
+    BUFFER = da.random.random(size=((n_steps + n_i) * n_j))
     BUFFER[n_steps * n_j :] = values
 
     # remember that (e, c) -> n_c * e + c
@@ -20,6 +21,8 @@ def extrude(
         BUFFER[buffer_index * n_j + np.arange(n_j)] = A @ BUFFER[
             n_j * (buffer_index + 1 + i_sample_index) + j_sample_index
         ] + B @ np.random.standard_normal(size=n_j)
+
+    breakpoint()
 
     return BUFFER[: n_steps * n_j]
 
