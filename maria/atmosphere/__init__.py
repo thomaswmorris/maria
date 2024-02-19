@@ -105,7 +105,7 @@ class AtmosphereMixin:
                 self.max_atmosphere_height,
                 self.n_atmosphere_layers,
             )
-            self.turbulent_layers = []
+            self.atmosphere.layers = []
 
             depths = enumerate(self.turbulent_layer_depths)
             if self.verbose:
@@ -126,7 +126,7 @@ class AtmosphereMixin:
                     turbulent_outer_scale=self.turbulent_outer_scale,
                 )
 
-                self.turbulent_layers.append(layer)
+                self.atmosphere.layers.append(layer)
 
         if self.atmosphere_model == "3d":
             self.initialize_3d_atmosphere()
@@ -147,7 +147,7 @@ class AtmosphereMixin:
             (self.n_atmosphere_layers, self.instrument.n_dets, self.pointing.n_time)
         )
 
-        layers = tqdm(self.turbulent_layers) if self.verbose else self.turbulent_layers
+        layers = tqdm(self.atmosphere.layers) if self.verbose else self.atmosphere.layers
         for layer_index, layer in enumerate(layers):
             if self.verbose:
                 layers.set_description(f"Generating atmosphere (z={layer.depth:.00f}m)")

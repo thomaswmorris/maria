@@ -8,7 +8,7 @@ import pandas as pd
 BAND_FIELD_TYPES = {
     "center": "float",
     "width": "float",
-    "type": "str",
+    "passband_shape": "str",
 }
 
 here, this_filename = os.path.split(__file__)
@@ -100,7 +100,7 @@ class Band:
     name: str
     center: float
     width: float
-    type: str = "flat"
+    passband_shape: str = "flat"
     tau: float = 0
     white_noise: float = 0
     pink_noise: float = 0
@@ -112,7 +112,7 @@ class Band:
             nu[pb > pb.max() / np.e**2].ptp(), 3
         )  # width is the two-sigma interval
 
-        band = cls(name=name, center=center, width=width, type="custom")
+        band = cls(name=name, center=center, width=width, passband_shape="custom")
 
         band._nu = nu
         band._pb = pb
@@ -121,20 +121,20 @@ class Band:
 
     @property
     def nu_min(self) -> float:
-        if self.type == "flat":
+        if self.passband_shape == "flat":
             return self.center - 0.5 * self.width
-        if self.type == "gaussian":
+        if self.passband_shape == "gaussian":
             return self.center - self.width
-        if self.type == "custom":
+        if self.passband_shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].min()
 
     @property
     def nu_max(self) -> float:
-        if self.type == "flat":
+        if self.passband_shape == "flat":
             return self.center + 0.5 * self.width
-        if self.type == "gaussian":
+        if self.passband_shape == "gaussian":
             return self.center + self.width
-        if self.type == "custom":
+        if self.passband_shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].max()
 
     def passband(self, nu):
@@ -144,13 +144,13 @@ class Band:
 
         _nu = np.atleast_1d(nu)
 
-        if self.type == "gaussian":
+        if self.passband_shape == "gaussian":
             band_sigma = self.width / 4
 
             return np.exp(-0.5 * np.square((_nu - self.center) / band_sigma))
 
-        if self.type == "flat":
+        if self.passband_shape == "flat":
             return np.where((_nu > self.nu_min) & (_nu < self.nu_max), 1.0, 0.0)
 
-        elif self.type == "custom":
+        elif self.passband_shape == "custom":
             return np.interp(_nu, self._nu, self._pb)

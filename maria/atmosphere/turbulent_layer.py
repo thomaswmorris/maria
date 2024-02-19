@@ -1,6 +1,8 @@
 import numpy as np
 import scipy as sp
 
+import dask.array as da
+
 from .. import utils
 from ..coords import Coordinates, get_center_phi_theta
 from ..instrument import Instrument
@@ -281,6 +283,8 @@ class TurbulentLayer:
         self.shaped_values = np.zeros(
             (self.n_extrusion, self.n_cross_section), dtype=np.float32
         )
+
+        self.shaped_values = da.from_array(self.shaped_values)
 
         self.atmosphere_detector_points = (
             self.detector_offsets[:, None] + self.boresight_angular_position[None]
