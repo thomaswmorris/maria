@@ -1,11 +1,23 @@
 import os
 import pathlib
 import time as ttime
+from collections.abc import Mapping
 from datetime import datetime
 
 import pytz
 import requests
 import yaml
+
+
+def flatten_config(m, prefix=""):
+    items = []
+    for k, v in m.items():
+        new_key = f"{prefix}/{k}" if prefix else k
+        if any(isinstance(vv, Mapping) for kk, vv in v.items()):
+            items.extend(flatten_config(v, new_key).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
 
 
 def read_yaml(path):

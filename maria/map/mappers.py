@@ -96,8 +96,8 @@ class BaseMapper:
         save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
 
         for i, key in enumerate(self.band_data.keys()):
-            self.header["CRVAL3"] = self.band_data[key]["nom_freq"] * 1e9
-            self.header["CDELT3"] = self.band_data[key]["nom_freqwidth"] * 1e9
+            self.header["CRVAL3"] = self.band_data[key]["band_center"] * 1e9
+            self.header["CDELT3"] = self.band_data[key]["band_centerwidth"] * 1e9
 
             save_maps[i] = self.map.data[i]
 
@@ -227,8 +227,8 @@ class BinMapper(BaseMapper):
                 self.raw_map_sums[band] += map_sum
                 self.raw_map_cnts[band] += map_cnt
 
-            self.band_data[band]["nom_freq"] = tod.dets.nom_freq.mean()
-            self.band_data[band]["nom_freqwidth"] = 30
+            self.band_data[band]["band_center"] = tod.dets.band_center.mean()
+            self.band_data[band]["band_centerwidth"] = 30
 
             band_map_numer = self.raw_map_sums[band].copy()
             band_map_denom = self.raw_map_cnts[band].copy()
@@ -254,7 +254,7 @@ class BinMapper(BaseMapper):
 
         self.map = Map(
             data=self.map_data,
-            freqs=np.array([self.band_data[band]["nom_freq"] for band in self.band]),
+            freqs=np.array([self.band_data[band]["band_center"] for band in self.band]),
             width=np.degrees(self.width) if self.degrees else self.width,
             height=np.degrees(self.height) if self.degrees else self.height,
             center=np.degrees(self.center) if self.degrees else self.center,

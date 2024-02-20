@@ -22,7 +22,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
     def __init__(
         self,
-        instrument: str or Instrument = "default",
+        instrument: str or Instrument = "MUSTANG-2",
         pointing: str or Pointing = "stare",
         site: str or Site = "hoagie_haven",
         verbose: bool = True,

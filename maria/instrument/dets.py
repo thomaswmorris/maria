@@ -5,7 +5,8 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 
-from .band import Band, BandList, generate_bands  # noqa F401
+from .. import utils
+from .bands import BandList, all_bands
 
 here, this_filename = os.path.split(__file__)
 
@@ -17,9 +18,10 @@ HEX_CODE_LIST = [
 REQUIRED_DET_CONFIG_KEYS = ["n", "band_center", "band_width"]
 
 DET_COLUMN_TYPES = {
-    "uid": "int",
+    "tag": "str",
+    "uid": "str",
     "band": "str",
-    "nom_freq": "float",
+    "band_center": "float",
     "offset_x": "float",
     "offset_y": "float",
     "baseline_x": "float",
@@ -27,103 +29,139 @@ DET_COLUMN_TYPES = {
     "baseline_z": "float",
     "pol_angle": "float",
     "efficiency": "float",
+    "primary_size": "float",
 }
 
+SUPPORTED_GEOMETRIES = ["flower", "hex", "square"]
 
-def generate_instrument_offsets(geometry, field_of_view, n):
-    valid_instrument_types = ["flower", "hex", "square"]
+
+def generate_offsets(n, geometry="hex"):
+    if geometry not in SUPPORTED_GEOMETRIES:
+        raise ValueError(f"'geometry' must be one of {SUPPORTED_GEOMETRIES}.")
+
+    if geometry == "hex":
+        angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
+        z = np.array([0])
+        layer = 0
+        while len(z) < n:
+            for angle in angles:
+                for _z in layer * np.exp(1j * angle) + np.arange(layer) * np.exp(
+                    1j * (angle + 2 * np.pi / 3)
+                ):
+                    z = np.r_[z, _z]
+            layer += 1
+        z -= z.mean()
+        z *= 0.5 / np.abs(z).max()
+
+        return np.c_[np.real(np.array(z[:n])), np.imag(np.array(z[:n]))].T
 
     if geometry == "flower":
-        phi = np.pi * (3.0 - np.sqrt(5.0))  # golden angle in radians
-        dzs = np.zeros(n).astype(complex)
+        golden_ratio = np.pi * (3.0 - np.sqrt(5.0))  # golden angle in radians
+        z = np.zeros(n).astype(complex)
         for i in range(n):
-            dzs[i] = np.sqrt((i / (n - 1)) * 2) * np.exp(1j * phi * i)
-        od = np.abs(np.subtract.outer(dzs, dzs))
-        dzs *= field_of_view / od.max()
-        return np.c_[np.real(dzs), np.imag(dzs)]
-    if geometry == "hex":
-        return generate_hex_offsets(n, field_of_view)
+            z[i] = np.sqrt((i / (n - 1)) * 2) * np.exp(1j * golden_ratio * i)
+        z *= 0.5 / np.abs(z.max())
+        return np.c_[np.real(z), np.imag(z)].T
+
     if geometry == "square":
-        dxy_ = np.linspace(-field_of_view, field_of_view, int(np.ceil(np.sqrt(n)))) / (
-            2 * np.sqrt(2)
-        )
-        DX, DY = np.meshgrid(dxy_, dxy_)
-        return np.c_[DX.ravel()[:n], DY.ravel()[:n]]
-
-    raise ValueError(
-        "Please specify a valid instrument type. Valid instrument types are:\n"
-        + "\n".join(valid_instrument_types)
-    )
+        side = np.linspace(-0.5, 0.5, int(np.ceil(np.sqrt(n))))
+        DX, DY = np.meshgrid(side, side)
+        return np.c_[DX.ravel()[:n], DY.ravel()[:n]].T
 
 
-def generate_hex_offsets(n, d):
-    angles = np.linspace(0, 2 * np.pi, 6 + 1)[1:] + np.pi / 2
-    zs = np.array([0])
-    layer = 0
-    while len(zs) < n:
-        for angle in angles:
-            for z in layer * np.exp(1j * angle) + np.arange(layer) * np.exp(
-                1j * (angle + 2 * np.pi / 3)
-            ):
-                zs = np.append(zs, z)
-        layer += 1
-    zs -= zs.mean()
-    zs *= 0.5 * d / np.abs(zs).max()
-
-    return np.c_[np.real(np.array(zs[:n])), np.imag(np.array(zs[:n]))]
-
-
-def generate_detectors(
-    bands_config: Mapping,
-    field_of_view: float = 1,
-    geometry: str = "hex",
-    baseline: float = 0,
+def generate_dets(
+    n: int = 1,
+    field_of_view: float = 0.0,
+    boresight_offset: tuple = (0.0, 0.0),
+    detector_geometry: tuple = "hex",
+    baseline_offset: tuple = (0.0, 0.0, 0.0),
+    baseline_diameter: float = 0.0,
+    baseline_geometry: str = "flower",
+    bands: list = [],
 ):
-    dets = pd.DataFrame(columns=list(DET_COLUMN_TYPES.keys()), dtype=object)
+    dets = pd.DataFrame()
 
-    for band_key, band_config in bands_config.items():
-        band_name = band_config.get("band_name", band_key)
+    detector_offsets = field_of_view * generate_offsets(n=n, geometry=detector_geometry)
 
+    baselines = baseline_diameter * generate_offsets(n=n, geometry=baseline_geometry)
+
+    for band in bands:
         band_dets = pd.DataFrame(
-            columns=dets.columns, index=np.arange(band_config["n_dets"])
-        )
-        band_dets.loc[:, "band"] = band_name
-
-        det_offsets_radians = np.radians(
-            generate_instrument_offsets(geometry, field_of_view, len(band_dets))
+            index=np.arange(n), columns=["band", "offset_x", "offset_y"], dtype=float
         )
 
-        # should we make another function for this?
-        det_baselines_meters = generate_instrument_offsets(
-            geometry, baseline, len(band_dets)
-        )
+        band_dets.loc[:, "band"] = band
+        band_dets.loc[:, "offset_x"] = boresight_offset[0] + detector_offsets[0]
+        band_dets.loc[:, "offset_y"] = boresight_offset[1] + detector_offsets[1]
 
-        # if randomize_offsets:
-        #     np.random.shuffle(offsets_radians)  # this is a stupid function.
+        band_dets.loc[:, "baseline_x"] = baseline_offset[0] + baselines[0]
+        band_dets.loc[:, "baseline_y"] = baseline_offset[1] + baselines[1]
+        band_dets.loc[:, "baseline_z"] = baseline_offset[2]
 
-        band_dets.loc[:, "nom_freq"] = band_config.get("band_center")
-
-        band_dets.loc[:, "offset_x"] = det_offsets_radians[:, 0]
-        band_dets.loc[:, "offset_y"] = det_offsets_radians[:, 1]
-        band_dets.loc[:, "baseline_x"] = det_baselines_meters[:, 0]
-        band_dets.loc[:, "baseline_y"] = det_baselines_meters[:, 1]
-        band_dets.loc[:, "baseline_z"] = 0 * det_baselines_meters[:, 1]
-
-        band_dets.loc[:, "pol_angle"] = 0
-        band_dets.loc[:, "efficiency"] = band_config.get("efficiency", 1.0)
-
-        dets = pd.concat([dets, band_dets], axis=0)
-
-    dets.loc[:, "uid"] = np.arange(len(dets))
-    dets.index = np.arange(len(dets))
-
-    for col, dtype in DET_COLUMN_TYPES.items():
-        dets.loc[:, col] = dets.loc[:, col].astype(dtype)
+        dets = pd.concat([dets, band_dets])
 
     return dets
 
 
 class Detectors:
+    @classmethod
+    def from_config(cls, config):
+        dets_config = utils.io.flatten_config(config["dets"])
+
+        df = pd.DataFrame(
+            {col: pd.Series(dtype=dtype) for col, dtype in DET_COLUMN_TYPES.items()}
+        )
+
+        for tag, dets_config in utils.io.flatten_config(config["dets"]).items():
+            if "file" in dets_config:
+                tag_df = pd.read_csv(f'{here}/{dets_config["file"]}', index_col=0)
+
+            else:
+                tag_df = generate_dets(**dets_config)
+
+            fill_level = int(np.log(len(tag_df) - 1) / np.log(10) + 1)
+            tag_df.insert(
+                0,
+                "uid",
+                [f"{tag}_{str(i).zfill(fill_level)}" for i in range(len(tag_df))],
+            )
+            tag_df.insert(1, "tag", tag)
+
+            df = pd.concat([df, tag_df])
+
+        df.index = np.arange(len(df))
+
+        for col in ["primary_size"]:
+            if df.loc[:, col].isna().any():
+                df.loc[:, col] = config[col]
+
+        for col in [
+            "offset_x",
+            "offset_y",
+            "baseline_x",
+            "baseline_y",
+            "baseline_z",
+            "pol_angle",
+        ]:
+            if df.loc[:, col].isna().any():
+                df.loc[:, col] = 0
+
+        # get the bands
+        bands_config = {}
+        for band in sorted(np.unique(df.band)):
+            if isinstance(band, Mapping):
+                bands_config[band] = band
+            if isinstance(band, str):
+                bands_config[band] = all_bands[band]
+
+        bands = BandList.from_config(bands_config)
+
+        for band in bands:
+            df.loc[df.band == band.name, "band_center"] = band.center
+            df.loc[df.band == band.name, "efficiency"] = band.efficiency
+
+        return cls(df=df, bands=bands)
+
     def __repr__(self):
         return self.df.__repr__()
 
@@ -146,25 +184,6 @@ class Detectors:
         bands = BandList(self.bands[band])
         mask = self.band == band
         return Detectors(bands=bands, df=self.df.loc[mask])
-
-    @classmethod
-    def generate(
-        cls,
-        bands_config: Mapping,
-        field_of_view: float = 1,
-        geometry: str = "hex",
-        baseline: float = 0,
-    ):
-        dets_df = generate_detectors(
-            bands_config=bands_config,
-            field_of_view=field_of_view,
-            geometry=geometry,
-            baseline=baseline,
-        )
-
-        bands = generate_bands(bands_config=bands_config)
-
-        return cls(df=dets_df, bands=bands)
 
     @property
     def n(self):
@@ -189,6 +208,10 @@ class Detectors:
     @property
     def __len__(self):
         return len(self.df)
+
+    @property
+    def index(self):
+        return self.df.index.values
 
     @property
     def ubands(self):

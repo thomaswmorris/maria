@@ -1,5 +1,4 @@
 import os
-from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from operator import attrgetter
 
@@ -11,9 +10,9 @@ from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from .. import utils
-from .band import Band, BandList, generate_bands  # noqa F401
-from .beam import compute_angular_fwhm, construct_beam_filter  # noqa F401
-from .dets import Detectors, generate_detectors  # noqa F401
+from .bands import BandList  # noqa F401
+from .beams import compute_angular_fwhm, construct_beam_filter  # noqa F401
+from .dets import Detectors  # noqa F401
 
 HEX_CODE_LIST = [
     mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
@@ -30,25 +29,11 @@ here, this_filename = os.path.split(__file__)
 INSTRUMENT_CONFIGS = utils.io.read_yaml(f"{here}/instruments.yml")
 
 INSTRUMENT_DISPLAY_COLUMNS = [
-    "instrument_description",
-    "field_of_view",
-    "primary_size",
-    "bands",
+    "description",
+    # "field_of_view",
+    # "primary_size",
+    # "bands",
 ]
-instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T
-
-for instrument_name, config in INSTRUMENT_CONFIGS.items():
-    instrument_data.at[instrument_name, "bands"] = list(config["bands"].keys())
-
-all_instruments = list(instrument_data.index)
-
-
-class InvalidInstrumentError(Exception):
-    def __init__(self, invalid_instrument):
-        super().__init__(
-            f"The instrument '{invalid_instrument}' is not supported."
-            f"Supported instruments are:\n\n{instrument_data.__repr__()}"
-        )
 
 
 def get_instrument_config(instrument_name=None, **kwargs):
@@ -62,6 +47,9 @@ def get_instrument(instrument_name="default", **kwargs):
     """
     Get an instrument from a pre-defined config.
     """
+    for key, config in INSTRUMENT_CONFIGS.items():
+        if instrument_name in config.get("aliases", []):
+            instrument_name = key
     if instrument_name not in INSTRUMENT_CONFIGS.keys():
         raise InvalidInstrumentError(instrument_name)
     instrument_config = INSTRUMENT_CONFIGS[instrument_name].copy()
@@ -89,16 +77,11 @@ class Instrument:
 
     @classmethod
     def from_config(cls, config):
-        if isinstance(config.get("bands"), Mapping):
-            dets = Detectors.generate(
-                bands_config=config.pop("bands"),
-                field_of_view=config.get("field_of_view", 1),
-                geometry=config.get("geometry", "hex"),
-                baseline=config.get("baseline", 0),
-            )
+        dets = Detectors.from_config(config=config)
 
-        else:
-            raise ValueError("'bands' must be a dictionary of bands.")
+        for key in ["dets", "aliases"]:
+            if key in config:
+                config.pop(key)
 
         return cls(bands=dets.bands, dets=dets, **config)
 
@@ -142,7 +125,7 @@ class Instrument:
 
     @property
     def baselines(self):
-        return np.c_[self.baseline_x, self.baseline_y]
+        return np.c_[self.baseline_x, self.baseline_y, self.baseline_z]
 
     @staticmethod
     def beam_profile(r, fwhm):
@@ -204,11 +187,11 @@ class Instrument:
 
             band_color = HEX_CODE_LIST[iub]
 
-            # nom_freq = self.dets.band_center[band_mask].mean()
+            # band_center = self.dets.band_center[band_mask].mean()
             # band_res_arcmins = 2 * self.fwhm
 
             # 60 * np.degrees(
-            #     1.22 * 2.998e8 / (1e9 * nom_freq * self.primary_size)
+            #     1.22 * 2.998e8 / (1e9 * band_center * self.primary_size)
             # )
 
             # offsets_arcmins = 60 * np.degrees(self.offsets[band_mask])
@@ -240,3 +223,22 @@ class Instrument:
         ax.set_xlabel(rf"$\theta_x$ offset ({units})")
         ax.set_ylabel(rf"$\theta_y$ offset ({units})")
         ax.legend(handles=legend_handles)
+
+
+instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T
+
+for instrument_name, config in INSTRUMENT_CONFIGS.items():
+    instrument = get_instrument(instrument_name)
+    f_list = sorted(np.unique([band.center for band in instrument.dets.bands]))
+    instrument_data.at[instrument_name, "f [GHz]"] = "/".join([str(f) for f in f_list])
+    instrument_data.at[instrument_name, "n"] = instrument.dets.n
+
+all_instruments = list(instrument_data.index)
+
+
+class InvalidInstrumentError(Exception):
+    def __init__(self, invalid_instrument):
+        super().__init__(
+            f"The instrument '{invalid_instrument}' is not supported. "
+            f"Supported instruments are:\n\n{instrument_data.__repr__()}"
+        )

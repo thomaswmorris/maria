@@ -7,7 +7,7 @@ import pandas as pd
 import scipy as sp
 from astropy.io import fits
 
-from .. import site
+from .. import instrument, site
 from ..coords import Coordinates, get_center_phi_theta
 from ..instrument.dets import Detectors
 
@@ -78,15 +78,10 @@ class TOD:
             frame="ra_dec",
         )
 
-        dets = Detectors.generate(
-            bands_config={
-                "f093": {
-                    "n_dets": n_dets,
-                    "band_center": 93,
-                    "band_width": 30,
-                }
-            }
-        )
+        m2_config = instrument.get_instrument_config(instrument_name="MUSTANG-2")
+        m2_config["dets"]["m2"]["n"] = n_dets
+
+        dets = Detectors.from_config(m2_config)
 
         return cls(coords=coords, dets=dets, data=data, units={"data": "K"})
 
