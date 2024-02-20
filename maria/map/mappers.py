@@ -26,6 +26,7 @@ class BaseMapper:
         height: float = 1,
         res: float = 0.01,
         frame: str = "ra_dec",
+        units: str = "K_RJ",
         degrees: bool = True,
         calibrate: bool = False,
         tods: Sequence[TOD] = [],
@@ -37,6 +38,7 @@ class BaseMapper:
         self.degrees = degrees
         self.calibrate = calibrate
         self.frame = frame
+        self.units = units
 
         self.n_x = int(np.maximum(1, self.width / self.res))
         self.n_y = int(np.maximum(1, self.height / self.res))
@@ -122,6 +124,7 @@ class BinMapper(BaseMapper):
         height: float = 1,
         res: float = 0.01,
         frame: str = "ra_dec",
+        units: str = "K_RJ",
         degrees: bool = True,
         calibrate: bool = False,
         tod_postprocessing: dict = {},
@@ -137,6 +140,7 @@ class BinMapper(BaseMapper):
             degrees=degrees,
             calibrate=calibrate,
             tods=tods,
+            units=units,
         )
 
         self.tod_postprocessing = tod_postprocessing
@@ -259,4 +263,5 @@ class BinMapper(BaseMapper):
             height=np.degrees(self.height) if self.degrees else self.height,
             center=np.degrees(self.center) if self.degrees else self.center,
             degrees=self.degrees,
+            units=self.units,
         )
