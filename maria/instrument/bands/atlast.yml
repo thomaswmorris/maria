@@ -1,0 +1,53 @@
+f027:
+  center: 27
+  width: 5
+  passband_shape: gaussian
+  tau: 0
+  efficiency: 1.0
+  white_noise: 0
+  pink_noise: 0
+
+f039:
+  center: 39
+  width: 5
+  passband_shape: gaussian
+  tau: 0
+  efficiency: 1.0
+  white_noise: 0
+  pink_noise: 0
+
+f093:
+  center: 93
+  width: 10
+  passband_shape: gaussian
+  tau: 0
+  efficiency: 1.0
+  white_noise: 0
+  pink_noise: 0
+
+f150:
+  center: 150
+  width: 10
+  passband_shape: gaussian
+  tau: 0
+  efficiency: 1.0
+  white_noise: 0
+  pink_noise: 0
+
+f225:
+  center: 225
+  width: 30
+  passband_shape: gaussian
+  tau: 0
+  efficiency: 1.0
+  white_noise: 0
+  pink_noise: 0
+
+f280:
+  center: 280
+  width: 40
+  passband_shape: gaussian
+  tau: 0
+  efficiency: 1.0
+  white_noise: 0
+  pink_noise: 0
