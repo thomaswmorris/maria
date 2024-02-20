@@ -1,0 +1,8 @@
+f093:
+  # file: data/mustang2/passbands/f093.csv
+  center: 90
+  width: 30
+  tau: 0
+  white_noise: 266.e-6 # in K_RJ s^-1/2
+  pink_noise: 1.e-1 # in K_RJ s^-1/2
+  efficiency: 0.5

@@ -1,9 +1,13 @@
+import glob
 import os
 from dataclasses import dataclass
 from typing import Sequence
 
 import numpy as np
 import pandas as pd
+
+from .. import utils
+from ..utils.io import flatten_config, read_yaml
 
 BAND_FIELD_TYPES = {
     "center": "float",
@@ -13,42 +17,30 @@ BAND_FIELD_TYPES = {
 
 here, this_filename = os.path.split(__file__)
 
+all_bands = {}
+for path in glob.glob(f"{here}/bands/*.yml"):
+    tag = os.path.split(path)[1].split(".")[0]
+    all_bands[tag] = read_yaml(path)
 
-def generate_bands(bands_config):
-    bands = []
-
-    for band_key, band_config in bands_config.items():
-        band_name = band_config.get("band_name", band_key)
-        band_file = band_config.get("file")
-
-        if band_file is not None:
-            if os.path.exists(band_file):
-                band_df = pd.read_csv(band_file)
-            elif os.path.exists(f"{here}/{band_file}"):
-                band_df = pd.read_csv(f"{here}/{band_file}")
-            else:
-                raise FileNotFoundError(band_file)
-
-            band = Band.from_passband(
-                name=band_name, nu=band_df.nu_GHz.values, pb=band_df.pb.values
-            )
-
-        else:
-            band = Band(
-                name=band_name,
-                center=band_config["band_center"],
-                width=band_config["band_width"],
-                white_noise=band_config.get("white_noise", 0),
-                pink_noise=band_config.get("pink_noise", 0),
-                tau=band_config.get("tau", 0),
-            )
-
-        bands.append(band)
-
-    return BandList(bands)
+all_bands = flatten_config(all_bands)
 
 
 class BandList(Sequence):
+    @classmethod
+    def from_config(cls, config):
+        bands = []
+
+        if isinstance(config, str):
+            config = utils.io.read_yaml(f"{here}/{config}")
+
+        for name in config.keys():
+            band_config = config[name]
+            if "file" in band_config.keys():
+                band_config = utils.io.read_yaml(f'{here}/{band_config["file"]}')
+
+            bands.append(Band(name=name, **band_config))
+        return cls(bands=bands)
+
     def __init__(self, bands: list = []):
         self.bands = bands
 
@@ -73,8 +65,10 @@ class BandList(Sequence):
         return len(self.bands)
 
     def __repr__(self):
-        # return f"BandList([{', '.join(self.names)}])"
-        return self.bands.__repr__()
+        return self.summary.__repr__()
+
+    def __repr_html__(self):
+        return self.summary.__repr_html__()
 
     def __short_repr__(self):
         return f"BandList([{', '.join(self.names)}])"
@@ -100,10 +94,11 @@ class Band:
     name: str
     center: float
     width: float
-    passband_shape: str = "flat"
-    tau: float = 0
-    white_noise: float = 0
-    pink_noise: float = 0
+    tau: float = 0.0
+    white_noise: float = 0.0
+    pink_noise: float = 0.0
+    passband_shape: str = "gaussian"
+    efficiency: float = 1.0
 
     @classmethod
     def from_passband(cls, name, nu, pb, pb_err=None):
