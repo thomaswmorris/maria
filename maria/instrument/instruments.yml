@@ -2,14 +2,12 @@ ABS:
   aliases: ["abs"]
   description: Atacama B-Mode Search
   documentation: https://almascience.nrao.edu/about-alma/alma-basics
-  bands:
+  dets:
     abs:
-      n_dets: 250
-      center: 150
-      width: 10
-      efficiency: 1.9
+      field_of_view: 25
+      detector_geometry: hex
+      n: 250
       bands: [abs/f150]
-  field_of_view: 25
   geometry: hex
   primary_size: 0.5
 
