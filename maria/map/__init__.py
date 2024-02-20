@@ -11,7 +11,7 @@ from astropy.wcs import WCS
 from tqdm import tqdm
 
 from .. import utils
-from ..instrument import beam
+from ..instrument import beams
 
 
 @dataclass
@@ -235,13 +235,13 @@ class MapMixin:
                 freqs.set_description("Sampling input map")
 
             # nu is in GHz, f is in Hz
-            nu_fwhm = beam.compute_angular_fwhm(
+            nu_fwhm = beams.compute_angular_fwhm(
                 fwhm_0=self.instrument.primary_size, z=np.inf, f=1e9 * nu
             )
-            nu_map_filter = beam.construct_beam_filter(
+            nu_map_filter = beams.construct_beam_filter(
                 fwhm=nu_fwhm, res=self.input_map.res
             )
-            filtered_nu_map_data = beam.separably_filter(
+            filtered_nu_map_data = beams.separably_filter(
                 self.input_map.data[i], nu_map_filter
             )
 

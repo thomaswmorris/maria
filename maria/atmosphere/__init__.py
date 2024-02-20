@@ -194,7 +194,7 @@ class AtmosphereMixin:
             )
 
             for band in bands:
-                band_index = self.instrument.dets(band=band.name).uid
+                band_index = self.instrument.dets(band=band.name).index
 
                 if self.verbose:
                     bands.set_description(f"Computing atm. emission ({band.name})")
@@ -245,7 +245,7 @@ class AtmosphereMixin:
             )
 
             for band in bands:
-                band_index = self.instrument.dets(band=band.name).uid
+                band_index = self.instrument.dets(band=band.name).index
 
                 if self.verbose:
                     bands.set_description(f"Computing atm. transmission ({band.name})")

@@ -6,7 +6,7 @@ import dask.array as da
 from .. import utils
 from ..coords import Coordinates, get_center_phi_theta
 from ..instrument import Instrument
-from ..instrument.beam import construct_beam_filter, separably_filter
+from ..instrument.beams import construct_beam_filter, separably_filter
 from .weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
@@ -313,7 +313,7 @@ class TurbulentLayer:
         for band in self.instrument.bands:
             # we assume the atmosphere looks the same for every nu in the band
 
-            band_index = self.instrument.dets(band=band.name).uid
+            band_index = self.instrument.dets(band=band.name).index
             band_angular_fwhm = self.instrument.angular_fwhm(z=self.depth)[
                 band_index
             ].mean()
