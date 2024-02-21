@@ -1,5 +1,4 @@
 import os
-import warnings
 
 import numpy as np
 
@@ -96,16 +95,16 @@ class BaseSimulation:
             frame=self.plan.pointing_frame,
         )
 
-        if self.pointing.max_vel > np.radians(self.instrument.vel_limit):
-            raise PointingError(
+        if self.plan.max_vel > np.radians(self.instrument.vel_limit):
+            raise ValueError(
                 (
                     f"The maximum velocity of the boresight ({np.degrees(self.plan.max_vel):.01f} deg/s) exceeds "
                     f"the maximum velocity of the instrument ({self.instrument.vel_limit:.01f} deg/s)."
                 ),
             )
 
-        if self.pointing.max_acc > np.radians(self.instrument.acc_limit):
-            raise PointingError(
+        if self.plan.max_acc > np.radians(self.instrument.acc_limit):
+            raise ValueError(
                 (
                     f"The maximum acceleration of the boresight ({np.degrees(self.plan.max_acc):.01f} deg/s^2) exceeds "
                     f"the maximum acceleration of the instrument ({self.instrument.acc_limit:.01f} deg/s^2)."

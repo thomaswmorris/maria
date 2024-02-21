@@ -1,7 +1,6 @@
+import dask.array as da
 import numpy as np
 import scipy as sp
-
-import dask.array as da
 
 from .. import utils
 from ..coords import Coordinates, get_center_phi_theta
