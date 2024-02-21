@@ -25,6 +25,10 @@ all_bands = {}
 for path in glob.glob(f"{here}/bands/*.yml"):
     tag = os.path.split(path)[1].split(".")[0]
     all_bands[tag] = read_yaml(path)
+all_bands = {}
+for path in glob.glob(f"{here}/bands/*.yml"):
+    tag = os.path.split(path)[1].split(".")[0]
+    all_bands[tag] = read_yaml(path)
 
 all_bands = flatten_config(all_bands)
 

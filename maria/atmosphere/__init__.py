@@ -147,7 +147,9 @@ class AtmosphereMixin:
             (self.n_atmosphere_layers, self.instrument.n_dets, self.plan.n_time)
         )
 
-        layers = tqdm(self.atmosphere.layers) if self.verbose else self.atmosphere.layers
+        layers = (
+            tqdm(self.atmosphere.layers) if self.verbose else self.atmosphere.layers
+        )
         for layer_index, layer in enumerate(layers):
             if self.verbose:
                 layers.set_description(f"Generating atmosphere (z={layer.depth:.00f}m)")

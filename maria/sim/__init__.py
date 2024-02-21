@@ -6,7 +6,7 @@ from maria.site import Site
 
 from ..atmosphere import Atmosphere, AtmosphereMixin
 from ..cmb import CMBMixin
-from ..map import Map, MapMixin
+from ..map import MapMixin
 from ..noise import NoiseMixin
 from .base import BaseSimulation, master_params, parse_sim_kwargs
 
@@ -25,7 +25,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         instrument: str or Instrument = "MUSTANG-2",
         plan: str or Plan = "stare",
         site: str or Site = "hoagie_haven",
-        map: str or Map = None,
         verbose: bool = True,
         **kwargs,
     ):
@@ -56,22 +55,21 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                     setattr(self, k, kwargs.get(k, v))
                     self.params[sub_type][k] = v
 
-        weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
-
-        self.weather = Weather(
-            t=self.plan.time.mean(),
-            region=self.site.region,
-            altitude=self.site.altitude,
-            quantiles=self.site.weather_quantiles,
-            override=weather_override,
-        )
-
         if self.map_file:
             if not os.path.exists(self.map_file):
                 raise FileNotFoundError(self.map_file)
             self._initialize_map()
 
         if self.atmosphere_model:
+            weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
+
+            self.atmosphere = Atmosphere(
+                t=self.plan.time.mean(),
+                region=self.site.region,
+                altitude=self.site.altitude,
+                weather_override=weather_override,
+            )
+
             self._initialize_atmosphere()
 
     def _run(self, units="K_RJ"):
