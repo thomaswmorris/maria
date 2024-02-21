@@ -14,6 +14,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+docs/build/
+
 # C extensions
 *.so
 
