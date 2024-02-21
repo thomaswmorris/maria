@@ -10,10 +10,18 @@ import yaml
 
 
 def flatten_config(m, prefix=""):
+    """
+    Turn any dict into a mapping of mappings.
+    """
+    # if too shallow, add a dummy index
+    if not all(isinstance(v, Mapping) for k, v in m.items()):
+        return flatten_config({"": m}, prefix="")
+
+    # recursion!
     items = []
     for k, v in m.items():
         new_key = f"{prefix}/{k}" if prefix else k
-        if any(isinstance(vv, Mapping) for kk, vv in v.items()):
+        if all(isinstance(vv, Mapping) for kk, vv in v.items()):
             items.extend(flatten_config(v, new_key).items())
         else:
             items.append((new_key, v))

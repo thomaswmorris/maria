@@ -1,7 +1,7 @@
 f043:
   center: 43
   width: 16
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -10,7 +10,7 @@ f043:
 f078:
   center: 78
   width: 22
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -19,7 +19,7 @@ f078:
 f100:
   center: 100
   width: 32
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -28,7 +28,7 @@ f100:
 f144:
   center: 144
   width: 38
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -37,7 +37,7 @@ f144:
 f187:
   center: 187
   width: 48
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -46,7 +46,7 @@ f187:
 f243:
   center: 243
   width: 64
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -55,7 +55,7 @@ f243:
 f324:
   center: 324
   width: 98
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -64,7 +64,7 @@ f324:
 f447:
   center: 447
   width: 114
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -73,7 +73,7 @@ f447:
 f661:
   center: 661
   width: 118
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0
@@ -82,7 +82,7 @@ f661:
 f869:
   center: 869
   width: 163
-  passband_shape: gaussian
+  shape: gaussian
   tau: 0
   white_noise: 0
   pink_noise: 0

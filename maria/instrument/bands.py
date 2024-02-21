@@ -12,7 +12,11 @@ from ..utils.io import flatten_config, read_yaml
 BAND_FIELD_TYPES = {
     "center": "float",
     "width": "float",
-    "passband_shape": "str",
+    "shape": "str",
+    "tau": "float",
+    "white_noise": "float",
+    "pink_noise": "float",
+    "efficiency": "float",
 }
 
 here, this_filename = os.path.split(__file__)
@@ -97,7 +101,7 @@ class Band:
     tau: float = 0.0
     white_noise: float = 0.0
     pink_noise: float = 0.0
-    passband_shape: str = "gaussian"
+    shape: str = "gaussian"
     efficiency: float = 1.0
 
     @classmethod
@@ -107,7 +111,7 @@ class Band:
             nu[pb > pb.max() / np.e**2].ptp(), 3
         )  # width is the two-sigma interval
 
-        band = cls(name=name, center=center, width=width, passband_shape="custom")
+        band = cls(name=name, center=center, width=width, shape="custom")
 
         band._nu = nu
         band._pb = pb
@@ -116,20 +120,20 @@ class Band:
 
     @property
     def nu_min(self) -> float:
-        if self.passband_shape == "flat":
+        if self.shape == "flat":
             return self.center - 0.5 * self.width
-        if self.passband_shape == "gaussian":
+        if self.shape == "gaussian":
             return self.center - self.width
-        if self.passband_shape == "custom":
+        if self.shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].min()
 
     @property
     def nu_max(self) -> float:
-        if self.passband_shape == "flat":
+        if self.shape == "flat":
             return self.center + 0.5 * self.width
-        if self.passband_shape == "gaussian":
+        if self.shape == "gaussian":
             return self.center + self.width
-        if self.passband_shape == "custom":
+        if self.shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].max()
 
     def passband(self, nu):
@@ -139,13 +143,13 @@ class Band:
 
         _nu = np.atleast_1d(nu)
 
-        if self.passband_shape == "gaussian":
+        if self.shape == "gaussian":
             band_sigma = self.width / 4
 
             return np.exp(-0.5 * np.square((_nu - self.center) / band_sigma))
 
-        if self.passband_shape == "flat":
+        if self.shape == "flat":
             return np.where((_nu > self.nu_min) & (_nu < self.nu_max), 1.0, 0.0)
 
-        elif self.passband_shape == "custom":
+        elif self.shape == "custom":
             return np.interp(_nu, self._nu, self._pb)
