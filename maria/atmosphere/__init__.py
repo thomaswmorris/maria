@@ -144,7 +144,7 @@ class AtmosphereMixin:
         """
 
         layer_data = np.zeros(
-            (self.n_atmosphere_layers, self.instrument.n_dets, self.pointing.n_time)
+            (self.n_atmosphere_layers, self.instrument.n_dets, self.plan.n_time)
         )
 
         layers = tqdm(self.atmosphere.layers) if self.verbose else self.atmosphere.layers
@@ -184,7 +184,7 @@ class AtmosphereMixin:
         if units == "K_RJ":  # Kelvin Rayleigh-Jeans
             self._simulate_atmospheric_fluctuations()
             self.data["atmosphere"] = np.empty(
-                (self.instrument.n_dets, self.pointing.n_time), dtype=np.float32
+                (self.instrument.n_dets, self.plan.n_time), dtype=np.float32
             )
 
             bands = (

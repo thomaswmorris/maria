@@ -164,7 +164,7 @@ class MapMixin:
         if not self.map_file:
             return
 
-        self.input_map_file = self.map_file
+        self.map_file = self.map_file
         hudl = ap.io.fits.open(self.map_file)
 
         map_data = hudl[0].data
@@ -193,7 +193,7 @@ class MapMixin:
 
         self.map_data = map_data
 
-        self.input_map = Map(
+        self.map = Map(
             data=map_data,
             header=hudl[0].header,
             freqs=np.atleast_1d(self.map_freqs),
@@ -206,30 +206,26 @@ class MapMixin:
             units=self.map_units,
         )
 
-        self.input_map.header["HISTORY"] = "History_input_adjustments"
-        self.input_map.header["comment"] = "Changed input CDELT1 and CDELT2"
-        self.input_map.header["comment"] = (
-            "Changed surface brightness units to " + self.input_map.units
+        self.map.header["HISTORY"] = "History_input_adjustments"
+        self.map.header["comment"] = "Changed input CDELT1 and CDELT2"
+        self.map.header["comment"] = (
+            "Changed surface brightness units to " + self.map.units
         )
-        self.input_map.header["comment"] = "Repositioned the map on the sky"
+        self.map.header["comment"] = "Repositioned the map on the sky"
 
-        if self.input_map.inbright is not None:
-            self.input_map.data *= self.input_map.inbright / np.nanmax(
-                self.input_map.data
-            )
-            self.input_map.header["comment"] = "Amplitude is rescaled."
+        if self.map.inbright is not None:
+            self.map.data *= self.map.inbright / np.nanmax(self.map.data)
+            self.map.header["comment"] = "Amplitude is rescaled."
 
     def _run(self, **kwargs):
         self.sample_maps()
 
     def _sample_maps(self):
-        dx, dy = self.det_coords.offsets(
-            frame=self.map_frame, center=self.input_map.center
-        )
+        dx, dy = self.det_coords.offsets(frame=self.map_frame, center=self.map.center)
 
         self.data["map"] = np.zeros((dx.shape))
 
-        freqs = tqdm(self.input_map.freqs) if self.verbose else self.input_map.freqs
+        freqs = tqdm(self.map.freqs) if self.verbose else self.map.freqs
         for i, nu in enumerate(freqs):
             if self.verbose:
                 freqs.set_description("Sampling input map")
@@ -238,15 +234,13 @@ class MapMixin:
             nu_fwhm = beams.compute_angular_fwhm(
                 fwhm_0=self.instrument.primary_size, z=np.inf, f=1e9 * nu
             )
-            nu_map_filter = beams.construct_beam_filter(
-                fwhm=nu_fwhm, res=self.input_map.res
-            )
+            nu_map_filter = beams.construct_beam_filter(fwhm=nu_fwhm, res=self.map.res)
             filtered_nu_map_data = beams.separably_filter(
-                self.input_map.data[i], nu_map_filter
+                self.map.data[i], nu_map_filter
             )
 
             # band_res_radians = 1.22 * (299792458 / (1e9 * nu)) / self.instrument.primary_size
-            # band_res_pixels = band_res_radians / self.input_map.res
+            # band_res_pixels = band_res_radians / self.map.res
             # FWHM_TO_SIGMA = 2.355
             # band_beam_sigma_pixels = band_res_pixels / FWHM_TO_SIGMA
 
@@ -257,7 +251,7 @@ class MapMixin:
             det_mask = det_freq_response > -np.inf  # -1e-3
 
             samples = sp.interpolate.RegularGridInterpolator(
-                (self.input_map.x_side, self.input_map.y_side),
+                (self.map.x_side, self.map.y_side),
                 filtered_nu_map_data,
                 bounds_error=False,
                 fill_value=0,

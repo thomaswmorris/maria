@@ -1,3 +1,7 @@
+class CMB:
+    ...
+
+
 class CMBMixin:
     ...
 
@@ -6,8 +10,8 @@ class CMBMixin:
 #     """
 #     This simulates scanning over celestial sources.
 #     """
-#     def __init__(self, instrument, pointing, site, map_file, add_cmb=False, **kwargs):
-#         super().__init__(instrument, pointing, site)
+#     def __init__(self, instrument, plan, site, map_file, add_cmb=False, **kwargs):
+#         super().__init__(instrument, plan, site)
 
 #         pass
 
@@ -46,7 +50,7 @@ class CMBMixin:
 #             np.array([self.CMB_PS[bandnumber]]),
 #             [0],
 #             beam=None,
-#             seed=self.pointing.seed,
+#             seed=self.plan.seed,
 #         )[0]
 
 #         self.CMB_map += utils.Tcmb

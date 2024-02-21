@@ -43,16 +43,6 @@ def validate_pointing(azim, elev):
         )
 
 
-# def get_pointing_offset(time, period, throws, plan_type):
-#     if plan_type == "daisy":
-#         phase = 2 * np.pi * time / period
-
-#         k = np.pi  # this added an irrational precession to the daisy
-#         r = np.sin(k * phase)
-
-#         return throws[0] * r * np.cos(phase), throws[1] * r * np.sin(phase)
-
-
 def get_daisy_offsets(phase, k=2.11):
     r = np.sin(k * phase)
     return r * np.cos(phase), r * np.sin(phase)

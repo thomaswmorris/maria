@@ -1,12 +1,12 @@
 import os
 
 from maria.instrument import Instrument
-from maria.pointing import Pointing
+from maria.plan import Plan
 from maria.site import Site
 
 from ..atmosphere import Atmosphere, AtmosphereMixin
 from ..cmb import CMBMixin
-from ..map import MapMixin
+from ..map import Map, MapMixin
 from ..noise import NoiseMixin
 from .base import BaseSimulation, master_params, parse_sim_kwargs
 
@@ -23,8 +23,9 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
     def __init__(
         self,
         instrument: str or Instrument = "MUSTANG-2",
-        pointing: str or Pointing = "stare",
+        plan: str or Plan = "stare",
         site: str or Site = "hoagie_haven",
+        map: str or Map = None,
         verbose: bool = True,
         **kwargs,
     ):
@@ -32,11 +33,11 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         super().__init__(
             instrument,
-            pointing,
+            plan,
             site,
             verbose=verbose,
             **self.parsed_sim_kwargs["instrument"],
-            **self.parsed_sim_kwargs["pointing"],
+            **self.parsed_sim_kwargs["plan"],
             **self.parsed_sim_kwargs["site"],
         )
 
@@ -44,7 +45,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         for sub_type, sub_master_params in master_params.items():
             self.params[sub_type] = {}
-            if sub_type in ["instrument", "site", "pointing"]:
+            if sub_type in ["instrument", "site", "plan"]:
                 sub_type_dataclass = getattr(self, sub_type)
                 for k in sub_type_dataclass.__dataclass_fields__.keys():
                     v = getattr(sub_type_dataclass, k)
@@ -55,21 +56,22 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                     setattr(self, k, kwargs.get(k, v))
                     self.params[sub_type][k] = v
 
+        weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
+
+        self.weather = Weather(
+            t=self.plan.time.mean(),
+            region=self.site.region,
+            altitude=self.site.altitude,
+            quantiles=self.site.weather_quantiles,
+            override=weather_override,
+        )
+
         if self.map_file:
             if not os.path.exists(self.map_file):
                 raise FileNotFoundError(self.map_file)
             self._initialize_map()
 
         if self.atmosphere_model:
-            weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
-
-            self.atmosphere = Atmosphere(
-                t=self.pointing.time.mean(),
-                region=self.site.region,
-                altitude=self.site.altitude,
-                weather_override=weather_override,
-            )
-
             self._initialize_atmosphere()
 
     def _run(self, units="K_RJ"):
@@ -91,7 +93,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
     def __repr__(self):
         object_reprs = [
-            getattr(self, attr).__repr__()
-            for attr in ["instrument", "site", "pointing"]
+            getattr(self, attr).__repr__() for attr in ["instrument", "site", "plan"]
         ]
         return "\n\n".join(object_reprs)

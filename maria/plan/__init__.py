@@ -17,43 +17,43 @@ MAX_ACCELERATION_WARN = np.radians(10)  # in deg/s
 
 here, this_filename = os.path.split(__file__)
 
-pointing_configs = utils.io.read_yaml(f"{here}/pointings.yml")
-pointing_params = set()
-for key, config in pointing_configs.items():
-    pointing_params |= set(config.keys())
-pointing_data = pd.DataFrame(pointing_configs).T
-all_pointings = list(pointing_data.index.values)
+plan_configs = utils.io.read_yaml(f"{here}/plans.yml")
+plan_params = set()
+for key, config in plan_configs.items():
+    plan_params |= set(config.keys())
+plan_data = pd.DataFrame(plan_configs).T
+all_plans = list(plan_data.index.values)
 
 
-class UnsupportedPointingError(Exception):
-    def __init__(self, invalid_pointing):
+class UnsupportedPlanError(Exception):
+    def __init__(self, invalid_plan):
         super().__init__(
-            f"""The site '{invalid_pointing}' is not in the database of default pointings."""
-            f"""Default pointings are:\n\n{pointing_data.to_string()}"""
+            f"""The site '{invalid_plan}' is not in the database of default plans."""
+            f"""Default plans are:\n\n{plan_data.to_string()}"""
         )
 
 
-def get_pointing_config(scan_pattern="stare", **kwargs):
-    if scan_pattern not in pointing_configs.keys():
-        raise UnsupportedPointingError(scan_pattern)
-    pointing_config = pointing_configs[scan_pattern].copy()
+def get_plan_config(scan_pattern="stare", **kwargs):
+    if scan_pattern not in plan_configs.keys():
+        raise UnsupportedPlanError(scan_pattern)
+    plan_config = plan_configs[scan_pattern].copy()
     for k, v in kwargs.items():
-        pointing_config[k] = v
-    return pointing_config
+        plan_config[k] = v
+    return plan_config
 
 
-def get_pointing(scan_pattern="stare", **kwargs):
-    pointing_config = get_pointing_config(scan_pattern, **kwargs)
-    return Pointing(**pointing_config)
+def get_plan(scan_pattern="stare", **kwargs):
+    plan_config = get_plan_config(scan_pattern, **kwargs)
+    return Plan(**plan_config)
 
 
 @dataclass
-class Pointing:
+class Plan:
     """
-    A dataclass containing time-ordered pointing data.
+    A dataclass containing time-ordered plan data.
     """
 
-    pointing_description: str = ""
+    description: str = ""
     start_time: str = "2022-02-10T06:00:00"
     integration_time: float = 60.0
     sample_rate: float = 20.0
@@ -66,13 +66,13 @@ class Pointing:
     @staticmethod
     def validate_pointing_kwargs(kwargs):
         """
-        Make sure that we have all the ingredients to produce the pointing data.
+        Make sure that we have all the ingredients to produce the plan data.
         """
         if ("end_time" not in kwargs.keys()) and (
             "integration_time" not in kwargs.keys()
         ):
             raise ValueError(
-                """One of 'end_time' or 'integration_time' must be in the pointing kwargs."""
+                """One of 'end_time' or 'integration_time' must be in the plan kwargs."""
             )
 
     def __post_init__(self):
@@ -80,7 +80,7 @@ class Pointing:
 
         self.scan_center = tuple(self.scan_center)
 
-        for k, v in pointing_configs[self.scan_pattern]["scan_options"].items():
+        for k, v in plan_configs[self.scan_pattern]["scan_options"].items():
             if k not in self.scan_options.keys():
                 self.scan_options[k] = v
 
