@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Pointings" href="pointings.html" /><link rel="prev" title="Simulations" href="simulations.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>Customizing - maria</title>
+        <title>Instruments - maria</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -156,12 +156,14 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
+  <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sites.html">Supported sites</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="usage.html">Usage</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="usage.html">Usage</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="simulations.html">Simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="simulations.html#customizing-simulations">Customizing simulations</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Instruments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pointings.html">Pointings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sites.html">Supported sites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maps.html">Map simulations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -199,20 +201,73 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
-          <section id="customizing">
-<h1>Customizing<a class="headerlink" href="#customizing" title="Link to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="sites.html">Supported sites</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pointings.html">Customizing pointings</a></li>
-</ul>
+          <section id="instruments">
+<h1>Instruments<a class="headerlink" href="#instruments" title="Link to this heading">#</a></h1>
+<p>The observing instrument is instantiated as an <code class="docutils literal notranslate"><span class="pre">Instrument</span></code>.
+The simplest way to get an instrument is to grab a pre-defined one, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The Atacama Cosmology Telescope</span>
+<span class="n">act</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;ACT&#39;</span><span class="p">)</span>
+
+<span class="c1"># The Atacama Large Millimeter Array</span>
+<span class="n">alma</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;ALMA&#39;</span><span class="p">)</span>
+
+<span class="c1"># MUSTANG-2</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">)</span>
+</pre></div>
 </div>
+<section id="customizing-instruments">
+<h2>Customizing Instruments<a class="headerlink" href="#customizing-instruments" title="Link to this heading">#</a></h2>
+<p>One way to customize instruments is to load a pre-defined instrument and pass extra parameters.
+For example, we can give ACT twice the resolution with</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">act</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;ACT&#39;</span><span class="p">,</span> <span class="n">primary_size</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Custom arrays of detectors are a bit more complicated. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f090</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
+<span class="n">f150</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
+
+<span class="n">dets</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+        <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span>
+        <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f090</span><span class="p">,</span> <span class="n">f150</span><span class="p">]}</span>
+
+<span class="n">my_custom_array</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">dets</span><span class="o">=</span><span class="n">dets</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Actually, there are several valid ways to define an array of detectors.
+These are all valid:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dets</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;subarray-1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+        <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}],</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;subarray-2&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+        <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}],</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="n">dets</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;alma/f043&quot;</span><span class="p">,</span> <span class="s2">&quot;alma/f078&quot;</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">dets</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="s2">&quot;path_to_some_dets_file.csv&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 
         </article>
@@ -220,8 +275,26 @@
       <footer>
         
         <div class="related-pages">
-          
-          
+          <a class="next-page" href="pointings.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Pointings</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="simulations.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Simulations</div>
+                
+              </div>
+            </a>
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -240,8 +313,27 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Instruments</a><ul>
+<li><a class="reference internal" href="#customizing-instruments">Customizing Instruments</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

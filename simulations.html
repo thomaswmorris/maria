@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials.html" /><link rel="prev" title="Usage" href="usage.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Instruments" href="instruments.html" /><link rel="prev" title="Usage" href="usage.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Simulations - maria</title>
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -158,10 +158,12 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sites.html">Supported sites</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="usage.html">Usage</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#customizing-simulations">Customizing simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instruments.html">Instruments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pointings.html">Pointings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sites.html">Supported sites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maps.html">Map simulations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -199,7 +201,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -221,9 +223,8 @@
 <span class="n">yet_another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
-</section>
 <section id="customizing-simulations">
-<h1>Customizing simulations<a class="headerlink" href="#customizing-simulations" title="Link to this heading">#</a></h1>
+<h2>Customizing simulations<a class="headerlink" href="#customizing-simulations" title="Link to this heading">#</a></h2>
 <p>We can minimally customize a simulation by specifying an <code class="docutils literal notranslate"><span class="pre">array</span></code> (defining the instrument), a <code class="docutils literal notranslate"><span class="pre">site</span></code> (where on earth it is), and a <code class="docutils literal notranslate"><span class="pre">pointing</span></code> (defining how it observes). Simulations for a few different telescopes might be instantiated as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The Atacama Cosmology Telescope</span>
 <span class="n">act_sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="s1">&#39;ACT&#39;</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s1">&#39;cerro_toco&#39;</span><span class="p">,</span> <span class="n">pointing</span><span class="o">=</span><span class="s1">&#39;back-and-forth&#39;</span><span class="p">)</span>
@@ -249,7 +250,7 @@
                     <span class="p">}</span>
                 <span class="n">field_of_view</span><span class="o">=</span><span class="mf">0.8</span>
                 <span class="n">baseline</span><span class="o">=</span><span class="mi">0</span>
-                <span class="n">geometry</span><span class="o">=</span><span class="mi">0</span>
+                <span class="n">shape</span><span class="o">=</span><span class="mi">0</span>
                 <span class="n">primary_size</span><span class="o">=</span><span class="mi">6</span>
                 <span class="n">start_time</span><span class="o">=</span><span class="mi">2022</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">10</span><span class="n">T06</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>
                 <span class="n">integration_time</span><span class="o">=</span><span class="mi">60</span> <span class="c1"># in seconds</span>
@@ -287,18 +288,19 @@
 </div>
 <p>There are a lot of options, but <code class="docutils literal notranslate"><span class="pre">maria</span></code> has convenient ways for compartmentalizing them.</p>
 </section>
+</section>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="tutorials.html">
+          <a class="next-page" href="instruments.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Tutorials</div>
+                <div class="title">Instruments</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -331,8 +333,27 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Simulations</a><ul>
+<li><a class="reference internal" href="#customizing-simulations">Customizing simulations</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
