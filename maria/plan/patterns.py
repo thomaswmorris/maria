@@ -10,8 +10,8 @@ def double_circle_offsets(phase, radius, miss_freq):
     return x_p, y_p
 
 
-def double_circle(integration_time, sample_rate, speed, radius, miss_freq):
-    time = np.arange(0, integration_time, 1 / sample_rate)
+def double_circle(duration, sample_rate, speed, radius, miss_freq):
+    time = np.arange(0, duration, 1 / sample_rate)
     phase = time * speed / radius
 
     return double_circle_offsets(phase, radius, miss_freq)
@@ -33,7 +33,7 @@ def daisy_pattern_miss_center(phase, radius, petals, miss_factor, miss_freq):
 
 
 def get_constant_speed_offsets(
-    pattern, integration_time, sample_rate, speed, eps=1e-6, **scan_options
+    pattern, duration, sample_rate, speed, eps=1e-6, **scan_options
 ):
     """This should be cythonized maybe."""
 
@@ -42,7 +42,7 @@ def get_constant_speed_offsets(
     def phase_coroutine():
         p = 0.0
 
-        for _ in range(int(integration_time * sample_rate)):
+        for _ in range(int(duration * sample_rate)):
             x0, y0 = pattern(p - 0.5 * eps, **scan_options)
             x1, y1 = pattern(p + 0.5 * eps, **scan_options)
 
@@ -57,7 +57,7 @@ def get_constant_speed_offsets(
 
 
 def daisy(
-    integration_time,
+    duration,
     sample_rate,
     speed=1,
     radius=1,
@@ -65,26 +65,24 @@ def daisy(
     miss_factor=0.15,
     miss_freq=np.sqrt(2),
 ):
-    time = np.arange(0, integration_time, 1 / sample_rate)
+    time = np.arange(0, duration, 1 / sample_rate)
     phase = time * speed / radius
 
     return daisy_pattern_miss_center(phase, radius, petals, miss_factor, miss_freq)
 
     # return get_constant_speed_offsets(
-    #     daisy_pattern_miss_center, integration_time, sample_rate, speed, **scan_options
+    #     daisy_pattern_miss_center, duration, sample_rate, speed, **scan_options
     # )
 
 
-def back_and_forth(
-    integration_time, sample_rate, speed, x_throw=1, y_throw=1, taper=0.1
-):
+def back_and_forth(duration, sample_rate, speed, x_throw=1, y_throw=1, taper=0.1):
     scan_period = np.sqrt(x_throw**2 + y_throw**2) / speed
-    phase = 2 * np.pi * np.arange(0, integration_time, 1 / sample_rate) / scan_period
+    phase = 2 * np.pi * np.arange(0, duration, 1 / sample_rate) / scan_period
     smooth_sawtooth = 1 - 2 * np.arccos((1 - taper) * np.sin(phase)) / np.pi
 
     return x_throw * smooth_sawtooth, y_throw * smooth_sawtooth
 
 
-def stare(integration_time, sample_rate):
-    n_samples = len(np.arange(0, integration_time, 1 / sample_rate))
+def stare(duration, sample_rate):
+    n_samples = len(np.arange(0, duration, 1 / sample_rate))
     return np.zeros(n_samples), np.zeros(n_samples)

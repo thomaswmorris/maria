@@ -25,7 +25,7 @@ instrument: # defaults to a small test instrument
 plan: # defaults to a 45 degree stare due north
   plan_description: ''
   start_time: 2022-02-10T06:00:00
-  integration_time: 60 # in seconds
+  duration: 60 # in seconds
   pointing_frame: az_el
   degrees: True
   sample_rate: 20
