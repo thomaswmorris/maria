@@ -8,17 +8,17 @@ class NoiseMixin:
         self._simulate_noise()
 
     def _simulate_noise(self):
-        self.data["noise"] = np.zeros((self.instrument.n_dets, self.pointing.n_time))
+        self.data["noise"] = np.zeros((self.instrument.n_dets, self.plan.n_time))
 
         for band in self.instrument.dets.bands:
             band_index = self.instrument.dets.subset(band=band.name).index
 
             if band.white_noise > 0:
                 self.data["noise"][band_index] += (
-                    np.sqrt(self.pointing.sample_rate)
+                    np.sqrt(self.plan.sample_rate)
                     * band.white_noise
                     * np.random.standard_normal(
-                        size=(len(band_index), self.pointing.n_time)
+                        size=(len(band_index), self.plan.n_time)
                     )
                 )
 
@@ -26,8 +26,8 @@ class NoiseMixin:
                 for i in band_index:
                     self.data["noise"][i] += band.pink_noise * self._spectrum_noise(
                         spectrum_func=self._pink_spectrum,
-                        size=int(self.pointing.n_time),
-                        dt=self.pointing.dt,
+                        size=int(self.plan.n_time),
+                        dt=self.plan.dt,
                     )
 
     def _spectrum_noise(self, spectrum_func, size, dt, amp=2.0):

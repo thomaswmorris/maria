@@ -22,7 +22,7 @@ def test_atmosphere_from_cache(region_name):
 def test_atmosphere_2d():
     sim = Simulation(
         instrument="MUSTANG-2",
-        pointing="daisy",
+        plan="daisy",
         site="green_bank",
         atmosphere_model="2d",
     )

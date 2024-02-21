@@ -1,14 +1,14 @@
 import os
+import warnings
 
 import numpy as np
 
 from .. import utils
 from ..coords import Coordinates, dx_dy_to_phi_theta
 from ..instrument import Instrument, get_instrument
-from ..pointing import Pointing, get_pointing
+from ..plan import Plan, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
-from ..utils.errors import PointingError
 
 here, this_filename = os.path.split(__file__)
 
@@ -53,7 +53,7 @@ class BaseSimulation:
     def __init__(
         self,
         instrument: Instrument or str = "default",
-        pointing: Pointing or str = "stare",
+        plan: Plan or str = "stare",
         site: Site or str = "default",
         verbose=False,
         **kwargs,
@@ -67,37 +67,39 @@ class BaseSimulation:
 
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
-        if type(instrument) is Instrument:
+        if isinstance(instrument, Instrument):
             self.instrument = instrument
         else:
             self.instrument = get_instrument(
                 instrument_name=instrument, **parsed_sim_kwargs["instrument"]
             )
 
-        if type(pointing) is Pointing:
-            self.pointing = pointing
+        if isinstance(plan, Plan):
+            self.plan = plan
         else:
-            self.pointing = get_pointing(
-                scan_pattern=pointing, **parsed_sim_kwargs["pointing"]
+            self.plan = get_plan(scan_pattern=plan, **parsed_sim_kwargs["plan"])
+
+        if isinstance(site, Site):
+            self.site = site
+        elif isinstance(site, str):
+            self.site = get_site(site_name=site, **parsed_sim_kwargs["site"])
+        else:
+            raise ValueError(
+                "The passed site must be either a Site object or a string."
             )
 
-        if type(site) is Site:
-            self.site = site
-        else:
-            self.site = get_site(site_name=site, **parsed_sim_kwargs["site"])
-
         self.boresight = Coordinates(
-            self.pointing.time,
-            self.pointing.phi,
-            self.pointing.theta,
+            self.plan.time,
+            self.plan.phi,
+            self.plan.theta,
             location=self.site.earth_location,
-            frame=self.pointing.pointing_frame,
+            frame=self.plan.pointing_frame,
         )
 
         if self.pointing.max_vel > np.radians(self.instrument.vel_limit):
             raise PointingError(
                 (
-                    f"The maximum velocity of the boresight ({np.degrees(self.pointing.max_vel):.01f} deg/s) exceeds "
+                    f"The maximum velocity of the boresight ({np.degrees(self.plan.max_vel):.01f} deg/s) exceeds "
                     f"the maximum velocity of the instrument ({self.instrument.vel_limit:.01f} deg/s)."
                 ),
             )
@@ -105,7 +107,7 @@ class BaseSimulation:
         if self.pointing.max_acc > np.radians(self.instrument.acc_limit):
             raise PointingError(
                 (
-                    f"The maximum acceleration of the boresight ({np.degrees(self.pointing.max_acc):.01f} deg/s^2) exceeds "
+                    f"The maximum acceleration of the boresight ({np.degrees(self.plan.max_acc):.01f} deg/s^2) exceeds "
                     f"the maximum acceleration of the instrument ({self.instrument.acc_limit:.01f} deg/s^2)."
                 ),
             )

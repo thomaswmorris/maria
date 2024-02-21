@@ -46,12 +46,27 @@ These are all valid:
 
 .. code-block:: python
 
-    f090 = {"center": 90, "width": 30}
-    f150 = {"center": 150, "width": 30}
 
-    dets = {"n": 500,
-            "field_of_view": 2
+    dets = {
+        "subarray-1": {
+            "n": 500,
+            "field_of_view": 2,
             "array_shape": "hex",
-            "bands": [f090, f150]}
+            "bands": [{"center": 30, "width": 5}, {"center": 40, "width": 5}],
+        },
+        "subarray-2": {
+            "n": 500,
+            "field_of_view": 2,
+            "array_shape": "hex",
+            "bands": [{"center": 90, "width": 5}, {"center": 150, "width": 5}],
+        },
+    }
 
-    my_custom_array = maria.get_instrument(dets=dets)
+    dets = {
+        "n": 500,
+        "field_of_view": 2,
+        "array_shape": "hex",
+        "bands": ["alma/f043", "alma/f078"],
+    }
+
+    dets = {"file": "path_to_some_dets_file.csv"}

@@ -41,7 +41,7 @@ class TurbulentLayer:
         self.res = res
 
         # this is approximately correct
-        # self.depth = self.depth / np.sin(np.mean(self.pointing.el))
+        # self.depth = self.depth / np.sin(np.mean(self.plan.el))
 
         # this might change
         self.angular_outer_scale = turbulent_outer_scale / self.depth

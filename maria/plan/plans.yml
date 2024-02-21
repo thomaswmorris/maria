@@ -1,5 +1,5 @@
 stare:
-  pointing_description: A stare.
+  description: A stare.
   integration_time: 60
   scan_pattern: stare
   pointing_frame: az_el
@@ -9,7 +9,7 @@ stare:
   scan_options: {}
 
 daisy:
-  pointing_description: A daisy scan.
+  description: A daisy scan.
   pointing_frame: ra_dec
   degrees: True
   scan_pattern: daisy
@@ -23,7 +23,7 @@ daisy:
     miss_freq: 1.41
 
 back_and_forth:
-  pointing_description: A back-and-forth scan.
+  description: A back-and-forth scan.
   start_time: '2022-07-01T08:00:00'
   integration_time: 60
   scan_pattern: back_and_forth
@@ -37,7 +37,7 @@ back_and_forth:
     speed: 0.5
 
 double_circle:
-  pointing_description: 'A double circle scan.'
+  description: 'A double circle scan.'
   pointing_frame: ra_dec
   integration_time: 60
   sample_rate: 50

@@ -37,8 +37,8 @@ def test_mustang2():
         # Mandatory minimal weither settings
         # ---------------------
         instrument="MUSTANG-2",  # Instrument type
-        pointing="daisy",  # Scanning strategy
         site="green_bank",  # Site
+        plan="daisy",  # Scanning strategy
         atmosphere_model=atm_model,  # atmospheric model
         white_noise_level=white_noise_level,  # white noise level
         pink_noise_level=pink_noise_level,  # pink noise level
