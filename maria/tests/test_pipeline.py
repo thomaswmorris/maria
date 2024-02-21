@@ -22,7 +22,7 @@ def test_mustang2():
 
     pointing_center = (73.5287496858916, 2.961663679507145)
     pixel_size = 8.71452898559111e-05
-    integration_time = 1 * 60.0
+    duration = 1 * 60.0
     sample_rate = 100
     scan_velocity = 38 / 3600
 
@@ -56,7 +56,7 @@ def test_mustang2():
             "radius": 4.0 / 60.0,  # The radius of the Daisy scan in degrees
             "speed": scan_velocity,  # scan velocity in when the scan goes through the center deg/s
         },
-        integration_time=integration_time,  # Seconds
+        duration=duration,  # Seconds
         sample_rate=sample_rate,  # Hz
         scan_center=pointing_center,  # Degrees
         pointing_frame="ra_dec",  # Frame

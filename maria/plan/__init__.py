@@ -55,7 +55,7 @@ class Plan:
 
     description: str = ""
     start_time: str = "2022-02-10T06:00:00"
-    integration_time: float = 60.0
+    duration: float = 60.0
     sample_rate: float = 20.0
     pointing_frame: str = "ra_dec"
     degrees: bool = True
@@ -68,11 +68,9 @@ class Plan:
         """
         Make sure that we have all the ingredients to produce the plan data.
         """
-        if ("end_time" not in kwargs.keys()) and (
-            "integration_time" not in kwargs.keys()
-        ):
+        if ("end_time" not in kwargs.keys()) and ("duration" not in kwargs.keys()):
             raise ValueError(
-                """One of 'end_time' or 'integration_time' must be in the plan kwargs."""
+                """One of 'end_time' or 'duration' must be in the plan kwargs."""
             )
 
     def __post_init__(self):
@@ -87,9 +85,7 @@ class Plan:
         if not hasattr(self, "start_time"):
             self.start_time = datetime.now().timestamp()
         self.start_datetime = utils.io.datetime_handler(self.start_time)
-        self.end_datetime = self.start_datetime + timedelta(
-            seconds=self.integration_time
-        )
+        self.end_datetime = self.start_datetime + timedelta(seconds=self.duration)
 
         self.time_min = self.start_datetime.timestamp()
         self.time_max = self.end_datetime.timestamp()
@@ -100,7 +96,7 @@ class Plan:
 
         # this is in pointing_units
         x_scan_offsets, y_scan_offsets = getattr(patterns, self.scan_pattern)(
-            integration_time=self.integration_time,
+            duration=self.duration,
             sample_rate=self.sample_rate,
             **self.scan_options,
         )
