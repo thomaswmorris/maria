@@ -1,3 +1,4 @@
+=====
 maria
 =====
 
@@ -16,4 +17,5 @@ a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
    installation.rst
    usage.rst
    tutorials.rst
+   supported-sites.rst
    papers.rst
