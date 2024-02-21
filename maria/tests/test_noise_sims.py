@@ -7,7 +7,7 @@ from maria.noise import NoiseSimulation
 def test_linear_angular_model():
     noise_sim = NoiseSimulation(
         instrument="MUSTANG-2",
-        pointing="daisy",
+        plan="daisy",
         site="green_bank",
         white_noise_level=1e0,
     )
