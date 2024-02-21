@@ -1,5 +1,6 @@
+###########
 Simulations
-+++++++++++
+###########
 
 We simulate observations by defining a ``Simulation`` object and running it to produce a ``TOD`` object::
 
@@ -16,7 +17,7 @@ The same simulation can produce any number of ``TOD`` objects, continuing from w
 
     yet_another_tod = sim.run()
 
-
++++++++++++++++++++++++
 Customizing simulations
 +++++++++++++++++++++++
 
@@ -47,7 +48,7 @@ We can also pass other arguments to the ``Simulation``, which will overwrite the
                         }
                     field_of_view=0.8
                     baseline=0
-                    geometry=0
+                    shape=0
                     primary_size=6
                     start_time=2022-02-10T06:00:00
                     integration_time=60 # in seconds

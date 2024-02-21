@@ -11,7 +11,7 @@ class NoiseMixin:
         self.data["noise"] = np.zeros((self.instrument.n_dets, self.pointing.n_time))
 
         for band in self.instrument.dets.bands:
-            band_index = self.instrument.dets(band=band.name).index
+            band_index = self.instrument.dets.subset(band=band.name).index
 
             if band.white_noise > 0:
                 self.data["noise"][band_index] += (

@@ -2,7 +2,7 @@ pa4:
   f150:
     center: 150
     width: 30
-    passband_shape: gaussian
+    shape: gaussian
     tau: 0
     white_noise: 266.e-6
     pink_noise: 1.e-1
@@ -10,7 +10,7 @@ pa4:
   f220:
     center: 220
     width: 30
-    passband_shape: gaussian
+    shape: gaussian
     tau: 0
     white_noise: 266.e-6
     pink_noise: 1.e-1
@@ -19,7 +19,7 @@ pa5:
   f090:
     center: 90
     width: 30
-    passband_shape: gaussian
+    shape: gaussian
     tau: 0
     white_noise: 266.e-6
     pink_noise: 1.e-1
@@ -27,7 +27,7 @@ pa5:
   f150:
     center: 150
     width: 30
-    passband_shape: gaussian
+    shape: gaussian
     tau: 0
     white_noise: 266.e-6
     pink_noise: 1.e-1
@@ -36,7 +36,7 @@ pa6:
   f090:
     center: 90
     width: 30
-    passband_shape: gaussian
+    shape: gaussian
     tau: 0
     white_noise: 266.e-6
     pink_noise: 1.e-1
@@ -44,7 +44,7 @@ pa6:
   f150:
     center: 150
     width: 30
-    passband_shape: gaussian
+    shape: gaussian
     tau: 0
     white_noise: 266.e-6
     pink_noise: 1.e-1
@@ -53,7 +53,7 @@ pa6:
   f093:
     n_dets: 217
     field_of_view: 0.07
-    detector_geometry: hex
+    array_shape: hex
 
     bands: [mustang2/f093]
 

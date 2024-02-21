@@ -123,7 +123,7 @@ class TOD:
         )
 
         m2_config = instrument.get_instrument_config(instrument_name="MUSTANG-2")
-        m2_config["dets"]["m2"]["n"] = n_dets
+        m2_config["dets"]["n"] = n_dets
 
         dets = Detectors.from_config(m2_config)
 

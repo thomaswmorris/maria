@@ -64,11 +64,10 @@ class Instrument:
     """
 
     description: str = ""
-    primary_size: float = 5  # in meters
-    field_of_view: float = 1  # in deg
-    geometry: str = "hex"
-    baseline: float = 0
-    bath_temp: float = 0
+    primary_size: float = None  # in meters
+    field_of_view: float = None  # in deg
+    baseline: float = None
+    bath_temp: float = None
     bands: BandList = None
     dets: pd.DataFrame = None  # dets, it's complicated
     documentation: str = ""
@@ -85,6 +84,13 @@ class Instrument:
 
         return cls(bands=dets.bands, dets=dets, **config)
 
+    # def __post_init__(self):
+
+    #     if self.baseline is None:
+    #         unique_baselines = sorted(np.unique(self.dets.baseline))
+
+    #     ...
+
     def __repr__(self):
         nodef_f_vals = (
             (f.name, attrgetter(f.name)(self)) for f in fields(self) if f.name != "dets"
@@ -93,7 +99,7 @@ class Instrument:
         nodef_f_repr = []
         for name, value in nodef_f_vals:
             if name == "bands":
-                nodef_f_repr.append(f"{name}={value.__short_repr__()}")
+                nodef_f_repr.append(f"bands=[{', '.join(value.names)}]")
             else:
                 nodef_f_repr.append(f"{name}={value}")
 
