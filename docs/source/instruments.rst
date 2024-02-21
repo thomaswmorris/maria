@@ -1,6 +1,6 @@
-===========
+###########
 Instruments
-===========
+###########
 
 The observing instrument is instantiated as an ``Instrument``.
 The simplest way to get an instrument is to grab a pre-defined one, e.g.::

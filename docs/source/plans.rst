@@ -1,8 +1,8 @@
-=====
+#####
 Plans
-=====
+#####
 
-The observing site is represented by a ``Site``.
+The observing plan is represented by a ``Plan``. A 60-second zenith stare would be instantiated as
 
 .. code-block:: python
 
