@@ -1,3 +1,4 @@
+=====
 Usage
 =====
 
@@ -6,6 +7,5 @@ Usage
 
    simulations.rst
    instruments.rst
-   pointings.rst
    sites.rst
-   maps.rst
+   plans.rst
