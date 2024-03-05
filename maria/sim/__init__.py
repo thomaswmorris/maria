@@ -40,6 +40,8 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             **self.parsed_sim_kwargs["site"],
         )
 
+        self.noise = True
+
         self.params = {}
 
         for sub_type, sub_master_params in master_params.items():
@@ -72,25 +74,35 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
             self._initialize_atmosphere()
 
-    def _run(self, units="K_RJ"):
+    def _run(self):
         # number of bands are lost here
-        self._simulate_noise()
+        if self.noise:
+            self._simulate_noise()
 
         if self.atmosphere_model:
             self._simulate_atmospheric_emission()
 
+            # convert to source Rayleigh-Jeans
+            # self.data["atmosphere"] *= self.instrument.dets.abs_cal_rj[:, None]
+            # self.data["atmosphere"] /= self.atmospheric_transmission
+
         if self.map_file:
             self._sample_maps()
 
-            if hasattr(self, "atmospheric_transmission"):
-                self.data["map"] *= self.atmospheric_transmission
+        if hasattr(self, "cmb"):
+            self._simulate_cmb_emission()
 
-        if hasattr(self, "cmb_sim"):
-            self.cmb_sim._run()
-            self.data += self.cmb_sim.data
+        self.tod_data = sum(
+            [self.data.get(k, 0) for k in ["atmosphere", "cmb", "map", "noise"]]
+        )
+
+        if hasattr(self, "atmospheric_transmission"):
+            self.tod_data /= self.atmospheric_transmission
+
+        self.tod_data *= self.instrument.dets.abs_cal_rj[:, None]
 
     def __repr__(self):
         object_reprs = [
             getattr(self, attr).__repr__() for attr in ["instrument", "site", "plan"]
         ]
-        return "\n\n".join(object_reprs)
+        return ", ".join(object_reprs)

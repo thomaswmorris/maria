@@ -7,9 +7,9 @@ import numpy as np
 import pytz
 import scipy as sp
 
+from ..constants import g
 from ..site import InvalidRegionError, all_regions, supported_regions_table
 from ..utils import get_utc_day_hour, get_utc_year_day
-from ..utils.constants import g
 from . import utils
 
 here, this_filename = os.path.split(__file__)

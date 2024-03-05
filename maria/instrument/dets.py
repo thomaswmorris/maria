@@ -15,12 +15,10 @@ HEX_CODE_LIST = [
     for t in [*np.linspace(0.05, 0.95, 12)]
 ]
 
-REQUIRED_DET_CONFIG_KEYS = ["n", "band_center", "band_width"]
-
 DET_COLUMN_TYPES = {
     "tag": "str",
     "uid": "str",
-    "band": "str",
+    "band_name": "str",
     "band_center": "float",
     "offset_x": "float",
     "offset_y": "float",
@@ -28,9 +26,14 @@ DET_COLUMN_TYPES = {
     "baseline_y": "float",
     "baseline_z": "float",
     "pol_angle": "float",
-    "efficiency": "float",
     "primary_size": "float",
     "bath_temp": "float",
+    "abs_cal_rj": "float",
+    "time_constant": "float",
+    "white_noise": "float",
+    "pink_noise": "float",
+    "efficiency": "float",
+    "abs_cal_rj": "float",
 }
 
 SUPPORTED_GEOMETRIES = ["flower", "hex", "square", "circle"]
@@ -114,12 +117,14 @@ def generate_dets(
 
     for band in bands:
         band_dets = pd.DataFrame(
-            index=np.arange(n), columns=["band", "offset_x", "offset_y"], dtype=float
+            index=np.arange(n),
+            columns=["band_name", "offset_x", "offset_y"],
+            dtype=float,
         )
 
-        band_dets.loc[:, "band"] = band
-        band_dets.loc[:, "offset_x"] = array_offset[0] + detector_offsets[0]
-        band_dets.loc[:, "offset_y"] = array_offset[1] + detector_offsets[1]
+        band_dets.loc[:, "band_name"] = band
+        band_dets.loc[:, "offset_x"] = np.radians(array_offset[0] + detector_offsets[0])
+        band_dets.loc[:, "offset_y"] = np.radians(array_offset[1] + detector_offsets[1])
 
         band_dets.loc[:, "baseline_x"] = baseline_offset[0] + baselines[0]
         band_dets.loc[:, "baseline_y"] = baseline_offset[1] + baselines[1]
@@ -230,8 +235,8 @@ class Detectors:
         bands = BandList.from_config(bands_config)
 
         for band in bands:
-            df.loc[df.band == band.name, "band_center"] = band.center
-            df.loc[df.band == band.name, "efficiency"] = band.efficiency
+            df.loc[df.band_name == band.name, "band_center"] = band.center
+            df.loc[df.band_name == band.name, "efficiency"] = band.efficiency
 
         return cls(df=df, bands=bands)
 
@@ -245,18 +250,27 @@ class Detectors:
         self.df = df
         self.bands = bands
 
+        for attr in [
+            "time_constant",
+            "white_noise",
+            "pink_noise",
+            "efficiency",
+            "abs_cal_rj",
+        ]:
+            values = np.zeros(shape=self.n)
+            for band in self.bands:
+                values[self.band_name == band.name] = getattr(band, attr)
+            self.df.loc[:, attr] = values
+
     def __getattr__(self, attr):
         if attr in self.df.columns:
             return self.df.loc[:, attr].values.astype(DET_COLUMN_TYPES[attr])
 
-    # def __call__(self, band=None):
-    #     if band is not None:
-    #         return self.subset(band=band)
+        raise AttributeError(f"'Detectors' object has no attribute '{attr}'")
 
-    def subset(self, band=None):
-        bands = BandList(self.bands[band])
-        mask = self.band == band
-        return Detectors(bands=bands, df=self.df.loc[mask])
+    def subset(self, band_name=None):
+        bands = BandList([self.bands[band_name]])
+        return Detectors(bands=bands, df=self.df.loc[self.band_name == band_name])
 
     @property
     def n(self):
@@ -265,22 +279,6 @@ class Detectors:
     @property
     def offset(self):
         return np.c_[self.offset_x, self.offset_y]
-
-    # @property
-    # def band_center(self):
-    #     centers = np.zeros(shape=self.n)
-    #     for band in self.bands:
-    #         centers[self.band == band.name] = band.center
-
-    #     return centers
-
-    # @property
-    # def band_width(self):
-    #     widths = np.zeros(shape=self.n)
-    #     for band in self.bands:
-    #         widths[self.band == band.name] = band.width
-
-    #     return widths
 
     @property
     def __len__(self):
@@ -300,6 +298,6 @@ class Detectors:
         PB = np.zeros((len(self.df), len(_nu)))
 
         for band in self.bands:
-            PB[self.band == band.name] = band.passband(_nu)
+            PB[self.band_name == band.name] = band.passband(_nu)
 
         return PB

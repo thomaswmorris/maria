@@ -2,7 +2,7 @@ f043:
   center: 43
   width: 16
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -11,7 +11,7 @@ f078:
   center: 78
   width: 22
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -20,7 +20,7 @@ f100:
   center: 100
   width: 32
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -29,7 +29,7 @@ f144:
   center: 144
   width: 38
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -38,7 +38,7 @@ f187:
   center: 187
   width: 48
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -47,7 +47,7 @@ f243:
   center: 243
   width: 64
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -56,7 +56,7 @@ f324:
   center: 324
   width: 98
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -65,7 +65,7 @@ f447:
   center: 447
   width: 114
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -74,7 +74,7 @@ f661:
   center: 661
   width: 118
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
@@ -83,7 +83,7 @@ f869:
   center: 869
   width: 163
   shape: gaussian
-  tau: 0
+  time_constant: 0
   white_noise: 0
   pink_noise: 0
   efficiency: 1.0
