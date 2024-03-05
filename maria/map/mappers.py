@@ -148,7 +148,7 @@ class BinMapper(BaseMapper):
 
     def run(self):
         self.band = sorted(
-            [band for tod in self.tods for band in np.unique(tod.dets.band)]
+            [band for tod in self.tods for band in np.unique(tod.dets.band_name)]
         )
 
         self.band_data = {}
@@ -165,7 +165,7 @@ class BinMapper(BaseMapper):
                 # compute detector offsets WRT the map
                 dx, dy = tod.coords.offsets(frame=self.frame, center=self.center)
 
-                band_mask = tod.dets.band == band
+                band_mask = tod.dets.band_name == band
 
                 if self.calibrate:
                     D = tod.data_calibrated.copy()[band_mask]

@@ -19,7 +19,7 @@ class InvalidSimulationParameterError(Exception):
         )
 
 
-master_params = utils.io.read_yaml(f"{here}/default_params.yml")
+master_params = utils.io.read_yaml(f"{here}/params.yml")
 
 
 def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
@@ -62,8 +62,6 @@ class BaseSimulation:
 
         self.verbose = verbose
 
-        self.data = {}
-
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
         if isinstance(instrument, Instrument):
@@ -86,6 +84,9 @@ class BaseSimulation:
             raise ValueError(
                 "The passed site must be either a Site object or a string."
             )
+
+        self.data = {}
+        self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
 
         self.boresight = Coordinates(
             self.plan.time,
@@ -127,18 +128,15 @@ class BaseSimulation:
         raise NotImplementedError()
 
     def run(self):
+        self.data = {}
+
+        # Simulate all the junk
         self._run()
 
-        abscal = 1.0
-        if hasattr(self, "atmospheric_transmission"):
-            abscal /= self.atmospheric_transmission.mean()
-
         tod = TOD(
-            data=self.data,
+            data=self.tod_data,
             dets=self.instrument.dets.df,
-            # boresight=self.boresight,
             coords=self.det_coords,
-            abscal=abscal,
         )
 
         return tod
