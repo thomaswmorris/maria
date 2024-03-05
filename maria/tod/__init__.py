@@ -1,5 +1,4 @@
 import json
-from functools import lru_cache
 
 import h5py
 import numpy as np
@@ -14,31 +13,8 @@ from ..instrument.dets import Detectors
 
 class TOD:
     """
-    Time-ordered data.
+    Time-ordered data. This has per-detector pointing and data.
     """
-
-    @property
-    @lru_cache(maxsize=None)
-    def data(self):
-        """
-        Combine all the fields into the total.
-        """
-        return sum(self._data.values())  # * self.abscal
-
-    @property
-    @lru_cache(maxsize=None)
-    def data_calibrated(self):
-        """
-        Combine all the fields into the total.
-        """
-        T_ant = np.zeros(self.data.shape)
-        if "atmosphere" in self._data.keys():
-            T_ant += 0.8 * self._data["atmosphere"]
-        if "map" in self._data.keys():
-            T_ant += 0.3 * self._data["map"]
-        if "noise" in self._data.keys():
-            T_ant += 1.0 * self._data["noise"]
-        return T_ant / 0.3 * self.abscal
 
     @staticmethod
     def from_fits(fname: str, format: str, **kwargs):
@@ -108,7 +84,7 @@ class TOD:
         n_dets = len(det_uids)
         n_samp = det_counts.max()
 
-        data = {"data": raw["FNU"].astype("float32").reshape((n_dets, n_samp))}
+        data = raw["FNU"].astype("float32").reshape((n_dets, n_samp))
 
         ra = raw["dx"].astype(float).reshape((n_dets, n_samp))
         dec = raw["dy"].astype(float).reshape((n_dets, n_samp))
@@ -132,7 +108,7 @@ class TOD:
     def __init__(
         self,
         coords: Coordinates,
-        data: dict = {},
+        data: np.array,
         units: dict = {},
         dets: pd.DataFrame = None,
         boresight: Coordinates = None,
@@ -140,7 +116,7 @@ class TOD:
     ):
         self.coords = coords
         self.dets = dets
-        self._data = data
+        self.data = data
         self.header = fits.header.Header()
         self.abscal = abscal
 
@@ -179,7 +155,7 @@ class TOD:
 
     def subset(self, det_mask=None, time_mask=None, band: str = None):
         if band is not None:
-            det_mask = self.dets.band == band
+            det_mask = self.dets.band_name == band
             if not det_mask.sum() > 0:
                 raise ValueError(f"There are no detectors for band '{band}'.")
             return self.subset(det_mask=det_mask)
@@ -196,12 +172,8 @@ class TOD:
                 frame="az_el",
             )
 
-            subset_data = {}
-            for k, v in self._data.items():
-                subset_data[k] = v[:, time_mask]
-
             return TOD(
-                data=subset_data,
+                data=self.data[:, time_mask],
                 coords=subset_coords,
                 dets=self.dets,
                 units=self.units,
@@ -221,12 +193,8 @@ class TOD:
                 frame="az_el",
             )
 
-            subset_data = {}
-            for k, v in self._data.items():
-                subset_data[k] = v[det_mask]
-
             return TOD(
-                data=subset_data,
+                data=self.data[det_mask],
                 coords=subset_coords,
                 dets=subset_dets,
                 units=self.units,
@@ -332,7 +300,7 @@ class TOD:
             col03 = fits.Column(
                 name="FNU  ",
                 format="E",
-                array=self._data["data"].flatten(),
+                array=self.data.flatten(),
                 unit=self.units["data"],
             )
             col04 = fits.Column(name="UFNU ", format="E")

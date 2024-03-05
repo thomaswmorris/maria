@@ -7,6 +7,7 @@ import scipy as sp
 from tqdm import tqdm
 
 from .. import utils
+from ..constants import k_B
 from ..sim.base import BaseSimulation
 from ..site import InvalidRegionError, all_regions
 from .turbulent_layer import TurbulentLayer
@@ -83,12 +84,6 @@ class Atmosphere:
             source=weather_source,
             from_cache=weather_from_cache,
         )
-
-    def emission(self, nu):
-        return
-
-    def transmission(self, nu):
-        return
 
 
 class AtmosphereMixin:
@@ -196,31 +191,17 @@ class AtmosphereMixin:
             )
 
             for band in bands:
-                band_index = self.instrument.dets.subset(band=band.name).index
+                band_index = self.instrument.dets.subset(band_name=band.name).index
 
                 if self.verbose:
                     bands.set_description(f"Computing atm. emission ({band.name})")
 
-                # multiply by 1e9 to go from GHz to Hz
-                # det_power_grid = (
-                #     1e9
-                #     * 1.380649e-23
-                #     * np.trapz(
-                #         self.atmosphere.emission_spectrum
-                #         * band.passband(self.atmosphere.spectrum_side_nu),
-                #         self.atmosphere.spectrum_side_nu,
-                #         axis=-1,
-                #     )
-                # )
-
-                # this is NOT power
-                det_power_grid = np.sum(
+                # in watts. the 1e9 is for GHz -> Hz
+                det_power_grid = k_B * np.trapz(
                     self.atmosphere.emission_spectrum
                     * band.passband(self.atmosphere.spectrum_side_nu),
+                    1e9 * self.atmosphere.spectrum_side_nu,
                     axis=-1,
-                )
-                det_power_grid /= np.sum(
-                    band.passband(self.atmosphere.spectrum_side_nu), axis=-1
                 )
 
                 band_power_interpolator = sp.interpolate.RegularGridInterpolator(
@@ -240,6 +221,11 @@ class AtmosphereMixin:
                     )
                 )
 
+            self.atmospheric_transmission = np.empty(
+                (self.instrument.n_dets, self.plan.n_time), dtype=np.float32
+            )
+
+            # to make a new progress bar
             bands = (
                 tqdm(self.instrument.dets.bands)
                 if self.verbose
@@ -247,7 +233,7 @@ class AtmosphereMixin:
             )
 
             for band in bands:
-                band_index = self.instrument.dets.subset(band=band.name).index
+                band_index = self.instrument.dets.subset(band_name=band.name).index
 
                 if self.verbose:
                     bands.set_description(f"Computing atm. transmission ({band.name})")
@@ -257,14 +243,13 @@ class AtmosphereMixin:
                     * self.atmosphere.spectrum_side_nu**2
                 )
 
-                # multiply by 1e9 to go from GHz to Hz
                 self.det_transmission_grid = np.trapz(
                     rel_T_RJ_spectrum * self.atmosphere.transmission_spectrum,
-                    self.atmosphere.spectrum_side_nu,
+                    1e9 * self.atmosphere.spectrum_side_nu,
                     axis=-1,
                 ) / np.trapz(
                     rel_T_RJ_spectrum,
-                    self.atmosphere.spectrum_side_nu,
+                    1e9 * self.atmosphere.spectrum_side_nu,
                     axis=-1,
                 )
 
@@ -277,7 +262,12 @@ class AtmosphereMixin:
                     self.det_transmission_grid,
                 )
 
-                self.atmospheric_transmission = band_transmission_interpolator(
+                # what's happening here? the atmosphere blocks some of the light from space.
+                # we want to calibrate to the stuff in space, so we make the atmosphere *hotter*
+
+                self.atmospheric_transmission[
+                    band_index
+                ] = band_transmission_interpolator(
                     (
                         self.zenith_scaled_pwv[band_index],
                         self.atmosphere.weather.temperature[0],

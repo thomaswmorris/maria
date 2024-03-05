@@ -107,7 +107,7 @@ class Instrument:
 
     @property
     def ubands(self):
-        return self.dets.ubands
+        return self.dets.bands.names
 
     @property
     def offset_x(self):
@@ -178,7 +178,7 @@ class Instrument:
 
         legend_handles = []
         for iub, uband in enumerate(self.ubands):
-            band_mask = self.dets.band == uband
+            band_mask = self.dets.band_name == uband
 
             fwhm = np.degrees(self.fwhm[band_mask])
             offsets = np.degrees(self.offsets[band_mask])

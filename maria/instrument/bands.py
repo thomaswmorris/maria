@@ -7,13 +7,14 @@ import numpy as np
 import pandas as pd
 
 from .. import utils
+from ..constants import k_B
 from ..utils.io import flatten_config, read_yaml
 
 BAND_FIELD_TYPES = {
     "center": "float",
     "width": "float",
     "shape": "str",
-    "tau": "float",
+    "time_constant": "float",
     "white_noise": "float",
     "pink_noise": "float",
     "efficiency": "float",
@@ -102,18 +103,16 @@ class Band:
     name: str
     center: float
     width: float
-    tau: float = 0.0
+    time_constant: float = 0.0
     white_noise: float = 0.0
     pink_noise: float = 0.0
-    shape: str = "gaussian"
+    shape: str = "top_hat"
     efficiency: float = 1.0
 
     @classmethod
     def from_passband(cls, name, nu, pb, pb_err=None):
         center = np.round(np.sum(pb * nu), 3)
-        width = np.round(
-            nu[pb > pb.max() / np.e**2].ptp(), 3
-        )  # width is the two-sigma interval
+        width = np.round(nu[pb > 1e-2 * pb.max()].ptp(), 3)
 
         band = cls(name=name, center=center, width=width, shape="custom")
 
@@ -126,34 +125,43 @@ class Band:
     def nu_min(self) -> float:
         if self.shape == "flat":
             return self.center - 0.5 * self.width
-        if self.shape == "gaussian":
-            return self.center - self.width
         if self.shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].min()
+
+        return self.center - self.width
 
     @property
     def nu_max(self) -> float:
         if self.shape == "flat":
             return self.center + 0.5 * self.width
-        if self.shape == "gaussian":
-            return self.center + self.width
         if self.shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].max()
 
+        return self.center + self.width
+
     def passband(self, nu):
         """
-        Passband response as a function of nu (in GHz). These integrate to one.
+        Passband response as a function of nu (in GHz).
         """
-
         _nu = np.atleast_1d(nu)
 
-        if self.shape == "gaussian":
-            band_sigma = self.width / 4
+        if self.shape == "top_hat":
+            return np.exp(-np.log(2) * (2 * (_nu - self.center) / self.width) ** 8)
 
-            return np.exp(-0.5 * np.square((_nu - self.center) / band_sigma))
+        if self.shape == "gaussian":
+            return np.exp(-np.log(2) * (2 * (_nu - self.center) / self.width) ** 2)
 
         if self.shape == "flat":
             return np.where((_nu > self.nu_min) & (_nu < self.nu_max), 1.0, 0.0)
 
         elif self.shape == "custom":
             return np.interp(_nu, self._nu, self._pb)
+
+    @property
+    def abs_cal_rj(self):
+        """
+        Absolute calibration (i.e. temperature per power) in Kelvins per Watt.
+        """
+        nu = np.linspace(self.nu_min, self.nu_max, 256)
+        dP_dT = self.efficiency * np.trapz(self.passband(nu) * k_B, 1e9 * nu)
+        return 1 / dP_dT

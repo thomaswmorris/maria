@@ -312,7 +312,7 @@ class TurbulentLayer:
         for band in self.instrument.bands:
             # we assume the atmosphere looks the same for every nu in the band
 
-            band_index = self.instrument.dets.subset(band=band.name).index
+            band_index = self.instrument.dets.subset(band_name=band.name).index
             band_angular_fwhm = self.instrument.angular_fwhm(z=self.depth)[
                 band_index
             ].mean()
