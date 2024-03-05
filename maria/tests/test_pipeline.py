@@ -40,8 +40,6 @@ def test_mustang2():
         site="green_bank",  # Site
         plan="daisy",  # Scanning strategy
         atmosphere_model=atm_model,  # atmospheric model
-        white_noise_level=white_noise_level,  # white noise level
-        pink_noise_level=pink_noise_level,  # pink noise level
         # True sky input
         # ---------------------
         map_file=inputfile,  # Input files must be a fits file.
