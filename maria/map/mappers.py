@@ -148,7 +148,9 @@ class BinMapper(BaseMapper):
 
     def run(self):
         self.band = sorted(
-            [band for tod in self.tods for band in np.unique(tod.dets.band_name)]
+            np.unique(
+                [band for tod in self.tods for band in np.unique(tod.dets.band_name)]
+            )
         )
 
         self.band_data = {}
