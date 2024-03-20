@@ -1,5 +1,4 @@
 # this is the junk drawer of functions
-import warnings
 from datetime import datetime
 
 import numpy as np
@@ -26,22 +25,6 @@ def get_utc_year(t):
     return datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc).year
 
 
-class PointingError(Exception):
-    pass
-
-
-def validate_pointing(azim, elev):
-    el_min = np.atleast_1d(elev).min()
-    if el_min < np.radians(10):
-        warnings.warn(
-            f"Some detectors come within 10 degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
-        )
-    if el_min <= 0:
-        raise PointingError(
-            f"Some detectors are pointing below the horizon (el_min = {np.degrees(el_min):.01f}°)"
-        )
-
-
 def get_daisy_offsets(phase, k=2.11):
     r = np.sin(k * phase)
     return r * np.cos(phase), r * np.sin(phase)
@@ -61,7 +44,7 @@ def daisy_pattern_miss_center(
     z *= radius / max_dist
 
 
-#         daisy_offset_x, daisy_offset_y = get_pointing_offset(time, period, plan_type="daisy")
+#         daisy_sky_x, daisy_sky_y = get_pointing_offset(time, period, plan_type="daisy")
 
 #         return (
 #             centers[0] + throws[0] * r * np.cos(p),

@@ -8,7 +8,7 @@ from astropy.io import fits
 
 from .. import instrument, site
 from ..coords import Coordinates, get_center_phi_theta
-from ..instrument.dets import Detectors
+from ..instrument.detectors import Detectors
 
 
 class TOD:

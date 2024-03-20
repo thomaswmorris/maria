@@ -94,9 +94,9 @@ class TurbulentLayer:
         ]
 
         # find the detector offsets which form a convex hull
-        self.detector_offsets = np.c_[
-            self.instrument.offset_x, self.instrument.offset_y
-        ]
+        self.detector_offsets = np.radians(
+            np.c_[self.instrument.sky_x, self.instrument.sky_y]
+        )
 
         # add a small circle of offsets to account for pesky zeros
         unit_circle_complex = np.exp(1j * np.linspace(0, 2 * np.pi, 64 + 1)[:-1])

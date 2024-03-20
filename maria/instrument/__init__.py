@@ -12,7 +12,7 @@ from matplotlib.patches import Patch
 from .. import utils
 from .bands import BandList  # noqa F401
 from .beams import compute_angular_fwhm, construct_beam_filter  # noqa F401
-from .dets import Detectors  # noqa F401
+from .detectors import Detectors  # noqa F401
 
 HEX_CODE_LIST = [
     mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
@@ -63,11 +63,10 @@ class Instrument:
     An instrument.
     """
 
-    description: str = ""
+    description: str = "An instrument."
     primary_size: float = None  # in meters
     field_of_view: float = None  # in deg
     baseline: float = None
-    bath_temp: float = None
     bands: BandList = None
     dets: pd.DataFrame = None  # dets, it's complicated
     documentation: str = ""
@@ -84,12 +83,8 @@ class Instrument:
 
         return cls(bands=dets.bands, dets=dets, **config)
 
-    # def __post_init__(self):
-
-    #     if self.baseline is None:
-    #         unique_baselines = sorted(np.unique(self.dets.baseline))
-
-    #     ...
+    def __post_init__(self):
+        self.field_of_view = np.round(self.dets.sky_x.ptp(), 3)
 
     def __repr__(self):
         nodef_f_vals = (
@@ -110,16 +105,16 @@ class Instrument:
         return self.dets.bands.names
 
     @property
-    def offset_x(self):
-        return self.dets.offset_x
+    def sky_x(self):
+        return self.dets.sky_x
 
     @property
-    def offset_y(self):
-        return self.dets.offset_y
+    def sky_y(self):
+        return self.dets.sky_y
 
     @property
     def offsets(self):
-        return np.c_[self.offset_x, self.offset_y]
+        return np.c_[self.sky_x, self.sky_y]
 
     @property
     def baseline_x(self):
