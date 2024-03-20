@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from .. import utils
 from ..constants import k_B
+from ..plan import validate_pointing
 from ..sim.base import BaseSimulation
 from ..site import InvalidRegionError, all_regions
 from .turbulent_layer import TurbulentLayer
@@ -92,7 +93,7 @@ class AtmosphereMixin:
         This assume that BaseSimulation.__init__() has been called.
         """
 
-        utils.validate_pointing(self.det_coords.az, self.det_coords.el)
+        validate_pointing(self.det_coords.az, self.det_coords.el)
 
         if self.atmosphere_model == "2d":
             self.turbulent_layer_depths = np.linspace(

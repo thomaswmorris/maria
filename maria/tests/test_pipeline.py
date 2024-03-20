@@ -18,7 +18,6 @@ TEST_MAP_URL = (
 @pytest.mark.mock_obs
 def test_mustang2():
     fetch_cache(TEST_MAP_URL, "/tmp/test_map.fits", refresh=True)
-    map_size = 0.1
 
     pointing_center = (73.5287496858916, 2.961663679507145)
     pixel_size = 8.71452898559111e-05
@@ -30,8 +29,6 @@ def test_mustang2():
     outfile_map = "/tmp/test_map_output.fits"
 
     atm_model = "2d"
-    white_noise_level = 1.3e-2
-    pink_noise_level = 2.4
 
     sim = Simulation(
         # Mandatory minimal weither settings
@@ -47,7 +44,6 @@ def test_mustang2():
         map_res=pixel_size,  # resolution of the map
         map_center=pointing_center,  # RA & Dec in degree
         map_freqs=[93],
-        dets={"f093": {"n": 217, "bands": ["mustang2/f093"]}},
         # MUSTANG-2 Observational setup
         # ----------------------------s
         scan_options={
