@@ -12,8 +12,11 @@ import pytz
 from .. import coords, utils
 from . import patterns
 
-MAX_VELOCITY_WARN = np.radians(10)  # in deg/s
-MAX_ACCELERATION_WARN = np.radians(10)  # in deg/s
+MAX_VELOCITY_WARN = 10  # in deg/s
+MAX_ACCELERATION_WARN = 10  # in deg/s
+
+MIN_ELEVATION_WARN = 20  # in deg
+MIN_ELEVATION_ERROR = 10  # in deg
 
 here, this_filename = os.path.split(__file__)
 
@@ -45,6 +48,22 @@ def get_plan_config(scan_pattern="stare", **kwargs):
 def get_plan(scan_pattern="stare", **kwargs):
     plan_config = get_plan_config(scan_pattern, **kwargs)
     return Plan(**plan_config)
+
+
+class PointingError(Exception):
+    pass
+
+
+def validate_pointing(azim, elev):
+    el_min = np.atleast_1d(elev).min()
+    if el_min < np.radians(MIN_ELEVATION_WARN):
+        warnings.warn(
+            f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
+        )
+    if el_min <= np.radians(MIN_ELEVATION_ERROR):
+        raise PointingError(
+            f"Some detectors come within {MIN_ELEVATION_ERROR} degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
+        )
 
 
 @dataclass
