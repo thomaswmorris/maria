@@ -173,8 +173,8 @@ def generate_dets(
         )
 
         band_dets.loc[:, "band_name"] = band
-        band_dets.loc[:, "sky_x"] = array_offset[0] + detector_offsets[:, 0]
-        band_dets.loc[:, "sky_y"] = array_offset[1] + detector_offsets[:, 1]
+        band_dets.loc[:, "sky_x"] = np.radians(array_offset[0] + detector_offsets[:, 0])
+        band_dets.loc[:, "sky_y"] = np.radians(array_offset[1] + detector_offsets[:, 1])
 
         band_dets.loc[:, "baseline_x"] = baseline_offset[0] + baselines[:, 0]
         band_dets.loc[:, "baseline_y"] = baseline_offset[1] + baselines[:, 1]
@@ -362,7 +362,7 @@ class Detectors:
         return len(self.df)
 
     @property
-    def offset(self):
+    def offsets(self):
         return np.c_[self.sky_x, self.sky_y]
 
     @property

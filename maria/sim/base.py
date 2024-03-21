@@ -1,5 +1,6 @@
 import os
 
+import dask.array as da
 import numpy as np
 
 from .. import utils
@@ -127,14 +128,14 @@ class BaseSimulation:
     def _run(self):
         raise NotImplementedError()
 
-    def run(self):
+    def run(self, dtype=np.float32):
         self.data = {}
 
         # Simulate all the junk
         self._run()
 
         tod = TOD(
-            data=self.tod_data,
+            data=da.from_array(self.tod_data.astype(dtype)),
             dets=self.instrument.dets.df,
             coords=self.det_coords,
         )
