@@ -1,17 +1,30 @@
+import os
 from dataclasses import dataclass, fields
 from operator import attrgetter
 from typing import List, Tuple
 
 import astropy as ap
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 from astropy.io import fits
 from astropy.wcs import WCS
+from matplotlib.colors import ListedColormap
 from tqdm import tqdm
 
 from .. import utils
 from ..instrument import beams
+
+here, this_filename = os.path.split(__file__)
+
+# from https://gist.github.com/zonca/6515744
+cmb_cmap = ListedColormap(
+    np.loadtxt(f"{here}/Planck_Parchment_RGB.txt") / 255.0, name="cmb"
+)
+cmb_cmap.set_bad("white")
+
+mpl.colormaps.register(cmb_cmap)
 
 
 @dataclass
@@ -32,6 +45,7 @@ class Map:
     frame: str = "ra_dec"
     units: str = "K_RJ"
     data: np.array = None  # 3D instrument
+    weight: np.array = None
 
     def __post_init__(self):
         assert len(self.freqs) == self.n_freqs
@@ -40,6 +54,9 @@ class Map:
 
         self.width = self.res * self.n_x
         self.height = self.res * self.n_y
+
+        if self.weight is None:
+            self.weight = np.ones(self.data.shape)
 
     def __repr__(self):
         nodef_f_vals = (
@@ -88,7 +105,9 @@ class Map:
         y = self.res * np.arange(self.n_y)
         return y - y.mean()
 
-    def plot(self, cmap="plasma", units="degrees", **kwargs):
+    def plot(
+        self, cmap="cmb", rel_vmin=0.001, rel_vmax=0.999, units="degrees", **kwargs
+    ):
         for i_freq, freq in enumerate(self.freqs):
             header = fits.header.Header()
 
@@ -135,7 +154,13 @@ class Map:
             if units == "arcsec":
                 map_extent = 3600 * np.degrees(map_extent_radians)
 
-            vmin, vmax = np.nanpercentile(self.data, q=[1, 99])
+            d = self.data.ravel()
+            w = self.weight.ravel()
+
+            sort = np.argsort(d)
+            d, w = d[sort], w[sort]
+
+            vmin, vmax = np.interp([rel_vmin, rel_vmax], np.cumsum(w) / np.sum(w), d)
 
             map_im = ax.imshow(
                 self.data.T,

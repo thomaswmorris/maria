@@ -158,7 +158,8 @@ class BinMapper(BaseMapper):
         self.raw_map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
         self.raw_map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
 
-        self.map_data = np.zeros((len(self.band), self.n_x, self.n_y))
+        self.map_data = np.zeros((len(self.band), self.n_y, self.n_x))
+        self.map_weight = np.zeros((len(self.band), self.n_y, self.n_x))
 
         for iband, band in enumerate(np.unique(self.band)):
             self.band_data[band] = {}
@@ -258,8 +259,11 @@ class BinMapper(BaseMapper):
                 mask, band_map_denom, 1
             )
 
+            self.map_weight[iband] = band_map_denom
+
         self.map = Map(
             data=self.map_data,
+            weight=self.map_weight,
             freqs=np.array([self.band_data[band]["band_center"] for band in self.band]),
             width=np.degrees(self.width) if self.degrees else self.width,
             height=np.degrees(self.height) if self.degrees else self.height,

@@ -84,7 +84,13 @@ class Instrument:
         return cls(bands=dets.bands, dets=dets, **config)
 
     def __post_init__(self):
-        self.field_of_view = np.round(self.dets.sky_x.ptp(), 3)
+        self.field_of_view = np.round(np.degrees(self.dets.sky_x.ptp()), 3)
+        if self.field_of_view < 0.5 / 60:
+            self.units = "arcsec"
+        elif self.field_of_view < 0.5:
+            self.units = "arcmin"
+        else:
+            self.units = "degrees"
 
     def __repr__(self):
         nodef_f_vals = (
@@ -168,7 +174,10 @@ class Instrument:
     #     """
     #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-    def plot_dets(self, units="deg"):
+    def plot_dets(self, units=None):
+        if units is None:
+            units = self.units
+
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=160)
 
         legend_handles = []
