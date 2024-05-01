@@ -10,6 +10,7 @@ from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from .. import utils
+from ..coords import Angle
 from .bands import BandList  # noqa F401
 from .beams import compute_angular_fwhm, construct_beam_filter  # noqa F401
 from .detectors import Detectors  # noqa F401
@@ -47,12 +48,15 @@ def get_instrument(instrument_name="default", **kwargs):
     """
     Get an instrument from a pre-defined config.
     """
-    for key, config in INSTRUMENT_CONFIGS.items():
-        if instrument_name in config.get("aliases", []):
-            instrument_name = key
-    if instrument_name not in INSTRUMENT_CONFIGS.keys():
-        raise InvalidInstrumentError(instrument_name)
-    instrument_config = INSTRUMENT_CONFIGS[instrument_name].copy()
+    if instrument_name:
+        for key, config in INSTRUMENT_CONFIGS.items():
+            if instrument_name in config.get("aliases", []):
+                instrument_name = key
+        if instrument_name not in INSTRUMENT_CONFIGS.keys():
+            raise InvalidInstrumentError(instrument_name)
+        instrument_config = INSTRUMENT_CONFIGS[instrument_name].copy()
+    else:
+        instrument_config = {}
     instrument_config.update(kwargs)
     return Instrument.from_config(instrument_config)
 
@@ -131,6 +135,10 @@ class Instrument:
         return self.dets.baseline_y
 
     @property
+    def baseline_z(self):
+        return self.dets.baseline_z
+
+    @property
     def baselines(self):
         return np.c_[self.baseline_x, self.baseline_y, self.baseline_z]
 
@@ -154,7 +162,7 @@ class Instrument:
         Angular beam width (in radians) as a function of depth (in meters)
         """
         nu = self.dets.band_center  # in GHz
-        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, f=1e9 * nu)
+        return compute_angular_fwhm(z=z, fwhm_0=self.dets.primary_size, n=1, f=1e9 * nu)
 
     def physical_fwhm(self, z):
         """
@@ -174,65 +182,63 @@ class Instrument:
     #     """
     #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-    def plot_dets(self, units=None):
-        if units is None:
-            units = self.units
+    def plot(self, units=None):
+        HEX_CODE_LIST = [
+            mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
+            for t in [*np.linspace(0.05, 0.95, 12)]
+        ]
 
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=160)
+
+        fwhms = Angle(self.fwhm)
+        offsets = Angle(self.offsets)
 
         legend_handles = []
         for iub, uband in enumerate(self.ubands):
             band_mask = self.dets.band_name == uband
 
-            fwhm = np.degrees(self.fwhm[band_mask])
-            offsets = np.degrees(self.offsets[band_mask])
-
-            if units == "arcmin":
-                fwhm *= 60
-                offsets *= 60
-
-            if units == "arcsec":
-                fwhm *= 60
-                offsets *= 3600
-
             band_color = HEX_CODE_LIST[iub]
-
-            # band_center = self.dets.band_center[band_mask].mean()
-            # band_res_arcmins = 2 * self.fwhm
-
-            # 60 * np.degrees(
-            #     1.22 * 2.998e8 / (1e9 * band_center * self.primary_size)
-            # )
-
-            # offsets_arcmins = 60 * np.degrees(self.offsets[band_mask])
 
             ax.add_collection(
                 EllipseCollection(
-                    widths=fwhm,
-                    heights=fwhm,
+                    widths=getattr(fwhms, offsets.units)[band_mask],
+                    heights=getattr(fwhms, offsets.units)[band_mask],
                     angles=0,
                     units="xy",
                     facecolors=band_color,
                     edgecolors="k",
                     lw=1e-1,
                     alpha=0.5,
-                    offsets=offsets,
+                    offsets=getattr(offsets, offsets.units)[band_mask],
                     transOffset=ax.transData,
                 )
             )
 
             legend_handles.append(
                 Patch(
-                    label=f"{uband}, res = {fwhm.mean():.03f} {units}",
+                    label=f"{uband}, res = {getattr(fwhms, fwhms.units)[band_mask].mean():.01f} {fwhms.units}",
                     color=band_color,
                 )
             )
 
-            ax.scatter(*offsets.T, label=uband, s=5e-1, color=band_color)
+            ax.scatter(
+                *getattr(offsets, offsets.units)[band_mask].T,
+                label=uband,
+                s=5e-1,
+                color=band_color,
+            )
 
-        ax.set_xlabel(rf"$\theta_x$ offset ({units})")
-        ax.set_ylabel(rf"$\theta_y$ offset ({units})")
+        ax.set_xlabel(rf"$\theta_x$ offset ({offsets.units})")
+        ax.set_ylabel(rf"$\theta_y$ offset ({offsets.units})")
         ax.legend(handles=legend_handles)
+
+        xls, yls = ax.get_xlim(), ax.get_ylim()
+        cen_x, cen_y = np.mean(xls), np.mean(yls)
+        wid_x, wid_y = np.ptp(xls), np.ptp(yls)
+        radius = 0.5 * np.maximum(wid_x, wid_y)
+
+        ax.set_xlim(cen_x - radius, cen_x + radius)
+        ax.set_ylim(cen_y - radius, cen_y + radius)
 
 
 instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T

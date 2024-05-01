@@ -17,7 +17,7 @@ from .weather import Weather  # noqa F401
 here, this_filename = os.path.split(__file__)
 
 SPECTRA_DATA_DIRECTORY = f"{here}/data"
-SPECTRA_DATA_CACHE_DIRECTORY = "/tmp/maria_data_cache/spectra"
+SPECTRA_DATA_CACHE_DIRECTORY = "/tmp/maria/spectra"
 SPECTRA_DATA_URL_BASE = (
     "https://github.com/thomaswmorris/maria-data/raw/master/spectra"  # noqa F401
 )
@@ -93,7 +93,7 @@ class AtmosphereMixin:
         This assume that BaseSimulation.__init__() has been called.
         """
 
-        validate_pointing(self.det_coords.az, self.det_coords.el)
+        validate_pointing(self.coords.az, self.coords.el)
 
         if self.atmosphere_model == "2d":
             self.turbulent_layer_depths = np.linspace(
@@ -147,11 +147,17 @@ class AtmosphereMixin:
             tqdm(self.atmosphere.layers) if self.verbose else self.atmosphere.layers
         )
         for layer_index, layer in enumerate(layers):
+            layer.generate()
+            layer_data[layer_index] = sp.interpolate.interp1d(
+                layer.sim_time,
+                layer.sample(),
+                axis=-1,
+                bounds_error=False,
+                fill_value="extrapolate",
+            )(self.boresight.time)
+
             if self.verbose:
                 layers.set_description(f"Generating atmosphere (z={layer.depth:.00f}m)")
-
-            layer.generate()
-            layer_data[layer_index] = layer.sample()
 
         return layer_data
 
@@ -164,7 +170,7 @@ class AtmosphereMixin:
 
         rel_layer_scaling = np.interp(
             self.site.altitude
-            + self.turbulent_layer_depths[:, None, None] * np.sin(self.det_coords.el),
+            + self.turbulent_layer_depths[:, None, None] * np.sin(self.coords.el),
             self.atmosphere.weather.altitude_levels,
             self.atmosphere.weather.absolute_humidity,
         )
@@ -218,7 +224,7 @@ class AtmosphereMixin:
                     (
                         self.zenith_scaled_pwv[band_index],
                         self.atmosphere.weather.temperature[0],
-                        np.degrees(self.det_coords.el[band_index]),
+                        np.degrees(self.coords.el[band_index]),
                     )
                 )
 
@@ -272,7 +278,7 @@ class AtmosphereMixin:
                     (
                         self.zenith_scaled_pwv[band_index],
                         self.atmosphere.weather.temperature[0],
-                        np.degrees(self.det_coords.el[band_index]),
+                        np.degrees(self.coords.el[band_index]),
                     )
                 )
 

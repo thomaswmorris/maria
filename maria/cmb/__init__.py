@@ -1,64 +1,77 @@
+import healpy as hp
+import numpy as np
+from tqdm import tqdm
+
+from maria.constants import T_CMB
+from maria.utils.functions import planck_spectrum
+
+from ..utils.io import fetch_cache
+
+PLANCK_URL = """https://irsa.ipac.caltech.edu/data/Planck/release_3/all-sky-maps/maps/
+                component-maps/cmb/COM_CMB_IQU-143-fgsub-sevem_2048_R3.00_full.fits"""
+
+
 class CMB:
-    ...
+    def __init__(self, source="planck", nu=143):
+        planck_url = PLANCK_URL
+        cache_path = "/tmp/maria/cmb/planck/" + planck_url.split("/")[-1]
+
+        fetch_cache(source_url=planck_url, cache_path=cache_path)
+
+        field_dtypes = {
+            "I": np.float32,
+            "Q": np.float32,
+            "U": np.float32,
+            "I_mask": bool,
+            "P_mask": bool,
+        }
+
+        for i, (field, dtype) in tqdm(
+            enumerate(field_dtypes.items()), desc="Loading CMB"
+        ):
+            setattr(
+                self, field, hp.fitsfunc.read_map(cache_path, field=i).astype(dtype)
+            )
+
+        self.source = source
+        self.nside = 2048
+        self.nu = nu
+
+    def plot(self):
+        vmin, vmax = 1e6 * np.quantile(self.I[self.I_mask], q=[0.001, 0.999])
+        hp.visufunc.mollview(
+            1e6 * np.where(self.I_mask, self.I, np.nan), min=vmin, max=vmax, cmap="cmb"
+        )
 
 
 class CMBMixin:
-    ...
+    def _initialize_cmb(self, source="planck", nu=150):
+        self.cmb = CMB(source=source, nu=nu)
 
+    def _simulate_cmb_emission(self):
+        pixel_index = hp.ang2pix(
+            nside=self.cmb.nside, phi=self.coords.l, theta=np.pi / 2 - self.coords.b
+        ).compute()
+        cmb_temperatures = self.cmb.I[pixel_index]
 
-# class CMBSimulation(base.BaseSimulation):
-#     """
-#     This simulates scanning over celestial sources.
-#     """
-#     def __init__(self, instrument, plan, site, map_file, add_cmb=False, **kwargs):
-#         super().__init__(instrument, plan, site)
+        test_nu = np.linspace(1e9, 1e12, 1024)
 
-#         pass
+        cmb_temperature_samples_K = T_CMB + np.linspace(
+            self.cmb.I.min(), self.cmb.I.max(), 64
+        )
+        cmb_brightness = planck_spectrum(test_nu, cmb_temperature_samples_K[:, None])
 
-#     def _get_CMBPS(self):
+        self.data["cmb"] = np.zeros((self.instrument.dets.n, self.plan.n_time))
 
-#         import camb
+        for band in self.instrument.bands:
+            band_mask = self.instrument.dets.band_name == band.name
 
-#         pars = camb.CAMBparams()
-#         pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06)
-#         pars.InitPower.set_params(As=2e-9, ns=0.965, r=0)
+            band_cmb_power_samples_W = np.trapz(
+                y=cmb_brightness * band.passband(1e-9 * test_nu), x=test_nu
+            )
 
-#         # correct mode would l=129600 for 5"
-#         pars.set_for_lmax(5000, lens_potential_accuracy=0)
-
-#         results = camb.get_results(pars)
-#         powers = results.get_cmb_power_spectra(pars, CMB_unit="K")["total"][:, 0]
-
-#         self.CMB_PS = np.empty((len(self.instrument.ubands), len(powers)))
-#         for i in range(len(self.instrument.ubands)):
-#             self.CMB_PS[i] = powers
-
-
-#     def _cmb_imager(self, bandnumber=0):
-
-#         import pymaster as nmt
-
-#         nx, ny = self.map_data[0].shape
-#         Lx = nx * np.deg2rad(self.sky_data["incell"])
-#         Ly = ny * np.deg2rad(self.sky_data["incell"])
-
-#         self.CMB_map = nmt.synfast_flat(
-#             nx,
-#             ny,
-#             Lx,
-#             Ly,
-#             np.array([self.CMB_PS[bandnumber]]),
-#             [0],
-#             beam=None,
-#             seed=self.plan.seed,
-#         )[0]
-
-#         self.CMB_map += utils.Tcmb
-#         self.CMB_map *= utils.KcmbToKbright(np.unique(self.instrument.dets.band_center)[bandnumber])
-
-#     #self._cmb_imager(i)
-#         #         cmb_data = sp.interpolate.RegularGridInterpolator(
-#         #                     (map_x, map_y), self.CMB_map, bounds_error=False, fill_value=0
-#         #                     )((lam_x, lam_y))
-#         #         self.noise    = self.lam.temperature + cmb_data
-#         #         self.combined = self.map_data + self.lam.temperature + cmb_data
+            self.data["cmb"][band_mask] = np.interp(
+                T_CMB + cmb_temperatures[band_mask],
+                cmb_temperature_samples_K,
+                band_cmb_power_samples_W,
+            )

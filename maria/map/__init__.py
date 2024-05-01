@@ -246,7 +246,7 @@ class MapMixin:
         self.sample_maps()
 
     def _sample_maps(self):
-        dx, dy = self.det_coords.offsets(frame=self.map_frame, center=self.map.center)
+        dx, dy = self.coords.offsets(frame=self.map_frame, center=self.map.center)
 
         self.data["map"] = np.zeros((dx.shape))
 
@@ -257,7 +257,7 @@ class MapMixin:
 
             # nu is in GHz, f is in Hz
             nu_fwhm = beams.compute_angular_fwhm(
-                fwhm_0=self.instrument.primary_size, z=np.inf, f=1e9 * nu
+                fwhm_0=self.instrument.dets.primary_size.mean(), z=np.inf, f=1e9 * nu
             )
             nu_map_filter = beams.construct_beam_filter(fwhm=nu_fwhm, res=self.map.res)
             filtered_nu_map_data = beams.separably_filter(

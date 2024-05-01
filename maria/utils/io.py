@@ -9,7 +9,7 @@ import requests
 import yaml
 
 
-def flatten_config(m, prefix=""):
+def flatten_config(m: str, prefix: str = ""):
     """
     Turn any dict into a mapping of mappings.
     """
@@ -28,7 +28,7 @@ def flatten_config(m, prefix=""):
     return dict(items)
 
 
-def read_yaml(path):
+def read_yaml(path: str):
     """
     Return a YAML file as a dict
     """
@@ -36,28 +36,7 @@ def read_yaml(path):
     return res if res is not None else {}
 
 
-def fetch_cache(source_url, cache_path, max_cache_age=7 * 86400, refresh=False):
-    """
-    Download the cache if needed
-    """
-    cache_dir = os.path.dirname(cache_path)
-
-    # make the cache directory if it doesn't exist
-    if not os.path.exists(cache_dir):
-        print(f"created cache at {cache_dir}")
-        os.makedirs(cache_dir, exist_ok=True)
-
-    if (not cache_is_ok(cache_path, max_cache_age=max_cache_age)) or refresh:
-        print(f"updating cache from {source_url}")
-        r = requests.get(source_url)
-        with open(cache_path, "wb") as f:
-            f.write(r.content)
-
-        cache_size = os.path.getsize(cache_path)
-        print(f"downloaded data ({1e-6 * cache_size:.01f} MB) to {cache_path}")
-
-
-def cache_is_ok(path, max_cache_age=86400):
+def cache_is_ok(path: str, max_cache_age: float = 86400):
     """
     Check if we need to reload the cache.
     """
@@ -70,6 +49,36 @@ def cache_is_ok(path, max_cache_age=86400):
         return False
 
     return True
+
+
+def fetch_cache(
+    source_url: str,
+    cache_path: str,
+    max_cache_age: float = 7 * 86400,
+    refresh: bool = False,
+    chunk_size: int = 8192,
+):
+    """
+    Download the cache if needed
+    """
+    cache_dir = os.path.dirname(cache_path)
+
+    # make the cache directory if it doesn't exist
+    if not os.path.exists(cache_dir):
+        print(f"created cache at {cache_dir}")
+        os.makedirs(cache_dir, exist_ok=True)
+
+    if (not cache_is_ok(cache_path, max_cache_age=max_cache_age)) or refresh:
+        print(f"updating cache from {source_url}")
+
+        with requests.get(source_url, stream=True) as r:
+            r.raise_for_status()
+            with open(cache_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=chunk_size):
+                    f.write(chunk)
+
+        cache_size = os.path.getsize(cache_path)
+        print(f"downloaded data ({1e-6 * cache_size:.01f} MB) to {cache_path}")
 
 
 def datetime_handler(time):
