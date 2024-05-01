@@ -74,23 +74,26 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
             self._initialize_atmosphere()
 
+        if self.cmb_source:
+            self._initialize_cmb()
+
     def _run(self):
         # number of bands are lost here
         if self.noise:
             self._simulate_noise()
 
-        if self.atmosphere_model:
+        if hasattr(self, "atmosphere"):
             self._simulate_atmospheric_emission()
+
+        if hasattr(self, "cmb"):
+            self._simulate_cmb_emission()
 
             # convert to source Rayleigh-Jeans
             # self.data["atmosphere"] *= self.instrument.dets.abs_cal_rj[:, None]
             # self.data["atmosphere"] /= self.atmospheric_transmission
 
-        if self.map_file:
+        if hasattr(self, "map"):
             self._sample_maps()
-
-        if hasattr(self, "cmb"):
-            self._simulate_cmb_emission()
 
         self.tod_data = sum(
             [self.data.get(k, 0) for k in ["atmosphere", "cmb", "map", "noise"]]

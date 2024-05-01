@@ -55,7 +55,7 @@ class PointingError(Exception):
 
 
 def validate_pointing(azim, elev):
-    el_min = np.atleast_1d(elev).min()
+    el_min = np.atleast_1d(elev).min().compute()
     if el_min < np.radians(MIN_ELEVATION_WARN):
         warnings.warn(
             f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
@@ -93,9 +93,10 @@ class Plan:
             )
 
     def __post_init__(self):
-        assert self.sample_rate > 0
+        if not self.sample_rate > 0:
+            raise ValueError("Parameter 'sample_rate' must be greater than zero!")
 
-        self.scan_center = tuple(self.scan_center)
+        self.scan_center = tuple(np.array(self.scan_center))
 
         for k, v in plan_configs[self.scan_pattern]["scan_options"].items():
             if k not in self.scan_options.keys():

@@ -54,3 +54,6 @@ map:
   map_inbright:
   map_units: K_RJ
   map_freqs: [150]
+
+cmb:
+  cmb_source: planck

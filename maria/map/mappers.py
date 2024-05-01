@@ -202,7 +202,7 @@ class BinMapper(BaseMapper):
 
                 if "despline" in self.tod_postprocessing.keys():
                     B = utils.signal.get_bspline_basis(
-                        tod.time,
+                        tod.time.compute(),
                         dk=self.tod_postprocessing["despline"].get("knot_spacing", 10),
                         order=self.tod_postprocessing["despline"].get(
                             "spline_order", 3

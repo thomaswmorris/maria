@@ -6,8 +6,8 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 
-from .. import utils
 from ..constants import c
+from ..utils.io import flatten_config
 from .bands import BandList, all_bands
 
 here, this_filename = os.path.split(__file__)
@@ -125,6 +125,7 @@ def generate_array_offsets(
 def generate_dets(
     bands: list,
     n: int = None,
+    primary_size: float = 10.0,
     field_of_view: float = None,
     array_spacing: float = None,
     array_packing: tuple = "hex",
@@ -155,9 +156,12 @@ def generate_dets(
     )
 
     if polarized:
-        pol_angles = np.random.uniform(low=0, high=360, size=len(detector_offsets))
+        # generate random polarization angles and double each detector
+        pol_angles = np.random.uniform(
+            low=0, high=2 * np.pi, size=len(detector_offsets)
+        )
         pol_labels = np.r_[["A" for _ in pol_angles], ["B" for _ in pol_angles]]
-        pol_angles = np.r_[pol_angles, (pol_angles + 90) % 360]
+        pol_angles = np.r_[pol_angles, (pol_angles + np.pi / 2) % (2 * np.pi)]
         detector_offsets = np.r_[detector_offsets, detector_offsets]
         baselines = np.r_[baselines, baselines]
 
@@ -183,6 +187,8 @@ def generate_dets(
         band_dets.loc[:, "bath_temp"] = bath_temp
         band_dets.loc[:, "pol_angle"] = pol_angles
         band_dets.loc[:, "pol_label"] = pol_labels
+
+        band_dets.loc[:, "primary_size"] = primary_size
 
         dets = pd.concat([dets, band_dets])
 
@@ -229,7 +235,26 @@ class Detectors:
         that the detectors can inherit instrument parameters if need be (e.g. the size of the primary aperture).
         """
 
-        config["dets"] = utils.io.flatten_config(config["dets"])
+        config["dets"] = flatten_config(config["dets"])
+
+        array_keys = list(config["dets"].keys())
+        array_params = [
+            "array_packing",
+            "array_shape",
+            "bath_temp",
+            "field_of_view",
+            "polarized",
+            "primary_size",
+        ]
+
+        # the array parameters trickle down to all the arrays
+        for param in array_params:
+            if param in config:
+                param_value = config[param]
+                for array_key in array_keys:
+                    if param not in config["dets"][array_key]:
+                        config["dets"][array_key][param] = param_value
+                config.pop(param)
 
         bands_config = {}
 
@@ -263,6 +288,11 @@ class Detectors:
                 )
 
                 if "beam_spacing" in array_dets_config:
+                    if "primary_size" not in array_dets_config:
+                        raise ValueError(
+                            "You must pass 'primary_size' if you pass 'beam_spacing'."
+                        )
+
                     if len(array_dets_config["bands"]) > 1:
                         raise ValueError(
                             "'beam_spacing' parameter is unhandled for an detector array with multiple bands."
@@ -275,7 +305,7 @@ class Detectors:
                         ]["center"]
                     )
                     beam_resolution_degrees = np.degrees(
-                        1.22 * (c / nu) / config["primary_size"]
+                        1.22 * (c / nu) / array_dets_config["primary_size"]
                     )
                     array_dets_config[
                         "array_spacing"
@@ -300,10 +330,6 @@ class Detectors:
                 bands_config[band] = band_config
 
         df.index = np.arange(len(df))
-
-        for col in ["primary_size"]:
-            if df.loc[:, col].isna().any():
-                df.loc[:, col] = config[col]
 
         for col in [
             "sky_x",
