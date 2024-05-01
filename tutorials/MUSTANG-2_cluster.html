@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="AtLAST Predictions" href="AtLAST_cluster.html" /><link rel="prev" title="Tutorials" href="../tutorials.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.04.27 -->
         <title>Mock Observations with MUSTANG-2 - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=437aa6ec" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
@@ -115,6 +115,8 @@
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
 
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
 
 
 <div class="page">
@@ -207,9 +209,9 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <section id="Mock-Observations-with-MUSTANG-2">
-<h1>Mock Observations with MUSTANG-2<a class="headerlink" href="#Mock-Observations-with-MUSTANG-2" title="Link to this heading">#</a></h1>
+<h1>Mock Observations with MUSTANG-2<a class="headerlink" href="#Mock-Observations-with-MUSTANG-2" title="Link to this heading">¶</a></h1>
 <p>We use Maria to generate synthetic mock observations for bolometric arrays installed on single-dish telescopes. We have developed a wrapper called ‘Simulation,’ which emulates telescopes like ACT, Toltec, GBT, and AtLAST. This wrapper generates time-ordered domain (TOD) data. By simulating distinct atmospheric layers corresponding to the designated site within the simulation, we allow the mock array to sweep across the input celestial sky while scanning through evolving atmosphere. As a result,
 the TODs produced combine elements of the real sky, atmospheric effects. This approach generates synthetic observations taking into account atmospheric filtering.</p>
 <p>This tutorial will guide you through the process of setting up the simulation tool and creating your own mock observations.</p>
@@ -240,12 +242,12 @@ the TODs produced combine elements of the real sky, atmospheric effects. This ap
 </div>
 </div>
 <section id="Setting-up-a-MUSTANG-2-Simulation">
-<h2>Setting up a MUSTANG-2 Simulation<a class="headerlink" href="#Setting-up-a-MUSTANG-2-Simulation" title="Link to this heading">#</a></h2>
+<h2>Setting up a MUSTANG-2 Simulation<a class="headerlink" href="#Setting-up-a-MUSTANG-2-Simulation" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class offers flexibility for customizing atmospheric simulations. You can configure it to replicate observatories like ‘AtLAST’ at the APEX site or simulate specific observations, such as MUSTANG-2, under different weather conditions by adjusting the ‘pwv_rms_frac’ parameter within the Simulation keywords.</p>
 <p>Additionally, the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class allows you to explore how different scanning strategies impact large-scale filtering. Standard strategies, like back-and-forth or Daisy scan patterns, are implemented for this purpose. For comprehensive documentation on all available keywords, please refer to our detailed documentation.</p>
 <p>Now, let’s initiate an example of a mock observation involving a galaxy cluster merger event at redshift 1, observed via the SZ effect, using the Mustang-2 instrument:</p>
 <section id="Hyper-params">
-<h3>Hyper params<a class="headerlink" href="#Hyper-params" title="Link to this heading">#</a></h3>
+<h3>Hyper params<a class="headerlink" href="#Hyper-params" title="Link to this heading">¶</a></h3>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -282,7 +284,7 @@ the TODs produced combine elements of the real sky, atmospheric effects. This ap
 </div>
 </section>
 <section id="Initialize">
-<h3>Initialize<a class="headerlink" href="#Initialize" title="Link to this heading">#</a></h3>
+<h3>Initialize<a class="headerlink" href="#Initialize" title="Link to this heading">¶</a></h3>
 <p>First we need to initialize the telescope and weather conditions</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -335,7 +337,7 @@ Initializing atmospheric layers: 4it [00:04,  1.01s/it]
 </div>
 </section>
 <section id="Obtaining-time-ordered-data-(TODs)">
-<h3>Obtaining time-ordered data (TODs)<a class="headerlink" href="#Obtaining-time-ordered-data-(TODs)" title="Link to this heading">#</a></h3>
+<h3>Obtaining time-ordered data (TODs)<a class="headerlink" href="#Obtaining-time-ordered-data-(TODs)" title="Link to this heading">¶</a></h3>
 <p>To acquire time-ordered data (TODs), you only need to run the script. The TOD object contains time stamps, coordinates (in RA and Dec), and the intensity of each scan for every detector. The intensity units are consistently expressed in surface brightness temperature units: Kelvin Rayleigh-Jeans (Even if the input map is given in Jy/pixel. We convert the units under the hood).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
@@ -369,7 +371,7 @@ Sampling map at 93 GHz: 100%|██████████| 1/1 [00:02&lt;00:00
 </div>
 </section>
 <section id="Usefull-visualizations:">
-<h3>Usefull visualizations:<a class="headerlink" href="#Usefull-visualizations:" title="Link to this heading">#</a></h3>
+<h3>Usefull visualizations:<a class="headerlink" href="#Usefull-visualizations:" title="Link to this heading">¶</a></h3>
 <p>Before proceeding, we first need to adjust the input sky as specified in the Simulation class above.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
@@ -479,7 +481,7 @@ Sampling map at 93 GHz: 100%|██████████| 1/1 [00:02&lt;00:00
 </section>
 </section>
 <section id="Mapping-the-TODs">
-<h2>Mapping the TODs<a class="headerlink" href="#Mapping-the-TODs" title="Link to this heading">#</a></h2>
+<h2>Mapping the TODs<a class="headerlink" href="#Mapping-the-TODs" title="Link to this heading">¶</a></h2>
 <p>To transform the TODs into images, you’ll require a mapper. While you have the option to create your custom mapper using the saved TODs, we have also included a pre-implemented choice for your convenience. This built-in mapper follows a straightforward approach: it first fourier fitlers the time-streams to remove any noise smaller than the resolution of the dish and larger than the FOV. You can turn this filtering of by setting <code class="docutils literal notranslate"><span class="pre">map_filter=False</span></code>. Then, we also remove the common mode in the
 timestream. We do this by removing the first eigenmode (set by <code class="docutils literal notranslate"><span class="pre">n_modes_to_remove=1</span></code>). Then, the mapper structures the TOD on the specified grid. Notably, the mapper is designed to effectively eliminate correlated atmospheric noise among different scans, thereby enhancing the quality of the resulting images.</p>
 <p>An example of how to run the mapper on the TOD is as follows:</p>
@@ -618,7 +620,7 @@ Cell <span class="ansi-green-fg">In[11], line 11</span>
 </div>
 </section>
 <section id="Visualizing-the-maps">
-<h2>Visualizing the maps<a class="headerlink" href="#Visualizing-the-maps" title="Link to this heading">#</a></h2>
+<h2>Visualizing the maps<a class="headerlink" href="#Visualizing-the-maps" title="Link to this heading">¶</a></h2>
 <p>As interesting as the detector setup, power spectra, and time series are, the goal of this module is to create synthetic images. In order to do that, we first save the maps to fits files, simply by running <code class="docutils literal notranslate"><span class="pre">mapper.save_maps()</span></code>. This will output the fits and update the header according to the newly set observations. The units of the fits file are the same as specified in the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class, so in Jy/pixel or in Kelvin Rayleigh Jeans. The saved fits file is a cube with axis (number of
 bands, pixels, pixels).</p>
 <div class="nbinput nblast docutils container">
@@ -788,9 +790,9 @@ bands, pixels, pixels).</p>
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

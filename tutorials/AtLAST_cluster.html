@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="AtLAST extragalactic observations" href="AtLAST_galaxy.html" /><link rel="prev" title="Mock Observations with MUSTANG-2" href="MUSTANG-2_cluster.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.04.27 -->
         <title>AtLAST Predictions - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=437aa6ec" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
@@ -115,6 +115,8 @@
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
 
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
 
 
 <div class="page">
@@ -207,9 +209,9 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <section id="AtLAST-Predictions">
-<h1>AtLAST Predictions<a class="headerlink" href="#AtLAST-Predictions" title="Link to this heading">#</a></h1>
+<h1>AtLAST Predictions<a class="headerlink" href="#AtLAST-Predictions" title="Link to this heading">¶</a></h1>
 <p>Here, you can find another example of using this simulation tool for predictions. But now, in this scenario, we’ll adjust the parameters to align with a small instrument that could be mounted on AtLAST. AtLAST will have a broad 2-degree field of view (FOV) and offer a 10” resolution at 150 GHz. This configuration provides a more comprehensive, high spatial dynamic range, ideal for observing phenomena such as the Sunyaev-Zeldovich effect in galaxy clusters.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -322,7 +324,7 @@ OUTTYPE =Comptonization y para / outputtype                                     
 </pre></div></div>
 </div>
 <section id="Fine-Tuning-Simulation-Parameters">
-<h2>Fine-Tuning Simulation Parameters<a class="headerlink" href="#Fine-Tuning-Simulation-Parameters" title="Link to this heading">#</a></h2>
+<h2>Fine-Tuning Simulation Parameters<a class="headerlink" href="#Fine-Tuning-Simulation-Parameters" title="Link to this heading">¶</a></h2>
 <p>To make predictions for AtLAST, several adjustments are required. Firstly, we need to change the pointing center. AtLAST is located near the APEX telescope in the southern hemisphere, so we set the pointing center to a Declination of -10. Additionally, we need to chance the atmospheric conditions. The defeault is set to mid-February at 6 am UT, which is an ideal time for observing with MUSTANG-2 on the GBT but not for AtLAST at Chajnantor. To achieve this, we modify the <code class="docutils literal notranslate"><span class="pre">start_time</span></code> key to
 August. This change also necessitates adjusting the Right Ascension (RA) of the pointing to ensure that the source remains above the horizon during the observation.</p>
 <p>Furthermore, we overwrite the field of view to be 2 degrees and set the scan radius of the daisy scan to 1.3 degrees. We also adjust the detector bandwidth to 52 GHz with a total of 2000 detectors, and set a scan period of 120 seconds.</p>
@@ -426,7 +428,7 @@ Sampling input map: 100%|██████████████████�
 </div>
 </section>
 <section id="Visualizing-the-TOD-Data">
-<h2>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">#</a></h2>
+<h2>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">¶</a></h2>
 <p>In this section, we present the same array and TOD visualizations as in the MUSTANG-2 case, but this time for AtLAST:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
@@ -513,7 +515,7 @@ Sampling input map: 100%|██████████████████�
 </div>
 </div>
 <section id="Map-Making">
-<h3>Map-Making<a class="headerlink" href="#Map-Making" title="Link to this heading">#</a></h3>
+<h3>Map-Making<a class="headerlink" href="#Map-Making" title="Link to this heading">¶</a></h3>
 <p>As previously mentioned, we must disable Fourier filtering. Additionally, we have adjusted the height and width of the map to match the realistic AtLAST field of view, which spans several degrees.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
@@ -607,7 +609,7 @@ Sampling input map: 100%|██████████████████�
 </div>
 </section>
 <section id="Save-&amp;-Visualize">
-<h3>Save &amp; Visualize<a class="headerlink" href="#Save-&-Visualize" title="Link to this heading">#</a></h3>
+<h3>Save &amp; Visualize<a class="headerlink" href="#Save-&-Visualize" title="Link to this heading">¶</a></h3>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
@@ -741,9 +743,9 @@ Sampling input map: 100%|██████████████████�
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
