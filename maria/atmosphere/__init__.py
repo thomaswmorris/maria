@@ -17,11 +17,9 @@ from .weather import Weather  # noqa F401
 here, this_filename = os.path.split(__file__)
 
 SPECTRA_DATA_DIRECTORY = f"{here}/data"
-SPECTRA_DATA_CACHE_DIRECTORY = "/tmp/maria/spectra"
-SPECTRA_DATA_URL_BASE = (
-    "https://github.com/thomaswmorris/maria-data/raw/master/spectra"  # noqa F401
-)
-MAX_CACHE_AGE_SECONDS = 30 * 86400
+SPECTRA_DATA_CACHE_DIRECTORY = "/tmp/maria/atmosphere/spectra"
+SPECTRA_DATA_URL_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra"  # noqa F401
+CACHE_MAX_AGE_SECONDS = 30 * 86400
 
 
 class Atmosphere:
@@ -60,7 +58,7 @@ class Atmosphere:
             utils.io.fetch_cache(
                 source_url=f"{SPECTRA_DATA_URL_BASE}/{self.spectrum_source}/{self.region}.h5",
                 cache_path=self.spectrum_source_path,
-                max_cache_age=MAX_CACHE_AGE_SECONDS,
+                CACHE_MAX_AGE=CACHE_MAX_AGE_SECONDS,
             )
             self.spectrum_from_cache = True
 
@@ -85,6 +83,26 @@ class Atmosphere:
             source=weather_source,
             from_cache=weather_from_cache,
         )
+
+    @property
+    def emission_interpolator(self):
+        return sp.interpolate.RegularGridInterpolator(
+            points=(
+                self.spectrum_side_zenith_pwv,
+                self.spectrum_side_base_temperature,
+                self.spectrum_side_elevation,
+                self.spectrum_side_nu,
+            ),
+            values=self.emission_spectrum,
+        )
+
+    def emission(self, nu, zenith_pwv=None, base_temperature=None, elevation=45):
+        if zenith_pwv is None:
+            zenith_pwv = np.median(self.spectrum_side_zenith_pwv)
+        if base_temperature is None:
+            base_temperature = np.median(self.spectrum_side_base_temperature)
+
+        return self.emission_interpolator((zenith_pwv, base_temperature, elevation, nu))
 
 
 class AtmosphereMixin:
@@ -152,6 +170,7 @@ class AtmosphereMixin:
                 layer.sim_time,
                 layer.sample(),
                 axis=-1,
+                kind="cubic",
                 bounds_error=False,
                 fill_value="extrapolate",
             )(self.boresight.time)
@@ -168,11 +187,13 @@ class AtmosphereMixin:
 
         turbulence = self._simulate_2d_turbulence()
 
-        rel_layer_scaling = np.interp(
-            self.site.altitude
-            + self.turbulent_layer_depths[:, None, None] * np.sin(self.coords.el),
+        rel_layer_scaling = sp.interpolate.interp1d(
             self.atmosphere.weather.altitude_levels,
             self.atmosphere.weather.absolute_humidity,
+            kind="linear",
+        )(
+            self.site.altitude
+            + self.turbulent_layer_depths[:, None, None] * np.sin(self.coords.el)
         )
         rel_layer_scaling /= np.sqrt(np.square(rel_layer_scaling).sum(axis=0)[None])
 
@@ -203,12 +224,16 @@ class AtmosphereMixin:
                 if self.verbose:
                     bands.set_description(f"Computing atm. emission ({band.name})")
 
-                # in watts. the 1e9 is for GHz -> Hz
-                det_power_grid = k_B * np.trapz(
-                    self.atmosphere.emission_spectrum
-                    * band.passband(self.atmosphere.spectrum_side_nu),
-                    1e9 * self.atmosphere.spectrum_side_nu,
-                    axis=-1,
+                # in picowatts. the 1e9 is for GHz -> Hz
+                det_power_grid = (
+                    1e12
+                    * k_B
+                    * np.trapz(
+                        self.atmosphere.emission_spectrum
+                        * band.passband(self.atmosphere.spectrum_side_nu),
+                        1e9 * self.atmosphere.spectrum_side_nu,
+                        axis=-1,
+                    )
                 )
 
                 band_power_interpolator = sp.interpolate.RegularGridInterpolator(

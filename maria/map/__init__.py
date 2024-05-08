@@ -288,4 +288,4 @@ class MapMixin:
         if hasattr(self, "atmospheric_transmission"):
             self.data["map"] *= self.atmospheric_transmission
 
-        self.data["map"] /= self.instrument.dets.abs_cal_rj[:, None]
+        self.data["map"] /= self.instrument.dets.pW_to_KRJ[:, None]

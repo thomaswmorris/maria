@@ -137,7 +137,9 @@ class BaseSimulation:
         self._run()
 
         tod = TOD(
-            data=da.from_array(self.tod_data.astype(dtype)),
+            components={
+                k: da.from_array(v.astype(dtype)) for k, v in self.data.items()
+            },
             dets=self.instrument.dets.df,
             coords=self.coords,
         )

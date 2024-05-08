@@ -16,10 +16,8 @@ here, this_filename = os.path.split(__file__)
 
 WEATHER_DATA_DIRECTORY = f"{here}/data"
 WEATHER_DATA_CACHE_DIRECTORY = "/tmp/maria/weather"
-WEATHER_DATA_URL_BASE = (
-    "https://github.com/thomaswmorris/maria-data/raw/master/weather"  # noqa F401
-)
-MAX_CACHE_AGE_SECONDS = 30 * 86400
+WEATHER_DATA_URL_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather"  # noqa F401
+CACHE_MAX_AGE_SECONDS = 30 * 86400
 
 
 def get_vapor_pressure(air_temp, rel_hum):  # units are (°K, %)

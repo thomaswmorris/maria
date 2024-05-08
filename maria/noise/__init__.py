@@ -21,7 +21,7 @@ class NoiseMixin:
                     * np.random.standard_normal(
                         size=(len(band_index), self.plan.n_time)
                     )
-                    / band.abs_cal_rj
+                    / band.pW_to_KRJ
                 )
 
             if band.pink_noise > 0:
@@ -33,7 +33,7 @@ class NoiseMixin:
                             size=int(self.plan.n_time),
                             dt=self.plan.dt,
                         )
-                        / band.abs_cal_rj
+                        / band.pW_to_KRJ
                     )
 
     def _spectrum_noise(self, spectrum_func, size, dt, amp=2.0):
