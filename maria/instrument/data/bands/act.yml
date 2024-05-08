@@ -1,0 +1,51 @@
+pa4:
+  f150:
+    center: 150
+    width: 50
+    shape: top_hat
+    time_constant: 0
+    white_noise: 266.e-6
+    pink_noise: 1.e-1
+    efficiency: 0.5
+  f220:
+    center: 220
+    width: 60
+    shape: top_hat
+    time_constant: 0
+    white_noise: 266.e-6
+    pink_noise: 1.e-1
+    efficiency: 0.5
+pa5:
+  f090:
+    center: 90
+    width: 30
+    shape: top_hat
+    time_constant: 0
+    white_noise: 266.e-6
+    pink_noise: 1.e-1
+    efficiency: 0.5
+  f150:
+    center: 150
+    width: 50
+    shape: top_hat
+    time_constant: 0
+    white_noise: 266.e-6
+    pink_noise: 1.e-1
+    efficiency: 0.5
+pa6:
+  f090:
+    center: 90
+    width: 30
+    shape: top_hat
+    time_constant: 0
+    white_noise: 266.e-6
+    pink_noise: 1.e-1
+    efficiency: 0.5
+  f150:
+    center: 150
+    width: 50
+    shape: top_hat
+    time_constant: 0
+    white_noise: 266.e-6
+    pink_noise: 1.e-1
+    efficiency: 0.5
