@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 
 
 def double_circle_offsets(phase, radius, miss_freq):
@@ -12,7 +13,7 @@ def double_circle_offsets(phase, radius, miss_freq):
 
 def double_circle(duration, sample_rate, speed, radius, miss_freq):
     time = np.arange(0, duration, 1 / sample_rate)
-    phase = time * speed / radius
+    phase = time * speed / radius / miss_freq
 
     return double_circle_offsets(phase, radius, miss_freq)
 
@@ -75,10 +76,16 @@ def daisy(
     # )
 
 
-def back_and_forth(duration, sample_rate, speed, x_throw=1, y_throw=1, taper=0.1):
-    scan_period = np.sqrt(x_throw**2 + y_throw**2) / speed
+def back_and_forth(
+    duration, sample_rate, speed, x_throw=1, y_throw=0, turnaround_time=1
+):
+    scan_period = 2 * np.pi * np.sqrt(x_throw**2 + y_throw**2) / speed
     phase = 2 * np.pi * np.arange(0, duration, 1 / sample_rate) / scan_period
-    smooth_sawtooth = 1 - 2 * np.arccos((1 - taper) * np.sin(phase)) / np.pi
+
+    sawtooth = sp.signal.sawtooth(phase, width=0.5)
+    smooth_sawtooth = sp.ndimage.gaussian_filter(
+        sawtooth, sigma=turnaround_time * sample_rate
+    )
 
     return x_throw * smooth_sawtooth, y_throw * smooth_sawtooth
 
