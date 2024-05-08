@@ -13,7 +13,7 @@ from matplotlib.patches import Patch
 
 from .. import utils
 from ..coords import Angle
-from .array import generate_array
+from .arrays import generate_array
 from .bands import BandList, all_bands, parse_bands_config  # noqa F401
 from .beams import compute_angular_fwhm  # noqa F401
 from .detectors import Detectors  # noqa F401
