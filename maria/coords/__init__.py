@@ -69,12 +69,15 @@ def phi_theta_to_xyz(phi, theta):
     """
     Project a longitude and lattitude onto the unit sphere.
     """
-    x = np.cos(phi) * np.cos(theta)
-    y = np.sin(phi) * np.cos(theta)
-    z = np.sin(theta)
-
     # you can add a newaxis on numpy floats, but not python floats. who knew?
-    return np.concatenate([x[..., None], y[..., None], z[..., None]], axis=-1)
+    return np.concatenate(
+        [
+            (np.cos(phi) * np.cos(theta))[..., None],
+            (np.sin(phi) * np.cos(theta))[..., None],
+            (np.sin(theta))[..., None],
+        ],
+        axis=-1,
+    )
 
 
 def xyz_to_phi_theta(xyz):
@@ -302,14 +305,29 @@ class Coordinates:
         )
 
     @functools.cached_property
+    def boresight(self):
+        cphi, ctheta = get_center_phi_theta(self.phi, self.theta, keep_last_dim=True)
+
+        return Coordinates(
+            time=self.time,
+            phi=cphi,
+            theta=ctheta,
+            location=self.location,
+            frame=self.frame,
+            dtype=self.dtype,
+            time_offset=self.time_offset,
+        )
+
+    @functools.cached_property
     def summary(self):
         # compute summary for the string repr
         summary = pd.DataFrame(columns=["min", "mean", "max"])
+        boresight = self.boresight
         for attr in ["az", "el", "ra", "dec"]:
             for stat in ["min", "mean", "max"]:
                 summary.loc[
                     attr, stat
-                ] = f"{float(np.degrees(getattr(getattr(self, attr), stat)().compute())):.03f}°"
+                ] = f"{float(np.degrees(getattr(getattr(boresight, attr), stat)().compute())):.03f}°"
 
         return summary
 

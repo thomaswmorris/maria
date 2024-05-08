@@ -4,24 +4,30 @@ import time as ttime
 from collections.abc import Mapping
 from datetime import datetime
 
+import h5py
 import pytz
 import requests
 import yaml
 
 
-def flatten_config(m: str, prefix: str = ""):
+def flatten_config(m: dict, prefix: str = ""):
     """
     Turn any dict into a mapping of mappings.
     """
+
     # if too shallow, add a dummy index
-    if not all(isinstance(v, Mapping) for k, v in m.items()):
+    if not isinstance(m, Mapping):
+        return flatten_config({"": m}, prefix="")
+
+    # if too shallow, add a dummy index
+    if not all(isinstance(v, Mapping) for v in m.values()):
         return flatten_config({"": m}, prefix="")
 
     # recursion!
     items = []
     for k, v in m.items():
         new_key = f"{prefix}/{k}" if prefix else k
-        if all(isinstance(vv, Mapping) for kk, vv in v.items()):
+        if all(isinstance(vv, Mapping) for vv in v.values()):
             items.extend(flatten_config(v, new_key).items())
         else:
             items.append((new_key, v))
@@ -36,7 +42,7 @@ def read_yaml(path: str):
     return res if res is not None else {}
 
 
-def cache_is_ok(path: str, max_cache_age: float = 86400):
+def cache_is_ok(path: str, CACHE_MAX_AGE: float = 86400):
     """
     Check if we need to reload the cache.
     """
@@ -45,7 +51,19 @@ def cache_is_ok(path: str, max_cache_age: float = 86400):
 
     cache_age = ttime.time() - os.path.getmtime(path)
 
-    if cache_age > max_cache_age:
+    if cache_age > CACHE_MAX_AGE:
+        return False
+
+    extension = path.split(".")[-1]
+
+    try:
+        if extension == "h5":
+            with h5py.File(path, "r") as f:
+                f.keys()
+        else:
+            with open(path, "r") as f:
+                f.read()
+    except Exception:
         return False
 
     return True
@@ -54,7 +72,7 @@ def cache_is_ok(path: str, max_cache_age: float = 86400):
 def fetch_cache(
     source_url: str,
     cache_path: str,
-    max_cache_age: float = 7 * 86400,
+    CACHE_MAX_AGE: float = 7 * 86400,
     refresh: bool = False,
     chunk_size: int = 8192,
 ):
@@ -68,7 +86,7 @@ def fetch_cache(
         print(f"created cache at {cache_dir}")
         os.makedirs(cache_dir, exist_ok=True)
 
-    if (not cache_is_ok(cache_path, max_cache_age=max_cache_age)) or refresh:
+    if (not cache_is_ok(cache_path, CACHE_MAX_AGE=CACHE_MAX_AGE)) or refresh:
         print(f"updating cache from {source_url}")
 
         with requests.get(source_url, stream=True) as r:

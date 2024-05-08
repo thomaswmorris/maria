@@ -1,4 +1,6 @@
+import copy
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from operator import attrgetter
 
@@ -11,8 +13,9 @@ from matplotlib.patches import Patch
 
 from .. import utils
 from ..coords import Angle
-from .bands import BandList  # noqa F401
-from .beams import compute_angular_fwhm, construct_beam_filter  # noqa F401
+from .array import generate_array
+from .bands import BandList, all_bands, parse_bands_config  # noqa F401
+from .beams import compute_angular_fwhm  # noqa F401
 from .detectors import Detectors  # noqa F401
 
 HEX_CODE_LIST = [
@@ -61,6 +64,112 @@ def get_instrument(instrument_name="default", **kwargs):
     return Instrument.from_config(instrument_config)
 
 
+subarray_params_to_inherit = [
+    "array_packing",
+    "array_shape",
+    "array_offset",
+    "beam_spacing",
+    "baseline_diameter",
+    "baseline_packing",
+    "baseline_shape",
+    "baseline_offset",
+    "bath_temp",
+    "polarization",
+    "primary_size",
+    "bands",
+    "field_of_view",
+]
+
+band_params_to_inherit = {
+    "time_constant": 0.0,  # seconds
+    "white_noise": 0.0,  # Kelvin
+    "pink_noise": 0.0,  # Kelvin / s
+    "efficiency": 1.0,
+}
+
+passband_params_to_inherit = {
+    "center": 150,  # GHz
+    "width": 30,  # GHz
+    "shape": "top_hat",
+}
+
+allowed_subarray_params = {
+    "n": "int",
+    "array_packing": "float",
+    "array_shape": "float",
+    "array_offset": "float",
+    "beam_spacing": "float",
+    "baseline_diameter": "float",
+    "baseline_packing": "float",
+    "baseline_shape": "float",
+    "baseline_offset": "float",
+    "bath_temp": "float",
+    "polarization": "float",
+    "primary_size": "float",
+    "field_of_view": "float",
+    "bands": "float",
+}
+
+
+def check_subarray_format(subarray):
+    if isinstance(subarray.get("file"), str):
+        return True
+    if isinstance(subarray, Mapping):
+        return all(k in allowed_subarray_params for k in subarray)
+    return False
+
+
+def get_subarrays(instrument_config):
+    """
+    Make the subarrays!
+    """
+
+    config = copy.deepcopy(instrument_config)
+
+    if "array" in config:
+        subarray = config.pop("array")
+        if check_subarray_format(subarray):
+            config["arrays"] = {"": subarray}
+        else:
+            raise ValueError(f"Invalid array configuration: {subarray}")
+
+    subarrays = {}
+
+    for subarray_name in config["arrays"]:
+        subarray = config["arrays"][subarray_name]
+        subarray["bands"] = parse_bands_config(subarray.get("bands"))
+
+        if "file" in subarray:  # it points to a file:
+            subarray["file"] = f"{here}/{subarray['file']}"
+            df = pd.read_csv(subarray["file"])
+
+            subarray["n"] = len(df)
+            for band_name in np.unique(df.band_name.values):
+                subarray["bands"][band_name] = all_bands[band_name]
+
+        for param in subarray_params_to_inherit:
+            if param in config:
+                subarray[param] = config[param]
+
+        if "bands" not in subarray:
+            if "band" in subarray:
+                subarray["bands"] = [subarray.pop("band")]
+            else:
+                raise ValueError("You must pass 'bands' for each array.")
+
+        for band_name, band_config in subarray["bands"].items():
+            for param, default_value in band_params_to_inherit.items():
+                band_config[param] = band_config.get(param, default_value)
+
+            if "passband" not in band_config:
+                for param, default_value in passband_params_to_inherit.items():
+                    band_config[param] = band_config.get(param, default_value)
+
+        subarrays[subarray_name] = subarray
+
+    return subarrays
+
+
 @dataclass
 class Instrument:
     """
@@ -79,13 +188,46 @@ class Instrument:
 
     @classmethod
     def from_config(cls, config):
-        dets = Detectors.from_config(config=config)
+        subarrays = get_subarrays(copy.deepcopy(config))
+
+        bands = BandList(bands=[])
+        df = pd.DataFrame(columns=["uid", "array_name", "band_name", "band_center"])
+
+        for subarray_name, subarray in subarrays.items():
+            array_bands = BandList.from_config(subarray["bands"])
+            array_df = generate_array(**subarray)
+
+            if "file" in subarray:
+                for col, values in pd.read_csv(
+                    subarray["file"], index_col=0
+                ).T.iterrows():
+                    array_df[col] = values
+
+            # add leading zeros to detector uids
+            fill_level = int(np.log(np.maximum(len(array_df) - 1, 1)) / np.log(10) + 1)
+
+            uid_predix = f"{subarray_name}_" if subarray_name else ""
+            uids = [
+                f"{uid_predix}{str(i).zfill(fill_level)}" for i in range(len(array_df))
+            ]
+
+            array_df.insert(0, "uid", uids)
+            array_df.insert(1, "array_name", subarray_name)
+
+            df = pd.concat([df, array_df])
+
+            for band in array_bands:
+                bands.add(band)
+
+        df.index = np.arange(len(df))
+
+        dets = Detectors(df=df, bands=bands)
 
         for key in ["dets", "aliases"]:
             if key in config:
                 config.pop(key)
 
-        return cls(bands=dets.bands, dets=dets, **config)
+        return cls(bands=dets.bands, dets=dets)
 
     def __post_init__(self):
         self.field_of_view = np.round(np.degrees(self.dets.sky_x.ptp()), 3)

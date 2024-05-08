@@ -1,4 +1,4 @@
-,band,baseline_x,baseline_y,baseline_z,pad
+,band_name,baseline_x,baseline_y,baseline_z,pad
 0,alma/f324,-33.89412596,-712.7516484,-2.330089496,A001
 1,alma/f324,-17.45390887,-709.6086972,-2.32867142,A002
 2,alma/f324,-22.5589292,-691.9838607,-2.323742384,A003

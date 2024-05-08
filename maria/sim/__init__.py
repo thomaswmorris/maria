@@ -75,7 +75,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             self._initialize_atmosphere()
 
         if self.cmb_source:
-            self._initialize_cmb()
+            self._initialize_cmb(source=self.cmb_source)
 
     def _run(self):
         # number of bands are lost here
@@ -89,20 +89,17 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             self._simulate_cmb_emission()
 
             # convert to source Rayleigh-Jeans
-            # self.data["atmosphere"] *= self.instrument.dets.abs_cal_rj[:, None]
+            # self.data["atmosphere"] *= self.instrument.dets.pW_to_KRJ[:, None]
             # self.data["atmosphere"] /= self.atmospheric_transmission
 
         if hasattr(self, "map"):
             self._sample_maps()
 
-        self.tod_data = sum(
-            [self.data.get(k, 0) for k in ["atmosphere", "cmb", "map", "noise"]]
-        )
-
+        # calibrate so that there is unit efficiency to celestial sources
         if hasattr(self, "atmospheric_transmission"):
-            self.tod_data /= self.atmospheric_transmission
-
-        self.tod_data *= self.instrument.dets.abs_cal_rj[:, None]
+            for k in self.data:
+                self.data[k] /= self.atmospheric_transmission
+                self.data[k] *= self.instrument.dets.pW_to_KRJ[:, None]
 
     def __repr__(self):
         object_reprs = [

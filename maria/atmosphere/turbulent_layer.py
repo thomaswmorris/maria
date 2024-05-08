@@ -31,7 +31,7 @@ class TurbulentLayer:
         res: float,
         turbulent_outer_scale: float = 500,
         verbose: bool = False,
-        timestep: float = 0.1,
+        timestep: float = 0.05,
         **kwargs,
     ):
         self.instrument = instrument
