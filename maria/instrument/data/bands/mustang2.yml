@@ -6,3 +6,11 @@ f093:
   white_noise: 266.e-6 # in K_RJ s^-1/2
   pink_noise: 1.e-1 # in K_RJ s^-1/2
   efficiency: 0.5
+
+
+f093-custom:
+  passband: data/passbands/mustang2/f093.csv
+  time_constant: 0
+  white_noise: 266.e-6 # in K_RJ s^-1/2
+  pink_noise: 1.e-1 # in K_RJ s^-1/2
+  efficiency: 0.2
