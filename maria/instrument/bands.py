@@ -1,5 +1,6 @@
 import glob
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -7,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from .. import utils
-from ..constants import k_B
+from ..constants import c, k_B
 from ..utils.io import flatten_config, read_yaml
 
 BAND_FIELD_TYPES = {
@@ -23,15 +24,48 @@ BAND_FIELD_TYPES = {
 here, this_filename = os.path.split(__file__)
 
 all_bands = {}
-for path in glob.glob(f"{here}/bands/*.yml"):
+for path in glob.glob(f"{here}/data/bands/*.yml"):
     tag = os.path.split(path)[1].split(".")[0]
     all_bands[tag] = read_yaml(path)
 all_bands = {}
-for path in glob.glob(f"{here}/bands/*.yml"):
+for path in glob.glob(f"{here}/data/bands/*.yml"):
     tag = os.path.split(path)[1].split(".")[0]
     all_bands[tag] = read_yaml(path)
 
 all_bands = flatten_config(all_bands)
+
+
+def validate_band_config(band):
+    if "passband" not in band:
+        if any([key not in band for key in ["center", "width"]]):
+            raise ValueError("The band's center and width must be specified!")
+
+
+def parse_bands_config(bands):
+    """
+    There are many ways to specify bands, and this handles them.
+    """
+    parsed_band_config = {}
+
+    if isinstance(bands, Mapping):
+        for name, band in bands.items():
+            validate_band_config(band)
+            parsed_band_config[name] = band
+        return parsed_band_config
+
+    if isinstance(bands, list):
+        for band in bands:
+            if isinstance(band, str):
+                if band not in all_bands:
+                    raise ValueError(f'Band "{band}" is not supported.')
+                parsed_band_config[band] = all_bands[band]
+
+            if isinstance(band, Mapping):
+                validate_band_config(band)
+                name = band.get("name", f'f{int(band["center"]):>03}')
+                parsed_band_config[name] = band
+
+    return parsed_band_config
 
 
 class BandList(Sequence):
@@ -50,12 +84,20 @@ class BandList(Sequence):
             bands.append(Band(name=name, **band_config))
         return cls(bands=bands)
 
+    def add(self, band):
+        if band.name not in self.names:
+            self.bands.append(band)
+        else:
+            raise ValueError()
+
     def __init__(self, bands: list = []):
         self.bands = bands
 
     def __getattr__(self, attr):
         if attr in self.names:
             return self.__getitem__(attr)
+        if [hasattr(band, attr) for band in self.bands]:
+            return [getattr(band, attr) for band in self.bands]
         raise AttributeError(f"BandList object has no attribute named '{attr}'.")
 
     def __getitem__(self, index):
@@ -74,10 +116,10 @@ class BandList(Sequence):
         return len(self.bands)
 
     def __repr__(self):
-        return self.summary.__repr__()
+        return self.summary.T.__repr__()
 
     def __repr_html__(self):
-        return self.summary.__repr_html__()
+        return self.summary.T.__repr_html__()
 
     def __short_repr__(self):
         return f"BandList([{', '.join(self.names)}])"
@@ -110,16 +152,22 @@ class Band:
     efficiency: float = 1.0
 
     @classmethod
-    def from_passband(cls, name, nu, pb, pb_err=None):
-        center = np.round(np.sum(pb * nu), 3)
-        width = np.round(nu[pb > 1e-2 * pb.max()].ptp(), 3)
+    def from_config(cls, name, config):
+        if "passband" in config:
+            df = pd.read_csv(f"{here}/{config.pop('passband')}", index_col=0)
 
-        band = cls(name=name, center=center, width=width, shape="custom")
+            nu, pb = df.nu.values, df.passband.values
 
-        band._nu = nu
-        band._pb = pb
+            center = np.round(np.sum(pb * nu), 3)
+            width = np.round(nu[pb > 1e-2 * pb.max()].ptp(), 3)
 
-        return band
+            band = cls(name=name, center=center, width=width, shape="custom", **config)
+            band._nu = nu
+            band._pb = pb
+            return band
+
+        else:
+            return cls(name=name, **config)
 
     @property
     def nu_min(self) -> float:
@@ -158,10 +206,21 @@ class Band:
             return np.interp(_nu, self._nu, self._pb)
 
     @property
-    def abs_cal_rj(self):
+    def pW_to_KRJ(self):
         """
-        Absolute calibration (i.e. temperature per power) in Kelvins per Watt.
+        Absolute calibration (i.e. temperature per power) in Kelvins per picowatt.
         """
         nu = np.linspace(self.nu_min, self.nu_max, 256)
-        dP_dT = self.efficiency * np.trapz(self.passband(nu) * k_B, 1e9 * nu)
-        return 1 / dP_dT
+        dP_dT = (
+            self.efficiency
+            * np.trapz(2 * k_B * (1e9 * nu) ** 2 * self.passband(nu), 1e9 * nu)
+            / c**2
+        )
+        return 1e-12 / dP_dT
+
+    @property
+    def wavelength(self):
+        """
+        Return the wavelength of the center, in meters.
+        """
+        return c / (1e9 * self.center)

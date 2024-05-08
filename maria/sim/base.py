@@ -1,5 +1,6 @@
 import os
 
+import dask.array as da
 import numpy as np
 
 from .. import utils
@@ -89,11 +90,12 @@ class BaseSimulation:
         self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
 
         self.boresight = Coordinates(
-            self.plan.time,
+            self.plan.time - self.plan.time.min(),
             self.plan.phi,
             self.plan.theta,
             location=self.site.earth_location,
             frame=self.plan.pointing_frame,
+            time_offset=self.plan.time.min(),
         )
 
         if self.plan.max_vel > np.radians(self.instrument.vel_limit):
@@ -116,27 +118,30 @@ class BaseSimulation:
             *self.instrument.offsets.T[..., None], self.boresight.az, self.boresight.el
         )
 
-        self.det_coords = Coordinates(
+        self.coords = Coordinates(
             self.boresight.time,
             det_az,
             det_el,
             location=self.site.earth_location,
             frame="az_el",
+            time_offset=self.boresight.time_offset,
         )
 
     def _run(self):
         raise NotImplementedError()
 
-    def run(self):
+    def run(self, dtype=np.float32):
         self.data = {}
 
         # Simulate all the junk
         self._run()
 
         tod = TOD(
-            data=self.tod_data,
+            components={
+                k: da.from_array(v.astype(dtype)) for k, v in self.data.items()
+            },
             dets=self.instrument.dets.df,
-            coords=self.det_coords,
+            coords=self.coords,
         )
 
         return tod

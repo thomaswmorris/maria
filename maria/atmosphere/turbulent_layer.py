@@ -29,15 +29,21 @@ class TurbulentLayer:
         weather: Weather,
         depth: float,
         res: float,
-        turbulent_outer_scale: float,
+        turbulent_outer_scale: float = 500,
         verbose: bool = False,
+        timestep: float = 0.05,
         **kwargs,
     ):
         self.instrument = instrument
-        self.boresight = boresight
+        self.boresight = boresight.downsample(timestep=timestep)
         self.weather = weather
         self.depth = depth
         self.res = res
+        self.timestep = timestep
+
+        self.sim_time = self.boresight.time.compute()
+        self.sim_az = self.boresight.az.compute()
+        self.sim_el = self.boresight.el.compute()
 
         # this is approximately correct
         # self.depth = self.depth / np.sin(np.mean(self.plan.el))
@@ -54,9 +60,7 @@ class TurbulentLayer:
         if verbose:
             print(f"{self.angular_resolution = }")
 
-        self.layer_altitude = self.weather.altitude + self.depth / np.sin(
-            self.boresight.el
-        )
+        self.layer_altitude = self.weather.altitude + self.depth / np.sin(self.sim_el)
 
         layer_wind_north = sp.interpolate.interp1d(
             self.weather.altitude_levels, self.weather.wind_north, axis=0
@@ -66,31 +70,27 @@ class TurbulentLayer:
         )(self.layer_altitude)
 
         angular_velocity_x = (
-            +layer_wind_east * np.cos(self.boresight.az)
-            - layer_wind_north * np.sin(self.boresight.az)
+            +layer_wind_east * np.cos(self.sim_az)
+            - layer_wind_north * np.sin(self.sim_az)
         ) / self.depth
 
         angular_velocity_y = (
-            -layer_wind_east * np.sin(self.boresight.az)
-            + layer_wind_north * np.cos(self.boresight.az)
+            -layer_wind_east * np.sin(self.sim_az)
+            + layer_wind_north * np.cos(self.sim_az)
         ) / self.depth
 
         if verbose:
             print(f"{(layer_wind_east, layer_wind_north) = }")
 
         # compute the offset with respect to the center of the scan
-        center_az, center_el = get_center_phi_theta(
-            self.boresight.az, self.boresight.el
-        )
+        center_az, center_el = get_center_phi_theta(self.sim_az, self.sim_el)
         dx, dy = self.boresight.offsets(frame="az_el", center=(center_az, center_el))
 
-        # the angular position of each detector over time WRT the atmosphere
-        # this has dimensions (det index, time index)
+        # the angular position of the boresight over time WRT the atmosphere
+        # this has dimensions (2, time index)
         self.boresight_angular_position = np.c_[
-            dx
-            + np.cumsum(angular_velocity_x * np.gradient(self.boresight.time), axis=-1),
-            dy
-            + np.cumsum(angular_velocity_y * np.gradient(self.boresight.time), axis=-1),
+            dx + np.cumsum(angular_velocity_x * np.gradient(self.sim_time)),
+            dy + np.cumsum(angular_velocity_y * np.gradient(self.sim_time)),
         ]
 
         # find the detector offsets which form a convex hull
@@ -98,7 +98,7 @@ class TurbulentLayer:
             np.c_[self.instrument.sky_x, self.instrument.sky_y]
         )
 
-        # add a small circle of offsets to account for pesky zeros
+        # add a small circle of offsets to account for the beams
         unit_circle_complex = np.exp(1j * np.linspace(0, 2 * np.pi, 64 + 1)[:-1])
         unit_circle_offsets = np.c_[
             np.real(unit_circle_complex), np.imag(unit_circle_complex)
@@ -112,16 +112,16 @@ class TurbulentLayer:
                 * unit_circle_offsets[None]
             ).reshape(-1, 2)
         )
-        stare_convex_hull_points = stare_convex_hull.points.reshape(-1, 2)[
+        stare_convex_hull_points = stare_convex_hull.points[
             stare_convex_hull.vertices
-        ]
+        ].reshape(-1, 2)
 
         # convex hull downsample index, to get to 1 second
         chds_index = [
             *np.arange(
                 0,
-                len(self.boresight.time),
-                int(np.maximum(np.gradient(self.boresight.time).mean(), 1)),
+                len(self.sim_time),
+                int(np.maximum(np.median(np.diff(self.sim_time)), 1)),
             ),
             -1,
         ]
@@ -129,8 +129,8 @@ class TurbulentLayer:
         # this is a convex hull for the atmosphere
         atmosphere_hull = sp.spatial.ConvexHull(
             (
-                stare_convex_hull_points[None, :, None]
-                + self.boresight_angular_position[None, chds_index]
+                self.boresight_angular_position[chds_index, None]
+                + stare_convex_hull_points[None]
             ).reshape(-1, 2)
         )
         self.atmosphere_hull_points = atmosphere_hull.points.reshape(-1, 2)[

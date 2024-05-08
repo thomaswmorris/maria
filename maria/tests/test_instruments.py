@@ -31,6 +31,7 @@ beam_packing_dets = {
     "subarray-1": {
         "field_of_view": 0.2,
         "beam_spacing": 1,
+        "primary_size": 10,
         "array_shape": "hex",
         "array_packing": "sunflower",
         "band": {"center": 30, "width": 5},

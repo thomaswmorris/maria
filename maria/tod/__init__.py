@@ -1,3 +1,4 @@
+import functools
 import json
 
 import h5py
@@ -6,9 +7,7 @@ import pandas as pd
 import scipy as sp
 from astropy.io import fits
 
-from .. import instrument, site
-from ..coords import Coordinates, get_center_phi_theta
-from ..instrument.detectors import Detectors
+from ..coords import Coordinates
 
 
 class TOD:
@@ -16,126 +15,28 @@ class TOD:
     Time-ordered data. This has per-detector pointing and data.
     """
 
-    @staticmethod
-    def from_fits(fname: str, format: str, **kwargs):
-        if format.lower() == "mustang-2":
-            return TOD._from_mustang2(fname=fname, **kwargs)
-
-        if format.lower() == "atlast":
-            return TOD._from_atlast(fname=fname, **kwargs)
-
-        if format.lower() == "abs":
-            ...
-
-        if format.lower() == "act":
-            ...
-
-    @classmethod
-    def _from_atlast(
-        cls, fname: str, hdu: int = 1, band_center: int = 93, band_width: int = 52
-    ):
-        f = fits.open(fname)
-        raw = f[hdu].data
-
-        det_uids, det_counts = np.unique(raw["PIXID"], return_counts=True)
-
-        if det_counts.std() > 0:
-            raise ValueError("Cannot reshape a ragged TOD.")
-
-        n_dets = len(det_uids)
-        n_samp = det_counts.max()
-
-        data = {"data": raw["FNU"].astype("float32").reshape((n_dets, n_samp))}
-
-        ra = raw["dx"].astype(float).reshape((n_dets, n_samp))
-        dec = raw["dy"].astype(float).reshape((n_dets, n_samp))
-        t = 1.6e9 + raw["time"].astype(float).reshape((n_dets, n_samp)).mean(axis=0)
-
-        coords = Coordinates(
-            time=t,
-            phi=ra,
-            theta=dec,
-            location=site.get_location("llano_de_chajnantor"),
-            frame="ra_dec",
-        )
-
-        dets = Detectors.generate(
-            bands_config={
-                "f093": {
-                    "n_dets": n_dets,
-                    "band_center": band_center,
-                    "band_width": band_width,
-                }
-            }
-        )
-
-        return cls(coords=coords, dets=dets, data=data, units={"data": "K"})
-
-    @classmethod
-    def _from_mustang2(cls, fname: str, hdu: int = 1):
-        f = fits.open(fname)
-        raw = f[hdu].data
-
-        det_uids, det_counts = np.unique(raw["PIXID"], return_counts=True)
-
-        if det_counts.std() > 0:
-            raise ValueError("Cannot reshape a ragged TOD.")
-
-        n_dets = len(det_uids)
-        n_samp = det_counts.max()
-
-        data = raw["FNU"].astype("float32").reshape((n_dets, n_samp))
-
-        ra = raw["dx"].astype(float).reshape((n_dets, n_samp))
-        dec = raw["dy"].astype(float).reshape((n_dets, n_samp))
-        t = 1.6e9 + raw["time"].astype(float).reshape((n_dets, n_samp)).mean(axis=0)
-
-        coords = Coordinates(
-            time=t,
-            phi=ra,
-            theta=dec,
-            location=site.get_location("green_bank"),
-            frame="ra_dec",
-        )
-
-        m2_config = instrument.get_instrument_config(instrument_name="MUSTANG-2")
-        m2_config["dets"]["n"] = n_dets
-
-        dets = Detectors.from_config(m2_config)
-
-        return cls(coords=coords, dets=dets, data=data, units={"data": "K"})
-
     def __init__(
         self,
         coords: Coordinates,
-        data: np.array,
+        components: dict = {},
         units: dict = {},
         dets: pd.DataFrame = None,
-        boresight: Coordinates = None,
         abscal: float = 1.0,
     ):
         self.coords = coords
         self.dets = dets
-        self.data = data
+        self.components = components
         self.header = fits.header.Header()
         self.abscal = abscal
-
-        # if no boresight is supplied, infer it from the inputs
-        if boresight is not None:
-            self.boresight = boresight
-        else:
-            boresight_az, boresight_el = get_center_phi_theta(
-                coords.az, coords.el, keep_last_dim=True
-            )
-            self.boresight = Coordinates(
-                time=coords.time,
-                phi=boresight_az,
-                theta=boresight_el,
-                location=coords.location,
-                frame="az_el",
-            )
-
         self.units = units
+
+    @functools.cached_property
+    def data(self):
+        return sum(self.components.values())
+
+    @functools.cached_property
+    def boresight(self):
+        return self.coords.boresight
 
     @property
     def dt(self):
@@ -161,7 +62,7 @@ class TOD:
             return self.subset(det_mask=det_mask)
 
         if time_mask is not None:
-            if not (len(time_mask) == self.nt):
+            if len(time_mask) != self.nt:
                 raise ValueError("The detector mask must have shape (n_dets,).")
 
             subset_coords = Coordinates(
@@ -336,7 +237,7 @@ class TOD:
 
     def to_hdf(self, fname):
         with h5py.File(fname, "w") as f:
-            f.create_dataset(fname)
+            f.createcomponentsset(fname)
 
 
 class KeyNotFoundError(Exception):

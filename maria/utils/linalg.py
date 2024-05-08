@@ -42,6 +42,32 @@ def get_rotation_matrix_3d(angles, axis=0):
     return R.reshape(*np.shape(angles), 3, 3)
 
 
+def compute_optimal_rotation(points):
+    if points.ndim != 2:
+        raise ValueError("'points' must be an (n_dim, n_points) array.")
+
+    d = len(points)
+    i, j = np.triu_indices(n=d, k=1)
+
+    def rotation_matrix_from_skew_entries(s):
+        S = np.zeros((d, d))
+        S[i, j] = s
+        return sp.linalg.expm(S + -S.T)
+
+    def loss(x, *args):
+        R = rotation_matrix_from_skew_entries(x)
+        return sum(np.log((R @ args[0]).ptp(axis=1)) * np.array([-1, *np.ones(d - 1)]))
+
+    res = sp.optimize.minimize(
+        loss, x0=np.zeros(int(d * (d - 1) / 2)), args=points, tol=1e-10, method="SLSQP"
+    )
+
+    if not res.success:
+        raise RuntimeError("Could not find optimal rotation.")
+
+    return rotation_matrix_from_skew_entries(res.x)
+
+
 def optimize_area_minimizing_rotation_matrix(points):
     def log_dimension_ratio(a):
         trans_points = points @ get_rotation_matrix_2d(a).T
