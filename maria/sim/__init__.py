@@ -28,12 +28,13 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         instrument: Instrument or str = "default",
         plan: Plan or str = "daisy",
         site: Site or str = "hoagie_haven",
-        map: Map = None,
         atmosphere: str = None,
         cmb: CMB or str = None,
+        map: Map = None,
         noise: bool = True,
         atmosphere_kwargs: dict = {},
         cmb_kwargs: dict = {},
+        map_kwargs: dict = {},
         noise_kwargs: dict = {},
         verbose: bool = True,
     ):
@@ -60,22 +61,10 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         self.noise = noise
 
-        # self.noise = True
-
-        # self.params = {}
-
-        # for sub_type, sub_master_params in master_params.items():
-        #     self.params[sub_type] = {}
-        #     if sub_type in ["instrument", "site", "plan"]:
-        #         sub_type_dataclass = getattr(self, sub_type)
-        #         for k in sub_type_dataclass.__dataclass_fields__.keys():
-        #             v = getattr(sub_type_dataclass, k)
-        #             setattr(self, k, v)
-        #             self.params[sub_type][k] = v
-        #     else:
-        #         for k, v in sub_master_params.items():
-        #             setattr(self, k, kwargs.get(k, v))
-        #             self.params[sub_type][k] = v
+        self.atmosphere_kwargs = atmosphere_kwargs
+        self.cmb_kwargs = cmb_kwargs
+        self.map_kwargs = map_kwargs
+        self.noise_kwargs = noise_kwargs
 
         if map:
             self.map = map
