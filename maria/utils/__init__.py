@@ -3,6 +3,8 @@ from datetime import datetime
 
 import pytz
 
+from . import linalg, signal  # noqa
+
 
 def get_utc_day_hour(t):
     dt = datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc)

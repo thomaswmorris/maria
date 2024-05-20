@@ -99,14 +99,18 @@ class Band:
 
         self.spectrum = Spectrum(region="chajnantor")
 
-        if NEP is not None:
-            if sensitivity is not None:
-                raise RuntimeError(
-                    "When defining a band, you must specify exactly one of 'NEP' or 'sensitivity'."
-                )
+        if (NEP is None) and (sensitivity is None):
+            self.NEP = 0
+
+        elif (NEP is not None) and (sensitivity is not None):
+            raise RuntimeError(
+                "When defining a band, you must specify exactly one of 'NEP' or 'sensitivity'."
+            )  # noqa
+
+        elif NEP is not None:
             self.NEP = NEP
 
-        if sensitivity is not None:
+        elif sensitivity is not None:
             self.set_sensitivity(
                 sensitivity, kind=sensitivity_kind
             )  # this sets the NEP automatically
