@@ -1,53 +1,53 @@
 f027:
   center: 27
   width: 5
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
   efficiency: 1.0
-  white_noise: 0
-  pink_noise: 0
+  NEP: 1.0 # pW / sqrt(s)
+  knee: 1.0 # Hz
 
 f039:
   center: 39
   width: 5
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
   efficiency: 1.0
-  white_noise: 0
-  pink_noise: 0
+  NEP: 1.0 # pW / sqrt(s)
+  knee: 1.0 # Hz
 
 f093:
   center: 93
   width: 10
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
   efficiency: 1.0
-  white_noise: 0
-  pink_noise: 0
+  NEP: 1.0 # pW / sqrt(s)
+  knee: 1.0 # Hz
 
 f150:
   center: 150
   width: 10
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
   efficiency: 1.0
-  white_noise: 0
-  pink_noise: 0
+  NEP: 1.0 # pW / sqrt(s)
+  knee: 1.0 # Hz
 
 f225:
   center: 225
   width: 30
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
   efficiency: 1.0
-  white_noise: 0
-  pink_noise: 0
+  NEP: 1.0 # pW / sqrt(s)
+  knee: 1.0 # Hz
 
 f280:
   center: 280
   width: 40
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
   efficiency: 1.0
-  white_noise: 0
-  pink_noise: 0
+  NEP: 1.0 # pW / sqrt(s)
+  knee: 1.0 # Hz
