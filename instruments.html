@@ -292,15 +292,12 @@ For example, we can give ACT twice the resolution with</p>
 </pre></div>
 </div>
 <p>Custom arrays of detectors are a bit more complicated. For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f090</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
-<span class="n">f150</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
-
-<span class="n">dets</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span>
         <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f090</span><span class="p">,</span> <span class="n">f150</span><span class="p">]}</span>
+        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}}</span>
 
-<span class="n">my_custom_array</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">dets</span><span class="o">=</span><span class="n">dets</span><span class="p">)</span>
+<span class="n">my_custom_array</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="n">array</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Actually, there are several valid ways to define an array of detectors.
