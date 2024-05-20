@@ -2,50 +2,50 @@ pa4:
   f150:
     center: 150
     width: 50
-    shape: top_hat
+    shape: gaussian
     time_constant: 0
-    white_noise: 266.e-6
-    pink_noise: 1.e-1
+    NEP: 1.0 # pW / sqrt(s)
+    knee: 1.0 # Hz
     efficiency: 0.5
   f220:
     center: 220
     width: 60
-    shape: top_hat
+    shape: gaussian
     time_constant: 0
-    white_noise: 266.e-6
-    pink_noise: 1.e-1
+    NEP: 1.0 # pW / sqrt(s)
+    knee: 1.0 # Hz
     efficiency: 0.5
 pa5:
   f090:
     center: 90
     width: 30
-    shape: top_hat
+    shape: gaussian
     time_constant: 0
-    white_noise: 266.e-6
-    pink_noise: 1.e-1
+    NEP: 1.0 # pW / sqrt(s)
+    knee: 1.0 # Hz
     efficiency: 0.5
   f150:
     center: 150
     width: 50
-    shape: top_hat
+    shape: gaussian
     time_constant: 0
-    white_noise: 266.e-6
-    pink_noise: 1.e-1
+    NEP: 1.0 # pW / sqrt(s)
+    knee: 1.0 # Hz
     efficiency: 0.5
 pa6:
   f090:
     center: 90
     width: 30
-    shape: top_hat
+    shape: gaussian
     time_constant: 0
-    white_noise: 266.e-6
-    pink_noise: 1.e-1
+    NEP: 1.0 # pW / sqrt(s)
+    knee: 1.0 # Hz
     efficiency: 0.5
   f150:
     center: 150
     width: 50
-    shape: top_hat
+    shape: gaussian
     time_constant: 0
-    white_noise: 266.e-6
-    pink_noise: 1.e-1
+    NEP: 1.0 # pW / sqrt(s)
+    knee: 1.0 # Hz
     efficiency: 0.5
