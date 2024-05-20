@@ -5,7 +5,7 @@ Credits
 Maintainer
 ----------
 
-* Thomas Morris <thomasmorris@princeton.edu>
+* Thomas Morris <thomas.w.morris@yale.edu>
 
 Contributors
 ------------
