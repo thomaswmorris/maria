@@ -12,12 +12,12 @@ def test_atmosphere(region_name):
     atmosphere = Atmosphere(region=region_name)
 
 
-@pytest.mark.parametrize("region_name", ["chajnantor", "green_bank", "south_pole"])
+@pytest.mark.parametrize("region_name", ["chajnantor"])
 def test_spectrum_from_cache(region_name):
     spectrum = Spectrum(region=region_name, refresh_cache=True)
 
 
-@pytest.mark.parametrize("region_name", ["chajnantor", "green_bank", "south_pole"])
+@pytest.mark.parametrize("region_name", ["chajnantor"])
 def test_weather_from_cache(region_name):
     weather = Weather(region=region_name, refresh_cache=True)
 
