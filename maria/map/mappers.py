@@ -4,10 +4,10 @@ from typing import Sequence, Tuple
 import numpy as np
 import scipy as sp
 from astropy.io import fits
+from todder import TOD
 
-from .. import utils
-from ..tod import TOD
-from . import Map
+from .. import units, utils
+from .map import Map
 
 np.seterr(invalid="ignore")
 
@@ -95,16 +95,16 @@ class BaseMapper:
         else:
             raise ValueError(f"Units {self.map.units} not implemented.")
 
-        save_maps = np.zeros((len(self.map.freqs), self.n_x, self.n_y))
+        save_maps = np.zeros((len(self.map.frequency), self.n_x, self.n_y))
 
         for i, key in enumerate(self.band_data.keys()):
             self.header["CRVAL3"] = self.band_data[key]["band_center"] * 1e9
-            self.header["CDELT3"] = self.band_data[key]["band_centerwidth"] * 1e9
+            self.header["CDELT3"] = self.band_data[key]["band_width"] * 1e9
 
             save_maps[i] = self.map.data[i]
 
             if self.map.units == "Jy/pixel":
-                save_maps[i] *= utils.units.KbrightToJyPix(
+                save_maps[i] *= units.KbrightToJyPix(
                     self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
                 )
 
@@ -235,7 +235,7 @@ class BinMapper(BaseMapper):
                 self.raw_map_cnts[band] += map_cnt
 
             self.band_data[band]["band_center"] = tod.dets.band_center.mean()
-            self.band_data[band]["band_centerwidth"] = 30
+            self.band_data[band]["band_width"] = 30
 
             band_map_numer = self.raw_map_sums[band].copy()
             band_map_denom = self.raw_map_cnts[band].copy()
@@ -264,7 +264,9 @@ class BinMapper(BaseMapper):
         self.map = Map(
             data=self.map_data,
             weight=self.map_weight,
-            freqs=np.array([self.band_data[band]["band_center"] for band in self.band]),
+            frequency=np.array(
+                [self.band_data[band]["band_center"] for band in self.band]
+            ),
             width=np.degrees(self.width) if self.degrees else self.width,
             height=np.degrees(self.height) if self.degrees else self.height,
             center=np.degrees(self.center) if self.degrees else self.center,

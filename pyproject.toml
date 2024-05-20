@@ -20,15 +20,16 @@ dependencies = [
   "requests",
   "scipy",
   "tables",
+  "todder",
   "tqdm",
 ]
 requires-python = ">=3.9"
 authors = [
-  { name = "Thomas Morris", email = "thomasmorris@princeton.edu" },
+  { name = "Thomas Morris", email = "thomas.w.morris@yale.edu" },
   { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
 ]
 maintainers = [
-  { name = "Thomas Morris", email = "thomasmorris@princeton.edu" },
+  { name = "Thomas Morris", email = "thomas.w.morris@yale.edu" },
   { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
 ]
 license = {file = "LICENSE"}

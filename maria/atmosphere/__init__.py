@@ -1,23 +1,13 @@
 import os
 from datetime import datetime
 
-import h5py
-import numpy as np
-import scipy as sp
-from tqdm import tqdm
-
-from .. import utils
-from ..constants import k_B
-from ..plan import validate_pointing
-from ..sim.base import BaseSimulation
-from ..site import InvalidRegionError, all_regions
-from .turbulent_layer import TurbulentLayer
+from .spectrum import Spectrum
 from .weather import Weather  # noqa F401
 
 here, this_filename = os.path.split(__file__)
 
 SPECTRA_DATA_DIRECTORY = f"{here}/data"
-SPECTRA_DATA_CACHE_DIRECTORY = "/tmp/maria/atmosphere/spectra"
+SPECTRA_DATA_CACHE_DIRECTORY = "/tmp/maria-data/atmosphere/spectra"
 SPECTRA_DATA_URL_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra"  # noqa F401
 CACHE_MAX_AGE_SECONDS = 30 * 86400
 
@@ -29,290 +19,25 @@ class Atmosphere:
         region: str = "princeton",
         altitude: float = None,
         weather_quantiles: dict = {},
-        weather_override: dict = {},
+        weather_kwargs: dict = {},
         weather_source: str = "era5",
-        weather_from_cache: bool = None,
         spectrum_source: str = "am",
-        spectrum_from_cache: bool = None,
+        pwv_rms_frac: float = 0.03,
     ):
-        if region not in all_regions:
-            raise InvalidRegionError(region)
-
         t = t or datetime.utcnow().timestamp()
 
-        self.region = region
-        self.spectrum_source = spectrum_source
-        self.spectrum_source_path = (
-            f"{SPECTRA_DATA_DIRECTORY}/{self.spectrum_source}/{self.region}.h5"
+        self.spectrum = Spectrum(
+            region=region,
+            source=spectrum_source,
         )
-
-        # if the data isn't in the module, default to use the cache
-        self.spectrum_from_cache = (
-            spectrum_from_cache
-            if spectrum_from_cache is not None
-            else not os.path.exists(self.spectrum_source_path)
-        )
-
-        if self.spectrum_from_cache:
-            self.spectrum_source_path = f"{SPECTRA_DATA_CACHE_DIRECTORY}/{self.spectrum_source}/{self.region}.h5"
-            utils.io.fetch_cache(
-                source_url=f"{SPECTRA_DATA_URL_BASE}/{self.spectrum_source}/{self.region}.h5",
-                cache_path=self.spectrum_source_path,
-                CACHE_MAX_AGE=CACHE_MAX_AGE_SECONDS,
-            )
-            self.spectrum_from_cache = True
-
-        with h5py.File(self.spectrum_source_path, "r") as f:
-            self.spectrum_side_nu = f["side_nu_GHz"][:]
-            self.spectrum_side_elevation = f["side_elevation_deg"][:]
-            self.spectrum_side_zenith_pwv = f["side_zenith_pwv_mm"][:]
-            self.spectrum_side_base_temperature = f["side_base_temperature_K"][:]
-
-            self.emission_spectrum = f["emission_temperature_rayleigh_jeans_K"][:]
-            self.transmission_spectrum = np.exp(-f["opacity_nepers"][:])
-            self.excess_path_spectrum = 1e6 * (
-                f["excess_path"][:] + f["offset_excess_path_m"][:]
-            )
 
         self.weather = Weather(
             t=t,
             region=region,
             altitude=altitude,
             quantiles=weather_quantiles,
-            override=weather_override,
+            override=weather_kwargs,
             source=weather_source,
-            from_cache=weather_from_cache,
         )
 
-    @property
-    def emission_interpolator(self):
-        return sp.interpolate.RegularGridInterpolator(
-            points=(
-                self.spectrum_side_zenith_pwv,
-                self.spectrum_side_base_temperature,
-                self.spectrum_side_elevation,
-                self.spectrum_side_nu,
-            ),
-            values=self.emission_spectrum,
-        )
-
-    def emission(self, nu, zenith_pwv=None, base_temperature=None, elevation=45):
-        if zenith_pwv is None:
-            zenith_pwv = np.median(self.spectrum_side_zenith_pwv)
-        if base_temperature is None:
-            base_temperature = np.median(self.spectrum_side_base_temperature)
-
-        return self.emission_interpolator((zenith_pwv, base_temperature, elevation, nu))
-
-
-class AtmosphereMixin:
-    def _initialize_atmosphere(self):
-        """
-        This assume that BaseSimulation.__init__() has been called.
-        """
-
-        validate_pointing(self.coords.az, self.coords.el)
-
-        if self.atmosphere_model == "2d":
-            self.turbulent_layer_depths = np.linspace(
-                self.min_atmosphere_height,
-                self.max_atmosphere_height,
-                self.n_atmosphere_layers,
-            )
-            self.atmosphere.layers = []
-
-            depths = enumerate(self.turbulent_layer_depths)
-            if self.verbose:
-                depths = tqdm(depths, desc="Initializing atmospheric layers")
-
-            for _, layer_depth in depths:
-                layer_res = (
-                    self.instrument.physical_fwhm(z=layer_depth).min()
-                    / self.min_atmosphere_beam_res
-                )  # in meters
-
-                layer = TurbulentLayer(
-                    instrument=self.instrument,
-                    boresight=self.boresight,
-                    weather=self.atmosphere.weather,
-                    depth=layer_depth,
-                    res=layer_res,
-                    turbulent_outer_scale=self.turbulent_outer_scale,
-                )
-
-                self.atmosphere.layers.append(layer)
-
-        if self.atmosphere_model == "3d":
-            self.initialize_3d_atmosphere()
-
-    def _simulate_atmospheric_fluctuations(self):
-        if self.atmosphere_model == "2d":
-            self._simulate_2d_atmospheric_fluctuations()
-
-        if self.atmosphere_model == "3d":
-            self._simulate_3d_atmospheric_fluctuations()
-
-    def _simulate_2d_turbulence(self):
-        """
-        Simulate layers of two-dimensional turbulence.
-        """
-
-        layer_data = np.zeros(
-            (self.n_atmosphere_layers, self.instrument.n_dets, self.plan.n_time)
-        )
-
-        layers = (
-            tqdm(self.atmosphere.layers) if self.verbose else self.atmosphere.layers
-        )
-        for layer_index, layer in enumerate(layers):
-            layer.generate()
-            layer_data[layer_index] = sp.interpolate.interp1d(
-                layer.sim_time,
-                layer.sample(),
-                axis=-1,
-                kind="cubic",
-                bounds_error=False,
-                fill_value="extrapolate",
-            )(self.boresight.time)
-
-            if self.verbose:
-                layers.set_description(f"Generating atmosphere (z={layer.depth:.00f}m)")
-
-        return layer_data
-
-    def _simulate_2d_atmospheric_fluctuations(self):
-        """
-        Simulate layers of two-dimensional turbulence.
-        """
-
-        turbulence = self._simulate_2d_turbulence()
-
-        rel_layer_scaling = sp.interpolate.interp1d(
-            self.atmosphere.weather.altitude_levels,
-            self.atmosphere.weather.absolute_humidity,
-            kind="linear",
-        )(
-            self.site.altitude
-            + self.turbulent_layer_depths[:, None, None] * np.sin(self.coords.el)
-        )
-        rel_layer_scaling /= np.sqrt(np.square(rel_layer_scaling).sum(axis=0)[None])
-
-        self.layer_scaling = (
-            self.pwv_rms_frac * self.atmosphere.weather.pwv * rel_layer_scaling
-        )
-
-        self.zenith_scaled_pwv = self.atmosphere.weather.pwv + (
-            self.layer_scaling * turbulence
-        ).sum(axis=0)
-
-    def _simulate_atmospheric_emission(self, units="K_RJ"):
-        if units == "K_RJ":  # Kelvin Rayleigh-Jeans
-            self._simulate_atmospheric_fluctuations()
-            self.data["atmosphere"] = np.empty(
-                (self.instrument.n_dets, self.plan.n_time), dtype=np.float32
-            )
-
-            bands = (
-                tqdm(self.instrument.dets.bands)
-                if self.verbose
-                else self.instrument.dets.bands
-            )
-
-            for band in bands:
-                band_index = self.instrument.dets.subset(band_name=band.name).index
-
-                if self.verbose:
-                    bands.set_description(f"Computing atm. emission ({band.name})")
-
-                # in picowatts. the 1e9 is for GHz -> Hz
-                det_power_grid = (
-                    1e12
-                    * k_B
-                    * np.trapz(
-                        self.atmosphere.emission_spectrum
-                        * band.passband(self.atmosphere.spectrum_side_nu),
-                        1e9 * self.atmosphere.spectrum_side_nu,
-                        axis=-1,
-                    )
-                )
-
-                band_power_interpolator = sp.interpolate.RegularGridInterpolator(
-                    (
-                        self.atmosphere.spectrum_side_zenith_pwv,
-                        self.atmosphere.spectrum_side_base_temperature,
-                        self.atmosphere.spectrum_side_elevation,
-                    ),
-                    det_power_grid,
-                )
-
-                self.data["atmosphere"][band_index] = band_power_interpolator(
-                    (
-                        self.zenith_scaled_pwv[band_index],
-                        self.atmosphere.weather.temperature[0],
-                        np.degrees(self.coords.el[band_index]),
-                    )
-                )
-
-            self.atmospheric_transmission = np.empty(
-                (self.instrument.n_dets, self.plan.n_time), dtype=np.float32
-            )
-
-            # to make a new progress bar
-            bands = (
-                tqdm(self.instrument.dets.bands)
-                if self.verbose
-                else self.instrument.dets.bands
-            )
-
-            for band in bands:
-                band_index = self.instrument.dets.subset(band_name=band.name).index
-
-                if self.verbose:
-                    bands.set_description(f"Computing atm. transmission ({band.name})")
-
-                rel_T_RJ_spectrum = (
-                    band.passband(self.atmosphere.spectrum_side_nu)
-                    * self.atmosphere.spectrum_side_nu**2
-                )
-
-                self.det_transmission_grid = np.trapz(
-                    rel_T_RJ_spectrum * self.atmosphere.transmission_spectrum,
-                    1e9 * self.atmosphere.spectrum_side_nu,
-                    axis=-1,
-                ) / np.trapz(
-                    rel_T_RJ_spectrum,
-                    1e9 * self.atmosphere.spectrum_side_nu,
-                    axis=-1,
-                )
-
-                band_transmission_interpolator = sp.interpolate.RegularGridInterpolator(
-                    (
-                        self.atmosphere.spectrum_side_zenith_pwv,
-                        self.atmosphere.spectrum_side_base_temperature,
-                        self.atmosphere.spectrum_side_elevation,
-                    ),
-                    self.det_transmission_grid,
-                )
-
-                # what's happening here? the atmosphere blocks some of the light from space.
-                # we want to calibrate to the stuff in space, so we make the atmosphere *hotter*
-
-                self.atmospheric_transmission[
-                    band_index
-                ] = band_transmission_interpolator(
-                    (
-                        self.zenith_scaled_pwv[band_index],
-                        self.atmosphere.weather.temperature[0],
-                        np.degrees(self.coords.el[band_index]),
-                    )
-                )
-
-        if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸
-            self._simulate_atmospheric_emission(self, units="K_RJ")
-            self.data["atmosphere"] = 1.8 * (self.data["atmosphere"] - 273.15) + 32
-
-
-class AtmosphereSimulation(BaseSimulation, AtmosphereMixin):
-    def __init__(self, *args, **kwargs):
-        super(AtmosphereSimulation, self).__init__(*args, **kwargs)
-        self._initialize_atmosphere()
+        self.pwv_rms_frac = pwv_rms_frac

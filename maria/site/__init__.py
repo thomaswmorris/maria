@@ -4,17 +4,17 @@ from dataclasses import dataclass, field
 import pandas as pd
 from astropy.coordinates import EarthLocation
 
-from .. import utils
+from ..io import read_yaml
 
 here, this_filename = os.path.split(__file__)
 
-SITE_CONFIGS = utils.io.read_yaml(f"{here}/sites.yml")
+SITE_CONFIGS = read_yaml(f"{here}/sites.yml")
 SITE_PARAMS = set()
 for key, config in SITE_CONFIGS.items():
     SITE_PARAMS |= set(config.keys())
 
 SITE_DISPLAY_COLUMNS = [
-    "site_description",
+    "description",
     "region",
     "latitude",
     "longitude",
@@ -51,7 +51,7 @@ def get_location(site_name):
     )
 
 
-def get_site_config(site_name="default", **kwargs):
+def get_site_config(site_name="hoagie_haven", **kwargs):
     if site_name not in SITE_CONFIGS.keys():
         raise InvalidSiteError(site_name)
     SITE_CONFIG = SITE_CONFIGS[site_name].copy()
@@ -60,13 +60,13 @@ def get_site_config(site_name="default", **kwargs):
     return SITE_CONFIG
 
 
-def get_site(site_name="default", **kwargs):
-    return Site(**get_site_config(site_name, **kwargs))
+def get_site(site_name="hoagie_haven", **kwargs):
+    return Site(**get_site_config(site_name=site_name, **kwargs))
 
 
 @dataclass
 class Site:
-    site_description: str = ""
+    description: str = ""
     region: str = "princeton"
     altitude: float = None  # in meters
     seasonal: bool = True

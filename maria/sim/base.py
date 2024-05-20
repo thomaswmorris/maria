@@ -2,13 +2,13 @@ import os
 
 import dask.array as da
 import numpy as np
+from todder import TOD
+from todder.coords import Coordinates, dx_dy_to_phi_theta
 
-from .. import utils
-from ..coords import Coordinates, dx_dy_to_phi_theta
 from ..instrument import Instrument, get_instrument
+from ..io import read_yaml
 from ..plan import Plan, get_plan
 from ..site import Site, get_site
-from ..tod import TOD
 
 here, this_filename = os.path.split(__file__)
 
@@ -20,7 +20,7 @@ class InvalidSimulationParameterError(Exception):
         )
 
 
-master_params = utils.io.read_yaml(f"{here}/params.yml")
+master_params = read_yaml(f"{here}/params.yml")
 
 
 def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
@@ -90,11 +90,11 @@ class BaseSimulation:
         self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
 
         self.boresight = Coordinates(
-            self.plan.time - self.plan.time.min(),
-            self.plan.phi,
-            self.plan.theta,
+            time=self.plan.time - self.plan.time.min(),
+            phi=self.plan.phi,
+            theta=self.plan.theta,
             location=self.site.earth_location,
-            frame=self.plan.pointing_frame,
+            frame=self.plan.frame,
             time_offset=self.plan.time.min(),
         )
 
@@ -119,9 +119,9 @@ class BaseSimulation:
         )
 
         self.coords = Coordinates(
-            self.boresight.time,
-            det_az,
-            det_el,
+            time=self.boresight.time,
+            phi=det_az,
+            theta=det_el,
             location=self.site.earth_location,
             frame="az_el",
             time_offset=self.boresight.time_offset,

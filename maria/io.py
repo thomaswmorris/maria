@@ -4,10 +4,13 @@ import time as ttime
 from collections.abc import Mapping
 from datetime import datetime
 
+import astropy as ap
 import h5py
+import pandas as pd
 import pytz
 import requests
 import yaml
+from tqdm import tqdm
 
 
 def flatten_config(m: dict, prefix: str = ""):
@@ -42,27 +45,43 @@ def read_yaml(path: str):
     return res if res is not None else {}
 
 
-def cache_is_ok(path: str, CACHE_MAX_AGE: float = 86400):
+def cache_is_ok(path: str, max_age: float = 30 * 86400, verbose: bool = False):
     """
     Check if we need to reload the cache.
     """
     if not os.path.exists(path):
+        if verbose:
+            print(f"Cached file at {path} does not exist.")
         return False
 
     cache_age = ttime.time() - os.path.getmtime(path)
 
-    if cache_age > CACHE_MAX_AGE:
+    if cache_age > max_age:
+        if verbose:
+            print(f"Cached file at {path} is too old.")
         return False
 
-    extension = path.split(".")[-1]
+    if not test_file(path):
+        if verbose:
+            print(f"Could not open cached file at {path}.")
+        return False
 
+    return True
+
+
+def test_file(path) -> bool:
+    ext = path.split(".")[-1]
     try:
-        if extension == "h5":
+        if ext in ["h5"]:
             with h5py.File(path, "r") as f:
                 f.keys()
-        else:
+        elif ext in ["csv"]:
+            pd.read_csv(path)
+        elif ext in ["txt", "dat"]:
             with open(path, "r") as f:
                 f.read()
+        elif ext in ["fits"]:
+            ap.io.fits.open(path)
     except Exception:
         return False
 
@@ -72,9 +91,10 @@ def cache_is_ok(path: str, CACHE_MAX_AGE: float = 86400):
 def fetch_cache(
     source_url: str,
     cache_path: str,
-    CACHE_MAX_AGE: float = 7 * 86400,
+    max_age: float = 30 * 86400,
     refresh: bool = False,
     chunk_size: int = 8192,
+    verbose: bool = False,
 ):
     """
     Download the cache if needed
@@ -86,17 +106,23 @@ def fetch_cache(
         print(f"created cache at {cache_dir}")
         os.makedirs(cache_dir, exist_ok=True)
 
-    if (not cache_is_ok(cache_path, CACHE_MAX_AGE=CACHE_MAX_AGE)) or refresh:
-        print(f"updating cache from {source_url}")
-
+    if (not cache_is_ok(cache_path, max_age=max_age, verbose=verbose)) or refresh:
         with requests.get(source_url, stream=True) as r:
             r.raise_for_status()
             with open(cache_path, "wb") as f:
-                for chunk in r.iter_content(chunk_size=chunk_size):
+                chunks = tqdm(
+                    r.iter_content(chunk_size=chunk_size),
+                    desc=f"Updating cache from {source_url}",
+                    disable=not verbose,
+                )
+                for chunk in chunks:
                     f.write(chunk)
 
         cache_size = os.path.getsize(cache_path)
         print(f"downloaded data ({1e-6 * cache_size:.01f} MB) to {cache_path}")
+
+        if not test_file(cache_path):
+            raise RuntimeError("Could not open cached file.")
 
 
 def datetime_handler(time):
