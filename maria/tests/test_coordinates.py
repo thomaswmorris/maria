@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
-
-from ..coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
+from todder.coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
 
 
 def test_offsets_transform():

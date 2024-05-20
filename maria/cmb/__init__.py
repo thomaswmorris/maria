@@ -1,24 +1,25 @@
 import healpy as hp
 import numpy as np
 import pandas as pd
+import scipy as sp
+from tqdm import tqdm
 
-from maria.constants import T_CMB
-from maria.utils.functions import planck_spectrum
-
-from ..utils.io import fetch_cache
+from ..constants import T_CMB
+from ..functions import planck_spectrum
+from ..io import fetch_cache
 
 CMB_SPECTRUM_SOURCE_URL = (
     "https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/"
     "COM_PowerSpect_CMB-base-plikHM-TTTEEE-lowl-lowE-lensing-minimum-theory_R3.01.txt"
 )
-CMB_SPECTRUM_CACHE_PATH = "/tmp/maria/cmb/spectrum.txt"
+CMB_SPECTRUM_CACHE_PATH = "/tmp/maria-data/cmb/spectrum.txt"
 CMB_SPECTRUM_CACHE_MAX_AGE = 30 * 86400  # one month
 
 CMB_MAP_SOURCE_URL = (
     "https://irsa.ipac.caltech.edu/data/Planck/release_3/all-sky-maps/maps/component-maps/cmb/"
     "COM_CMB_IQU-143-fgsub-sevem_2048_R3.00_full.fits"
 )
-CMB_MAP_CACHE_PATH = "/tmp/maria/cmb/planck/map.fits"
+CMB_MAP_CACHE_PATH = "/tmp/maria-data/cmb/planck/map.fits"
 CMB_MAP_CACHE_MAX_AGE = 30 * 86400  # one month
 
 
@@ -28,7 +29,7 @@ class CMB:
             raise ValueError("Data and labels must have the same shape!")
 
         self.maps = {}
-        for i, (field, M) in enumerate(zip(fields, data)):
+        for field, M in zip(fields, data):
             self.maps[field] = M
 
         self.nside = int(np.sqrt(len(M) / 12))
@@ -51,7 +52,7 @@ class CMB:
         )
 
 
-def generate_cmb(nside=2048, seed=123):
+def generate_cmb(nside=1024, seed=123456, **kwargs):
     """
     Taken from https://www.zonca.dev/posts/2020-09-30-planck-spectra-healpy.html
     """
@@ -61,7 +62,7 @@ def generate_cmb(nside=2048, seed=123):
     fetch_cache(
         source_url=CMB_SPECTRUM_SOURCE_URL,
         cache_path=CMB_SPECTRUM_CACHE_PATH,
-        CACHE_MAX_AGE=CMB_SPECTRUM_CACHE_MAX_AGE,
+        max_age=CMB_SPECTRUM_CACHE_MAX_AGE,
     )
 
     cl = pd.read_csv(CMB_SPECTRUM_CACHE_PATH, delim_whitespace=True, index_col=0)
@@ -81,11 +82,11 @@ def generate_cmb(nside=2048, seed=123):
     return cmb
 
 
-def get_cmb():
+def get_cmb(**kwargs):
     fetch_cache(
         source_url=CMB_MAP_SOURCE_URL,
         cache_path=CMB_MAP_CACHE_PATH,
-        CACHE_MAX_AGE=CMB_MAP_CACHE_MAX_AGE,
+        max_age=CMB_MAP_CACHE_MAX_AGE,
     )
 
     field_dtypes = {
@@ -109,41 +110,40 @@ def get_cmb():
 
 
 class CMBMixin:
-    def _initialize_cmb(self, source):
-        if source == "generate":
-            if self.verbose:
-                print("Generating CMB realization...")
-            self.cmb = generate_cmb()
-
-        elif source == "map":
-            if self.verbose:
-                print("Loading CMB...")
-            self.cmb = get_cmb()
-
     def _simulate_cmb_emission(self):
         pixel_index = hp.ang2pix(
             nside=self.cmb.nside, phi=self.coords.l, theta=np.pi / 2 - self.coords.b
-        ).compute()
+        ).compute()  # noqa
         cmb_temperatures = self.cmb.T[pixel_index]
 
-        test_nu = np.linspace(1e9, 1e12, 1024)
+        test_nu = np.linspace(1e0, 1e3, 1024)
 
         cmb_temperature_samples_K = T_CMB + np.linspace(
-            self.cmb.T.min(), self.cmb.T.max(), 64
+            self.cmb.T.min(), self.cmb.T.max(), 3
+        )  # noqa
+        cmb_brightness = planck_spectrum(
+            1e9 * test_nu, cmb_temperature_samples_K[:, None]
         )
-        cmb_brightness = planck_spectrum(test_nu, cmb_temperature_samples_K[:, None])
 
         self.data["cmb"] = np.zeros((self.instrument.dets.n, self.plan.n_time))
 
-        for band in self.instrument.bands:
+        pbar = tqdm(self.instrument.bands, disable=not self.verbose)
+
+        for band in pbar:
+            pbar.set_description(f"Sampling CMB ({band.name})")
+
             band_mask = self.instrument.dets.band_name == band.name
 
-            band_cmb_power_samples_W = np.trapz(
-                y=cmb_brightness * band.passband(1e-9 * test_nu), x=test_nu
+            band_cmb_power_samples_W = (
+                1e12
+                * band.efficiency
+                * np.trapz(y=cmb_brightness * band.passband(test_nu), x=test_nu)
             )
 
-            self.data["cmb"][band_mask] = np.interp(
-                T_CMB + cmb_temperatures[band_mask],
+            # dP_dTCMB = self.instrument.dets.dP_dTCMB[:, None]
+            # self.data["cmb"][band_mask] =  * cmb_temperatures[band_mask]
+
+            self.data["cmb"][band_mask] = sp.interpolate.interp1d(
                 cmb_temperature_samples_K,
                 band_cmb_power_samples_W,
-            )
+            )(T_CMB + cmb_temperatures[band_mask])

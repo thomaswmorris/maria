@@ -1,5 +1,4 @@
 import os
-from dataclasses import dataclass, field
 from datetime import datetime
 
 import h5py
@@ -8,16 +7,14 @@ import pytz
 import scipy as sp
 
 from ..constants import g
+from ..io import fetch_cache
 from ..site import InvalidRegionError, all_regions, supported_regions_table
 from ..utils import get_utc_day_hour, get_utc_year_day
-from . import utils
 
 here, this_filename = os.path.split(__file__)
 
-WEATHER_DATA_DIRECTORY = f"{here}/data"
-WEATHER_DATA_CACHE_DIRECTORY = "/tmp/maria/weather"
-WEATHER_DATA_URL_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather"  # noqa F401
-CACHE_MAX_AGE_SECONDS = 30 * 86400
+WEATHER_CACHE_BASE = "/tmp/maria-data/weather"
+WEATHER_SOURCE_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather"  # noqa F401
 
 
 def get_vapor_pressure(air_temp, rel_hum):  # units are (°K, %)
@@ -53,42 +50,42 @@ def absolute_to_relative_humidity(air_temp, abs_hum):
     return 1e2 * 461.5 * air_temp * abs_hum / get_saturation_pressure(air_temp)
 
 
-@dataclass
 class Weather:
-    region: str = "chajnantor"
-    t: float = 0
-    altitude: float = None
-    utc_time: str = ""
-    local_time: str = ""
-    time_zone: str = ""
-    quantiles: dict = field(default_factory=dict)
-    override: dict = field(default_factory=dict)
-    source: str = "era5"
-    from_cache: bool = None
-
-    def __post_init__(self):
-        if self.region not in all_regions:
+    def __init__(
+        self,
+        region: str = "chajnantor",
+        t: float = 0,
+        altitude: float = None,
+        utc_time: str = "",
+        local_time: str = "",
+        time_zone: str = "",
+        quantiles: dict = {},
+        override: dict = {},
+        source: str = "era5",
+        refresh_cache: bool = False,
+    ):
+        if region not in all_regions:
             raise InvalidRegionError(self.region)
 
-        self.source_path = f"{WEATHER_DATA_DIRECTORY}/{self.source}/{self.region}.h5"
+        self.region = region
+        self.t = t
+        self.altitude = altitude
+        self.utc_time = utc_time
+        self.local_time = local_time
+        self.time_zone = time_zone
+        self.quantiles = quantiles
+        self.override = override
+        self.source = source
 
-        # if the data isn't in the module, default to use the cache
-        self.from_cache = (
-            self.from_cache
-            if self.from_cache is not None
-            else not os.path.exists(self.source_path)
+        self.cache_path = f"{WEATHER_CACHE_BASE}/{source}/{region}.h5"
+        self.source_url = f"{WEATHER_SOURCE_BASE}/{source}/{region}.h5"
+
+        fetch_cache(
+            source_url=self.source_url,
+            cache_path=self.cache_path,
+            max_age=30 * 86400,
+            refresh=refresh_cache,
         )
-
-        # if we don't have the data, download and cache it
-        if self.from_cache:
-            self.source_path = (
-                f"{WEATHER_DATA_CACHE_DIRECTORY}/{self.source}/{self.region}.h5"
-            )
-            utils.io.fetch_cache(
-                source_url=f"{WEATHER_DATA_URL_BASE}/{self.source}/{self.region}.h5",
-                cache_path=self.source_path,
-            )
-            self.from_cache = True
 
         if self.altitude is None:
             self.altitude = supported_regions_table.loc[self.region, "altitude"]
@@ -102,7 +99,7 @@ class Weather:
             pytz.timezone(self.time_zone)
         ).ctime()
 
-        with h5py.File(self.source_path, "r") as f:
+        with h5py.File(self.cache_path, "r") as f:
             self.utc_day_hour = get_utc_day_hour(self.t)
             self.utc_year_day = get_utc_year_day(self.t)
 

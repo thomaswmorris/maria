@@ -31,15 +31,12 @@ Custom arrays of detectors are a bit more complicated. For example:
 
 .. code-block:: python
 
-    f090 = {"center": 90, "width": 30}
-    f150 = {"center": 150, "width": 30}
-
-    dets = {"n": 500,
+    array = {"n": 500,
             "field_of_view": 2
             "array_shape": "hex",
-            "bands": [f090, f150]}
+            "bands": {"center": 150, "width": 30}}
 
-    my_custom_array = maria.get_instrument(dets=dets)
+    my_custom_array = maria.get_instrument(array=array)
 
 Actually, there are several valid ways to define an array of detectors.
 These are all valid:

@@ -1,9 +1,10 @@
 import dask.array as da
 import numpy as np
 import scipy as sp
+from todder.coords import Coordinates, get_center_phi_theta
 
 from .. import utils
-from ..coords import Coordinates, get_center_phi_theta
+from ..functions import approximate_normalized_matern
 from ..instrument import Instrument
 from ..instrument.beams import construct_beam_filter, separably_filter
 from .weather import Weather
@@ -12,8 +13,7 @@ MIN_SAMPLES_PER_RIBBON = 2
 RIBBON_SAMPLE_DECAY = 2
 JITTER_LEVEL = 1e-4
 
-matern_callback = utils.functions.approximate_normalized_matern
-# matern_callback = utils.functions.normalized_matern
+matern_callback = approximate_normalized_matern
 
 
 class TurbulentLayer:

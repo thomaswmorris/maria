@@ -25,7 +25,7 @@ plan: # defaults to a 45 degree stare due north
   scan_options: mapping
 
 site: # default to the ALMA site
-  site_description: ''
+  description: ''
   region: 'chajnantor'
   latitude: -23.0294
   longitude: -67.7548

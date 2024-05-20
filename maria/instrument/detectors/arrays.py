@@ -6,8 +6,8 @@ import pandas as pd
 from scipy.spatial import ConvexHull
 from scipy.spatial.distance import cdist
 
-from .bands import Band
-from .beams import compute_angular_fwhm
+from ..bands import Band
+from ..beams import compute_angular_fwhm
 
 here, this_filename = os.path.split(__file__)
 
@@ -21,7 +21,7 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
     These points are spread such that each is a unit of distance away from its nearest neighbor.
     """
 
-    n = int(n)
+    n = int(np.maximum(n, 1))
     bigger_n = 2 * n
 
     if packing == "square":
@@ -59,8 +59,11 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
     offsets = np.c_[x[subset_index], y[subset_index]]
 
     if normalize:
-        hull_pts = offsets[ConvexHull(offsets).vertices]
-        offsets /= cdist(hull_pts, hull_pts, metric="euclidean").max()
+        hull_pts = (
+            offsets[ConvexHull(offsets).vertices] if len(offsets) > 16 else offsets
+        )
+        span = cdist(hull_pts, hull_pts, metric="euclidean").max()
+        offsets /= span if span > 0 else 1.0
 
     return offsets
 
@@ -71,10 +74,11 @@ def generate_2d_offsets_from_diameter(
     n = np.square(diameter)
     span = 0
 
-    for i in range(max_iterations):
+    for _ in range(max_iterations):
         offsets = generate_2d_offsets(n=n, packing=packing, shape=shape)
-        ch = ConvexHull(offsets)
-        hull_pts = ch.points[ch.vertices]
+        hull_pts = (
+            offsets[ConvexHull(offsets).vertices] if len(offsets) > 16 else offsets
+        )
         span = cdist(hull_pts, hull_pts, metric="euclidean").max()
 
         n *= np.square(diameter / span)
@@ -113,6 +117,15 @@ def generate_array(
     ]
     detector_spacing = beam_spacing * np.max(resolutions)
 
+    if n is None:
+        topological_diameter = np.radians(field_of_view) / detector_spacing
+        if topological_diameter > 1:
+            offsets = detector_spacing * generate_2d_offsets_from_diameter(
+                diameter=topological_diameter, packing=array_packing, shape=array_shape
+            )
+        else:
+            n = 1  # what?
+
     if n is not None:
         if field_of_view is not None:
             offsets = np.radians(field_of_view) * generate_2d_offsets(
@@ -127,12 +140,6 @@ def generate_array(
             offsets = detector_spacing * generate_2d_offsets(
                 n=n, packing=array_packing, shape=array_shape
             )
-
-    else:
-        topological_diameter = np.radians(field_of_view) / detector_spacing
-        offsets = detector_spacing * generate_2d_offsets_from_diameter(
-            diameter=topological_diameter, packing=array_packing, shape=array_shape
-        )
 
     baselines = baseline_diameter * generate_2d_offsets(
         n=len(offsets), packing=baseline_packing, shape=baseline_shape, normalize=True

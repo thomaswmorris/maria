@@ -4,7 +4,11 @@ import scipy as sp
 from maria.constants import c, h, k_B
 
 
-def planck_spectrum(nu, T):
+def rayleigh_jeans_spectrum(nu: float, T: float):
+    return 2 * k_B * nu**2 * T / c**2
+
+
+def planck_spectrum(nu: float, T: float):
     return 2 * h * nu**3 / (c**2 * np.expm1(h * nu / (k_B * T)))
 
 

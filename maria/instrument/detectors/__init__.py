@@ -4,7 +4,8 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 
-from .bands import BandList
+from ..bands import BandList
+from .arrays import generate_array  # noqa
 
 here, this_filename = os.path.split(__file__)
 

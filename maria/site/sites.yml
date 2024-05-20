@@ -1,5 +1,5 @@
 hoagie_haven:
-  site_description: Hoagie Haven
+  description: Hoagie Haven
   region: princeton
   latitude: 40.3522
   longitude: -74.6519
@@ -7,7 +7,7 @@ hoagie_haven:
   site_documentation: http://hoagiehaven.com/
 
 amundsen_scott:
-  site_description: Amundsen–Scott South Pole Station (BICEP, SPT)
+  description: Amundsen–Scott South Pole Station (BICEP, SPT)
   region: south_pole
   latitude: 0.000
   longitude: -90.000
@@ -15,7 +15,7 @@ amundsen_scott:
   site_documentation: https://www.nsf.gov/geo/opp/support/southp.jsp
 
 cerro_chajnantor:
-  site_description: Cerro Chajnantor (CCAT, TAO)
+  description: Cerro Chajnantor (CCAT, TAO)
   region: chajnantor
   latitude: -22.9862
   longitude: -67.7422
@@ -23,7 +23,7 @@ cerro_chajnantor:
   site_documentation: https://act.princeton.edu/
 
 cerro_toco:
-  site_description: Cerro Toco (ACT, POLARBEAR, SO)
+  description: Cerro Toco (ACT, POLARBEAR, SO)
   region: chajnantor
   latitude: -22.9586
   longitude: -67.7878
@@ -31,7 +31,7 @@ cerro_toco:
   site_documentation: https://act.princeton.edu/
 
 effelsberg:
-  site_description: Effelsberg (ERT)
+  description: Effelsberg (ERT)
   region: effelsberg
   latitude: 50.5247
   longitude: 6.8828
@@ -39,7 +39,7 @@ effelsberg:
   site_documentation: https://www.mpifr-bonn.mpg.de/en/effelsberg
 
 green_bank:
-  site_description: Green Bank Observatory (MUSTANG-2)
+  description: Green Bank Observatory (MUSTANG-2)
   region: green_bank
   latitude: 38.4331
   longitude: -79.8398
@@ -47,7 +47,7 @@ green_bank:
   site_documentation: https://greenbankobservatory.org
 
 llano_de_chajnantor:
-  site_description: Llano de Chajnantor (ALMA)
+  description: Llano de Chajnantor (ALMA)
   region: chajnantor
   latitude: -23.0294
   longitude: -67.7548
@@ -55,7 +55,7 @@ llano_de_chajnantor:
   site_documentation: https://www.almaobservatory.org/en/home/
 
 mauna_kea:
-  site_description: Mauna Kea Observatory (JCMT)
+  description: Mauna Kea Observatory (JCMT)
   region: mauna_kea
   latitude: 19.8228
   longitude: -155.4770
@@ -63,7 +63,7 @@ mauna_kea:
   site_documentation: https://www.maunakeaobservatories.org/
 
 meerkat:
-  site_description: Meerkat National Park (HERA, MeerKAT)
+  description: Meerkat National Park (HERA, MeerKAT)
   region: meerkat
   latitude: -30.7132
   longitude: 21.4431
@@ -71,7 +71,7 @@ meerkat:
   site_documentation: https://www.protectedplanet.net/555703705?locale=en
 
 pic_de_bure:
-  site_description: Pic de Bure (NOEMA)
+  description: Pic de Bure (NOEMA)
   region: pic_de_bure
   latitude: 44.6339
   longitude: 5.9079
@@ -79,7 +79,7 @@ pic_de_bure:
   site_documentation: https://iram-institute.org/observatories/noema/
 
 pico_veleta:
-  site_description: IRAM 30m telescope
+  description: IRAM 30m telescope
   region: pico_veleta
   latitude: 37.0662
   longitude: -3.39272
@@ -87,7 +87,7 @@ pico_veleta:
   site_documentation: https://iram-institute.org/observatories/30-meter-telescope/
 
 qitai:
-  site_description: Qitai Radio Telescope
+  description: Qitai Radio Telescope
   region: qitai
   latitude: 43.6011
   longitude: 89.6825
@@ -95,7 +95,7 @@ qitai:
   site_documentation: https://en.wikipedia.org/wiki/Qitai_Radio_Telescope
 
 sierra_negra:
-  site_description: Sierra Negra (LMT)
+  description: Sierra Negra (LMT)
   region: sierra_negra
   latitude: 18.9858
   longitude: -97.3147
@@ -103,7 +103,7 @@ sierra_negra:
   site_documentation: http://lmtgtm.org/
 
 srt:
-  site_description: Sardinia Radio Telescope (MISTRAL)
+  description: Sardinia Radio Telescope (MISTRAL)
   region: san_basilio
   latitude: 39.4928
   longitude: 9.2450
@@ -111,7 +111,7 @@ srt:
   site_documentation: https://en.wikipedia.org/wiki/Sardinia_Radio_Telescope
 
 summit_station:
-  site_description: Summit Station (Greenland Telescope)
+  description: Summit Station (Greenland Telescope)
   region: summit_camp
   latitude: 72.5789
   longitude: -38.4596
@@ -119,7 +119,7 @@ summit_station:
   site_documentation: https://geo-summit.org/
 
 teide:
-  site_description: Teide Observatory (QUIJOTE)
+  description: Teide Observatory (QUIJOTE)
   region: teide
   latitude: 28.3007
   longitude: -16.5110

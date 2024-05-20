@@ -3,21 +3,23 @@ import os
 import numpy as np
 import pytest
 
+import maria
 from maria import Simulation
 from maria.map.mappers import BinMapper
 
-from ..utils.io import fetch_cache
+from ..io import fetch_cache
 
 here, this_filename = os.path.split(__file__)
 
-TEST_MAP_URL = (
-    "https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits"
+TEST_MAP_SOURCE_URL = (
+    "https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits"  # noqa
 )
+TEST_MAP_CACHE_PATH = "/tmp/maria-data/maps/test.fits"
 
 
 @pytest.mark.mock_obs
 def test_mustang2():
-    fetch_cache(TEST_MAP_URL, "/tmp/test_map.fits", refresh=True)
+    fetch_cache(TEST_MAP_SOURCE_URL, TEST_MAP_CACHE_PATH)
 
     pointing_center = (73.5287496858916, 2.961663679507145)
     pixel_size = 8.71452898559111e-05
@@ -25,27 +27,11 @@ def test_mustang2():
     sample_rate = 100
     scan_velocity = 38 / 3600
 
-    inputfile = "/tmp/test_map.fits"
-    outfile_map = "/tmp/test_map_output.fits"
+    instrument = maria.get_instrument("MUSTANG-2")
+    site = maria.get_site("green_bank")
 
-    atm_model = "2d"
-
-    sim = Simulation(
-        # Mandatory minimal weither settings
-        # ---------------------
-        instrument="MUSTANG-2",  # Instrument type
-        site="green_bank",  # Site
-        plan="daisy",  # Scanning strategy
-        atmosphere_model=atm_model,  # atmospheric model
-        # True sky input
-        # ---------------------
-        map_file=inputfile,  # Input files must be a fits file.
-        map_units="Jy/pixel",  # Units of the input map in Kelvin Rayleigh Jeans (K, defeault) or Jy/pixel
-        map_res=pixel_size,  # resolution of the map
-        map_center=pointing_center,  # RA & Dec in degree
-        map_freqs=[93],
-        # MUSTANG-2 Observational setup
-        # ----------------------------s
+    plan = maria.get_plan(
+        "daisy",
         scan_options={
             "radius": 4.0 / 60.0,  # The radius of the Daisy scan in degrees
             "speed": scan_velocity,  # scan velocity in when the scan goes through the center deg/s
@@ -53,9 +39,23 @@ def test_mustang2():
         duration=duration,  # Seconds
         sample_rate=sample_rate,  # Hz
         scan_center=pointing_center,  # Degrees
-        pointing_frame="ra_dec",  # Frame
+        frame="ra_dec",  # Frame
         start_time="2022-02-11T23:00:00",  # observation date
-        pwv_rms_frac=0.005,  # level of atmospheric fluctuations
+    )
+
+    map = maria.map.from_fits(
+        filename=TEST_MAP_CACHE_PATH,
+        resolution=pixel_size,
+        frequency=90,
+        center=pointing_center,
+    )
+
+    sim = Simulation(
+        instrument=instrument,  # Instrument type
+        site=site,  # Site
+        plan=plan,  # Scanning strategy
+        atmosphere="2d",  # atmospheric model
+        map=map,
     )
 
     tod = sim.run()
@@ -81,4 +81,4 @@ def test_mustang2():
 
     mapper.run()
 
-    mapper.save_maps(outfile_map)
+    mapper.save_maps("/tmp/test-output.fits")

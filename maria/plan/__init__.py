@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytz
+from todder import coords
 
-from .. import coords, utils
+from ..io import datetime_handler, read_yaml
 from . import patterns
 
 MAX_VELOCITY_WARN = 10  # in deg/s
@@ -20,7 +21,7 @@ MIN_ELEVATION_ERROR = 10  # in deg
 
 here, this_filename = os.path.split(__file__)
 
-plan_configs = utils.io.read_yaml(f"{here}/plans.yml")
+plan_configs = read_yaml(f"{here}/plans.yml")
 plan_params = set()
 for key, config in plan_configs.items():
     plan_params |= set(config.keys())
@@ -36,7 +37,7 @@ class UnsupportedPlanError(Exception):
         )
 
 
-def get_plan_config(scan_pattern="stare", **kwargs):
+def get_plan_config(scan_pattern="daisy", **kwargs):
     if scan_pattern not in plan_configs.keys():
         raise UnsupportedPlanError(scan_pattern)
     plan_config = plan_configs[scan_pattern].copy()
@@ -45,7 +46,7 @@ def get_plan_config(scan_pattern="stare", **kwargs):
     return plan_config
 
 
-def get_plan(scan_pattern="stare", **kwargs):
+def get_plan(scan_pattern="daisy", **kwargs):
     plan_config = get_plan_config(scan_pattern, **kwargs)
     return Plan(**plan_config)
 
@@ -73,10 +74,10 @@ class Plan:
     """
 
     description: str = ""
-    start_time: str = "2022-02-10T06:00:00"
+    start_time: str or int = "2022-02-10T06:00:00"
     duration: float = 60.0
     sample_rate: float = 20.0
-    pointing_frame: str = "ra_dec"
+    frame: str = "ra_dec"
     degrees: bool = True
     scan_center: Tuple[float, float] = (4, 10.5)
     scan_pattern: str = "daisy_miss_center"
@@ -104,7 +105,7 @@ class Plan:
 
         if not hasattr(self, "start_time"):
             self.start_time = datetime.now().timestamp()
-        self.start_datetime = utils.io.datetime_handler(self.start_time)
+        self.start_datetime = datetime_handler(self.start_time)
         self.end_datetime = self.start_datetime + timedelta(seconds=self.duration)
 
         self.time_min = self.start_datetime.timestamp()
@@ -168,9 +169,9 @@ class Plan:
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
             *self.scan_offsets_radians, *self.scan_center_radians
         )
-        if self.pointing_frame == "ra_dec":
+        if self.frame == "ra_dec":
             self.ra, self.dec = self.phi, self.theta
-        elif self.pointing_frame == "az_el":
+        elif self.frame == "az_el":
             self.az, self.el = self.phi, self.theta
         else:
             raise ValueError("Not a valid pointing frame!")
@@ -200,8 +201,8 @@ class Plan:
         pointing_units = "deg." if self.degrees else "rad."
 
         label = (
-            f"""{coords.frames[self.pointing_frame]['phi_name']} = {center_phi} {pointing_units}"""
-            f"""{coords.frames[self.pointing_frame]['theta_name']} = {center_theta} {pointing_units}"""
+            f"""{coords.frames[self.frame]['phi_name']} = {center_phi} {pointing_units}"""
+            f"""{coords.frames[self.frame]['theta_name']} = {center_theta} {pointing_units}"""
         )
 
         ax.plot(dx, dy, lw=5e-1)

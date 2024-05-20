@@ -10,13 +10,12 @@ import numpy as np
 import pandas as pd
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
+from todder.coords import Angle
 
-from .. import utils
-from ..coords import Angle
-from .arrays import generate_array
-from .bands import BandList, all_bands, parse_bands_config  # noqa F401
-from .beams import compute_angular_fwhm  # noqa F401
-from .detectors import Detectors  # noqa F401
+from ..io import read_yaml
+from .bands import BandList, all_bands, parse_bands  # noqa
+from .beams import compute_angular_fwhm
+from .detectors import Detectors, generate_array
 
 HEX_CODE_LIST = [
     mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
@@ -28,9 +27,7 @@ HEX_CODE_LIST = [
 
 here, this_filename = os.path.split(__file__)
 
-# all_instrument_params = utils.io.read_yaml(f"{here}/../configs/default_params.yml")["instrument"]
-
-INSTRUMENT_CONFIGS = utils.io.read_yaml(f"{here}/instruments.yml")
+INSTRUMENT_CONFIGS = read_yaml(f"{here}/configs.yml")
 
 INSTRUMENT_DISPLAY_COLUMNS = [
     "description",
@@ -80,12 +77,12 @@ subarray_params_to_inherit = [
     "field_of_view",
 ]
 
-band_params_to_inherit = {
-    "time_constant": 0.0,  # seconds
-    "white_noise": 0.0,  # Kelvin
-    "pink_noise": 0.0,  # Kelvin / s
-    "efficiency": 1.0,
-}
+band_params_to_inherit = [
+    "time_constant",  # seconds
+    "white_noise",  # Kelvin
+    "pink_noise",  # Kelvin / s
+    "efficiency",
+]
 
 passband_params_to_inherit = {
     "center": 150,  # GHz
@@ -137,11 +134,15 @@ def get_subarrays(instrument_config):
 
     for subarray_name in config["arrays"]:
         subarray = config["arrays"][subarray_name]
-        subarray["bands"] = parse_bands_config(subarray.get("bands"))
+        subarray["bands"] = parse_bands(subarray.get("bands"))
 
         if "file" in subarray:  # it points to a file:
-            subarray["file"] = f"{here}/{subarray['file']}"
+            if not os.path.exists(subarray["file"]):
+                subarray["file"] = f"{here}/detectors/arrays/{subarray['file']}"
             df = pd.read_csv(subarray["file"])
+
+            if subarray["bands"] is None:
+                subarray["bands"] = {}
 
             subarray["n"] = len(df)
             for band_name in np.unique(df.band_name.values):
@@ -157,13 +158,14 @@ def get_subarrays(instrument_config):
             else:
                 raise ValueError("You must pass 'bands' for each array.")
 
-        for band_name, band_config in subarray["bands"].items():
-            for param, default_value in band_params_to_inherit.items():
-                band_config[param] = band_config.get(param, default_value)
+        # for band_name, band_config in subarray["bands"].items():
+        #     for param in band_params_to_inherit:
+        #         if param in config:
+        #         band_config[param] = band_config.get(param, default_value)
 
-            if "passband" not in band_config:
-                for param, default_value in passband_params_to_inherit.items():
-                    band_config[param] = band_config.get(param, default_value)
+        #     if "passband" not in band_config:
+        #         for param, default_value in passband_params_to_inherit:
+        #             band_config[param] = band_config.get(param, default_value)
 
         subarrays[subarray_name] = subarray
 

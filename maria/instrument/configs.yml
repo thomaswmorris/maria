@@ -2,11 +2,8 @@
 
 default:
   description: A simple test array
-  documentation:
   array:
-    n: 250
     field_of_view: 1
-    array_shape: circle
     bands:
       f150:
         center: 150
@@ -60,7 +57,7 @@ ALMA:
   documentation: https://www.eso.org/public/teles-instr/alma/
   field_of_view: 0
   array:
-    file: data/arrays/alma/alma.cycle1.total.csv
+    file: alma/alma.cycle1.total.csv
   primary_size: 12
 
 

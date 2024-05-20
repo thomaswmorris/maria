@@ -1,20 +1,23 @@
 import os
+import time as ttime
 
-from maria.instrument import Instrument
-from maria.plan import Plan
-from maria.site import Site
+from tqdm import tqdm
 
-from ..atmosphere import Atmosphere, AtmosphereMixin
-from ..cmb import CMBMixin
-from ..map import MapMixin
+from ..atmosphere import Atmosphere
+from ..atmosphere.sim import AtmosphereMixin
+from ..cmb import CMB, CMBMixin, generate_cmb, get_cmb
+from ..instrument import Instrument
+from ..map import Map, MapMixin
 from ..noise import NoiseMixin
-from .base import BaseSimulation, master_params, parse_sim_kwargs
+from ..plan import Plan
+from ..site import Site
+from .base import BaseSimulation
 
 here, this_filename = os.path.split(__file__)
 
 
 class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
-    """A simulation! This is what users should touch, primarily."""
+    """A simulation of a telescope. This is what users should touch, primarily."""
 
     @classmethod
     def from_config(cls, config: dict = {}, **params):
@@ -22,60 +25,87 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
     def __init__(
         self,
-        instrument: str or Instrument = "MUSTANG-2",
-        plan: str or Plan = "stare",
-        site: str or Site = "hoagie_haven",
+        instrument: Instrument or str = "default",
+        plan: Plan or str = "daisy",
+        site: Site or str = "hoagie_haven",
+        map: Map = None,
+        atmosphere: str = None,
+        cmb: CMB or str = None,
+        noise: bool = True,
+        atmosphere_kwargs: dict = {},
+        cmb_kwargs: dict = {},
+        noise_kwargs: dict = {},
         verbose: bool = True,
-        **kwargs,
     ):
-        self.parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params, strict=True)
+        # self.parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params, strict=True)
+
+        ref_time = ttime.time()
 
         super().__init__(
             instrument,
             plan,
             site,
             verbose=verbose,
-            **self.parsed_sim_kwargs["instrument"],
-            **self.parsed_sim_kwargs["plan"],
-            **self.parsed_sim_kwargs["site"],
+            # **self.parsed_sim_kwargs["instrument"],
+            # **self.parsed_sim_kwargs["plan"],
+            # **self
+            # .parsed_sim_kwargs["site"],
         )
 
-        self.noise = True
+        duration = ttime.time() - ref_time
+        ref_time = ttime.time()
 
-        self.params = {}
+        if self.verbose:
+            print(f"Initialized base in {int(1e3 * duration)} ms.")
 
-        for sub_type, sub_master_params in master_params.items():
-            self.params[sub_type] = {}
-            if sub_type in ["instrument", "site", "plan"]:
-                sub_type_dataclass = getattr(self, sub_type)
-                for k in sub_type_dataclass.__dataclass_fields__.keys():
-                    v = getattr(sub_type_dataclass, k)
-                    setattr(self, k, v)
-                    self.params[sub_type][k] = v
-            else:
-                for k, v in sub_master_params.items():
-                    setattr(self, k, kwargs.get(k, v))
-                    self.params[sub_type][k] = v
+        self.noise = noise
 
-        if self.map_file:
-            if not os.path.exists(self.map_file):
-                raise FileNotFoundError(self.map_file)
-            self._initialize_map()
+        # self.noise = True
 
-        if self.atmosphere_model:
-            weather_override = {k: v for k, v in {"pwv": self.pwv}.items() if v}
+        # self.params = {}
+
+        # for sub_type, sub_master_params in master_params.items():
+        #     self.params[sub_type] = {}
+        #     if sub_type in ["instrument", "site", "plan"]:
+        #         sub_type_dataclass = getattr(self, sub_type)
+        #         for k in sub_type_dataclass.__dataclass_fields__.keys():
+        #             v = getattr(sub_type_dataclass, k)
+        #             setattr(self, k, v)
+        #             self.params[sub_type][k] = v
+        #     else:
+        #         for k, v in sub_master_params.items():
+        #             setattr(self, k, kwargs.get(k, v))
+        #             self.params[sub_type][k] = v
+
+        if map:
+            self.map = map
+            ...
+
+        if atmosphere:
+            weather_kwargs = (
+                atmosphere_kwargs.pop("weather")
+                if "weather" in atmosphere_kwargs
+                else {}
+            )
 
             self.atmosphere = Atmosphere(
                 t=self.plan.time.mean(),
                 region=self.site.region,
                 altitude=self.site.altitude,
-                weather_override=weather_override,
+                weather_kwargs=weather_kwargs,
             )
 
-            self._initialize_atmosphere()
+            if atmosphere == "2d":
+                self._initialize_2d_atmosphere(**atmosphere_kwargs)
 
-        if self.cmb_source:
-            self._initialize_cmb(source=self.cmb_source)
+        if cmb:
+            if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
+                for _ in tqdm(range(1), desc="Generating CMB"):
+                    self.cmb = generate_cmb(verbose=self.verbose, **cmb_kwargs)
+            elif cmb in ["real", "planck"]:
+                self.cmb = get_cmb(**cmb_kwargs)
+            else:
+                raise ValueError(f"Invalid value for cmb: '{cmb}'.")
 
     def _run(self):
         # number of bands are lost here
@@ -99,7 +129,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if hasattr(self, "atmospheric_transmission"):
             for k in self.data:
                 self.data[k] /= self.atmospheric_transmission
-                self.data[k] *= self.instrument.dets.pW_to_KRJ[:, None]
+                # self.data[k] *= self.instrument.dets.pW_to_KRJ[:, None]
 
     def __repr__(self):
         object_reprs = [
