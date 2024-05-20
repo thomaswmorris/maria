@@ -1,2 +1,6 @@
 class PointingError(BaseException):
     ...
+
+
+class ConfigurationError(Exception):
+    ...
