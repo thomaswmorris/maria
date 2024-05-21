@@ -1,51 +1,51 @@
 pa4:
   f150:
     center: 150
-    width: 50
+    width: 30
     shape: gaussian
     time_constant: 0
-    NEP: 1.0 # pW / sqrt(s)
+    NEP: 3.e-5 # pW / sqrt(s)
     knee: 1.0 # Hz
     efficiency: 0.5
   f220:
     center: 220
-    width: 60
+    width: 40
     shape: gaussian
     time_constant: 0
-    NEP: 1.0 # pW / sqrt(s)
+    NEP: 3.e-5 # pW / sqrt(s)
     knee: 1.0 # Hz
     efficiency: 0.5
 pa5:
   f090:
     center: 90
-    width: 30
+    width: 20
     shape: gaussian
     time_constant: 0
-    NEP: 1.0 # pW / sqrt(s)
+    NEP: 3.e-5 # pW / sqrt(s)
     knee: 1.0 # Hz
     efficiency: 0.5
   f150:
     center: 150
-    width: 50
+    width: 30
     shape: gaussian
     time_constant: 0
-    NEP: 1.0 # pW / sqrt(s)
+    NEP: 3.e-5 # pW / sqrt(s)
     knee: 1.0 # Hz
     efficiency: 0.5
 pa6:
   f090:
     center: 90
-    width: 30
+    width: 20
     shape: gaussian
     time_constant: 0
-    NEP: 1.0 # pW / sqrt(s)
+    NEP: 3.e-5 # pW / sqrt(s)
     knee: 1.0 # Hz
     efficiency: 0.5
   f150:
     center: 150
-    width: 50
+    width: 30
     shape: gaussian
     time_constant: 0
-    NEP: 1.0 # pW / sqrt(s)
+    NEP: 3.e-5 # pW / sqrt(s)
     knee: 1.0 # Hz
     efficiency: 0.5
