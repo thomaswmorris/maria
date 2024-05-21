@@ -1,0 +1,7 @@
+,units,dtype,format
+center,GHz,float,f
+width,GHz,float,f
+shape,none,str,f
+efficiency,none,float,f
+sensitivity,K√s,float,e
+NEP,pW√s,float,e
