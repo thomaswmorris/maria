@@ -35,11 +35,13 @@ class AtmosphereMixin:
         )
         self.atmosphere.layers = []
 
-        depths = enumerate(self.turbulent_layer_depths)
-        if self.verbose:
-            depths = tqdm(depths, desc="Initializing atmospheric layers")
+        depths = tqdm(
+            self.turbulent_layer_depths,
+            desc="Initializing atmospheric layers",
+            disable=not self.verbose,
+        )
 
-        for _, layer_depth in depths:
+        for layer_depth in depths:
             layer_res = (
                 self.instrument.physical_fwhm(z=layer_depth).min()
                 / min_atmosphere_beam_res
@@ -72,7 +74,12 @@ class AtmosphereMixin:
             (len(self.atmosphere.layers), self.instrument.n_dets, self.plan.n_time)
         )
 
-        pbar = tqdm(enumerate(self.atmosphere.layers), disable=not self.verbose)
+        pbar = tqdm(
+            enumerate(self.atmosphere.layers),
+            desc="Generating atmosphere",
+            disable=not self.verbose,
+        )
+
         for layer_index, layer in pbar:
             layer.generate()
             layer_data[layer_index] = sp.interpolate.interp1d(
@@ -83,7 +90,7 @@ class AtmosphereMixin:
                 bounds_error=False,
                 fill_value="extrapolate",
             )(self.boresight.time)
-            pbar.set_description(f"Generating atmosphere (z={layer.depth:.00f}m)")
+            # pbar.set_description(f"Generating atmosphere (z={layer.depth:.00f}m)")
 
         return layer_data
 

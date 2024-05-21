@@ -107,18 +107,14 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if hasattr(self, "cmb"):
             self._simulate_cmb_emission()
 
-            # convert to source Rayleigh-Jeans
-            # self.data["atmosphere"] *= self.instrument.dets.pW_to_KRJ[:, None]
-            # self.data["atmosphere"] /= self.atmospheric_transmission
-
         if hasattr(self, "map"):
             self._sample_maps()
 
-        # calibrate so that there is unit efficiency to celestial sources
+        # scale the noise so that there is
         if hasattr(self, "atmospheric_transmission"):
-            for k in self.data:
-                self.data[k] /= self.atmospheric_transmission
-                # self.data[k] *= self.instrument.dets.pW_to_KRJ[:, None]
+            for k in ["cmb", "map"]:
+                if k in self.data:
+                    self.data[k] *= self.atmospheric_transmission
 
     def __repr__(self):
         object_reprs = [

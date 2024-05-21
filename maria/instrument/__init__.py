@@ -29,6 +29,10 @@ here, this_filename = os.path.split(__file__)
 
 INSTRUMENT_CONFIGS = read_yaml(f"{here}/configs.yml")
 
+for name, config in INSTRUMENT_CONFIGS.items():
+    config["aliases"] = config.get("aliases", [])
+    config["aliases"].append(name.lower())
+
 INSTRUMENT_DISPLAY_COLUMNS = [
     "description",
     # "field_of_view",
@@ -50,7 +54,7 @@ def get_instrument(instrument_name="default", **kwargs):
     """
     if instrument_name:
         for key, config in INSTRUMENT_CONFIGS.items():
-            if instrument_name in config.get("aliases", []):
+            if instrument_name.lower() in config.get("aliases", []):
                 instrument_name = key
         if instrument_name not in INSTRUMENT_CONFIGS.keys():
             raise InvalidInstrumentError(instrument_name)
@@ -149,7 +153,7 @@ def get_subarrays(instrument_config):
                 subarray["bands"][band_name] = all_bands[band_name]
 
         for param in subarray_params_to_inherit:
-            if param in config:
+            if (param in config) and (param not in subarray):
                 subarray[param] = config[param]
 
         if "bands" not in subarray:
