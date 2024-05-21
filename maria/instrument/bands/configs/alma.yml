@@ -3,87 +3,87 @@ f043:
   width: 16
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f078:
   center: 78
   width: 22
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f100:
   center: 100
   width: 32
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f144:
   center: 144
   width: 38
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f187:
   center: 187
   width: 48
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f243:
   center: 243
   width: 64
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f324:
   center: 324
   width: 98
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f447:
   center: 447
   width: 114
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f661:
   center: 661
   width: 118
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5
 
 f869:
   center: 869
   width: 163
   shape: gaussian
   time_constant: 0
-  NEP: 1.0 # pW / sqrt(s)
+  NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
-  efficiency: 1.0
+  efficiency: 0.5

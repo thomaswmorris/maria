@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
+from ..constants import k_B
 from ..instrument import beams
 from .map import Map
 
@@ -24,46 +25,82 @@ class MapMixin:
     def _sample_maps(self):
         dx, dy = self.coords.offsets(frame=self.map.frame, center=self.map.center)
 
-        self.data["map"] = np.zeros((dx.shape))
+        self.data["map"] = 1e-16 * np.random.standard_normal(size=dx.shape)
 
-        pbar = tqdm(enumerate(self.map.frequency), disable=not self.verbose)
-        for i, nu in pbar:
-            pbar.set_description(f"Sampling input map ({nu} GHz)")
+        pbar = tqdm(self.instrument.bands, disable=not self.verbose)
+
+        for band in pbar:
+            pbar.set_description(f"Sampling map ({band.name})")
+
+            band_mask = self.instrument.dets.band_name == band.name
+
+            nu = np.linspace(band.nu_min, band.nu_max, 64)
+
+            TRJ = sp.interpolate.interp1d(
+                self.map.frequency,
+                self.map.data,
+                axis=0,
+                kind="nearest",
+                bounds_error=False,
+                fill_value="extrapolate",
+            )(nu)
+
+            power_map = (
+                1e12
+                * k_B
+                * np.trapz(band.passband(nu)[:, None, None] * TRJ, axis=0, x=1e9 * nu)
+            )
 
             # nu is in GHz, f is in Hz
             nu_fwhm = beams.compute_angular_fwhm(
-                fwhm_0=self.instrument.dets.primary_size.mean(), z=np.inf, f=1e9 * nu
+                fwhm_0=self.instrument.dets.primary_size.mean(),
+                z=np.inf,
+                f=1e9 * band.center,
             )
             nu_map_filter = beams.construct_beam_filter(fwhm=nu_fwhm, res=self.map.res)
-            filtered_nu_map_data = beams.separably_filter(
-                self.map.data[i], nu_map_filter
-            )
+            filtered_power_map = beams.separably_filter(power_map, nu_map_filter)
 
-            # band_res_radians = 1.22 * (299792458 / (1e9 * nu)) / self.instrument.primary_size
-            # band_res_pixels = band_res_radians / self.map.res
-            # FWHM_TO_SIGMA = 2.355
-            # band_beam_sigma_pixels = band_res_pixels / FWHM_TO_SIGMA
-
-            # # band_beam_filter = self.instrument.
-
-            # # filtered_map_data = sp.ndimage.convolve()
-            det_freq_response = self.instrument.dets.passband(nu=np.array([nu]))[:, 0]
-            det_mask = det_freq_response > -np.inf  # -1e-3
-
-            samples = sp.interpolate.RegularGridInterpolator(
+            self.data["map"][band_mask] += sp.interpolate.RegularGridInterpolator(
                 (self.map.x_side, self.map.y_side),
-                filtered_nu_map_data,
+                filtered_power_map,
                 bounds_error=False,
                 fill_value=0,
                 method="linear",
-            )((dx[det_mask], dy[det_mask]))
+            )((dx[band_mask], dy[band_mask]))
 
-            self.data["map"][det_mask] = samples
+        # pbar = tqdm(enumerate(self.map.frequency), disable=not self.verbose)
+        # for i, nu in pbar:
+        #     pbar.set_description(f"Sampling input map ({nu} GHz)")
 
-        if hasattr(self, "atmospheric_transmission"):
-            self.data["map"] *= self.atmospheric_transmission
+        #     # nu is in GHz, f is in Hz
+        #     nu_fwhm = beams.compute_angular_fwhm(
+        #         fwhm_0=self.instrument.dets.primary_size.mean(), z=np.inf, f=1e9 * nu
+        #     )
+        #     nu_map_filter = beams.construct_beam_filter(fwhm=nu_fwhm, res=self.map.res)
+        #     filtered_nu_map_data = beams.separably_filter(
+        #         self.map.data[i], nu_map_filter
+        #     )
 
-        self.data["map"] *= 1e12 * self.instrument.dets.dP_dTRJ[:, None]
+        #     # band_res_radians = 1.22 * (299792458 / (1e9 * nu)) / self.instrument.primary_size
+        #     # band_res_pixels = band_res_radians / self.map.res
+        #     # FWHM_TO_SIGMA = 2.355
+        #     # band_beam_sigma_pixels = band_res_pixels / FWHM_TO_SIGMA
+
+        #     # # band_beam_filter = self.instrument.
+
+        #     # # filtered_map_data = sp.ndimage.convolve()
+        #     det_freq_response = self.instrument.dets.passband(nu=np.array([nu]))[:, 0]
+        #     det_mask = det_freq_response > -np.inf  # -1e-3
+
+        #     samples = sp.interpolate.RegularGridInterpolator(
+        #         (self.map.x_side, self.map.y_side),
+        #         filtered_nu_map_data,
+        #         bounds_error=False,
+        #         fill_value=0,
+        #         method="linear",
+        #     )((dx[det_mask], dy[det_mask]))
+
+        #     self.data["map"][det_mask] = self.instrument.dets.dP_dTRJ[:, None] * samples
 
 
 def from_fits(

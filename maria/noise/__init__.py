@@ -1,5 +1,6 @@
 import numpy as np
 from todder.sim.noise import generate_noise_with_knee
+from tqdm import tqdm
 
 from ..sim.base import BaseSimulation
 
@@ -7,12 +8,17 @@ from ..sim.base import BaseSimulation
 class NoiseMixin:
     def _run(self):
         self._simulate_noise()
-        self.tod_data = self.data["noise"]
 
     def _simulate_noise(self):
         self.data["noise"] = np.zeros((self.instrument.n_dets, self.plan.n_time))
 
-        for band in self.instrument.dets.bands:
+        bands = tqdm(
+            self.instrument.dets.bands,
+            desc="Generating noise",
+            disable=not self.verbose,
+        )
+
+        for band in bands:
             band_mask = self.instrument.dets.band_name == band.name
 
             self.data["noise"][band_mask] = generate_noise_with_knee(

@@ -8,20 +8,13 @@ import numpy as np
 import pandas as pd
 
 from ...atmosphere.spectrum import Spectrum
-from ...constants import T_CMB, c
-from ...functions import planck_spectrum, rayleigh_jeans_spectrum
+from ...constants import T_CMB, c, k_B
+from ...functions import planck_spectrum
 from ...io import flatten_config, read_yaml
 
-BAND_FIELDS = {
-    "center": {"units": "GHz", "dtype": "float"},
-    "width": {"units": "GHz", "dtype": "float"},
-    "shape": {"units": None, "dtype": "str"},
-    "efficiency": {"units": None, "dtype": "float"},
-    "sensitivity": {"units": "K sqrt(s)", "dtype": "float"},
-    "NEP": {"units": "pW sqrt(s)", "dtype": "float"},
-}
-
 here, this_filename = os.path.split(__file__)
+
+FIELD_FORMATS = pd.read_csv(f"{here}/format.csv", index_col=0)
 
 all_bands = {}
 for path in glob.glob(f"{here}/configs/*.yml"):
@@ -115,16 +108,35 @@ class Band:
                 sensitivity, kind=sensitivity_kind
             )  # this sets the NEP automatically
 
-    def __repr__(self):
-        parts = []
-        for field, d in BAND_FIELDS.items():
+    @property
+    def summary(self):
+        summary = pd.Series(index=FIELD_FORMATS.index, dtype=str)
+
+        for field, entry in FIELD_FORMATS.iterrows():
             value = getattr(self, field)
-            if d["dtype"] == "str":
-                s = f"{field}='{value}'"
-            elif d["units"] is not None:
-                s = f"{field}={value} {d['units']}"
-            else:
-                s = f"{field}={value}"
+
+            if entry["dtype"] == "float":
+                if entry["format"] == "e":
+                    s = f"{value:.02e}"
+                else:
+                    s = f"{value}"
+
+                if entry.units != "none":
+                    s = f"{s} {entry.units}"
+
+            elif entry["dtype"] == "str":
+                s = f"{value}"
+
+            summary[field] = s
+
+        return summary
+
+    def __repr__(self):
+        summary = self.summary
+        parts = []
+        for field, entry in FIELD_FORMATS.iterrows():
+            value = summary[field]
+            s = f"{field}='{value}'" if entry["dtype"] == str else f"{field}={value}"
             parts.append(s)
 
         return f"Band({', '.join(parts)})"
@@ -219,36 +231,40 @@ class Band:
     @property
     def dP_dTRJ(self) -> float:
         """
-        In watts per kelvin Rayleigh-Jeans, assuming perfect transmission.
+        In picowatts per kelvin Rayleigh-Jeans, assuming perfect transmission.
         """
 
         nu = np.linspace(self.nu_min, self.nu_max, 256)
 
-        dI_dTRJ = rayleigh_jeans_spectrum(
-            nu=1e9 * nu, T=1
-        )  # this is the same as the derivative
-        dP_dTRJ = np.trapz(dI_dTRJ * self.passband(nu), 1e9 * nu)
+        # dI_dTRJ = rayleigh_jeans_spectrum(nu=1e9 * nu, T=1)  # this is the same as the derivative
+        # dP_dTRJ = np.trapz(dI_dTRJ * self.passband(nu), 1e9 * nu)
+        dP_dTRJ = k_B * np.trapz(self.passband(nu), 1e9 * nu)
 
-        return self.efficiency * dP_dTRJ
+        return 1e12 * self.efficiency * dP_dTRJ
 
     @property
     def dP_dTCMB(self) -> float:
         """
-        In watts per kelvin CMB, assuming perfect transmission.
+        In picowatts per kelvin CMB, assuming perfect transmission.
         """
 
-        eps = 1e-3
+        eps = 1e-2
+        delta_T = np.array([-eps / 2, eps / 2])
 
         nu = np.linspace(self.nu_min, self.nu_max, 256)
+        TRJ = (
+            planck_spectrum(nu=1e9 * nu, T=T_CMB + delta_T[:, None])
+            * c**2
+            / (2 * k_B * (1e9 * nu) ** 2)
+        )
 
-        delta_T = np.array([-eps / 2, eps / 2])
-        dI_dTCMB = (
-            np.diff(planck_spectrum(nu=1e9 * nu, T=T_CMB + delta_T[:, None]), axis=0)[0]
+        return (
+            1e12
+            * self.efficiency
+            * k_B
+            * np.diff(np.trapz(TRJ * self.passband(nu), 1e9 * nu))[0]
             / eps
         )
-        dP_dTCMB = self.efficiency * np.trapz(dI_dTCMB * self.passband(nu), 1e9 * nu)
-
-        return self.efficiency * dP_dTCMB
 
     @property
     def wavelength(self):
@@ -321,12 +337,11 @@ class BandList(Sequence):
 
     @property
     def summary(self) -> pd.DataFrame:
-        table = pd.DataFrame(columns=list(BAND_FIELDS.keys()), index=self.names)
+        summary = pd.DataFrame(index=self.names)
 
-        for attr, d in BAND_FIELDS.items():
-            dtype = d["dtype"]
-            for band in self.bands:
-                table.at[band.name, attr] = getattr(band, attr)
-            table[attr] = table[attr].astype(dtype)
+        for band in self.bands:
+            band_summary = band.summary
+            for field, entry in FIELD_FORMATS.iterrows():
+                summary.loc[band.name, field] = band_summary[field]
 
-        return table
+        return summary
