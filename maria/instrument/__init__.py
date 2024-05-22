@@ -372,7 +372,7 @@ class Instrument:
             ax.scatter(
                 *getattr(offsets, offsets.units)[band_mask].T,
                 label=uband,
-                s=5e-1,
+                s=0,
                 color=band_color,
             )
 
