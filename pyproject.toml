@@ -16,6 +16,7 @@ dependencies = [
   "matplotlib",
   "numpy",
   "pandas",
+  "pytz",
   "reproject",
   "requests",
   "scipy",
