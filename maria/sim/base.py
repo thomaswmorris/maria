@@ -2,6 +2,7 @@ import os
 
 import dask.array as da
 import numpy as np
+import pandas as pd  # noqa
 from todder import TOD
 from todder.coords import Coordinates, dx_dy_to_phi_theta
 
@@ -143,5 +144,10 @@ class BaseSimulation:
             dets=self.instrument.dets.df,
             coords=self.coords,
         )
+
+        tod.cal = 1 / self.instrument.dets.dP_dTRJ  # takes the data to TRJ
+
+        # tod.metadata = pd.Series({"pwv": self.atmosphere.weather.pwv,
+        #                         "region": self.site.region})
 
         return tod

@@ -176,7 +176,7 @@ class Map:
             vmin, vmax = np.interp([rel_vmin, rel_vmax], np.cumsum(w) / np.sum(w), d)
 
             map_im = ax.imshow(
-                self.data.T,
+                self.data[i_freq].T,
                 cmap=cmap,
                 interpolation="none",
                 extent=map_extent,
@@ -188,4 +188,4 @@ class Map:
             ax.set_ylabel(rf"$\Delta\,\theta_y$ [{units}]")
 
             cbar = fig.colorbar(map_im, ax=ax, shrink=1.0)
-            cbar.set_label("mJy km/s/pixel")
+            cbar.set_label("RJ temperature [K]")

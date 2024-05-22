@@ -166,14 +166,12 @@ class BinMapper(BaseMapper):
 
             for tod in self.tods:
                 # compute detector offsets WRT the map
+
                 dx, dy = tod.coords.offsets(frame=self.frame, center=self.center)
 
                 band_mask = tod.dets.band_name == band
 
-                if self.calibrate:
-                    D = tod.data_calibrated.copy()[band_mask]
-                else:
-                    D = tod.data.copy()[band_mask]
+                D = tod.cal[band_mask, None] * tod.data[band_mask]
 
                 # windowing
                 W = np.ones(D.shape[0])[:, None] * sp.signal.windows.tukey(
@@ -203,14 +201,15 @@ class BinMapper(BaseMapper):
                 if "despline" in self.tod_postprocessing.keys():
                     B = utils.signal.get_bspline_basis(
                         tod.time.compute(),
-                        dk=self.tod_postprocessing["despline"].get("knot_spacing", 10),
+                        spacing=self.tod_postprocessing["despline"].get(
+                            "knot_spacing", 10
+                        ),
                         order=self.tod_postprocessing["despline"].get(
                             "spline_order", 3
                         ),
                     )
 
                     A = np.linalg.inv(B @ B.T) @ B @ WD.T
-
                     WD -= A.T @ B
 
                 map_sum = sp.stats.binned_statistic_2d(
@@ -260,6 +259,12 @@ class BinMapper(BaseMapper):
             )
 
             self.map_weight[iband] = band_map_denom
+
+            # from maria.atmosphere import Spectrum
+
+            # spectrum = Spectrum(region=tod.metadata.region)
+
+            # transmission = spectrum.transmission(nu=150, zenith_pwv=tod.metadata.pwv, elevation=np.degrees(tod.coords.el))
 
         self.map = Map(
             data=self.map_data,
