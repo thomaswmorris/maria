@@ -9,3 +9,7 @@ Usage
    instruments.rst
    sites.rst
    plans.rst
+   atmosphere.rst
+   cmb.rst
+   maps.rst
+   noise.rst
