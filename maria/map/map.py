@@ -181,7 +181,7 @@ class Map:
             cbar.set_label("RJ temperature [K]")
 
     def to_fits(self, filepath):
-        self.header = self.tods[0].header
+        self.header = ap.io.fits.header.Header()
         self.header["comment"] = "Made Synthetic observations via maria code"
         self.header["comment"] = "Overwrote resolution and size of the output map"
 
