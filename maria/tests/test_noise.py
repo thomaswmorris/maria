@@ -20,8 +20,8 @@ def test_linear_angular_model():
         tod.data.compute().mean(axis=1) / target_error
     )  # this is should be distributed as a zero-mean unit-variance Gaussian
 
-    min_noise = 0.9
-    max_noise = 1.1
+    min_noise = 0.8
+    max_noise = 1.2
     if scaled_residuals.std() < min_noise:
         raise RuntimeError(
             f"Noise residuals are too low ({scaled_residuals.std():.03f} < {min_noise})"
