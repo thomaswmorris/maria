@@ -1,9 +1,9 @@
-import copy
 import glob
 import os
 from collections.abc import Mapping
 from typing import Sequence
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -16,16 +16,12 @@ here, this_filename = os.path.split(__file__)
 
 FIELD_FORMATS = pd.read_csv(f"{here}/format.csv", index_col=0)
 
-all_bands = {}
+BAND_CONFIGS = {}
 for path in glob.glob(f"{here}/configs/*.yml"):
     tag = os.path.split(path)[1].split(".")[0]
-    all_bands[tag] = read_yaml(path)
-all_bands = {}
-for path in glob.glob(f"{here}/configs/*.yml"):
-    tag = os.path.split(path)[1].split(".")[0]
-    all_bands[tag] = read_yaml(path)
+    BAND_CONFIGS[tag] = read_yaml(path)
 
-all_bands = flatten_config(all_bands)
+BAND_CONFIGS = flatten_config(BAND_CONFIGS)
 
 
 def validate_band_config(band):
@@ -34,45 +30,50 @@ def validate_band_config(band):
             raise ValueError("The band's center and width must be specified!")
 
 
+def get_band(band_name):
+    if band_name in BAND_CONFIGS:
+        return Band(name=band_name, **BAND_CONFIGS[band_name])
+    else:
+        raise ValueError(f"'{band_name}' is not a valid pre-defined band name.")
+
+
 def parse_bands(bands):
     """
-    There are many ways to specify bands, and this handles all of them.
+    Take in a flexible format of a band specification, and return a list of bands.
     """
-    bands = copy.deepcopy(bands)
+    band_list = []
 
-    if isinstance(bands, Mapping):
-        for name, band in bands.items():
-            validate_band_config(band)
-
-    # if we get a list of bands, convert them to a labeled dict
     if isinstance(bands, list):
-        bands_mapping = {}
         for band in bands:
-            if isinstance(band, str):
-                # here 'band' is a name
-                if band not in all_bands:
-                    raise ValueError(f"Could not find band '{band}'.")
-                bands_mapping[band] = all_bands[band]
+            if isinstance(band, Band):
+                band_list.append(band)
+            elif isinstance(band, str):
+                band_list.append(get_band(band_name=band))
+            else:
+                raise TypeError("'band' must be either a Band or a string.")
+        return band_list
 
-            if isinstance(band, Mapping):
-                if "center" not in band:
-                    raise RuntimeError("You must specify the band center.")
-                name = band.get("name", f'f{int(band["center"]):>03}')
-                bands_mapping[name] = band
+    elif isinstance(bands, Mapping):
+        for band_name, band in bands.items():
+            if isinstance(band, Band):
+                band_list.append(band)
+            elif isinstance(band, Mapping):
+                band_list.append(Band(name=band_name, **band))
 
-        return parse_bands(bands_mapping)
+    else:
+        raise TypeError("'bands' must be either a list or a mapping.")
 
-    return bands
+    return band_list
 
 
 class Band:
     def __init__(
         self,
-        name: str,
         center: float,
-        width: float,
+        name: str = None,
+        width: float = None,
         shape: str = "gaussian",
-        efficiency: float = 1.0,
+        efficiency: float = 0.5,
         sensitivity: float = None,
         sensitivity_kind: str = "rayleigh-jeans",
         NEP: float = None,
@@ -80,9 +81,11 @@ class Band:
         knee: float = 1.0,
         time_constant: float = 0.0,
     ):
-        self.name = name
-        self.center = center
-        self.width = width
+        self.center = float(center)
+
+        self.name = name or f"f{int(self.center):>03}"
+        self.width = width or 0.1 * self.center
+
         self.shape = shape
         self.efficiency = efficiency
         self.NEP_per_loading = NEP_per_loading
@@ -93,7 +96,7 @@ class Band:
         self.spectrum = Spectrum(region="chajnantor")
 
         if (NEP is None) and (sensitivity is None):
-            self.NEP = 0
+            self.sensitivity = 1e-6
 
         elif (NEP is not None) and (sensitivity is not None):
             raise RuntimeError(
@@ -140,6 +143,17 @@ class Band:
             parts.append(s)
 
         return f"Band({', '.join(parts)})"
+
+    def plot(self):
+        nus = np.linspace(self.nu_min, self.nu_max, 256)
+
+        fig, ax = plt.subplots(1, 1)
+
+        ax.plot(nus, self.passband(nus), label=self.name)
+
+        ax.set_xlabel(r"$\nu$ [GHz]")
+        ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
+        ax.legend()
 
     @property
     def sensitivity(self):
@@ -195,20 +209,20 @@ class Band:
     @property
     def nu_min(self) -> float:
         if self.shape == "flat":
-            return self.center - 0.5 * self.width
+            return self.center - 0.6 * self.width
         if self.shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].min()
 
-        return self.center - self.width
+        return self.center - 1.5 * self.width
 
     @property
     def nu_max(self) -> float:
         if self.shape == "flat":
-            return self.center + 0.5 * self.width
+            return self.center + 0.6 * self.width
         if self.shape == "custom":
             return self._nu[self._pb > 1e-2 * self._pb.max()].max()
 
-        return self.center + self.width
+        return self.center + 1.5 * self.width
 
     def passband(self, nu):
         """
@@ -275,20 +289,51 @@ class Band:
 
 
 class BandList(Sequence):
-    @classmethod
-    def from_config(cls, config):
-        bands = []
+    def __init__(self, bands: list = []):
+        for band in bands:
+            if not isinstance(band, Band):
+                raise TypeError(f"Invalid band: {band}.")
 
-        if isinstance(config, str):
-            config = read_yaml(f"{here}/{config}")
+        self.bands = bands
 
-        for name in config.keys():
-            band_config = config[name]
-            if "file" in band_config.keys():
-                band_config = read_yaml(f'{here}/{band_config["file"]}')
+    # @classmethod
+    # def from_list(cls, bands):
+    #     band_list = []
+    #     for band in bands:
+    #         if isinstance(band, str):
+    #             band_list.append(Band(name=band, **BAND_CONFIGS[band]))
+    #         elif isinstance(band, Band):
+    #             band_list.append(band)
+    #         else:
+    #             raise ValueError("'band' must be either a Band or a string.")
+    #     return cls(band_list)
 
-            bands.append(Band(name=name, **band_config))
-        return cls(bands=bands)
+    # @classmethod
+    # def from_config(cls, config):
+    #     bands = []
+
+    #     if isinstance(config, str):
+    #         config = read_yaml(f"{here}/{config}")
+
+    #     for name in config.keys():
+    #         band_config = config[name]
+    #         if "file" in band_config.keys():
+    #             band_config = read_yaml(f'{here}/{band_config["file"]}')
+
+    #         bands.append(Band(name=name, **band_config))
+    #     return cls(bands=bands)
+
+    def plot(self):
+        for band in self.bands:
+            nus = np.linspace(band.nu_min, band.nu_max, 256)
+
+            fig, ax = plt.subplots(1, 1)
+
+            ax.plot(nus, band.passband(nus), label=band.name)
+
+        ax.set_xlabel(r"$\nu$ [GHz]")
+        ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
+        ax.legend()
 
     def add(self, band):
         if not isinstance(band, Band):
@@ -296,9 +341,6 @@ class BandList(Sequence):
         if band.name in self.names:
             raise RuntimeError(f"There is already a band called '{band.name}'.")
         self.bands.append(band)
-
-    def __init__(self, bands: list = []):
-        self.bands = bands
 
     def __getattr__(self, attr):
         if attr in self.names:

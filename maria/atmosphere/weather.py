@@ -7,7 +7,7 @@ import pytz
 import scipy as sp
 
 from ..constants import g
-from ..io import fetch_cache
+from ..io import fetch
 from ..site import InvalidRegionError, all_regions, supported_regions_table
 from ..utils import get_utc_day_hour, get_utc_year_day
 
@@ -77,12 +77,8 @@ class Weather:
         self.override = override
         self.source = source
 
-        self.cache_path = f"{WEATHER_CACHE_BASE}/{source}/{region}.h5"
-        self.source_url = f"{WEATHER_SOURCE_BASE}/{source}/{region}.h5"
-
-        fetch_cache(
-            source_url=self.source_url,
-            cache_path=self.cache_path,
+        self.cache_path = fetch(
+            f"atmosphere/weather/{source}/{self.region}.h5",
             max_age=30 * 86400,
             refresh=refresh_cache,
         )

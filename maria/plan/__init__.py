@@ -37,17 +37,17 @@ class UnsupportedPlanError(Exception):
         )
 
 
-def get_plan_config(scan_pattern="daisy", **kwargs):
-    if scan_pattern not in plan_configs.keys():
-        raise UnsupportedPlanError(scan_pattern)
-    plan_config = plan_configs[scan_pattern].copy()
+def get_plan_config(plan_name="daisy", **kwargs):
+    if plan_name not in plan_configs.keys():
+        raise UnsupportedPlanError(plan_name)
+    plan_config = plan_configs[plan_name].copy()
     for k, v in kwargs.items():
         plan_config[k] = v
     return plan_config
 
 
-def get_plan(scan_pattern="daisy", **kwargs):
-    plan_config = get_plan_config(scan_pattern, **kwargs)
+def get_plan(plan_name="daisy", **kwargs):
+    plan_config = get_plan_config(plan_name, **kwargs)
     return Plan(**plan_config)
 
 
@@ -99,9 +99,9 @@ class Plan:
 
         self.scan_center = tuple(np.array(self.scan_center))
 
-        for k, v in plan_configs[self.scan_pattern]["scan_options"].items():
-            if k not in self.scan_options.keys():
-                self.scan_options[k] = v
+        # for k, v in plan_configs[self.scan_pattern]["scan_options"].items():
+        #     if k not in self.scan_options.keys():
+        #         self.scan_options[k] = v
 
         if not hasattr(self, "start_time"):
             self.start_time = datetime.now().timestamp()
@@ -117,8 +117,7 @@ class Plan:
 
         # this is in pointing_units
         x_scan_offsets, y_scan_offsets = getattr(patterns, self.scan_pattern)(
-            duration=self.duration,
-            sample_rate=self.sample_rate,
+            self.time,
             **self.scan_options,
         )
 

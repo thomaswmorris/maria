@@ -88,9 +88,23 @@ def test_file(path) -> bool:
     return True
 
 
-def fetch_cache(
+def fetch(
+    source_path: str,
+    cache_path: str = None,
+    url_base: str = "https://github.com/thomaswmorris/maria-data/raw/master",
+    **kwargs,
+):
+    """
+    Fetch a file from the repo.
+    """
+    cache_path = cache_path or f"/tmp/maria-data/{source_path}"
+    url = f"{url_base}/{source_path}"
+    return fetch_from_url(url, cache_path=cache_path, **kwargs)
+
+
+def fetch_from_url(
     source_url: str,
-    cache_path: str,
+    cache_path: str = None,
     max_age: float = 30 * 86400,
     refresh: bool = False,
     chunk_size: int = 8192,
@@ -99,6 +113,7 @@ def fetch_cache(
     """
     Download the cache if needed
     """
+
     cache_dir = os.path.dirname(cache_path)
 
     # make the cache directory if it doesn't exist
@@ -123,6 +138,8 @@ def fetch_cache(
 
         if not test_file(cache_path):
             raise RuntimeError("Could not open cached file.")
+
+    return cache_path
 
 
 def datetime_handler(time):

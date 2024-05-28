@@ -1,7 +1,5 @@
 import os
-from dataclasses import dataclass, fields
-from operator import attrgetter
-from typing import List, Tuple
+from typing import Tuple
 
 import astropy as ap
 import matplotlib as mpl
@@ -22,39 +20,46 @@ cmb_cmap.set_bad("white")
 mpl.colormaps.register(cmb_cmap)
 
 
-@dataclass
 class Map:
     """
-    We define height and width, which determines the shape of the
-
-    This means that there might be non-square pixels
+    A map.
     """
 
-    data: np.array
-    frequency: List[float] = 100.0
-    center: Tuple[float, float] = ()
-    width: float = 1
-    height: float = 1
-    degrees: bool = True
-    inbright: float = 1
-    header: ap.io.fits.header.Header = None
-    frame: str = "ra_dec"
-    units: str = "K_RJ"
-    weight: np.array = None
+    def __init__(
+        self,
+        data: float,
+        weight: float = None,
+        width: float = None,
+        resolution: float = None,
+        frequency: float = 100.0,
+        center: Tuple[float, float] = (0.0, 0.0),
+        frame: str = "ra_dec",
+        degrees: bool = True,
+    ):
+        self.data = data if data.ndim > 2 else data[None]
+        self.weight = np.ones(self.data.shape) if weight is None else weight
+        self.center = tuple(np.radians(center)) if degrees else center
+        self.frequency = np.atleast_1d(frequency)
+        self.frame = frame
 
-    def __post_init__(self):
-        self.frequency = np.atleast_1d(self.frequency)
+        if not (width is None) ^ (resolution is None):
+            raise ValueError("You must pass exactly one of 'width' or 'resolution'.")
+        if width is not None:
+            width_radians = np.radians(width) if degrees else width
+            self.resolution = width_radians / self.n_x
+        else:
+            self.resolution = np.radians(resolution) if degrees else resolution
 
-        if len(self.frequency) != self.data.shape[-3]:
+        if len(self.frequency) != self.n_f:
             raise ValueError(
                 f"Number of supplied frequencies ({len(self.frequency)}) does not match the "
-                f"frequency dimension of the supplied map ({self.data.shape[-2]})."
+                f"frequency dimension of the supplied map ({self.n_f})."
             )
 
         self.header = ap.io.fits.header.Header()
 
-        self.header["CDELT1"] = np.degrees(self.x_res)  # degree
-        self.header["CDELT2"] = np.degrees(self.y_res)  # degree
+        self.header["CDELT1"] = np.degrees(self.resolution)  # degree
+        self.header["CDELT2"] = np.degrees(self.resolution)  # degree
         self.header["CTYPE1"] = "RA---SIN"
         self.header["CUNIT1"] = "deg     "
         self.header["CTYPE2"] = "DEC--SIN"
@@ -65,57 +70,44 @@ class Map:
         self.header["CRVAL2"] = self.center[1]
         self.header["RADESYS"] = "FK5     "
 
-        self.width = self.res * self.n_x
-        self.height = self.res * self.n_y
-
-        if self.weight is None:
-            self.weight = np.ones(self.data.shape)
-
     def __repr__(self):
-        nodef_f_vals = (
-            (f.name, attrgetter(f.name)(self))
-            for f in fields(self)
-            if f.name not in ["data", "weight", "header"]
-        )
+        parts = []
 
-        nodef_f_repr = ", ".join(f"{name}={value}" for name, value in nodef_f_vals)
-        return f"{self.__class__.__name__}({nodef_f_repr})"
+        center_degrees = np.degrees(self.center)
 
-    @property
-    def res(self):
-        """
-        TODO: don't do this
-        """
-        return self.x_res
+        parts.append(f"shape = {self.data.shape}")
+        parts.append(f"center = ({center_degrees[0]:.02f}, {center_degrees[1]:.02f})")
+
+        return f"Map({', '.join(parts)})"
 
     @property
-    def x_res(self):
-        return self.width / self.n_x
+    def width(self):
+        return self.resolution * self.n_x
 
     @property
-    def y_res(self):
-        return self.height / self.n_y
+    def height(self):
+        return self.resolution * self.n_y
 
     @property
-    def n_freqs(self):
-        return self.data.shape[0]
-
-    @property
-    def n_x(self):
-        return self.data.shape[2]
+    def n_f(self):
+        return self.data.shape[-3]
 
     @property
     def n_y(self):
-        return self.data.shape[1]
+        return self.data.shape[-2]
+
+    @property
+    def n_x(self):
+        return self.data.shape[-1]
 
     @property
     def x_side(self):
-        x = self.res * np.arange(self.n_x)
+        x = self.resolution * np.arange(self.n_x)
         return x - x.mean()
 
     @property
     def y_side(self):
-        y = self.res * np.arange(self.n_y)
+        y = self.resolution * np.arange(self.n_y)
         return y - y.mean()
 
     def plot(
@@ -126,8 +118,8 @@ class Map:
 
             header["RESTFRQ"] = freq
 
-            res_degrees = self.res if self.degrees else np.degrees(self.res)
-            center_degrees = self.center if self.degrees else np.degrees(self.center)
+            res_degrees = np.degrees(self.resolution)
+            center_degrees = np.degrees(self.center)
 
             header["CDELT1"] = res_degrees  # degree
             header["CDELT2"] = res_degrees  # degree
@@ -157,8 +149,6 @@ class Map:
                 -self.height / 2,
                 self.height / 2,
             ]
-            if self.degrees:
-                map_extent_radians = np.radians(map_extent_radians)
 
             if units == "degrees":
                 map_extent = np.degrees(map_extent_radians)
@@ -189,3 +179,57 @@ class Map:
 
             cbar = fig.colorbar(map_im, ax=ax, shrink=1.0)
             cbar.set_label("RJ temperature [K]")
+
+    def to_fits(self, filepath):
+        self.header = self.tods[0].header
+        self.header["comment"] = "Made Synthetic observations via maria code"
+        self.header["comment"] = "Overwrote resolution and size of the output map"
+
+        self.header["CDELT1"] = np.rad2deg(self.resolution)
+        self.header["CDELT2"] = np.rad2deg(self.resolution)
+
+        self.header["CRPIX1"] = self.n_x / 2
+        self.header["CRPIX2"] = self.n_y / 2
+
+        self.header["CRVAL1"] = np.rad2deg(self.center[0])
+        self.header["CRVAL2"] = np.rad2deg(self.center[1])
+
+        self.header["CTYPE1"] = "RA---SIN"
+        self.header["CTYPE2"] = "DEC--SIN"
+        self.header["CUNIT1"] = "deg     "
+        self.header["CUNIT2"] = "deg     "
+        self.header["CTYPE3"] = "FREQ    "
+        self.header["CUNIT3"] = "Hz      "
+        self.header["CRPIX3"] = 1.000000000000e00
+
+        self.header["comment"] = "Overwrote pointing location of the output map"
+        self.header["comment"] = "Overwrote spectral position of the output map"
+
+        self.header["BTYPE"] = "Kelvin RJ"
+
+        # if self.map.units == "Jy/pixel":
+        #     self.header["BUNIT"] = "Jy/pixel "
+        # elif self.map.units == "K_RJ":
+        #     self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
+        # else:
+        #     raise ValueError(f"Units {self.map.units} not implemented.")
+
+        # save_maps = np.zeros((len(self.map.frequency), self.n_x, self.n_y))
+
+        # for i, key in enumerate(self.band_data.keys()):
+        #     self.header["CRVAL3"] = self.band_data[key]["band_center"] * 1e9
+        #     self.header["CDELT3"] = self.band_data[key]["band_width"] * 1e9
+
+        #     save_maps[i] = self.map.data[i]
+
+        #     # if self.map.units == "Jy/pixel":
+        #     #     save_maps[i] *= maria.units.KbrightToJyPix(
+        #     #         self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
+        #     #     )
+
+        fits.writeto(
+            filename=filepath,
+            data=self.data,
+            header=self.header,
+            overwrite=True,
+        )

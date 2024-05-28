@@ -30,7 +30,7 @@ AdvACT:
   aliases: ["act", "advact"]
   description: Atacama Cosmology Telescope
   documentation: https://act.princeton.edu/overview/camera-specifications/advact
-  arrays:
+  subarrays:
     pa4:
       n: 397
       array_offset: [-0.8, -0.5]
