@@ -4,7 +4,7 @@
 
 from . import utils  # noqa
 from ._version import __version__, __version_tuple__  # noqa
-from .instrument import all_instruments, get_instrument  # noqa
+from .instrument import Band, all_instruments, get_instrument  # noqa
 from .map import Map, mappers  # noqa
 from .plan import all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
