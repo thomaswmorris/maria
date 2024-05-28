@@ -223,9 +223,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_cluster.html">AtLAST Predictions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_galaxy.html">AtLAST extragalactic observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/custom-map-simulations.html">Custom map simulations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="supported-sites.html">Supported sites</a></li>
@@ -272,15 +270,16 @@
         <article role="main" id="furo-main-content">
           <section id="simulations">
 <h1>Simulations<a class="headerlink" href="#simulations" title="Link to this heading">¶</a></h1>
-<p>We simulate observations by defining a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> object and running it to produce a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> object:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria</span> <span class="kn">import</span> <span class="n">Simulation</span>
-
-<span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">()</span>
-
-<span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>The same simulation can produce any number of <code class="docutils literal notranslate"><span class="pre">TOD</span></code> objects, continuing from where the last TOD left off:</p>
+<p>Simulations in <code class="docutils literal notranslate"><span class="pre">maria</span></code> are done with a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>, to which we pass an instrument, a site, and an observing plan:</p>
+<blockquote>
+<div><p>import maria</p>
+<p>sim = maria.Simulation(instrument=”ACT”, site=”llano_de_chajnantor”, plan=”stare”)</p>
+</div></blockquote>
+<p>Running a simulation will spit out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (short for time-ordered data)</p>
+<blockquote>
+<div><p>tod = sim.run()</p>
+</div></blockquote>
+<p>which has the simulated timestreams for each pixel along with some metadata. The same simulation can produce any number of <code class="docutils literal notranslate"><span class="pre">TOD</span></code> objects, continuing from where the last TOD left off:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
 <span class="n">yet_another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -299,57 +298,6 @@
 <span class="n">spt_sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="s1">&#39;SPT&#39;</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s1">&#39;amundsen_scott&#39;</span><span class="p">,</span> <span class="n">pointing</span><span class="o">=</span><span class="s1">&#39;stare&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We can also pass other arguments to the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>, which will overwrite the values it takes:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
-                <span class="n">array</span><span class="o">=</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">,</span>
-                <span class="n">pointing</span><span class="o">=</span><span class="s1">&#39;daisy&#39;</span><span class="p">,</span>
-                <span class="n">site</span><span class="o">=</span><span class="s1">&#39;green_bank&#39;</span><span class="p">,</span>
-                <span class="n">atmosphere_model</span><span class="o">=</span><span class="s1">&#39;2d&#39;</span><span class="p">,</span>
-                <span class="n">array</span><span class="o">=</span><span class="c1"># defaults to a small test array</span>
-                <span class="n">array_description</span><span class="p">:</span>
-                <span class="n">bands</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="n">f093</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;n&#39;</span><span class="p">:</span><span class="mi">60</span><span class="p">,</span> <span class="s1">&#39;band_center&#39;</span><span class="p">:</span><span class="mi">90</span><span class="p">,</span> <span class="s1">&#39;band_width&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">}</span>
-                    <span class="n">f150</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;n&#39;</span><span class="p">:</span><span class="mi">60</span><span class="p">,</span> <span class="s1">&#39;band_center&#39;</span><span class="p">:</span><span class="mi">150</span><span class="p">,</span> <span class="s1">&#39;band_width&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">}</span>
-                    <span class="p">}</span>
-                <span class="n">field_of_view</span><span class="o">=</span><span class="mf">0.8</span>
-                <span class="n">baseline</span><span class="o">=</span><span class="mi">0</span>
-                <span class="n">shape</span><span class="o">=</span><span class="mi">0</span>
-                <span class="n">primary_size</span><span class="o">=</span><span class="mi">6</span>
-                <span class="n">start_time</span><span class="o">=</span><span class="mi">2022</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">10</span><span class="n">T06</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>
-                <span class="n">integration_time</span><span class="o">=</span><span class="mi">60</span> <span class="c1"># in seconds</span>
-                <span class="n">pointing_frame</span><span class="o">=</span><span class="n">az_el</span>
-                <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span>
-                <span class="n">sample_rate</span><span class="o">=</span><span class="mi">20</span>
-                <span class="n">scan_pattern</span><span class="o">=</span><span class="n">daisy</span>
-                <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">)</span>
-                <span class="n">scan_options</span><span class="o">=</span><span class="p">{}</span>
-                <span class="n">region</span><span class="o">=</span><span class="s1">&#39;chajnantor&#39;</span>
-                <span class="n">latitude</span><span class="o">=-</span><span class="mf">23.0294</span>
-                <span class="n">longitude</span><span class="o">=-</span><span class="mf">67.7548</span>
-                <span class="n">altitude</span><span class="o">=</span><span class="mi">5064</span>
-                <span class="n">site_documentation</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
-                <span class="n">weather_quantiles</span><span class="o">=</span><span class="p">{}</span>
-                <span class="n">atmosphere_model</span><span class="o">=</span><span class="s1">&#39;2d&#39;</span>
-                <span class="n">min_atmosphere_beam_res</span><span class="o">=</span><span class="mi">4</span>
-                <span class="n">min_atmosphere_height</span><span class="o">=</span><span class="mi">500</span>
-                <span class="n">max_atmosphere_height</span><span class="o">=</span><span class="mi">5000</span>
-                <span class="n">turbulent_outer_scale</span><span class="o">=</span><span class="mi">800</span>
-                <span class="n">pwv_rms_frac</span><span class="o">=</span><span class="mf">0.03</span>
-                <span class="n">pwv</span><span class="o">=</span><span class="mi">2</span>
-                <span class="n">map_file</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
-                <span class="n">map_frame</span><span class="o">=</span><span class="n">ra_dec</span>
-                <span class="n">map_center</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">]</span>
-                <span class="n">map_res</span><span class="o">=</span><span class="mf">0.5</span>
-                <span class="n">map_inbright</span><span class="p">:</span>
-                <span class="n">map_units</span><span class="o">=</span><span class="n">K_RJ</span>
-                <span class="n">map_freqs</span><span class="o">=</span><span class="p">[</span><span class="mi">150</span><span class="p">]</span>
-                <span class="n">white_noise_level</span><span class="o">=</span><span class="mf">1.e-2</span>
-                <span class="n">pink_noise_level</span><span class="o">=</span><span class="mf">1.e-2</span>
-                <span class="n">pink_noise_slope</span><span class="o">=</span><span class="mf">0.5</span>
-                <span class="p">)</span>
-</pre></div>
-</div>
-<p>There are a lot of options, but <code class="docutils literal notranslate"><span class="pre">maria</span></code> has convenient ways for compartmentalizing them.</p>
 </section>
 </section>
 

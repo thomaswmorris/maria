@@ -223,9 +223,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_cluster.html">AtLAST Predictions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_galaxy.html">AtLAST extragalactic observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/custom-map-simulations.html">Custom map simulations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="supported-sites.html">Supported sites</a></li>
@@ -282,49 +280,54 @@ The simplest way to get an instrument is to grab a pre-defined one, e.g.:</p>
 
 <span class="c1"># MUSTANG-2</span>
 <span class="n">m2</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">)</span>
+
+<span class="c1"># and many more!</span>
 </pre></div>
 </div>
-<section id="customizing-instruments">
-<h2>Customizing Instruments<a class="headerlink" href="#customizing-instruments" title="Link to this heading">¶</a></h2>
-<p>One way to customize instruments is to load a pre-defined instrument and pass extra parameters.
-For example, we can give ACT twice the resolution with</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">act</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;ACT&#39;</span><span class="p">,</span> <span class="n">primary_size</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<section id="customizing-passbands">
+<h2>Customizing passbands<a class="headerlink" href="#customizing-passbands" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.instrument</span> <span class="kn">import</span> <span class="n">Band</span>
+
+<span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="c1"># in GHz</span>
+               <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="c1"># in GHz</span>
+               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
+               <span class="n">sensitivity</span><span class="o">=</span><span class="mf">1e-5</span>
+               <span class="p">)</span>
 </pre></div>
 </div>
-<p>Custom arrays of detectors are a bit more complicated. For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-        <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span>
-        <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}}</span>
-
-<span class="n">my_custom_array</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="n">array</span><span class="p">)</span>
+<p>Note that any sensitivity units are only implicit due to the imperfect efficiency (caused by the instrument and the atmosphere).
+For a heuristic, the band implicitly assumes that we are observing the zenith at the ALMA site with a PWV of 1mm, and converts the given sensitivity to the corresponding noise equivalent power.
+We can customize this by setting the sensitivity as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span><span class="o">.</span><span class="n">set_sensitivity</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">pwv</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;mauna_kea&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Actually, there are several valid ways to define an array of detectors.
-These are all valid:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dets</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;subarray-1&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-        <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}],</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;subarray-2&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-        <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}],</span>
-    <span class="p">},</span>
-<span class="p">}</span>
+</section>
+<section id="customizing-arrays">
+<h2>Customizing arrays<a class="headerlink" href="#customizing-arrays" title="Link to this heading">¶</a></h2>
+<p>To customize an array, we specify a field of view and add some <cite>Band</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span> <span class="c1"># in meters</span>
+         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span> <span class="c1"># in degrees</span>
+         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">my_band</span><span class="p">],</span>
+         <span class="p">}</span>
+</pre></div>
+</div>
+<p>When passed to <cite>Instrument</cite>, this will generate an array such that the beams do not overlap and fill up the field of view.
+Instead of a <cite>Band</cite>, we can also pass a string that names a pre-defined band, or a mixture of the two.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span> <span class="c1"># in meters</span>
+         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span> <span class="c1"># in degrees</span>
+         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">my_band</span><span class="p">,</span> <span class="s2">&quot;mustang2/f093&quot;</span><span class="p">],</span>
+         <span class="p">}</span>
+</pre></div>
+</div>
+<p>Constructing an <cite>Instrument</cite> is then done as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="n">array</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To construct an instrument with multiple subarrays, we can create a <cite>dict</cite> wherein each value is a valid array:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">subarrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;array1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;array_offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f150</span><span class="p">]},</span>
+            <span class="s2">&quot;array2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;array_offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f150</span><span class="p">]},}</span>
 
-<span class="n">dets</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-    <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;array_shape&quot;</span><span class="p">:</span> <span class="s2">&quot;hex&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;alma/f043&quot;</span><span class="p">,</span> <span class="s2">&quot;alma/f078&quot;</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">dets</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="s2">&quot;path_to_some_dets_file.csv&quot;</span><span class="p">}</span>
+<span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">subarrays</span><span class="o">=</span><span class="n">subarrays</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -386,7 +389,8 @@ These are all valid:</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Instruments</a><ul>
-<li><a class="reference internal" href="#customizing-instruments">Customizing Instruments</a></li>
+<li><a class="reference internal" href="#customizing-passbands">Customizing passbands</a></li>
+<li><a class="reference internal" href="#customizing-arrays">Customizing arrays</a></li>
 </ul>
 </li>
 </ul>

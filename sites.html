@@ -193,7 +193,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -223,9 +223,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_cluster.html">AtLAST Predictions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_galaxy.html">AtLAST extragalactic observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/custom-map-simulations.html">Custom map simulations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="supported-sites.html">Supported sites</a></li>
@@ -264,7 +262,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -276,6 +274,13 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cerro_toco</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<section id="customizing-sites">
+<h2>Customizing Sites<a class="headerlink" href="#customizing-sites" title="Link to this heading">¶</a></h2>
+<p>We can customize sites as</p>
+<blockquote>
+<div><p>taller_cerro_toco = maria.get_site(“cerro_toco”, altitude=6190) # one kilometer higher!</p>
+</div></blockquote>
+</section>
 </section>
 
         </article>
@@ -321,8 +326,27 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Sites</a><ul>
+<li><a class="reference internal" href="#customizing-sites">Customizing Sites</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
