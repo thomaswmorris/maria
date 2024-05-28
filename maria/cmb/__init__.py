@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ..constants import T_CMB
 from ..functions import planck_spectrum
-from ..io import fetch_cache
+from ..io import fetch, fetch_from_url
 
 CMB_SPECTRUM_SOURCE_URL = (
     "https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/"
@@ -54,36 +54,32 @@ class CMB:
 
 def generate_cmb(nside=1024, seed=123456, **kwargs):
     """
+    Generate a new CMB.
+
     Taken from https://www.zonca.dev/posts/2020-09-30-planck-spectra-healpy.html
     """
 
     np.random.seed(seed)
 
-    fetch_cache(
-        source_url=CMB_SPECTRUM_SOURCE_URL,
-        cache_path=CMB_SPECTRUM_CACHE_PATH,
-        max_age=CMB_SPECTRUM_CACHE_MAX_AGE,
+    cmb_spectrum_path = fetch(
+        "cmb/spectra/planck.csv",
+        max_age=30 * 86400,
+        refresh=kwargs.get("refresh_cache", False),
     )
 
-    cl = pd.read_csv(CMB_SPECTRUM_CACHE_PATH, delim_whitespace=True, index_col=0)
-    lmax = cl.index[-1]
-
-    # convert to uK and convert spectrum
-    cl = 1e-12 * cl.divide(cl.index * (cl.index + 1) / (2 * np.pi), axis="index")
-    cl = cl.reindex(np.arange(0, lmax + 1))
-    cl = cl.fillna(0)
+    # in uK
+    cl = pd.read_csv(cmb_spectrum_path, index_col=0)
+    lmax = cl.index.max()
 
     alm = hp.synalm((cl.TT, cl.EE, cl.BB, cl.TE), lmax=lmax, new=True)
-
     data = hp.alm2map(alm, nside=nside, lmax=lmax)
-
     cmb = CMB(data=data, fields=["T", "Q", "U"])
 
     return cmb
 
 
 def get_cmb(**kwargs):
-    fetch_cache(
+    fetch_from_url(
         source_url=CMB_MAP_SOURCE_URL,
         cache_path=CMB_MAP_CACHE_PATH,
         max_age=CMB_MAP_CACHE_MAX_AGE,

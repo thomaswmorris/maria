@@ -13,7 +13,7 @@ from matplotlib.patches import Patch
 from todder.coords import Angle
 
 from ..io import read_yaml
-from .bands import BandList, all_bands, parse_bands  # noqa
+from .bands import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
 from .beams import compute_angular_fwhm
 from .detectors import Detectors, generate_array
 
@@ -124,43 +124,44 @@ def get_subarrays(instrument_config):
     """
     Make the subarrays!
     """
-
     config = copy.deepcopy(instrument_config)
 
-    if "array" in config:
+    if ("array" in config) and ("subarrays" not in config):
         subarray = config.pop("array")
         if check_subarray_format(subarray):
-            config["arrays"] = {"": subarray}
+            config["subarrays"] = {"array": subarray}
         else:
             raise ValueError(f"Invalid array configuration: {subarray}")
 
     subarrays = {}
 
-    for subarray_name in config["arrays"]:
-        subarray = config["arrays"][subarray_name]
-        subarray["bands"] = parse_bands(subarray.get("bands"))
+    for subarray_name in config["subarrays"]:
+        subarray = config["subarrays"][subarray_name]
 
         if "file" in subarray:  # it points to a file:
             if not os.path.exists(subarray["file"]):
                 subarray["file"] = f"{here}/detectors/arrays/{subarray['file']}"
-            df = pd.read_csv(subarray["file"])
+            df = pd.read_csv(subarray["file"], index_col=0)
 
-            if subarray["bands"] is None:
+            if "bands" not in subarray:
                 subarray["bands"] = {}
 
             subarray["n"] = len(df)
             for band_name in np.unique(df.band_name.values):
-                subarray["bands"][band_name] = all_bands[band_name]
+                subarray["bands"][band_name] = Band(
+                    name=band_name, **BAND_CONFIGS[band_name]
+                )
+
+        elif ("n" not in subarray) and ("field_of_view" not in subarray):
+            raise ValueError(
+                "You must specificy one of 'n' or 'field_of_view' to generate an array."
+            )
+
+        subarray["bands"] = BandList(parse_bands(subarray["bands"]))
 
         for param in subarray_params_to_inherit:
             if (param in config) and (param not in subarray):
                 subarray[param] = config[param]
-
-        if "bands" not in subarray:
-            if "band" in subarray:
-                subarray["bands"] = [subarray.pop("band")]
-            else:
-                raise ValueError("You must pass 'bands' for each array.")
 
         # for band_name, band_config in subarray["bands"].items():
         #     for param in band_params_to_inherit:
@@ -200,7 +201,8 @@ class Instrument:
         df = pd.DataFrame(columns=["uid", "array_name", "band_name", "band_center"])
 
         for subarray_name, subarray in subarrays.items():
-            array_bands = BandList.from_config(subarray["bands"])
+            array_bands = subarray["bands"]
+
             array_df = generate_array(**subarray)
 
             if "file" in subarray:
@@ -223,7 +225,8 @@ class Instrument:
             df = pd.concat([df, array_df])
 
             for band in array_bands:
-                bands.add(band)
+                if band not in bands.bands:
+                    bands.add(band)
 
         df.index = np.arange(len(df))
 
@@ -364,7 +367,8 @@ class Instrument:
 
             legend_handles.append(
                 Patch(
-                    label=f"{uband}, res = {getattr(fwhms, fwhms.units)[band_mask].mean():.01f} {fwhms.units}",
+                    label=f"{uband}, (n={band_mask.sum()}, "
+                    f"res={getattr(fwhms, fwhms.units)[band_mask].mean():.01f} {fwhms.units})",
                     color=band_color,
                 )
             )

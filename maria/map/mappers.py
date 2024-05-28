@@ -3,10 +3,10 @@ from typing import Sequence, Tuple
 
 import numpy as np
 import scipy as sp
-from astropy.io import fits
 from todder import TOD
+from tqdm import tqdm
 
-from .. import units, utils
+from .. import utils
 from .map import Map
 
 np.seterr(invalid="ignore")
@@ -24,14 +24,15 @@ class BaseMapper:
         center: Tuple[float, float] = (0, 0),
         width: float = 1,
         height: float = 1,
-        res: float = 0.01,
+        resolution: float = 0.01,
         frame: str = "ra_dec",
         units: str = "K_RJ",
         degrees: bool = True,
         calibrate: bool = False,
         tods: Sequence[TOD] = [],
+        verbose: bool = True,
     ):
-        self.res = np.radians(res) if degrees else res
+        self.resolution = np.radians(resolution) if degrees else resolution
         self.center = np.radians(center) if degrees else center
         self.width = np.radians(width) if degrees else width
         self.height = np.radians(height) if degrees else height
@@ -40,13 +41,16 @@ class BaseMapper:
         self.frame = frame
         self.units = units
 
-        self.n_x = int(np.maximum(1, self.width / self.res))
-        self.n_y = int(np.maximum(1, self.height / self.res))
+        self.verbose = verbose
+
+        self.n_x = int(np.maximum(1, self.width / self.resolution))
+        self.n_y = int(np.maximum(1, self.height / self.resolution))
 
         self.x_bins = np.linspace(-0.5 * self.width, 0.5 * self.width, self.n_x + 1)
         self.y_bins = np.linspace(-0.5 * self.height, 0.5 * self.height, self.n_y + 1)
 
-        self.tods = list(np.atleast_1d(tods))
+        self.tods = []
+        self.add_tods(tods)
 
     def plot(self):
         if not hasattr(self, "map"):
@@ -60,59 +64,26 @@ class BaseMapper:
     def add_tods(self, tods):
         for tod in np.atleast_1d(tods):
             self.tods.append(tod)
+        self.bands = list(
+            np.unique([list(np.unique(tod.dets.band_name)) for tod in self.tods])
+        )
 
-    def save_maps(self, filepath):
-        self.header = self.tods[0].header
-        self.header["comment"] = "Made Synthetic observations via maria code"
-        self.header["comment"] = "Overwrote resolution and size of the output map"
+    def _run(self):
+        raise ValueError("Not implemented!")
 
-        self.header["CDELT1"] = np.rad2deg(self.res)
-        self.header["CDELT2"] = np.rad2deg(self.res)
+    def run(self):
+        self.maps = {}
 
-        self.header["CRPIX1"] = self.n_x / 2
-        self.header["CRPIX2"] = self.n_y / 2
+        for band in self.bands:
+            self.maps[band] = self._run(band)
 
-        self.header["CRVAL1"] = np.rad2deg(self.center[0])
-        self.header["CRVAL2"] = np.rad2deg(self.center[1])
-
-        self.header["CTYPE1"] = "RA---SIN"
-        self.header["CTYPE2"] = "DEC--SIN"
-        self.header["CUNIT1"] = "deg     "
-        self.header["CUNIT2"] = "deg     "
-        self.header["CTYPE3"] = "FREQ    "
-        self.header["CUNIT3"] = "Hz      "
-        self.header["CRPIX3"] = 1.000000000000e00
-
-        self.header["comment"] = "Overwrote pointing location of the output map"
-        self.header["comment"] = "Overwrote spectral position of the output map"
-
-        self.header["BTYPE"] = "Intensity"
-
-        if self.map.units == "Jy/pixel":
-            self.header["BUNIT"] = "Jy/pixel "
-        elif self.map.units == "K_RJ":
-            self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
-        else:
-            raise ValueError(f"Units {self.map.units} not implemented.")
-
-        save_maps = np.zeros((len(self.map.frequency), self.n_x, self.n_y))
-
-        for i, key in enumerate(self.band_data.keys()):
-            self.header["CRVAL3"] = self.band_data[key]["band_center"] * 1e9
-            self.header["CDELT3"] = self.band_data[key]["band_width"] * 1e9
-
-            save_maps[i] = self.map.data[i]
-
-            if self.map.units == "Jy/pixel":
-                save_maps[i] *= units.KbrightToJyPix(
-                    self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
-                )
-
-        fits.writeto(
-            filename=filepath,
-            data=save_maps,
-            header=self.header,
-            overwrite=True,
+        return Map(
+            data=np.concatenate([m.data for m in self.maps.values()], axis=0),
+            weight=np.concatenate([m.weight for m in self.maps.values()], axis=0),
+            resolution=self.resolution,
+            frequency=[float(m.frequency) for m in self.maps.values()],
+            center=self.center,
+            degrees=False,
         )
 
 
@@ -122,7 +93,7 @@ class BinMapper(BaseMapper):
         center: Tuple[float, float] = (0, 0),
         width: float = 1,
         height: float = 1,
-        res: float = 0.01,
+        resolution: float = 0.01,
         frame: str = "ra_dec",
         units: str = "K_RJ",
         degrees: bool = True,
@@ -135,7 +106,7 @@ class BinMapper(BaseMapper):
             center=center,
             width=width,
             height=height,
-            res=res,
+            resolution=resolution,
             frame=frame,
             degrees=degrees,
             calibrate=calibrate,
@@ -146,98 +117,93 @@ class BinMapper(BaseMapper):
         self.tod_postprocessing = tod_postprocessing
         self.map_postprocessing = map_postprocessing
 
-    def run(self):
-        self.band = sorted(
-            np.unique(
-                [band for tod in self.tods for band in np.unique(tod.dets.band_name)]
-            )
-        )
+    def _run(self, band):
+        """
+        The actual mapper for the BinMapper.
+        """
 
         self.band_data = {}
 
-        self.raw_map_sums = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
-        self.raw_map_cnts = {band: np.zeros((self.n_x, self.n_y)) for band in self.band}
+        self.raw_map_sums = np.zeros((self.n_x, self.n_y))
+        self.raw_map_cnts = np.zeros((self.n_x, self.n_y))
 
-        self.map_data = np.zeros((len(self.band), self.n_y, self.n_x))
-        self.map_weight = np.zeros((len(self.band), self.n_y, self.n_x))
+        self.map_data = np.zeros((self.n_y, self.n_x))
+        self.map_weight = np.zeros((self.n_y, self.n_x))
 
-        for iband, band in enumerate(np.unique(self.band)):
-            self.band_data[band] = {}
+        tods_pbar = tqdm(
+            self.tods, desc=f"Running mapper ({band})", disable=not self.verbose
+        )
 
-            for tod in self.tods:
-                # compute detector offsets WRT the map
+        for tod in tods_pbar:
+            dx, dy = tod.coords.offsets(frame=self.frame, center=self.center)
 
-                dx, dy = tod.coords.offsets(frame=self.frame, center=self.center)
+            band_mask = tod.dets.band_name == band
 
-                band_mask = tod.dets.band_name == band
+            band_center = tod.dets.loc[band_mask, "band_center"].mean()
 
-                D = tod.cal[band_mask, None] * tod.data[band_mask]
+            D = tod.cal[band_mask, None] * tod.data[band_mask]
 
-                # windowing
-                W = np.ones(D.shape[0])[:, None] * sp.signal.windows.tukey(
-                    D.shape[-1], alpha=0.1
+            # windowing
+            W = np.ones(D.shape[0])[:, None] * sp.signal.windows.tukey(
+                D.shape[-1], alpha=0.1
+            )
+
+            WD = W * sp.signal.detrend(D, axis=-1)
+            del D
+
+            if "highpass" in self.tod_postprocessing.keys():
+                WD = utils.signal.highpass(
+                    WD,
+                    fc=self.tod_postprocessing["highpass"]["f"],
+                    fs=tod.fs,
+                    order=self.tod_postprocessing["highpass"].get("order", 1),
+                    method="bessel",
                 )
 
-                WD = W * sp.signal.detrend(D, axis=-1)
-                del D
+            if "remove_modes" in self.tod_postprocessing.keys():
+                n_modes_to_remove = self.tod_postprocessing["remove_modes"]["n"]
 
-                if "highpass" in self.tod_postprocessing.keys():
-                    WD = utils.signal.highpass(
-                        WD,
-                        fc=self.tod_postprocessing["highpass"]["f"],
-                        fs=tod.fs,
-                        order=self.tod_postprocessing["highpass"].get("order", 1),
-                        method="bessel",
-                    )
+                U, V = utils.signal.decompose(
+                    WD, downsample_rate=np.maximum(int(tod.fs / 16), 1), mode="uv"
+                )
+                WD = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
 
-                if "remove_modes" in self.tod_postprocessing.keys():
-                    n_modes_to_remove = self.tod_postprocessing["remove_modes"]["n"]
+            if "despline" in self.tod_postprocessing.keys():
+                B = utils.signal.get_bspline_basis(
+                    tod.time.compute(),
+                    spacing=self.tod_postprocessing["despline"].get("knot_spacing", 10),
+                    order=self.tod_postprocessing["despline"].get("spline_order", 3),
+                )
 
-                    U, V = utils.signal.decompose(
-                        WD, downsample_rate=np.maximum(int(tod.fs / 16), 1), mode="uv"
-                    )
-                    WD = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
+                A = np.linalg.inv(B @ B.T) @ B @ WD.T
+                WD -= A.T @ B
 
-                if "despline" in self.tod_postprocessing.keys():
-                    B = utils.signal.get_bspline_basis(
-                        tod.time.compute(),
-                        spacing=self.tod_postprocessing["despline"].get(
-                            "knot_spacing", 10
-                        ),
-                        order=self.tod_postprocessing["despline"].get(
-                            "spline_order", 3
-                        ),
-                    )
+            map_sum = sp.stats.binned_statistic_2d(
+                dx[band_mask].ravel(),
+                dy[band_mask].ravel(),
+                WD.ravel(),
+                bins=(self.x_bins, self.y_bins),
+                statistic="sum",
+            )[0]
 
-                    A = np.linalg.inv(B @ B.T) @ B @ WD.T
-                    WD -= A.T @ B
+            map_cnt = sp.stats.binned_statistic_2d(
+                dx[band_mask].ravel(),
+                dy[band_mask].ravel(),
+                W.ravel(),
+                bins=(self.x_bins, self.y_bins),
+                statistic="sum",
+            )[0]
 
-                map_sum = sp.stats.binned_statistic_2d(
-                    dx[band_mask].ravel(),
-                    dy[band_mask].ravel(),
-                    WD.ravel(),
-                    bins=(self.x_bins, self.y_bins),
-                    statistic="sum",
-                )[0]
+            self.DATA = WD
 
-                map_cnt = sp.stats.binned_statistic_2d(
-                    dx[band_mask].ravel(),
-                    dy[band_mask].ravel(),
-                    W.ravel(),
-                    bins=(self.x_bins, self.y_bins),
-                    statistic="sum",
-                )[0]
+            self.raw_map_sums += map_sum
+            self.raw_map_cnts += map_cnt
 
-                self.DATA = WD
+            # self.band_data["band_center"] = tod.dets.band_center.mean()
+            # self.band_data["band_width"] = 30
 
-                self.raw_map_sums[band] += map_sum
-                self.raw_map_cnts[band] += map_cnt
-
-            self.band_data[band]["band_center"] = tod.dets.band_center.mean()
-            self.band_data[band]["band_width"] = 30
-
-            band_map_numer = self.raw_map_sums[band].copy()
-            band_map_denom = self.raw_map_cnts[band].copy()
+            band_map_numer = self.raw_map_sums.copy()
+            band_map_denom = self.raw_map_cnts.copy()
 
             if "gaussian_filter" in self.map_postprocessing.keys():
                 sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
@@ -254,27 +220,17 @@ class BinMapper(BaseMapper):
                     band_map_data, size=self.map_postprocessing["median_filter"]["size"]
                 )
 
-            self.map_data[iband] = np.where(mask, band_map_numer, np.nan) / np.where(
+            self.map_data = np.where(mask, band_map_numer, np.nan) / np.where(
                 mask, band_map_denom, 1
             )
 
-            self.map_weight[iband] = band_map_denom
+            self.map_weight = band_map_denom
 
-            # from maria.atmosphere import Spectrum
-
-            # spectrum = Spectrum(region=tod.metadata.region)
-
-            # transmission = spectrum.transmission(nu=150, zenith_pwv=tod.metadata.pwv, elevation=np.degrees(tod.coords.el))
-
-        self.map = Map(
+        return Map(
             data=self.map_data,
             weight=self.map_weight,
-            frequency=np.array(
-                [self.band_data[band]["band_center"] for band in self.band]
-            ),
-            width=np.degrees(self.width) if self.degrees else self.width,
-            height=np.degrees(self.height) if self.degrees else self.height,
-            center=np.degrees(self.center) if self.degrees else self.center,
-            degrees=self.degrees,
-            units=self.units,
+            resolution=self.resolution,
+            frequency=band_center,
+            center=self.center,
+            degrees=False,
         )

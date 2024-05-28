@@ -6,7 +6,6 @@ import pandas as pd
 from scipy.spatial import ConvexHull
 from scipy.spatial.distance import cdist
 
-from ..bands import Band
 from ..beams import compute_angular_fwhm
 
 here, this_filename = os.path.split(__file__)
@@ -94,7 +93,7 @@ def generate_array(
     n: int = None,
     primary_size: float = 10.0,
     field_of_view: float = 0.0,
-    beam_spacing: float = 1.0,
+    beam_spacing: float = 1.2,
     array_packing: tuple = "hex",
     array_shape: tuple = "circle",
     array_offset: tuple = (0.0, 0.0),
@@ -108,7 +107,7 @@ def generate_array(
 ):
     dets = pd.DataFrame()
 
-    bands = [Band.from_config(name=k, config=v) for k, v in bands.items()]
+    # bands = [Band.from_config(name=k, config=v) for k, v in bands.items()]
 
     band_centers = [band.center for band in bands]
     resolutions = [

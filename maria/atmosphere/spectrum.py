@@ -4,15 +4,10 @@ import h5py
 import numpy as np
 import scipy as sp
 
-from ..io import fetch_cache
+from ..io import fetch
 from ..site import InvalidRegionError, all_regions
 
 here, this_filename = os.path.split(__file__)
-
-SPECTRA_CACHE_BASE = "/tmp/maria-data/atmosphere/spectra"
-SPECTRA_SOURCE_BASE = (
-    "https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra"  # noqa
-)
 
 
 class Spectrum:
@@ -23,12 +18,8 @@ class Spectrum:
         self.region = region
         self.source = source
 
-        self.source_url = f"{SPECTRA_SOURCE_BASE}/{source}/{self.region}.h5"  # noqa
-        self.cache_path = f"{SPECTRA_CACHE_BASE}/{source}/{self.region}.h5"  # noqa
-
-        fetch_cache(
-            source_url=self.source_url,
-            cache_path=self.cache_path,
+        self.cache_path = fetch(
+            f"atmosphere/spectra/{self.source}/{self.region}.h5",
             max_age=30 * 86400,
             refresh=refresh_cache,
         )
