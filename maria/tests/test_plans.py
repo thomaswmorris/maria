@@ -3,6 +3,8 @@ import pytest
 import maria
 
 
-@pytest.mark.parametrize("plan_name", maria.all_plans)
-def test_get_plan(plan_name):
-    plan = maria.get_plan(plan_name)
+@pytest.mark.parametrize(
+    "scan_pattern", ["stare", "daisy", "raster", "grid", "back_and_forth"]
+)
+def test_pattern(scan_pattern):
+    plan = maria.Plan(scan_pattern=scan_pattern)
