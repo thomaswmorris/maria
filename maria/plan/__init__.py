@@ -115,6 +115,10 @@ class Plan:
         self.time = np.arange(self.time_min, self.time_max, self.dt)
         self.n_time = len(self.time)
 
+        # convert radius to width / height
+        if "width" in self.scan_options:
+            self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
+
         # this is in pointing_units
         x_scan_offsets, y_scan_offsets = getattr(patterns, self.scan_pattern)(
             self.time,
