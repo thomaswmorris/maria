@@ -15,9 +15,8 @@ here, this_filename = os.path.split(__file__)
 def test_map_sim():
     map_filename = fetch("maps/cluster.fits", refresh=True)
 
-    f090 = Band(center=90, width=20, sensitivity=5e-5)  # in GHz  # in K sqrt(s)
-
-    f150 = Band(center=150, width=30, sensitivity=5e-5)  # in GHz  # in K sqrt(s)
+    f090 = Band(center=90, width=20, sensitivity=5e-5)
+    f150 = Band(center=150, width=30, sensitivity=5e-5)
 
     array = {"field_of_view": 0.02, "bands": [f090, f150]}
 

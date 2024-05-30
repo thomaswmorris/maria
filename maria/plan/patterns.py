@@ -68,17 +68,45 @@ def grid(time, radius=1, speed=None, n=17, turnaround_time=5):  # noqa
     )
 
 
-def back_and_forth(time, speed, x_throw=1, y_throw=0, turnaround_time=5):  # noqa
+def smooth_sawtooth(phase, width=0.5, smoothness=0.5):
+    smooth_phase = sp.ndimage.gaussian_filter1d(
+        phase, sigma=smoothness * np.gradient(phase).mean()
+    )
+    smooth_sawtooth = sp.signal.sawtooth(smooth_phase, width=width)
+    return 2 * (smooth_sawtooth - smooth_sawtooth.min()) / smooth_sawtooth.ptp() - 1
+
+
+def raster(time, radius=1, height=None, speed=0.5, n=16, turnaround_time=0.5):
+    width = 2 * radius
+    height = height or width
+
     sample_rate = 1 / np.gradient(time).mean()
-    scan_period = 2 * np.pi * np.sqrt(x_throw**2 + y_throw**2) / speed
-    phase = 2 * np.pi * time / scan_period
 
-    sawtooth = sp.signal.sawtooth(phase, width=0.5)
-    smooth_sawtooth = sp.ndimage.gaussian_filter(
-        sawtooth, sigma=turnaround_time * sample_rate
-    )  # noqa
+    start_time = time.min()
 
-    return x_throw * smooth_sawtooth, y_throw * smooth_sawtooth
+    ts, xs, ys = [], [], []
+
+    n_scans = 2 * n + 1
+    phase = np.linspace(0, np.pi * n_scans, n_scans * 256)
+    raster_period = 2 * n_scans * np.sqrt(width**2 + (height / n_scans) ** 2) / speed
+
+    while start_time < time.max():
+        xs.extend(0.5 * width * sp.signal.sawtooth(phase, width=0.5))
+        ys.extend(height * np.linspace(0.5, -0.5, len(phase)))
+        ts.extend(start_time + np.linspace(0, raster_period, len(phase)))
+        start_time = ts[-1] + np.sqrt(width**2 + height**2) / speed
+
+    offsets = sp.interpolate.interp1d(ts, np.c_[xs, ys].T)(time)
+
+    return sp.ndimage.gaussian_filter1d(
+        offsets, sigma=turnaround_time * sample_rate, axis=-1
+    )
+
+
+def back_and_forth(time, speed, width, turnaround_time=5):  # noqa
+    return raster(
+        time, speed=speed, width=width, height=0, turnaround_time=turnaround_time
+    )
 
 
 def stare(time):
