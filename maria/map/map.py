@@ -8,6 +8,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib.colors import ListedColormap
+from maria import units
 
 here, this_filename = os.path.split(__file__)
 
@@ -35,12 +36,14 @@ class Map:
         center: Tuple[float, float] = (0.0, 0.0),
         frame: str = "ra_dec",
         degrees: bool = True,
+        units: str ='K_RJ'
     ):
         self.data = data if data.ndim > 2 else data[None]
         self.weight = np.ones(self.data.shape) if weight is None else weight
         self.center = tuple(np.radians(center)) if degrees else center
         self.frequency = np.atleast_1d(frequency)
         self.frame = frame
+        self.units = units
 
         if not (width is None) ^ (resolution is None):
             raise ValueError("You must pass exactly one of 'width' or 'resolution'.")
@@ -55,6 +58,9 @@ class Map:
                 f"Number of supplied frequencies ({len(self.frequency)}) does not match the "
                 f"frequency dimension of the supplied map ({self.n_f})."
             )
+
+        if self.units == 'Jy/pixel':
+            self.to('K_RJ')
 
         self.header = ap.io.fits.header.Header()
 
@@ -109,6 +115,17 @@ class Map:
     def y_side(self):
         y = self.resolution * np.arange(self.n_y)
         return y - y.mean()
+    
+
+    def to(self, unit):
+        
+        if unit is 'K_RJ':
+            self.data /= units.KbrightToJyPix(self.frequency*1e9, np.degrees(self.resolution), np.degrees(self.resolution))
+        elif unit is 'Jy/pixel': 
+            self.data *= units.KbrightToJyPix(self.frequency*1e9, np.degrees(self.resolution), np.degrees(self.resolution))
+        else:   
+           raise ValueError(f"Unit {self.unit} not implemented.")
+
 
     def plot(
         self, cmap="cmb", rel_vmin=0.001, rel_vmax=0.999, units="degrees", **kwargs
@@ -205,27 +222,12 @@ class Map:
         self.header["comment"] = "Overwrote pointing location of the output map"
         self.header["comment"] = "Overwrote spectral position of the output map"
 
-        self.header["BTYPE"] = "Kelvin RJ"
+        if self.units == "Jy/pixel":
+            self.to("Jy/pixel")
+            self.header["BTYPE"] = "Jy/pixel"
 
-        # if self.map.units == "Jy/pixel":
-        #     self.header["BUNIT"] = "Jy/pixel "
-        # elif self.map.units == "K_RJ":
-        #     self.header["BUNIT"] = "Kelvin RJ"  # tods are always in Kelvin
-        # else:
-        #     raise ValueError(f"Units {self.map.units} not implemented.")
-
-        # save_maps = np.zeros((len(self.map.frequency), self.n_x, self.n_y))
-
-        # for i, key in enumerate(self.band_data.keys()):
-        #     self.header["CRVAL3"] = self.band_data[key]["band_center"] * 1e9
-        #     self.header["CDELT3"] = self.band_data[key]["band_width"] * 1e9
-
-        #     save_maps[i] = self.map.data[i]
-
-        #     # if self.map.units == "Jy/pixel":
-        #     #     save_maps[i] *= maria.units.KbrightToJyPix(
-        #     #         self.header["CRVAL3"], self.header["CDELT1"], self.header["CDELT2"]
-        #     #     )
+        elif self.units == "K_RJ":
+            self.header["BTYPE"] = "Kelvin RJ" 
 
         fits.writeto(
             filename=filepath,
