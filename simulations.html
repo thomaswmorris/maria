@@ -224,6 +224,10 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/custom-map-simulations.html">Custom map simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_cluster.html">AtLAST Predictions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_cluster.html#Define-the-instrument">Define the instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/AtLAST_cluster.html#Combine-it-and-get-the-TOD">Combine it and get the TOD</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="supported-sites.html">Supported sites</a></li>
@@ -271,14 +275,15 @@
           <section id="simulations">
 <h1>Simulations<a class="headerlink" href="#simulations" title="Link to this heading">¶</a></h1>
 <p>Simulations in <code class="docutils literal notranslate"><span class="pre">maria</span></code> are done with a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>, to which we pass an instrument, a site, and an observing plan:</p>
-<blockquote>
-<div><p>import maria</p>
-<p>sim = maria.Simulation(instrument=”ACT”, site=”llano_de_chajnantor”, plan=”stare”)</p>
-</div></blockquote>
-<p>Running a simulation will spit out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (short for time-ordered data)</p>
-<blockquote>
-<div><p>tod = sim.run()</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">maria</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;ACT&quot;</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="s2">&quot;stare&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Running a simulation will spit out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (short for time-ordered data):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
 <p>which has the simulated timestreams for each pixel along with some metadata. The same simulation can produce any number of <code class="docutils literal notranslate"><span class="pre">TOD</span></code> objects, continuing from where the last TOD left off:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
