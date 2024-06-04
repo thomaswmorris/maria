@@ -36,13 +36,15 @@ def KcmbToKbright(freq):
 
 # Kelvin brightness to Jy/pixel
 # ----------------------------------------------------------------------
-def KbrightToJyPix(freq, ipix, jpix):
+def KbrightToJyPix(freq, ipix, jpix=None):
+    jpix = jpix or ipix
     return KcmbToJyPix(freq, ipix, jpix) / KcmbToKbright(freq)
 
 
 # Kelvin CMB to Jy/pixel
 # ----------------------------------------------------------------------
-def KcmbToJyPix(freq, ipix, jpix):
+def KcmbToJyPix(freq, ipix, jpix=None):
+    jpix = jpix or ipix
     x = getx(freq)
     factor = getJynorm() / Tcmb
     factor *= (x**4) * np.exp(x) / (np.expm1(x) ** 2)
