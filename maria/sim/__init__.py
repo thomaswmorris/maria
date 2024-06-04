@@ -67,7 +67,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         self.noise_kwargs = noise_kwargs
 
         if map:
-            self.map = map
+            self.map = map.to(units="K_RJ")
             ...
 
         if atmosphere:

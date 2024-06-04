@@ -8,7 +8,8 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib.colors import ListedColormap
-from maria import units
+
+from ..units import KbrightToJyPix
 
 here, this_filename = os.path.split(__file__)
 
@@ -19,6 +20,11 @@ cmb_cmap = ListedColormap(
 cmb_cmap.set_bad("white")
 
 mpl.colormaps.register(cmb_cmap)
+
+UNITS_CONFIG = {
+    "K_RJ": {"long_name": "Rayleigh-Jeans Temperature [K]"},
+    "Jy/pixel": {"long_name": "Janskies per pixel"},
+}
 
 
 class Map:
@@ -36,8 +42,11 @@ class Map:
         center: Tuple[float, float] = (0.0, 0.0),
         frame: str = "ra_dec",
         degrees: bool = True,
-        units: str ='K_RJ'
+        units: str = "K_RJ",
     ):
+        if units not in UNITS_CONFIG:
+            raise ValueError(f"'units' must be one of {list(UNITS_CONFIG.keys())}.")
+
         self.data = data if data.ndim > 2 else data[None]
         self.weight = np.ones(self.data.shape) if weight is None else weight
         self.center = tuple(np.radians(center)) if degrees else center
@@ -59,8 +68,8 @@ class Map:
                 f"frequency dimension of the supplied map ({self.n_f})."
             )
 
-        if self.units == 'Jy/pixel':
-            self.to('K_RJ')
+        if self.units == "Jy/pixel":
+            self.to("K_RJ")
 
         self.header = ap.io.fits.header.Header()
 
@@ -115,17 +124,35 @@ class Map:
     def y_side(self):
         y = self.resolution * np.arange(self.n_y)
         return y - y.mean()
-    
 
-    def to(self, unit):
-        
-        if unit is 'K_RJ':
-            self.data /= units.KbrightToJyPix(self.frequency*1e9, np.degrees(self.resolution), np.degrees(self.resolution))
-        elif unit is 'Jy/pixel': 
-            self.data *= units.KbrightToJyPix(self.frequency*1e9, np.degrees(self.resolution), np.degrees(self.resolution))
-        else:   
-           raise ValueError(f"Unit {self.unit} not implemented.")
+    def to(self, units, inplace=False):
+        if units == self.units:
+            data = self.data
 
+        if units == "K_RJ":
+            data = self.data / KbrightToJyPix(
+                self.frequency * 1e9, np.degrees(self.resolution)
+            )
+        elif units == "Jy/pixel":
+            data = self.data * KbrightToJyPix(
+                self.frequency * 1e9, np.degrees(self.resolution)
+            )
+        else:
+            raise ValueError(f"Units '{units}' not implemented.")
+
+        if inplace:
+            self.data = data
+        else:
+            return Map(
+                data=data,
+                weight=self.weight,
+                resolution=self.resolution,
+                frequency=self.frequency,
+                center=self.center,
+                frame=self.frame,
+                degrees=False,
+                units=units,
+            )
 
     def plot(
         self, cmap="cmb", rel_vmin=0.001, rel_vmax=0.999, units="degrees", **kwargs
@@ -195,7 +222,7 @@ class Map:
             ax.set_ylabel(rf"$\Delta\,\theta_y$ [{units}]")
 
             cbar = fig.colorbar(map_im, ax=ax, shrink=1.0)
-            cbar.set_label("RJ temperature [K]")
+            cbar.set_label(UNITS_CONFIG[self.units]["long_name"])
 
     def to_fits(self, filepath):
         self.header = ap.io.fits.header.Header()
@@ -227,7 +254,7 @@ class Map:
             self.header["BTYPE"] = "Jy/pixel"
 
         elif self.units == "K_RJ":
-            self.header["BTYPE"] = "Kelvin RJ" 
+            self.header["BTYPE"] = "Kelvin RJ"
 
         fits.writeto(
             filename=filepath,
