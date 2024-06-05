@@ -23,7 +23,7 @@ mpl.colormaps.register(cmb_cmap)
 
 UNITS_CONFIG = {
     "K_RJ": {"long_name": "Rayleigh-Jeans Temperature [K]"},
-    "Jy/pixel": {"long_name": "Janskies per pixel"},
+    "Jy/pixel": {"long_name": "Jy per pixel"},
 }
 
 
@@ -130,11 +130,11 @@ class Map:
             data = self.data
 
         if units == "K_RJ":
-            data = self.data / KbrightToJyPix(
+            data = self.data * KbrightToJyPix(
                 self.frequency * 1e9, np.degrees(self.resolution)
             )
         elif units == "Jy/pixel":
-            data = self.data * KbrightToJyPix(
+            data = self.data / KbrightToJyPix(
                 self.frequency * 1e9, np.degrees(self.resolution)
             )
         else:
@@ -142,6 +142,7 @@ class Map:
 
         if inplace:
             self.data = data
+            self.units = units
         else:
             return Map(
                 data=data,
