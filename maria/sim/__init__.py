@@ -68,7 +68,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         if map:
             self.map = map.to(units="K_RJ")
-            ...
 
         if atmosphere:
             weather_kwargs = (
