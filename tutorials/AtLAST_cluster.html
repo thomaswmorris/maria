@@ -227,8 +227,6 @@
 <li class="toctree-l2"><a class="reference internal" href="custom-map-simulations.html">Custom map simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">AtLAST Predictions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Define-the-instrument">Define the instrument</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Combine-it-and-get-the-TOD">Combine it and get the TOD</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../supported-sites.html">Supported sites</a></li>
@@ -353,10 +351,8 @@ Right Ascension (RA) of the pointing to ensure that the source remains above the
 </div>
 </div>
 </section>
-</section>
-</section>
 <section id="Define-the-instrument">
-<h1>Define the instrument<a class="headerlink" href="#Define-the-instrument" title="Link to this heading">¶</a></h1>
+<h3>Define the instrument<a class="headerlink" href="#Define-the-instrument" title="Link to this heading">¶</a></h3>
 <p>We set the field of view to 1 degree and set the daisy scan’s scan radius to 0.5 degrees. We also adjust the detector bandwidth to 52 GHz.</p>
 <p>Now, it’s important to note that simulating such a large FoV and spacing the detectors at 2 f-lambda results in a large detector counts. Therefore, we are simulating ~10000 detectors! This creates a bit of memory issue. Therefore, this simulation cannot (most likely) be run on your laptop but needs a bigger server</p>
 <div class="nbinput docutils container">
@@ -399,7 +395,7 @@ Right Ascension (RA) of the pointing to ensure that the source remains above the
 </div>
 </section>
 <section id="Combine-it-and-get-the-TOD">
-<h1>Combine it and get the TOD<a class="headerlink" href="#Combine-it-and-get-the-TOD" title="Link to this heading">¶</a></h1>
+<h3>Combine it and get the TOD<a class="headerlink" href="#Combine-it-and-get-the-TOD" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -476,6 +472,9 @@ Computing atm. transmission (f092): 100%|█████████████
 Sampling map (f092): 100%|█████████████████████████████████████████████████████████████████████████████████████| 1/1 [01:15&lt;00:00, 75.38s/it]
 </pre></div></div>
 </div>
+</section>
+<section id="Visualizing-the-TOD-Data">
+<h3>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">¶</a></h3>
 <p>In this section, we present the same array and TOD visualizations as in the MUSTANG-2 case, but this time for AtLAST:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
@@ -525,6 +524,8 @@ Sampling map (f092): 100%|██████████████████
 <img alt="../_images/tutorials_AtLAST_cluster_15_0.png" src="../_images/tutorials_AtLAST_cluster_15_0.png" />
 </div>
 </div>
+</section>
+</section>
 <section id="Map-Making">
 <h2>Map-Making<a class="headerlink" href="#Map-Making" title="Link to this heading">¶</a></h2>
 <p>The mapper we used is similar to the M2 case, it is just binned over a much larger FoV.</p>
@@ -720,12 +721,11 @@ Cell <span class="ansi-green-fg">In[14], line 1</span>
 <li><a class="reference internal" href="#Setting-up-the-simulation">Setting up the simulation</a><ul>
 <li><a class="reference internal" href="#Import-the-map">Import the map</a></li>
 <li><a class="reference internal" href="#Define-the-observing-plan">Define the observing plan</a></li>
-</ul>
-</li>
-</ul>
-</li>
 <li><a class="reference internal" href="#Define-the-instrument">Define the instrument</a></li>
-<li><a class="reference internal" href="#Combine-it-and-get-the-TOD">Combine it and get the TOD</a><ul>
+<li><a class="reference internal" href="#Combine-it-and-get-the-TOD">Combine it and get the TOD</a></li>
+<li><a class="reference internal" href="#Visualizing-the-TOD-Data">Visualizing the TOD Data</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#Map-Making">Map-Making</a><ul>
 <li><a class="reference internal" href="#Let's-show-the-results">Let’s show the results</a></li>
 </ul>
