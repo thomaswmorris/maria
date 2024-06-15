@@ -6,5 +6,5 @@ Tutorials
    :maxdepth: 2
 
    tutorials/custom-map-simulations
-   tutorials/MUSTANG-2_cluster.ipynb
-   tutorials/AtLAST_cluster.ipynb
+   tutorials/MUSTANG-2_cluster
+   tutorials/AtLAST_cluster
