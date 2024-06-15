@@ -21,7 +21,6 @@ dependencies = [
   "requests",
   "scipy",
   "tables",
-  "todder",
   "tqdm",
 ]
 requires-python = ">=3.9"

@@ -1,17 +1,18 @@
+import logging
 import os
 
-import dask.array as da
 import numpy as np
-import pandas as pd  # noqa
-from todder import TOD
-from todder.coords import Coordinates, dx_dy_to_phi_theta
 
 from ..instrument import Instrument, get_instrument
 from ..io import read_yaml
 from ..plan import Plan, get_plan
 from ..site import Site, get_site
+from ..tod import TOD
+from ..tod.coords import Coordinates, dx_dy_to_phi_theta
 
 here, this_filename = os.path.split(__file__)
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidSimulationParameterError(Exception):
@@ -73,10 +74,14 @@ class BaseSimulation:
                 instrument_name=instrument, **parsed_sim_kwargs["instrument"]
             )
 
+        logger.info("Constructed instrument.")
+
         if isinstance(plan, Plan):
             self.plan = plan
         else:
             self.plan = get_plan(scan_pattern=plan, **parsed_sim_kwargs["plan"])
+
+        logger.info("Constructed plan.")
 
         if isinstance(site, Site):
             self.site = site
@@ -86,6 +91,8 @@ class BaseSimulation:
             raise ValueError(
                 "The passed site must be either a Site object or a string."
             )
+
+        logger.info("Constructed site.")
 
         self.data = {}
         self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
@@ -98,6 +105,8 @@ class BaseSimulation:
             frame=self.plan.frame,
             time_offset=self.plan.time.min(),
         )
+
+        logger.info("Constructed boresight.")
 
         if self.plan.max_vel > np.radians(self.instrument.vel_limit):
             raise ValueError(
@@ -128,6 +137,8 @@ class BaseSimulation:
             time_offset=self.boresight.time_offset,
         )
 
+        logger.info("Constructed offsets.")
+
     def _run(self):
         raise NotImplementedError()
 
@@ -138,9 +149,7 @@ class BaseSimulation:
         self._run()
 
         tod = TOD(
-            components={
-                k: da.from_array(v.astype(dtype)) for k, v in self.data.items()
-            },
+            components={k: v.astype(dtype) for k, v in self.data.items()},
             dets=self.instrument.dets.df,
             coords=self.coords,
         )

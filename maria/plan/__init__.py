@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytz
-from todder import coords
 
 from ..io import datetime_handler, read_yaml
+from ..tod import coords
 from . import patterns
 
 MAX_VELOCITY_WARN = 10  # in deg/s

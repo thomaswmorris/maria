@@ -126,23 +126,27 @@ class Map:
         return y - y.mean()
 
     def to(self, units, inplace=False):
-        if units == self.units:
-            data = self.data
+        data = self.data.copy()
 
-        if units == "K_RJ":
-            data = self.data * KbrightToJyPix(
-                self.frequency * 1e9, np.degrees(self.resolution)
-            )
-        elif units == "Jy/pixel":
-            data = self.data / KbrightToJyPix(
-                self.frequency * 1e9, np.degrees(self.resolution)
-            )
-        else:
-            raise ValueError(f"Units '{units}' not implemented.")
+        for i, nu in enumerate(self.frequency):
+            if units == self.units:
+                data[i] = self.data[i]
 
-        if inplace:
-            self.data = data
-            self.units = units
+            if units == "K_RJ":
+                data[i] = self.data[i] * KbrightToJyPix(
+                    nu * 1e9, np.degrees(self.resolution)
+                )
+            elif units == "Jy/pixel":
+                data[i] = self.data[i] / KbrightToJyPix(
+                    nu * 1e9, np.degrees(self.resolution)
+                )
+            else:
+                raise ValueError(f"Units '{units}' not implemented.")
+
+            if inplace:
+                self.data = data
+                self.units = units
+
         else:
             return Map(
                 data=data,

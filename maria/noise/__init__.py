@@ -1,8 +1,40 @@
+import dask.array as da
 import numpy as np
-from todder.sim.noise import generate_noise_with_knee
 from tqdm import tqdm
 
 from ..sim.base import BaseSimulation
+
+
+def generate_noise_with_knee(
+    t, n: int = 1, NEP: float = 1e0, knee: float = 0, dask: bool = False
+):
+    """
+    Simulate white noise for a given time and NEP.
+    """
+    timestep = np.gradient(t, axis=-1).mean()
+
+    if dask:
+        noise = da.random.standard_normal(size=(n, len(t))).astype(np.float32)
+    else:
+        noise = np.random.standard_normal(size=(n, len(t))).astype(np.float32)
+
+    noise *= NEP / np.sqrt(timestep)  # scale the noise
+
+    if knee > 0:
+        f = np.fft.fftfreq(len(t), d=timestep)
+        a = knee * NEP**2 / 2
+        with np.errstate(divide="ignore"):
+            pink_noise_power_spectrum = np.where(f != 0, a / np.abs(f), 0)
+
+        weights = np.sqrt(2 * pink_noise_power_spectrum / timestep)
+        noise += np.real(
+            np.fft.ifft(
+                weights * np.fft.fft(np.random.standard_normal(size=(n, len(t))))
+            )
+        )
+
+    # pink noise
+    return noise
 
 
 class NoiseMixin:
@@ -10,7 +42,9 @@ class NoiseMixin:
         self._simulate_noise()
 
     def _simulate_noise(self):
-        self.data["noise"] = np.zeros((self.instrument.n_dets, self.plan.n_time))
+        self.data["noise"] = da.from_array(
+            np.zeros((self.instrument.n_dets, self.plan.n_time), dtype=np.float32)
+        )
 
         bands = tqdm(
             self.instrument.dets.bands,
@@ -22,7 +56,11 @@ class NoiseMixin:
             band_mask = self.instrument.dets.band_name == band.name
 
             self.data["noise"][band_mask] = generate_noise_with_knee(
-                self.plan.time, n=band_mask.sum(), NEP=band.NEP, knee=band.knee
+                self.plan.time,
+                n=band_mask.sum(),
+                NEP=band.NEP,
+                knee=band.knee,
+                dask=True,
             )
 
     #         # if band.white_noise > 0:

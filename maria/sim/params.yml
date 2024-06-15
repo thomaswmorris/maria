@@ -30,7 +30,7 @@ site: # default to the ALMA site
   latitude: -23.0294
   longitude: -67.7548
   altitude: 5064
-  site_documentation: ''
+  documentation: ''
   weather_quantiles: {}
 
 atmosphere:
