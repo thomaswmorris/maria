@@ -273,15 +273,18 @@
           <section id="sites">
 <h1>Sites<a class="headerlink" href="#sites" title="Link to this heading">¶</a></h1>
 <p>The observing site is represented by a <code class="docutils literal notranslate"><span class="pre">Site</span></code>. For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cerro_toco</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">code</span><span class="o">-</span><span class="n">block</span><span class="p">::</span> <span class="n">python</span>
 </pre></div>
 </div>
+<blockquote>
+<div><p>cerro_toco = maria.get_site(“cerro_toco”)</p>
+</div></blockquote>
 <section id="customizing-sites">
 <h2>Customizing Sites<a class="headerlink" href="#customizing-sites" title="Link to this heading">¶</a></h2>
-<p>We can customize sites as</p>
-<blockquote>
-<div><p>taller_cerro_toco = maria.get_site(“cerro_toco”, altitude=6190) # one kilometer higher!</p>
-</div></blockquote>
+<p>We can customize sites as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">taller_cerro_toco</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">6190</span><span class="p">)</span> <span class="c1"># one kilometer higher!</span>
+</pre></div>
+</div>
 </section>
 </section>
 
