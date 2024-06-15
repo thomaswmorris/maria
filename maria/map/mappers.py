@@ -3,10 +3,10 @@ from typing import Sequence, Tuple
 
 import numpy as np
 import scipy as sp
-from todder import TOD
 from tqdm import tqdm
 
 from .. import utils
+from ..tod import TOD
 from .map import Map
 
 np.seterr(invalid="ignore")

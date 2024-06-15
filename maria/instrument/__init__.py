@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
-from todder.coords import Angle
 
 from ..io import read_yaml
+from ..tod.coords import Angle
 from .bands import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
 from .beams import compute_angular_fwhm
 from .detectors import Detectors, generate_array

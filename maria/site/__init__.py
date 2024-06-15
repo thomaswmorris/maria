@@ -74,7 +74,7 @@ class Site:
     latitude: float = None  # in degrees
     longitude: float = None  # in degrees
     weather_quantiles: dict = field(default_factory=dict)
-    site_documentation: str = ""
+    documentation: str = ""
 
     """
     A class containing time-ordered pointing data. Pass a supported site (found at weathergen.sites),

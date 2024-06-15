@@ -4,7 +4,7 @@ hoagie_haven:
   latitude: 40.3522
   longitude: -74.6519
   altitude: 62
-  site_documentation: http://hoagiehaven.com/
+  documentation: http://hoagiehaven.com/
 
 amundsen_scott:
   description: Amundsen–Scott South Pole Station (BICEP, SPT)
@@ -12,7 +12,7 @@ amundsen_scott:
   latitude: 0.000
   longitude: -90.000
   altitude: 2835
-  site_documentation: https://www.nsf.gov/geo/opp/support/southp.jsp
+  documentation: https://www.nsf.gov/geo/opp/support/southp.jsp
 
 cerro_chajnantor:
   description: Cerro Chajnantor (CCAT, TAO)
@@ -20,7 +20,7 @@ cerro_chajnantor:
   latitude: -22.9862
   longitude: -67.7422
   altitude: 5600
-  site_documentation: https://act.princeton.edu/
+  documentation: https://act.princeton.edu/
 
 cerro_toco:
   description: Cerro Toco (ACT, POLARBEAR, SO)
@@ -28,7 +28,7 @@ cerro_toco:
   latitude: -22.9586
   longitude: -67.7878
   altitude: 5190
-  site_documentation: https://act.princeton.edu/
+  documentation: https://act.princeton.edu/
 
 effelsberg:
   description: Effelsberg (ERT)
@@ -36,7 +36,7 @@ effelsberg:
   latitude: 50.5247
   longitude: 6.8828
   altitude: 319
-  site_documentation: https://www.mpifr-bonn.mpg.de/en/effelsberg
+  documentation: https://www.mpifr-bonn.mpg.de/en/effelsberg
 
 green_bank:
   description: Green Bank Observatory (MUSTANG-2)
@@ -44,7 +44,7 @@ green_bank:
   latitude: 38.4331
   longitude: -79.8398
   altitude: 825
-  site_documentation: https://greenbankobservatory.org
+  documentation: https://greenbankobservatory.org
 
 llano_de_chajnantor:
   description: Llano de Chajnantor (ALMA)
@@ -52,7 +52,7 @@ llano_de_chajnantor:
   latitude: -23.0294
   longitude: -67.7548
   altitude: 5064
-  site_documentation: https://www.almaobservatory.org/en/home/
+  documentation: https://www.almaobservatory.org/en/home/
 
 mauna_kea:
   description: Mauna Kea Observatory (JCMT)
@@ -60,7 +60,7 @@ mauna_kea:
   latitude: 19.8228
   longitude: -155.4770
   altitude: 4092
-  site_documentation: https://www.maunakeaobservatories.org/
+  documentation: https://www.maunakeaobservatories.org/
 
 meerkat:
   description: Meerkat National Park (HERA, MeerKAT)
@@ -68,7 +68,7 @@ meerkat:
   latitude: -30.7132
   longitude: 21.4431
   altitude: 1075.0
-  site_documentation: https://www.protectedplanet.net/555703705?locale=en
+  documentation: https://www.protectedplanet.net/555703705?locale=en
 
 pic_de_bure:
   description: Pic de Bure (NOEMA)
@@ -76,7 +76,7 @@ pic_de_bure:
   latitude: 44.6339
   longitude: 5.9079
   altitude: 2552
-  site_documentation: https://iram-institute.org/observatories/noema/
+  documentation: https://iram-institute.org/observatories/noema/
 
 pico_veleta:
   description: IRAM 30m telescope
@@ -84,7 +84,7 @@ pico_veleta:
   latitude: 37.0662
   longitude: -3.39272
   altitude: 2850
-  site_documentation: https://iram-institute.org/observatories/30-meter-telescope/
+  documentation: https://iram-institute.org/observatories/30-meter-telescope/
 
 qitai:
   description: Qitai Radio Telescope
@@ -92,7 +92,7 @@ qitai:
   latitude: 43.6011
   longitude: 89.6825
   altitude: 1800
-  site_documentation: https://en.wikipedia.org/wiki/Qitai_Radio_Telescope
+  documentation: https://en.wikipedia.org/wiki/Qitai_Radio_Telescope
 
 sierra_negra:
   description: Sierra Negra (LMT)
@@ -100,7 +100,7 @@ sierra_negra:
   latitude: 18.9858
   longitude: -97.3147
   altitude: 4640
-  site_documentation: http://lmtgtm.org/
+  documentation: http://lmtgtm.org/
 
 srt:
   description: Sardinia Radio Telescope (MISTRAL)
@@ -108,7 +108,7 @@ srt:
   latitude: 39.4928
   longitude: 9.2450
   altitude: 600
-  site_documentation: https://en.wikipedia.org/wiki/Sardinia_Radio_Telescope
+  documentation: https://en.wikipedia.org/wiki/Sardinia_Radio_Telescope
 
 summit_station:
   description: Summit Station (Greenland Telescope)
@@ -116,7 +116,7 @@ summit_station:
   latitude: 72.5789
   longitude: -38.4596
   altitude: 3216
-  site_documentation: https://geo-summit.org/
+  documentation: https://geo-summit.org/
 
 teide:
   description: Teide Observatory (QUIJOTE)
@@ -124,4 +124,4 @@ teide:
   latitude: 28.3007
   longitude: -16.5110
   altitude: 2390
-  site_documentation: https://www.iac.es/en/observatorios-de-canarias/teide-observatory
+  documentation: https://www.iac.es/en/observatorios-de-canarias/teide-observatory
