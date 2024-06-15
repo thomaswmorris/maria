@@ -9,6 +9,7 @@ exclude =
     maria/tests/*.py,
     maria/atmosphere/kolmogorov_taylor.py
     maria/atmosphere/linear_angular.py
+    maria/tod/instruments/*
     versioneer.py,
 max-line-length = 125
 # Ignore some style 'errors' produced while formatting by 'black'

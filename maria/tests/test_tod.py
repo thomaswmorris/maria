@@ -1,17 +1,23 @@
-# import os
+import numpy as np
 
-# import pytest
-
-# from maria.tod.mustang2 import load_mustang2_tod
-
-# from ..io import fetch
-
-# here, this_filename = os.path.split(__file__)
-
-# TEST_MUSTANG_TOD_URL = "https://github.com/thomaswmorris/maria-data/raw/master/tods/mustang2/m2_sample_tod_60s.fits"
+from maria.tod.coords import Coordinates, dx_dy_to_phi_theta
+from maria.tod.sim import generate_noise_with_knee
+from maria.tod.tod import TOD
 
 
-# def test_tod_io_fits_mustang2():
-#     fetch(TEST_MUSTANG_TOD_URL, "/tmp/test_m2_tod.fits", refresh=True)
-#     tod = load_mustang2_tod(fname="/tmp/test_m2_tod.fits")
-#     tod.to_fits(fname="/tmp/test_save_m2_tod.fits")
+def test_TOD():
+    n = 256
+
+    time = 1.75e9 + np.arange(0, 600, 0.1)
+    azim = np.radians(45) * np.ones(len(time))
+    elev = np.radians(45) * np.ones(len(time))
+
+    offsets = np.radians(1e1 * np.random.standard_normal(size=(n, 2)))
+
+    AZIM, ELEV = dx_dy_to_phi_theta(*offsets.T[..., None], azim, elev)
+
+    coords = Coordinates(phi=AZIM, theta=ELEV, time=time, frame="az_el")
+
+    noise = generate_noise_with_knee(t=time, n=n, NEP=0.01, knee=0.5)
+
+    tod = TOD(components=dict(noise=noise), coords=coords)
