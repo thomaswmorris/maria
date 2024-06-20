@@ -154,7 +154,9 @@ class BaseSimulation:
             coords=self.coords,
         )
 
-        tod.cal = 1 / self.instrument.dets.dP_dTRJ  # takes the data to TRJ
+        tod.dets.loc[:, "cal"] = (
+            1 / self.instrument.dets.dP_dTRJ
+        )  # takes the data to TRJ
 
         # tod.metadata = pd.Series({"pwv": self.atmosphere.weather.pwv,
         #                         "region": self.site.region})
