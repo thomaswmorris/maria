@@ -34,7 +34,8 @@ class Map:
 
     def __init__(
         self,
-        data: float,
+        name: str = None,
+        data: float = np.zeros((1, 1)),
         weight: float = None,
         width: float = None,
         resolution: float = None,
@@ -47,8 +48,13 @@ class Map:
         if units not in UNITS_CONFIG:
             raise ValueError(f"'units' must be one of {list(UNITS_CONFIG.keys())}.")
 
+        self.name = (
+            np.atleast_1d(name)
+            if name is not None
+            else [f"{int(nu)} GHz" for nu in np.atleast_1d(frequency)]
+        )
         self.data = data if data.ndim > 2 else data[None]
-        self.weight = np.ones(self.data.shape) if weight is None else weight
+        self.weight = weight if weight is not None else np.ones(self.data.shape)
         self.center = tuple(np.radians(center)) if degrees else center
         self.frequency = np.atleast_1d(frequency)
         self.frame = frame
@@ -68,8 +74,8 @@ class Map:
                 f"frequency dimension of the supplied map ({self.n_f})."
             )
 
-        if self.units == "Jy/pixel":
-            self.to("K_RJ")
+        # if self.units == "Jy/pixel":
+        # self.to("K_RJ", inplace=True)
 
         self.header = ap.io.fits.header.Header()
 
@@ -132,7 +138,7 @@ class Map:
             if units == self.units:
                 data[i] = self.data[i]
 
-            if units == "K_RJ":
+            elif units == "K_RJ":
                 data[i] = self.data[i] * KbrightToJyPix(
                     nu * 1e9, np.degrees(self.resolution)
                 )
