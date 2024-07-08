@@ -77,7 +77,7 @@ class MapMixin:
             self.data["map"][band_mask] += map_power
 
 
-def from_fits(
+def read_fits(
     filename: str,
     index: int = 0,
     **map_kwargs,
