@@ -306,13 +306,14 @@ up the simulation a bit.</p>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.io</span> <span class="kn">import</span> <span class="n">fetch</span>
 <span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/big_cluster.fits&quot;</span><span class="p">)</span>
 
-<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">from_fits</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
-                                <span class="n">width</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="c1">#degrees</span>
+<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">read_fits</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
+                                <span class="n">width</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="c1">#degrees</span>
                                 <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                                 <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mf">300.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">),</span> <span class="c1">#RA and Dec in degrees</span>
                                 <span class="n">units</span> <span class="o">=</span><span class="s1">&#39;Jy/pixel&#39;</span>
                                <span class="p">)</span>
-<span class="n">input_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+
+<span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -362,7 +363,7 @@ Right Ascension (RA) of the pointing to ensure that the source remains above the
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.instrument</span> <span class="kn">import</span> <span class="n">Band</span>
 
 <span class="n">f090</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mi">92</span><span class="p">,</span> <span class="c1"># in GHz</span>
-            <span class="n">width</span><span class="o">=</span><span class="mf">52.0</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span>
             <span class="n">knee</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">sensitivity</span><span class="o">=</span><span class="mf">6e-5</span><span class="p">)</span> <span class="c1"># in K sqrt(s)</span>
 <span class="n">f090</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -405,6 +406,7 @@ Right Ascension (RA) of the pointing to ensure that the source remains above the
                        <span class="n">site</span><span class="o">=</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span>
                        <span class="nb">map</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
                        <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
+                       <span class="n">cmb</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">,</span>
                       <span class="p">)</span>
 </pre></div>
 </div>
@@ -414,26 +416,11 @@ Right Ascension (RA) of the pointing to ensure that the source remains above the
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/lustre/home/jvmarrewijk/miniconda3/envs/maria/lib/python3.10/site-packages/todder/coords/__init__.py:186: PerformanceWarning: Reshaping is producing a large chunk. To accept the large
-chunk and silence this warning, set the option
-    &gt;&gt;&gt; with dask.config.set(**{&#39;array.slicing.split_large_chunks&#39;: False}):
-    ...     array.reshape(shape)
-
-To avoid creating the large chunks, set the option
-    &gt;&gt;&gt; with dask.config.set(**{&#39;array.slicing.split_large_chunks&#39;: True}):
-    ...     array.reshape(shape)Explicitly passing ``limit`` to ``reshape`` will also silence this warning
-    &gt;&gt;&gt; array.reshape(shape, limit=&#39;128 MiB&#39;)
-  phi, theta = self.to_frame(frame=frame)
-/lustre/home/jvmarrewijk/miniconda3/envs/maria/lib/python3.10/site-packages/todder/coords/__init__.py:186: PerformanceWarning: Reshaping is producing a large chunk. To accept the large
-chunk and silence this warning, set the option
-    &gt;&gt;&gt; with dask.config.set(**{&#39;array.slicing.split_large_chunks&#39;: False}):
-    ...     array.reshape(shape)
-
-To avoid creating the large chunks, set the option
-    &gt;&gt;&gt; with dask.config.set(**{&#39;array.slicing.split_large_chunks&#39;: True}):
-    ...     array.reshape(shape)Explicitly passing ``limit`` to ``reshape`` will also silence this warning
-    &gt;&gt;&gt; array.reshape(shape, limit=&#39;128 MiB&#39;)
-  phi, theta = self.to_frame(frame=frame)
+2024-07-03 10:36:23.898 INFO: Constructed instrument.
+2024-07-03 10:36:23.898 INFO: Constructed plan.
+2024-07-03 10:36:23.899 INFO: Constructed site.
+2024-07-03 10:36:24.902 INFO: Constructed boresight.
+2024-07-03 10:36:33.173 INFO: Constructed offsets.
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -441,7 +428,7 @@ To avoid creating the large chunks, set the option
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Initialized base in 14660 ms.
+Initialized base in 9277 ms.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -449,7 +436,10 @@ Initialized base in 14660 ms.
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Initializing atmospheric layers: 100%|█████████████████████████████████████████████████████████████████████████| 4/4 [00:04&lt;00:00,  1.10s/it]
+Initializing atmospheric layers: 100%|███████████████████████████| 4/4 [00:02&lt;00:00,  1.66it/s]
+Generating CMB:   0%|                                                    | 0/1 [00:00&lt;?, ?it/s]2024-07-03 10:36:41.857 INFO: Sigma is 0.000000 arcmin (0.000000 rad)
+2024-07-03 10:36:41.858 INFO: -&gt; fwhm is 0.000000 arcmin
+Generating CMB: 100%|████████████████████████████████████████████| 1/1 [00:02&lt;00:00,  2.45s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -465,55 +455,19 @@ Initializing atmospheric layers: 100%|██████████████
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating noise: 100%|████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:23&lt;00:00, 23.87s/it]
-Generating atmosphere: 4it [00:14,  3.71s/it]
-Computing atm. emission (f092): 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:59&lt;00:00, 59.33s/it]
-Computing atm. transmission (f092): 100%|██████████████████████████████████████████████████████████████████████| 1/1 [00:58&lt;00:00, 58.95s/it]
-Sampling map (f092): 100%|█████████████████████████████████████████████████████████████████████████████████████| 1/1 [01:15&lt;00:00, 75.38s/it]
+Generating noise: 100%|██████████████████████████████████████████| 1/1 [00:24&lt;00:00, 24.44s/it]
+Generating atmosphere: 4it [00:19,  4.81s/it]
+Computing atm. emission (f092): 100%|████████████████████████████| 1/1 [01:32&lt;00:00, 92.82s/it]
+Computing atm. transmission (f092): 100%|████████████████████████| 1/1 [01:19&lt;00:00, 79.98s/it]
+Sampling CMB (f092): 100%|███████████████████████████████████████| 1/1 [00:01&lt;00:00,  1.95s/it]
+Sampling map (f092): 100%|███████████████████████████████████████| 1/1 [01:11&lt;00:00, 71.83s/it]
 </pre></div></div>
 </div>
-</section>
-<section id="Visualizing-the-TOD-Data">
-<h3>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">¶</a></h3>
-<p>In this section, we present the same array and TOD visualizations as in the MUSTANG-2 case, but this time for AtLAST:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dt</span> <span class="o">=</span> <span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
-<span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">data</span><span class="o">*</span><span class="n">tod</span><span class="o">.</span><span class="n">cal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
-
-<span class="c1"># visualize powerspectrum</span>
-<span class="c1"># -----------------------</span>
-<span class="n">f</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width_ratios&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">]})</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Raw time streams&#39;</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">1e11</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">i</span><span class="p">),</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">tod</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;map&#39;</span><span class="p">:</span>
-        <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">tod</span><span class="o">.</span><span class="n">cal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">compute</span><span class="p">(),</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
-        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C3&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;atmosphere&#39;</span><span class="p">:</span>
-        <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">tod</span><span class="o">.</span><span class="n">cal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">compute</span><span class="p">(),</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
-        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;C1&quot;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">key</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;noise&#39;</span><span class="p">:</span>
-        <span class="n">f_</span><span class="p">,</span> <span class="n">ps_</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">tod</span><span class="o">.</span><span class="n">cal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">compute</span><span class="p">(),</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
-        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps_</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.4</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;C2&quot;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;white+pink noise&#39;</span><span class="p">)</span>
-
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Combined&quot;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
-
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{f}</span><span class="s2">$ [Hz]&quot;</span><span class="p">),</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{P}</span><span class="s2">_{\rm Hz}[K_{\rm RJ}^2~{\rm Hz}^{-1}]$&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mf">2e2</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="mf">1e-13</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">)</span>
-
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [minutes]&#39;</span><span class="p">),</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;$I_\nu$ [$K_{\rm RJ}$]&#39;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Real&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -521,9 +475,13 @@ Sampling map (f092): 100%|██████████████████
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_cluster_15_0.png" src="../_images/tutorials_AtLAST_cluster_15_0.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_14_0.png" src="../_images/tutorials_AtLAST_cluster_14_0.png" />
 </div>
 </div>
+</section>
+<section id="Visualizing-the-TOD-Data">
+<h3>Visualizing the TOD Data<a class="headerlink" href="#Visualizing-the-TOD-Data" title="Link to this heading">¶</a></h3>
+<p>In this section, we present the same array and TOD visualizations as in the MUSTANG-2 case, but this time for AtLAST:</p>
 </section>
 </section>
 <section id="Map-Making">
@@ -541,6 +499,7 @@ Sampling map (f092): 100%|██████████████████
                    <span class="n">height</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
                    <span class="n">resolution</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">instrument</span><span class="o">.</span><span class="n">fwhm</span><span class="p">))</span><span class="o">/</span><span class="mf">4.</span><span class="p">,</span>
                    <span class="n">tod_postprocessing</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tukey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
                         <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
                         <span class="s2">&quot;highpass&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>
                         <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
@@ -562,50 +521,13 @@ Sampling map (f092): 100%|██████████████████
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (f092): 100%|██████████████████████████████████████████████████████████████████████████████████| 1/1 [02:30&lt;00:00, 150.20s/it]
+Running mapper (f092): 100%|████████████████████████████████████| 1/1 [02:39&lt;00:00, 159.54s/it]
 </pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dt</span> <span class="o">=</span> <span class="p">(</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">DATA</span>
-
-<span class="c1"># visualize powerspectrum</span>
-<span class="c1"># -----------------------</span>
-<span class="n">f</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">periodogram</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width_ratios&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">]})</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Raw time streams&#39;</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">1e11</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">i</span><span class="p">),</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">ps</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Combined&quot;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
-
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{f}</span><span class="s2">$ [Hz]&quot;</span><span class="p">),</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\mathcal</span><span class="si">{P}</span><span class="s2">_{\rm Hz}[K_{\rm RJ}^2~{\rm Hz}^{-1}]$&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mf">2e2</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">)</span>
-
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [minutes]&#39;</span><span class="p">),</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;$I_\nu$ [$K_{\rm RJ}$]&#39;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="n">tod</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">tod</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Real&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_cluster_18_0.png" src="../_images/tutorials_AtLAST_cluster_18_0.png" />
-</div>
 </div>
 <section id="Let's-show-the-results">
 <h3>Let’s show the results<a class="headerlink" href="#Let's-show-the-results" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -616,14 +538,14 @@ Running mapper (f092): 100%|█████████████████�
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_AtLAST_cluster_20_0.png" src="../_images/tutorials_AtLAST_cluster_20_0.png" />
+<img alt="../_images/tutorials_AtLAST_cluster_19_0.png" src="../_images/tutorials_AtLAST_cluster_19_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s1">&#39;./sim.fits&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s1">&#39;/tmp/simulated_map.fits&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
