@@ -5,7 +5,6 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from .. import utils
 from ..tod import TOD
 from .map import Map
 
@@ -72,16 +71,44 @@ class BaseMapper:
         raise ValueError("Not implemented!")
 
     def run(self):
-        self.maps = {}
+        self.map_data = {}
 
         for band in self.bands:
-            self.maps[band] = self._run(band)
+            self.map_data[band] = self._run(band)
+
+        map_data = np.zeros((len(self.map_data), self.n_y, self.n_x))
+        map_weight = np.zeros((len(self.map_data), self.n_y, self.n_x))
+        map_names = []
+        map_freqs = []
+
+        for i, (band_name, band_map_data) in enumerate(self.map_data.items()):
+            map_names.append(band_name)
+            map_freqs.append(band_map_data["nom_freq"])
+
+            if "gaussian_filter" in self.map_postprocessing.keys():
+                sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
+
+                band_map_numer = sp.ndimage.gaussian_filter(
+                    band_map_data["sum"], sigma=sigma
+                )
+                band_map_denom = sp.ndimage.gaussian_filter(
+                    band_map_data["weight"], sigma=sigma
+                )
+
+                map_data[i] = band_map_numer / band_map_denom
+                map_weight[i] = band_map_denom
+
+            if "median_filter" in self.map_postprocessing.keys():
+                map_data[i] = sp.ndimage.median_filter(
+                    map_data[i], size=self.map_postprocessing["median_filter"]["size"]
+                )
 
         return Map(
-            data=np.concatenate([m.data for m in self.maps.values()], axis=0),
-            weight=np.concatenate([m.weight for m in self.maps.values()], axis=0),
+            data=map_data,
+            name=map_names,
+            weight=map_weight,
+            frequency=map_freqs,
             resolution=self.resolution,
-            frequency=[float(m.frequency) for m in self.maps.values()],
             center=self.center,
             degrees=False,
         )
@@ -122,115 +149,46 @@ class BinMapper(BaseMapper):
         The actual mapper for the BinMapper.
         """
 
-        self.band_data = {}
-
-        self.raw_map_sums = np.zeros((self.n_x, self.n_y))
-        self.raw_map_cnts = np.zeros((self.n_x, self.n_y))
-
-        self.map_data = np.zeros((self.n_y, self.n_x))
-        self.map_weight = np.zeros((self.n_y, self.n_x))
+        band_map_data = {
+            "sum": np.zeros((self.n_y, self.n_x)),
+            "weight": np.zeros((self.n_y, self.n_x)),
+        }
 
         tods_pbar = tqdm(
             self.tods, desc=f"Running mapper ({band})", disable=not self.verbose
-        )
+        )  # noqa
 
         for tod in tods_pbar:
-            dx, dy = tod.coords.offsets(frame=self.frame, center=self.center)
+            band_tod = tod.subset(band=band)
 
-            band_mask = tod.dets.band_name == band
+            W, D = band_tod.process(**self.tod_postprocessing)
+            D *= band_tod.dets.cal.values[..., None]  # convert to KRJ
 
-            band_center = tod.dets.loc[band_mask, "band_center"].mean()
+            dx, dy = band_tod.coords.offsets(frame=self.frame, center=self.center)
 
-            D = tod.cal[band_mask, None] * tod.data[band_mask]
+            nu = band_tod.dets.band_center.mean()
 
-            # windowing
-            W = np.ones(D.shape[0])[:, None] * sp.signal.windows.tukey(
-                D.shape[-1], alpha=0.1
-            )
-
-            WD = W * sp.signal.detrend(D, axis=-1)
-            del D
-
-            if "highpass" in self.tod_postprocessing.keys():
-                WD = utils.signal.highpass(
-                    WD,
-                    fc=self.tod_postprocessing["highpass"]["f"],
-                    fs=tod.fs,
-                    order=self.tod_postprocessing["highpass"].get("order", 1),
-                    method="bessel",
-                )
-
-            if "remove_modes" in self.tod_postprocessing.keys():
-                n_modes_to_remove = self.tod_postprocessing["remove_modes"]["n"]
-
-                U, V = utils.signal.decompose(
-                    WD, downsample_rate=np.maximum(int(tod.fs / 16), 1), mode="uv"
-                )
-                WD = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
-
-            if "despline" in self.tod_postprocessing.keys():
-                B = utils.signal.get_bspline_basis(
-                    tod.time.compute(),
-                    spacing=self.tod_postprocessing["despline"].get("knot_spacing", 10),
-                    order=self.tod_postprocessing["despline"].get("spline_order", 3),
-                )
-
-                A = np.linalg.inv(B @ B.T) @ B @ WD.T
-                WD -= A.T @ B
+            del band_tod
 
             map_sum = sp.stats.binned_statistic_2d(
-                dx[band_mask].ravel(),
-                dy[band_mask].ravel(),
-                WD.ravel(),
+                dx.ravel(),
+                dy.ravel(),
+                D.ravel(),
                 bins=(self.x_bins, self.y_bins),
                 statistic="sum",
             )[0]
 
-            map_cnt = sp.stats.binned_statistic_2d(
-                dx[band_mask].ravel(),
-                dy[band_mask].ravel(),
+            map_weight = sp.stats.binned_statistic_2d(
+                dx.ravel(),
+                dy.ravel(),
                 W.ravel(),
                 bins=(self.x_bins, self.y_bins),
                 statistic="sum",
             )[0]
 
-            self.DATA = WD
+            band_map_data["sum"] += map_sum
+            band_map_data["weight"] += map_weight
 
-            self.raw_map_sums += map_sum
-            self.raw_map_cnts += map_cnt
+        band_map_data["nom_freq"] = nu
 
-            # self.band_data["band_center"] = tod.dets.band_center.mean()
-            # self.band_data["band_width"] = 30
-
-            band_map_numer = self.raw_map_sums.copy()
-            band_map_denom = self.raw_map_cnts.copy()
-
-            if "gaussian_filter" in self.map_postprocessing.keys():
-                sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
-
-                band_map_numer = sp.ndimage.gaussian_filter(band_map_numer, sigma=sigma)
-                band_map_denom = sp.ndimage.gaussian_filter(band_map_denom, sigma=sigma)
-
-            band_map_data = band_map_numer / band_map_denom
-
-            mask = band_map_denom > 0
-
-            if "median_filter" in self.map_postprocessing.keys():
-                band_map_data = sp.ndimage.median_filter(
-                    band_map_data, size=self.map_postprocessing["median_filter"]["size"]
-                )
-
-            self.map_data = np.where(mask, band_map_numer, np.nan) / np.where(
-                mask, band_map_denom, 1
-            )
-
-            self.map_weight = band_map_denom
-
-        return Map(
-            data=self.map_data,
-            weight=self.map_weight,
-            resolution=self.resolution,
-            frequency=band_center,
-            center=self.center,
-            degrees=False,
-        )
+        return band_map_data

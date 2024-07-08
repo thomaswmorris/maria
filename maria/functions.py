@@ -34,8 +34,8 @@ def normalized_matern(r, nu):
     return (
         2 ** (1 - nu)
         / sp.special.gamma(nu)
-        * sp.special.kv(nu, r + 1e-16)
-        * (r + 1e-16) ** nu
+        * sp.special.kv(nu, np.sqrt(2 * nu) * r + 1e-16)
+        * (np.sqrt(2 * nu) * r + 1e-16) ** nu
     )
 
 
