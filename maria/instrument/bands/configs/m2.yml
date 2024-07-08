@@ -9,7 +9,7 @@ f093:
 
 
 f093-custom:
-  passband: data/passbands/mustang2/f093.csv
+  passband: data/passbands/m2/f093.csv
   time_constant: 0
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
