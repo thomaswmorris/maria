@@ -12,14 +12,14 @@ dependencies = [
   "cmocean",
   "dask",
   "h5py",
-  "healpy",
+  "healpy<1.17",
   "matplotlib",
-  "numpy",
+  "numpy<2",
   "pandas",
   "pytz",
   "reproject",
   "requests",
-  "scipy",
+  "scipy<1.14",
   "tables",
   "tqdm",
 ]
@@ -46,6 +46,10 @@ classifiers = [  # Optional
 ]
 
 [project.optional-dependencies] # Optional
+mapmaking = [
+  "torch",
+]
+
 dev = [
   "black",
   "coverage",
