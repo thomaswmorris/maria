@@ -132,18 +132,18 @@ class Map:
         return y - y.mean()
 
     def to(self, units, inplace=False):
-        data = self.data.copy()
+        data = np.zeros(self.data.shape)
 
         for i, nu in enumerate(self.frequency):
             if units == self.units:
                 data[i] = self.data[i]
 
             elif units == "K_RJ":
-                data[i] = self.data[i] * KbrightToJyPix(
+                data[i] = self.data[i] / KbrightToJyPix(
                     nu * 1e9, np.degrees(self.resolution)
                 )
             elif units == "Jy/pixel":
-                data[i] = self.data[i] / KbrightToJyPix(
+                data[i] = self.data[i] * KbrightToJyPix(
                     nu * 1e9, np.degrees(self.resolution)
                 )
             else:
