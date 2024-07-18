@@ -11,7 +11,7 @@ def daisy(
     miss_freq=np.sqrt(2),
 ):  # noqa
     speed = speed or radius / 5
-    phase = time * speed / radius
+    phase = time * speed / np.maximum(radius, 1e-6)  # do not divide by zero
 
     return daisy_pattern_miss_center(phase, radius, petals, miss_factor, miss_freq)
 

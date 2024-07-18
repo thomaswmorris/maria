@@ -24,17 +24,27 @@ class Spectrum:
             refresh=refresh_cache,
         )
 
+        key_mapping = {
+            "brightness_temperature_rayleigh_jeans_K": "_emission",
+            "opacity_nepers": "_opacity",
+            "excess_path_m": "_path_delay",
+        }
+
         with h5py.File(self.cache_path, "r") as f:
             self._side_nu = f["side_nu_GHz"][:]
             self._side_elevation = f["side_elevation_deg"][:]
             self._side_zenith_pwv = f["side_zenith_pwv_mm"][:]
             self._side_base_temperature = f["side_base_temperature_K"][:]
 
-            self._emission = f["emission_temperature_rayleigh_jeans_K"][:]
-            self._transmission = np.exp(-f["opacity_nepers"][:])
-            self._excess_path = 1e6 * (
-                f["excess_path"][:] + f["offset_excess_path_m"][:]
-            )
+            for key, mapping in key_mapping.items():
+                setattr(
+                    self,
+                    mapping,
+                    f[key]["relative"][:] * f[key]["scale"][:] + f[key]["offset"][:],
+                )
+
+        self._transmission = np.exp(-self._opacity)
+        del self._opacity
 
     def emission(self, nu, zenith_pwv=None, base_temperature=None, elevation=45):
         if zenith_pwv is None:

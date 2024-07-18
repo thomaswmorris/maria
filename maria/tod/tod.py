@@ -12,7 +12,7 @@ from astropy.io import fits
 
 from maria import utils
 
-from .coords import Coordinates
+from ..coords import Coordinates
 
 
 class TOD:
@@ -198,7 +198,7 @@ class TOD:
             n_modes_to_remove = kwargs["remove_modes"]["n"]
 
             U, V = utils.signal.decompose(
-                D, downsample_rate=np.maximum(int(self.fs / 16), 1), mode="uv"
+                D, downsample_rate=np.maximum(int(self.fs), 1), mode="uv"
             )
             D = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
 

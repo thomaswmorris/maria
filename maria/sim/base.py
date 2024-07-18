@@ -3,12 +3,12 @@ import os
 
 import numpy as np
 
+from ..coords import Coordinates, dx_dy_to_phi_theta
 from ..instrument import Instrument, get_instrument
 from ..io import read_yaml
 from ..plan import Plan, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
-from ..tod.coords import Coordinates, dx_dy_to_phi_theta
 
 here, this_filename = os.path.split(__file__)
 

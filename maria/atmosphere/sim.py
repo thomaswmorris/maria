@@ -17,7 +17,7 @@ class AtmosphereMixin:
         min_atmosphere_height=500,
         max_atmosphere_height=5000,
         n_atmosphere_layers=4,
-        min_atmosphere_beam_res=4,
+        min_atmosphere_beam_res=8,
         turbulent_outer_scale=500,
     ):
         """

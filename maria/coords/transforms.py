@@ -44,7 +44,7 @@ def phi_theta_to_dx_dy(phi, theta, cphi, ctheta):
     )
     dz = np.sin(dphi) * np.cos(theta) + 1j * np.real(proj_from_east)
     r = np.abs(dz)
-    dz *= np.arcsin(r) / r
+    dz *= np.arcsin(r) / np.where(r > 0, r, 1.0)
 
     # negative, because we're looking at the observer
     return np.real(dz), -np.imag(dz)
