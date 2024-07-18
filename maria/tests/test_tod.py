@@ -1,6 +1,6 @@
 import numpy as np
 
-from maria.tod.coords import Coordinates, dx_dy_to_phi_theta
+from maria.coords import Coordinates, dx_dy_to_phi_theta
 from maria.tod.sim import generate_noise_with_knee
 from maria.tod.tod import TOD
 

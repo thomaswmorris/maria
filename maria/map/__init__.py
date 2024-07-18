@@ -21,7 +21,7 @@ class MapMixin:
     """
 
     def _run(self, **kwargs):
-        self.sample_maps()
+        self._sample_maps(**kwargs)
 
     def _sample_maps(self):
         dx, dy = self.coords.offsets(frame=self.map.frame, center=self.map.center)

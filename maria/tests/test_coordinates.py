@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from maria.tod.coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
+from maria.coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
 
 
 def test_offsets_transform():

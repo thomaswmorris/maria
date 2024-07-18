@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp  # noqa F401
 
 
-def compute_angular_fwhm(fwhm_0, z=np.inf, n=1, f=None, l=None):  # noqa F401
+def compute_angular_fwhm(fwhm_0, z=np.inf, n=1.0, f=None, l=None):  # noqa F401
     """
     Returns the angular full width at half maximum of a Gaussian beam at distance `z` in
     refractive index `n`. Supply either the wavelength `l` in meters or the frequency `f` in Hz.

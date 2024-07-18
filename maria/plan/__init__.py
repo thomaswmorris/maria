@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 import pytz
 
+from .. import coords
 from ..io import datetime_handler, read_yaml
-from ..tod import coords
 from . import patterns
 
 MAX_VELOCITY_WARN = 10  # in deg/s
@@ -140,6 +140,11 @@ class Plan:
         self.scan_offsets_radians = np.c_[
             x_scan_offsets_radians, y_scan_offsets_radians
         ].T
+
+        # add jitter, should be well sub-arcsecond
+        self.scan_offsets_radians += 1e-7 * np.random.standard_normal(
+            size=self.scan_offsets_radians.shape
+        )
 
         scan_velocity_radians = np.gradient(
             self.scan_offsets_radians, axis=1, edge_order=0

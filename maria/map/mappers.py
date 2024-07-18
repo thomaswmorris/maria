@@ -85,23 +85,23 @@ class BaseMapper:
             map_names.append(band_name)
             map_freqs.append(band_map_data["nom_freq"])
 
+            band_map_numer = band_map_data["sum"].copy()
+            band_map_denom = band_map_data["weight"].copy()
+
             if "gaussian_filter" in self.map_postprocessing.keys():
                 sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
 
-                band_map_numer = sp.ndimage.gaussian_filter(
-                    band_map_data["sum"], sigma=sigma
-                )
-                band_map_denom = sp.ndimage.gaussian_filter(
-                    band_map_data["weight"], sigma=sigma
-                )
-
-                map_data[i] = band_map_numer / band_map_denom
-                map_weight[i] = band_map_denom
+                band_map_numer = sp.ndimage.gaussian_filter(band_map_numer, sigma=sigma)
+                band_map_denom = sp.ndimage.gaussian_filter(band_map_denom, sigma=sigma)
 
             if "median_filter" in self.map_postprocessing.keys():
-                map_data[i] = sp.ndimage.median_filter(
-                    map_data[i], size=self.map_postprocessing["median_filter"]["size"]
+                band_map_numer = sp.ndimage.median_filter(
+                    band_map_numer,
+                    size=self.map_postprocessing["median_filter"]["size"],
                 )
+
+            map_data[i] = band_map_numer / band_map_denom
+            map_weight[i] = band_map_denom
 
         return Map(
             data=map_data,

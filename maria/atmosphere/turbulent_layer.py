@@ -3,10 +3,10 @@ import numpy as np
 import scipy as sp
 
 from .. import utils
+from ..coords import Coordinates, get_center_phi_theta
 from ..functions import approximate_normalized_matern
 from ..instrument import Instrument
 from ..instrument.beams import construct_beam_filter, separably_filter
-from ..tod.coords import Coordinates, get_center_phi_theta
 from .weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
@@ -323,6 +323,7 @@ class TurbulentLayer:
                 beam_profile=self.instrument.beam_profile,
             )
             FILTERED_VALUES = separably_filter(self.shaped_values, F)
+            FILTERED_VALUES = self.shaped_values
 
             detector_values[band_index] = sp.interpolate.RegularGridInterpolator(
                 (self.cross_section_side, self.extrusion_side), FILTERED_VALUES.T
