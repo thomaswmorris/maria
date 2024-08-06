@@ -98,12 +98,11 @@ class BaseSimulation:
         self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
 
         self.boresight = Coordinates(
-            time=self.plan.time - self.plan.time.min(),
+            time=self.plan.time,
             phi=self.plan.phi,
             theta=self.plan.theta,
             location=self.site.earth_location,
             frame=self.plan.frame,
-            time_offset=self.plan.time.min(),
         )
 
         logger.info("Constructed boresight.")
@@ -134,7 +133,6 @@ class BaseSimulation:
             theta=det_el,
             location=self.site.earth_location,
             frame="az_el",
-            time_offset=self.boresight.time_offset,
         )
 
         logger.info("Constructed offsets.")

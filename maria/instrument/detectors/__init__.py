@@ -56,6 +56,14 @@ class Detectors:
         }.items():
             self.df.loc[:, det_attr] = getattr(self, band_attr)
 
+        # generate a gain error to be applied during simulation
+        self.gain_perturbation = np.exp(
+            self.rel_gain_error * np.random.standard_normal(size=self.n)
+        )
+
+    def __len__(self):
+        return len(self.df)
+
     def __getattr__(self, attr):
         if attr in self.df.columns:
             return self.df.loc[:, attr].values.astype(DET_COLUMN_TYPES[attr])

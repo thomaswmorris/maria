@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import scipy as sp
 
 
@@ -78,7 +79,7 @@ def smooth_sawtooth(phase, width=0.5, smoothness=0.5):
 
 def raster(time, radius=1, height=None, speed=0.5, n=16, turnaround_time=0.5):
     width = 2 * radius
-    height = height or width
+    height = height if height is not None else width
 
     sample_rate = 1 / np.gradient(time).mean()
 
@@ -159,3 +160,24 @@ def get_constant_speed_offsets(
             yield p
 
     return pattern(np.array([p for p in phase_coroutine()]), **scan_options)
+
+
+PATTERNS = {
+    "back_and_forth": {"aliases": ["back-and-forth"], "generator": back_and_forth},
+    "daisy": {"aliases": ["daisy_scan"], "generator": daisy},
+    "raster": {"aliases": [], "generator": raster},
+    "stare": {"aliases": [], "generator": stare},
+}
+
+for key in PATTERNS:
+    PATTERNS[key]["aliases"].append(key)
+
+PATTERNS = pd.DataFrame(PATTERNS).T
+
+
+def get_pattern_generator(name):
+    for index, entry in PATTERNS.iterrows():
+        if name in entry.aliases:
+            return entry.generator
+
+    raise ValueError(f"Invalid pattern name '{name}'.")

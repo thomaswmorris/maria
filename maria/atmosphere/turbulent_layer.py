@@ -41,7 +41,7 @@ class TurbulentLayer:
         self.res = res
         self.timestep = timestep
 
-        self.sim_time = self.boresight.time.compute()
+        self.sim_time = self.boresight.time
         self.sim_az = self.boresight.az.compute()
         self.sim_el = self.boresight.el.compute()
 

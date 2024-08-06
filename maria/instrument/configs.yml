@@ -8,9 +8,7 @@ default:
       f150:
         center: 150
         width: 30
-
   primary_size: 5
-
 
 ABS:
   aliases: ["abs"]
@@ -87,6 +85,37 @@ MUSTANG-2:
   primary_size: 100 # in meters
   documentation: https://www.atlast.uio.no/
 
+
+SO-SAT:
+  aliases: ["sat"]
+  description: Small Aperture Telescope
+  documentation: https://act.princeton.edu/overview/camera-specifications/advact
+  subarrays:
+    ws0:
+      beam_spacing: 1.2
+      array_offset: [0.0, 0.0]
+      field_of_view: 10.0
+      array_shape: hex
+      bands: [act/pa5/f150]
+    ws1:
+      beam_spacing: 1.2
+      array_offset: [5.2, 9.0]
+      field_of_view: 10.0
+      array_shape: hex
+      bands: [act/pa5/f150]
+    ws2:
+      beam_spacing: 1.2
+      array_offset: [5.2, -9.0]
+      field_of_view: 10.0
+      array_shape: hex
+      bands: [act/pa5/f150]
+    ws3:
+      beam_spacing: 1.2
+      array_offset: [-10.4, 0]
+      field_of_view: 10.0
+      array_shape: hex
+      bands: [act/pa5/f150]
+  primary_size: 0.5
 
 TolTEC:
   aliases: ["toltec"]

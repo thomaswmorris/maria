@@ -1,5 +1,6 @@
 import glob
 import os
+import warnings
 from collections.abc import Mapping
 from typing import Sequence
 
@@ -78,6 +79,7 @@ class Band:
         sensitivity_kind: str = "rayleigh-jeans",
         NEP: float = None,
         NEP_per_loading: float = 0.0,
+        rel_gain_error: float = 0.0,
         knee: float = 1.0,
         time_constant: float = 0.0,
     ):
@@ -89,6 +91,8 @@ class Band:
         self.shape = shape
         self.efficiency = efficiency
         self.NEP_per_loading = NEP_per_loading
+
+        self.rel_gain_error = rel_gain_error
 
         self.knee = knee
         self.time_constant = time_constant
@@ -338,9 +342,10 @@ class BandList(Sequence):
     def add(self, band):
         if not isinstance(band, Band):
             raise ValueError("'band' must be a Band type.")
-        if band.name in self.names:
-            raise RuntimeError(f"There is already a band called '{band.name}'.")
-        self.bands.append(band)
+        if band.name not in self.names:
+            self.bands.append(band)
+        #     warnings.warn(f"There is already a band called '{band.name}'.")
+        # else:
 
     def __getattr__(self, attr):
         if attr in self.names:

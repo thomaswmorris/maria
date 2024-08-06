@@ -109,11 +109,15 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if hasattr(self, "map"):
             self._sample_maps()
 
-        # scale the noise so that there is
+        # scale the noise by the transmission
         if hasattr(self, "atmospheric_transmission"):
             for k in ["cmb", "map"]:
                 if k in self.data:
                     self.data[k] *= self.atmospheric_transmission
+
+        for k in ["atmosphere", "cmb", "map"]:
+            if k in self.data:
+                self.data[k] *= self.instrument.dets.gain_perturbation[:, None]
 
     def __repr__(self):
         object_reprs = [

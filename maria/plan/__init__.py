@@ -11,7 +11,9 @@ import pytz
 
 from .. import coords
 from ..io import datetime_handler, read_yaml
-from . import patterns
+from .patterns import PATTERNS, get_pattern_generator
+
+all_patterns = list(PATTERNS.index.values)
 
 MAX_VELOCITY_WARN = 10  # in deg/s
 MAX_ACCELERATION_WARN = 10  # in deg/s
@@ -120,7 +122,7 @@ class Plan:
             self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
 
         # this is in pointing_units
-        x_scan_offsets, y_scan_offsets = getattr(patterns, self.scan_pattern)(
+        x_scan_offsets, y_scan_offsets = get_pattern_generator(self.scan_pattern)(
             self.time,
             **self.scan_options,
         )
