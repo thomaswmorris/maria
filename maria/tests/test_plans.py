@@ -8,3 +8,4 @@ import maria
 )
 def test_pattern(scan_pattern):
     plan = maria.Plan(scan_pattern=scan_pattern)
+    print(plan)
