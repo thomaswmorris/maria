@@ -8,6 +8,70 @@ global Tcmb
 Tcmb = 2.7255
 
 
+symbols = {"radians": "rad"}
+
+
+class Angle:
+    def __init__(self, a, units="radians"):
+        if units == "radians":
+            self.a = a
+        elif units == "degrees":
+            self.a = (np.pi / 180) * a
+        elif units == "arcmin":
+            self.a = (np.pi / 180 / 60) * a
+        elif units == "arcsec":
+            self.a = (np.pi / 180 / 3600) * a
+        else:
+            raise ValueError(
+                "'units' must be one of ['radians', 'degrees', 'arcmin', 'arcsec']"
+            )
+
+        self.is_scalar = len(np.shape(self.a)) == 0
+
+        if not self.is_scalar:
+            self.a = np.unwrap(self.a)
+
+    @property
+    def radians(self):
+        return self.a
+
+    @property
+    def rad(self):
+        return self.radians
+
+    @property
+    def degrees(self):
+        return (180 / np.pi) * self.a
+
+    @property
+    def deg(self):
+        return self.degrees
+
+    @property
+    def arcmin(self):
+        return (60 * 180 / np.pi) * self.a
+
+    @property
+    def arcsec(self):
+        return (3600 * 180 / np.pi) * self.a
+
+    def __repr__(self):
+        units = self.units
+        return f"Angle(value={getattr(self, units):.02f}, units='{units}')"
+
+    @property
+    def units(self):
+        # peak-to-peak
+        max_deg = self.deg if self.is_scalar else self.deg.max()
+
+        if max_deg < 0.5 / 60:
+            return "arcsec"
+        if max_deg < 0.5:
+            return "arcmin"
+
+        return "degrees"
+
+
 def getJynorm():
     factor = 2e26
     factor *= (const.k_B * Tcmb * u.Kelvin) ** 3  # (kboltz*Tcmb)**3.0

@@ -5,6 +5,7 @@ import pandas as pd
 from astropy.coordinates import EarthLocation
 
 from ..io import read_yaml
+from ..utils import repr_lat_lon
 
 here, this_filename = os.path.split(__file__)
 
@@ -86,14 +87,26 @@ class Site:
             raise InvalidRegionError(self.region)
 
         if self.longitude is None:
-            self.longitude = supported_regions_table.loc[self.region].longitude
+            self.longitude = float(supported_regions_table.loc[self.region].longitude)
 
         if self.latitude is None:
-            self.latitude = supported_regions_table.loc[self.region].latitude
+            self.latitude = float(supported_regions_table.loc[self.region].latitude)
 
         if self.altitude is None:
-            self.altitude = supported_regions_table.loc[self.region].altitude
+            self.altitude = float(supported_regions_table.loc[self.region].altitude)
 
         self.earth_location = EarthLocation.from_geodetic(
             lon=self.longitude, lat=self.latitude, height=self.altitude
         )
+
+    def __repr__(self):
+        parts = {
+            "location": f"({repr_lat_lon(self.latitude, self.longitude)})",
+            "region": self.region,
+            "altitude": f"{self.altitude}m",
+            "seasonal": self.seasonal,
+            "diurnal": self.diurnal,
+            "weather_quantiles": self.weather_quantiles,
+        }
+
+        return rf"Site({', '.join([f'{k}={v}' for k, v in parts.items()])})"

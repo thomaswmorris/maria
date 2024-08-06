@@ -259,7 +259,7 @@ class TOD:
                     [np.inf, 0.05, +np.inf, +np.inf],
                 ],
             )
-            t_cut = 4 * pars[1] * self.time.ptp()  # cuts a maximum of 20 percent
+            t_cut = 4 * pars[1] * np.ptp(self.time)  # cuts a maximum of 20 percent
             print(f"cutting {t_cut:.01f} seconds")
             self.subset(samples=[int(t_cut * self.fs), self.nt - 1])
 

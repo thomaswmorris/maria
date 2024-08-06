@@ -56,7 +56,9 @@ def compute_optimal_rotation(points):
 
     def loss(x, *args):
         R = rotation_matrix_from_skew_entries(x)
-        return sum(np.log((R @ args[0]).ptp(axis=1)) * np.array([-1, *np.ones(d - 1)]))
+        return sum(
+            np.log(np.ptp(R @ args[0], axis=1)) * np.array([-1, *np.ones(d - 1)])
+        )
 
     res = sp.optimize.minimize(
         loss, x0=np.zeros(int(d * (d - 1) / 2)), args=points, tol=1e-10, method="SLSQP"
@@ -71,7 +73,7 @@ def compute_optimal_rotation(points):
 def optimize_area_minimizing_rotation_matrix(points):
     def log_dimension_ratio(a):
         trans_points = points @ get_rotation_matrix_2d(a).T
-        log_ratio = np.log(trans_points[:, 0].ptp() / trans_points[:, 1].ptp())
+        log_ratio = np.log(np.ptp(trans_points[:, 0]) / np.ptp(trans_points[:, 1]))
         return log_ratio
 
     test_angles = np.linspace(0, np.pi, 64)[:-1]

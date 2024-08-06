@@ -26,7 +26,7 @@ def double_circle(time, radius=1, speed=None, miss_freq=np.sqrt(2)):  # noqa
 def grid(time, radius=1, speed=None, n=17, turnaround_time=5):  # noqa
     speed = speed or radius / 5
 
-    duration = time.ptp()
+    duration = np.ptp(time)
 
     xs = []
     ys = []
@@ -73,7 +73,7 @@ def smooth_sawtooth(phase, width=0.5, smoothness=0.5):
         phase, sigma=smoothness * np.gradient(phase).mean()
     )
     smooth_sawtooth = sp.signal.sawtooth(smooth_phase, width=width)
-    return 2 * (smooth_sawtooth - smooth_sawtooth.min()) / smooth_sawtooth.ptp() - 1
+    return 2 * (smooth_sawtooth - smooth_sawtooth.min()) / np.ptp(smooth_sawtooth) - 1
 
 
 def raster(time, radius=1, height=None, speed=0.5, n=16, turnaround_time=0.5):

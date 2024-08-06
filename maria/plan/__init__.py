@@ -97,7 +97,7 @@ class Plan:
         if not self.sample_rate > 0:
             raise ValueError("Parameter 'sample_rate' must be greater than zero!")
 
-        self.scan_center = tuple(np.array(self.scan_center))
+        self.scan_center = tuple([float(x) for x in self.scan_center])
 
         # for k, v in plan_configs[self.scan_pattern]["scan_options"].items():
         #     if k not in self.scan_options.keys():
@@ -192,7 +192,7 @@ class Plan:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
 
-        max_scan_offset = self.scan_offsets_radians.ptp(axis=1).max()
+        max_scan_offset = np.ptp(self.scan_offsets_radians, axis=1).max()
 
         if max_scan_offset < np.radians(0.5 / 60):
             dx, dy = 3600 * np.degrees(self.scan_offsets_radians)

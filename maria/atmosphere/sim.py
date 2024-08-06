@@ -144,7 +144,7 @@ class AtmosphereMixin:
                 det_power_grid = (
                     1e12
                     * k_B
-                    * np.trapz(
+                    * np.trapezoid(
                         self.atmosphere.spectrum._emission
                         * band.passband(self.atmosphere.spectrum._side_nu),
                         1e9 * self.atmosphere.spectrum._side_nu,
@@ -191,11 +191,11 @@ class AtmosphereMixin:
                     * self.atmosphere.spectrum._side_nu**2
                 )
 
-                self.det_transmission_grid = np.trapz(
+                self.det_transmission_grid = np.trapezoid(
                     rel_T_RJ_spectrum * self.atmosphere.spectrum._transmission,
                     1e9 * self.atmosphere.spectrum._side_nu,
                     axis=-1,
-                ) / np.trapz(
+                ) / np.trapezoid(
                     rel_T_RJ_spectrum,
                     1e9 * self.atmosphere.spectrum._side_nu,
                     axis=-1,

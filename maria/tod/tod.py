@@ -117,7 +117,6 @@ class TOD:
 
             subset_coords = Coordinates(
                 time=self.coords.time[time_mask],
-                time_offset=self.coords.time_offset,
                 phi=self.coords.az[:, time_mask],
                 theta=self.coords.el[:, time_mask],
                 location=self.location,
@@ -143,7 +142,6 @@ class TOD:
 
             subset_coords = Coordinates(
                 time=self.time,
-                time_offset=self.coords.time_offset,
                 phi=self.coords.az[det_mask],
                 theta=self.coords.el[det_mask],
                 location=self.location,
@@ -204,7 +202,7 @@ class TOD:
 
         if "despline" in kwargs:
             B = utils.signal.get_bspline_basis(
-                self.time.compute(),
+                self.time,
                 spacing=kwargs["despline"].get("knot_spacing", 10),
                 order=kwargs["despline"].get("spline_order", 3),
             )

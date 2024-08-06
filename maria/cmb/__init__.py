@@ -133,7 +133,7 @@ class CMBMixin:
             band_cmb_power_samples_W = (
                 1e12
                 * band.efficiency
-                * np.trapz(y=cmb_brightness * band.passband(test_nu), x=test_nu)
+                * np.trapezoid(y=cmb_brightness * band.passband(test_nu), x=test_nu)
             )
 
             # dP_dTCMB = self.instrument.dets.dP_dTCMB[:, None]

@@ -49,6 +49,7 @@ beam_packing_dets = {
 @pytest.mark.parametrize("instrument_name", maria.all_instruments)
 def test_get_instrument(instrument_name):
     instrument = maria.get_instrument(instrument_name)
+    print(instrument)
 
 
 @pytest.mark.parametrize(
