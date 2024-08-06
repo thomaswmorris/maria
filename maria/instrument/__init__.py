@@ -1,8 +1,6 @@
 import copy
 import os
 from collections.abc import Mapping
-from dataclasses import dataclass, fields
-from operator import attrgetter
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -11,8 +9,9 @@ import pandas as pd
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from ..coords import Angle
 from ..io import read_yaml
+from ..units import Angle
+from ..utils import lazy_diameter
 from .bands import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
 from .beams import compute_angular_fwhm
 from .detectors import Detectors, generate_array
@@ -177,21 +176,10 @@ def get_subarrays(instrument_config):
     return subarrays
 
 
-@dataclass
 class Instrument:
     """
     An instrument.
     """
-
-    description: str = "An instrument."
-    primary_size: float = None  # in meters
-    field_of_view: float = None  # in deg
-    baseline: float = None
-    bands: BandList = None
-    dets: pd.DataFrame = None  # dets, it's complicated
-    documentation: str = ""
-    vel_limit: float = 5  # in deg/s
-    acc_limit: float = 2  # in deg/s^2
 
     @classmethod
     def from_config(cls, config):
@@ -238,8 +226,37 @@ class Instrument:
 
         return cls(bands=dets.bands, dets=dets)
 
-    def __post_init__(self):
-        self.field_of_view = np.round(np.degrees(self.dets.sky_x.ptp()), 3)
+    def __init__(
+        self,
+        description: str = "An instrument.",
+        primary_size: float = None,  # in meters
+        field_of_view: float = None,  # in deg
+        baseline: float = None,
+        bands: BandList = None,
+        dets: pd.DataFrame = None,  # dets, it's complicated
+        documentation: str = "",
+        vel_limit: float = 5,  # in deg/s
+        acc_limit: float = 2,  # in deg/s^2
+    ):
+        """
+        Parameters
+        ----------
+        vel_limit : type
+            The maximum angular speed of the array.
+        """
+
+        self.description = description
+        self.primary_size = primary_size
+        self.documentation = documentation
+        self.bands = bands
+        self.dets = dets
+        self.vel_limit = vel_limit
+        self.acc_limit = acc_limit
+
+        self.primary_size = float(self.dets.primary_size.max())
+        self.field_of_view = np.round(np.degrees(lazy_diameter(self.dets.offsets)), 3)
+        self.baseline = np.round(lazy_diameter(self.dets.baselines), 3)
+
         if self.field_of_view < 0.5 / 60:
             self.units = "arcsec"
         elif self.field_of_view < 0.5:
@@ -248,18 +265,8 @@ class Instrument:
             self.units = "degrees"
 
     def __repr__(self):
-        nodef_f_vals = (
-            (f.name, attrgetter(f.name)(self)) for f in fields(self) if f.name != "dets"
-        )
-
-        nodef_f_repr = []
-        for name, value in nodef_f_vals:
-            if name == "bands":
-                nodef_f_repr.append(f"bands=[{', '.join(value.names)}]")
-            else:
-                nodef_f_repr.append(f"{name}={value}")
-
-        return f"{self.__class__.__name__}({', '.join(nodef_f_repr)})"
+        bands = ",".join(self.bands.name)
+        return f"Instrument({self.dets}, primary_size={self.primary_size} m, bands=[{bands}])"
 
     @property
     def ubands(self):
@@ -395,11 +402,11 @@ class Instrument:
 
 instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T
 
-for instrument_name, config in INSTRUMENT_CONFIGS.items():
-    instrument = get_instrument(instrument_name)
-    f_list = sorted(np.unique([band.center for band in instrument.dets.bands]))
-    instrument_data.at[instrument_name, "f [GHz]"] = "/".join([str(f) for f in f_list])
-    instrument_data.at[instrument_name, "n"] = instrument.dets.n
+# for instrument_name, config in INSTRUMENT_CONFIGS.items():
+#     instrument = get_instrument(instrument_name)
+#     f_list = sorted(np.unique([band.center for band in instrument.dets.bands]))
+#     instrument_data.at[instrument_name, "f [GHz]"] = "/".join([str(f) for f in f_list])
+#     instrument_data.at[instrument_name, "n"] = instrument.dets.n
 
 all_instruments = list(instrument_data.index)
 

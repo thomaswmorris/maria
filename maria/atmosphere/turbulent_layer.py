@@ -41,7 +41,7 @@ class TurbulentLayer:
         self.res = res
         self.timestep = timestep
 
-        self.sim_time = self.boresight.time.compute()
+        self.sim_time = self.boresight.time
         self.sim_az = self.boresight.az.compute()
         self.sim_el = self.boresight.el.compute()
 
@@ -58,7 +58,7 @@ class TurbulentLayer:
         self.angular_resolution = self.res / self.depth
 
         if verbose:
-            print(f"{self.angular_resolution = }")
+            print(f"{self.angular_resolution=}")
 
         self.layer_altitude = self.weather.altitude + self.depth / np.sin(self.sim_el)
 
@@ -80,7 +80,7 @@ class TurbulentLayer:
         ) / self.depth
 
         if verbose:
-            print(f"{(layer_wind_east, layer_wind_north) = }")
+            print(f"{(layer_wind_east, layer_wind_north)=}")
 
         # compute the offset with respect to the center of the scan
         center_az, center_el = get_center_phi_theta(self.sim_az, self.sim_el)
@@ -233,9 +233,9 @@ class TurbulentLayer:
         self.n_sample = len(sample_positions)
 
         if verbose:
-            print(f"{self.n_extrusion = }")
-            print(f"{self.n_live_edge = }")
-            print(f"{self.n_sample = }")
+            print(f"{self.n_extrusion=}")
+            print(f"{self.n_live_edge=}")
+            print(f"{self.n_sample=}")
 
         # sample upper {i,j}
         i, j = np.triu_indices(self.n_sample, k=1)

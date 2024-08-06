@@ -4,6 +4,8 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 
+from ...units import Angle
+from ...utils import lazy_diameter
 from ..bands import BandList
 from .arrays import generate_array  # noqa
 
@@ -39,12 +41,6 @@ SUPPORTED_ARRAY_SHAPES = ["hex", "square", "circle"]
 
 
 class Detectors:
-    def __repr__(self):
-        return self.df.T.__repr__()
-
-    def _repr_html_(self):
-        return self.df.T._repr_html_()
-
     def __init__(self, df: pd.DataFrame, bands: dict = {}, config: dict = {}):
         self.df = df
         self.bands = bands
@@ -81,6 +77,18 @@ class Detectors:
         return np.c_[self.sky_x, self.sky_y]
 
     @property
+    def baselines(self):
+        return np.c_[self.baseline_x, self.baseline_y, self.baseline_z]
+
+    @property
+    def field_of_view(self):
+        return Angle(lazy_diameter(self.offsets))
+
+    @property
+    def max_baseline(self):
+        return lazy_diameter(self.baselines)
+
+    @property
     def __len__(self):
         return len(self.df)
 
@@ -101,3 +109,7 @@ class Detectors:
             PB[self.band_name == band.name] = band.passband(_nu)
 
         return PB
+
+    def __repr__(self):
+        fov = self.field_of_view
+        return f"Detectors(fov={getattr(fov, fov.units):.03f} {fov.units}, baseline={self.max_baseline:.01f} m)"

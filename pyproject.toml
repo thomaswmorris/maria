@@ -12,15 +12,14 @@ dependencies = [
   "cmocean",
   "dask",
   "h5py",
-  "healpy<1.17",
+  "healpy",
   "matplotlib",
-  "numpy<2",
+  "numpy",
   "pandas",
   "pytz",
   "reproject",
   "requests",
-  "scipy<1.14",
-  "tables",
+  "scipy",
   "tqdm",
 ]
 requires-python = ">=3.9"

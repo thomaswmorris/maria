@@ -49,7 +49,9 @@ class MapMixin:
             power_map = (
                 1e12
                 * k_B
-                * np.trapz(band.passband(nu)[:, None, None] * TRJ, axis=0, x=1e9 * nu)
+                * np.trapezoid(
+                    band.passband(nu)[:, None, None] * TRJ, axis=0, x=1e9 * nu
+                )
             )
 
             # nu is in GHz, f is in Hz

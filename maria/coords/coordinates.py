@@ -1,18 +1,20 @@
 import functools
 import logging
-import time as ttime
+from datetime import datetime
 from typing import Any
 
 import dask
 import dask.array as da
 import numpy as np
 import pandas as pd
+import pytz
 import scipy as sp
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from scipy.interpolate import interp1d
 
+from ..utils import repr_lat_lon
 from .transforms import (  # noqa
     dx_dy_to_phi_theta,
     get_center_phi_theta,
@@ -22,10 +24,6 @@ from .transforms import (  # noqa
 )
 
 logger = logging.getLogger(__name__)
-
-
-def now():
-    return ttime.time()
 
 
 frames = {
@@ -59,6 +57,10 @@ frames = {
 }
 
 
+DEFAULT_LOCATION = EarthLocation.from_geodetic(0.0, 90.0, height=0.0, ellipsoid=None)
+DEFAULT_TIMESTAMP = datetime.now().timestamp()
+
+
 class Coordinates:
     """
     A class for managing coordinates, allowing us to access different coordinate frames at once.
@@ -66,52 +68,52 @@ class Coordinates:
 
     def __init__(
         self,
-        phi: float,
-        theta: float,
-        time: float = None,
-        time_offset: float = 0,
-        location: EarthLocation = None,
+        x: float = 0.0,
+        y: float = 0.0,
+        z: float = 0.0,
+        r: float = 0.0,
+        phi: float = 0.0,
+        theta: float = 0.0,
+        time: float = DEFAULT_TIMESTAMP,
+        location: EarthLocation = DEFAULT_LOCATION,
         frame: str = "ra_dec",
         dtype=np.float32,
     ):
-        if float(time.min()) != 0:
-            time_offset = time.min()
-            time -= time_offset
+        self._x = x
+        self._y = y
+        self._z = z
+        self._r = r
+        self._phi = phi
+        self._theta = theta
+        self._time = np.atleast_1d(time)
 
-        self.phi = np.atleast_1d(
-            (phi if isinstance(phi, da.Array) else da.from_array(phi))
-        ).astype(dtype)
-        self.theta = np.atleast_1d(
-            (theta if isinstance(theta, da.Array) else da.from_array(theta))
-        ).astype(dtype)
-        self.time = np.atleast_1d(
-            (time if isinstance(time, da.Array) else da.from_array(time))
-        ).astype(dtype)
+        for attr in ["x", "y", "z", "r", "phi", "theta"]:
+            values = getattr(self, f"_{attr}")
+            if np.ndim(values) > 0:
+                if not isinstance(values, da.Array):
+                    setattr(self, f"_{attr}", da.from_array(values).astype(dtype))
 
-        self.timestep = np.median(np.gradient(self.time))
+        self.timestep = (
+            np.median(np.gradient(self.time)) if len(self.time) > 1 else np.nan
+        )
 
-        if self.time.ndim > 1:
-            raise ValueError("'time' can be at most one-dimensional.")
-        if (
-            len(self.time) != self.phi.shape[-1]
-            or len(self.time) != self.theta.shape[-1]
-        ):
-            raise ValueError(
-                "The size of the last dimensions of [phi, theta, time] must all match."
+        try:
+            b = np.broadcast(
+                *[
+                    getattr(self, f"_{attr}")
+                    for attr in ["x", "y", "z", "r", "phi", "theta", "time"]
+                ]
             )
-
-        *self.input_shape, self.time_shape = self.phi.shape
+            self.shape = b.shape
+        except ValueError:
+            raise ValueError("Input coordinates are not broadcastable.")
 
         self.location = location
         self.frame = frame
-        self.time_offset = time_offset
         self.dtype = dtype
 
-        if self.location is None:
-            return
-
         _center_phi, _center_theta = get_center_phi_theta(
-            self.phi, self.theta, keep_last_dim=True
+            self._phi, self._theta, keep_last_dim=True
         )
 
         # three fiducial offsets from the boresight to train a transformation matrix
@@ -126,11 +128,16 @@ class Coordinates:
             time_ordered_fid_phi, time_ordered_fid_theta
         ).rechunk()
 
-        # time_offset = _time.min().compute()
-        # end_time = _time.max().compute()
-        duration = self.time.max().compute()
+        duration = np.ptp(self.time)
 
-        self.sampled_time = np.linspace(0, duration, int(np.maximum(2, duration / 10)))
+        # sample_step = 10
+        # n_time_samples = np.maximum(1, int(np.ceil(duration / sample_step)))
+        # self.sampled_time = sample_step * np.arange(n_time_samples)
+        # self.sampled_time += self.time.mean() - self.sampled_time.mean()
+
+        self.sampled_time = np.linspace(
+            self.time.min(), self.time.max(), int(np.maximum(2, duration / 10))
+        )
 
         sample_indices = interp1d(self.time, np.arange(len(self.time)), axis=0)(
             self.sampled_time
@@ -144,11 +151,11 @@ class Coordinates:
             sampled_fid_phi * u.rad,
             sampled_fid_theta * u.rad,
             obstime=Time(
-                self.time_offset + np.kron(np.ones((3, 1)), self.sampled_time).T,
+                np.kron(np.ones((3, 1)), self.sampled_time).T,
                 format="unix",
             ),
             frame=frames[frame]["astropy_name"],
-            location=location,
+            location=self.location,
         )
 
         # lazily compute all the coordinates
@@ -176,7 +183,6 @@ class Coordinates:
             location=self.location,
             frame=self.frame,
             dtype=self.dtype,
-            time_offset=self.time_offset,
         )
 
     @functools.cached_property
@@ -190,7 +196,6 @@ class Coordinates:
             location=self.location,
             frame=self.frame,
             dtype=self.dtype,
-            time_offset=self.time_offset,
         )
 
     @functools.cached_property
@@ -244,11 +249,19 @@ class Coordinates:
         ).swapaxes(-2, -1)
 
         # apply the matrix and convert to coordinates
-        extra_dims = tuple(range(len(self.input_shape)))
+        extra_dims = tuple(range(len(self.shape)))
         transform = np.expand_dims(
-            interp1d(self.sampled_time, sampled_rotation_matrix, axis=0)(self.time),
+            interp1d(
+                self.sampled_time,
+                sampled_rotation_matrix,
+                kind="nearest",
+                bounds_error=False,
+                fill_value="extrapolate",
+                axis=0,
+            )(self.time),
             axis=extra_dims,
         )
+
         return xyz_to_phi_theta(
             (transform.astype(self.dtype) @ self.compute_points()[..., None]).squeeze()
         )
@@ -281,6 +294,9 @@ class Coordinates:
         return get_center_phi_theta(*self.galactic)
 
     def __getattr__(self, attr: str) -> Any:
+        if attr in ["x", "y", "z", "r", "phi", "theta", "time"]:
+            return getattr(self, f"_{attr}")
+
         if attr == "az":
             return self.az_el[0]
         if attr == "el":
@@ -332,8 +348,19 @@ class Coordinates:
             return 3600 * np.degrees(dx), 3600 * np.degrees(dy)
 
     def __repr__(self):
-        return f"Coordinates(shape={self.phi.shape})"
+        lon = self.location.lon.deg
+        lat = self.location.lat.deg
+
+        date_string = (
+            datetime.fromtimestamp(self.time.mean())
+            .astimezone(pytz.utc)
+            .strftime("%Y %h %-d %H:%M:%S")
+        )
+
+        return f"Coordinates(shape={self.phi.shape}, location=({repr_lat_lon(lat, lon)}), time='{date_string} UTC')"
         # return self.summary.__repr__()
+
+    # def longitude(self):
 
     # def _repr_html_(self):
     #     return self.summary._repr_html_()

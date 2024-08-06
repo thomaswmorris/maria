@@ -151,4 +151,6 @@ class Weather:
         if "pwv" in self.override.keys():
             return self.override["pwv"]
         z = np.linspace(self.altitude * g, self.geopotential.max(), 1024)
-        return np.trapz(np.interp(z, self.geopotential, self.absolute_humidity), z / g)
+        return np.trapezoid(
+            np.interp(z, self.geopotential, self.absolute_humidity), z / g
+        )

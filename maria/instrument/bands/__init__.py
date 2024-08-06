@@ -76,6 +76,7 @@ class Band:
         efficiency: float = 0.5,
         sensitivity: float = None,
         sensitivity_kind: str = "rayleigh-jeans",
+        rel_gain_error: float = 0,
         NEP: float = None,
         NEP_per_loading: float = 0.0,
         knee: float = 1.0,
@@ -92,6 +93,8 @@ class Band:
 
         self.knee = knee
         self.time_constant = time_constant
+
+        self.rel_gain_error = rel_gain_error
 
         self.spectrum = Spectrum(region="chajnantor")
 
@@ -196,7 +199,7 @@ class Band:
             nu, pb = df.nu.values, df.passband.values
 
             center = np.round(np.sum(pb * nu), 3)
-            width = np.round(nu[pb > 1e-2 * pb.max()].ptp(), 3)
+            width = np.round(np.ptp(nu[pb > 1e-2 * pb.max()]), 3)
 
             band = cls(name=name, center=center, width=width, shape="custom", **config)
             band._nu = nu
@@ -251,8 +254,8 @@ class Band:
         nu = np.linspace(self.nu_min, self.nu_max, 256)
 
         # dI_dTRJ = rayleigh_jeans_spectrum(nu=1e9 * nu, T=1)  # this is the same as the derivative
-        # dP_dTRJ = np.trapz(dI_dTRJ * self.passband(nu), 1e9 * nu)
-        dP_dTRJ = k_B * np.trapz(self.passband(nu), 1e9 * nu)
+        # dP_dTRJ = np.trapezoid(dI_dTRJ * self.passband(nu), 1e9 * nu)
+        dP_dTRJ = k_B * np.trapezoid(self.passband(nu), 1e9 * nu)
 
         return 1e12 * self.efficiency * dP_dTRJ
 
@@ -276,7 +279,7 @@ class Band:
             1e12
             * self.efficiency
             * k_B
-            * np.diff(np.trapz(TRJ * self.passband(nu), 1e9 * nu))[0]
+            * np.diff(np.trapezoid(TRJ * self.passband(nu), 1e9 * nu))[0]
             / eps
         )
 
