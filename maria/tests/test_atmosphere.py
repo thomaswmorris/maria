@@ -4,7 +4,7 @@ import pytest
 
 import maria
 from maria import Simulation
-from maria.atmosphere import Atmosphere, Spectrum, Weather
+from maria.atmosphere import Atmosphere, AtmosphericSpectrum, Weather
 
 
 @pytest.mark.parametrize("region_name", maria.all_regions)
@@ -14,7 +14,7 @@ def test_atmosphere(region_name):
 
 @pytest.mark.parametrize("region_name", ["chajnantor"])
 def test_spectrum_from_cache(region_name):
-    spectrum = Spectrum(region=region_name, refresh_cache=True)
+    spectrum = AtmosphericSpectrum(region=region_name, refresh_cache=True)
 
 
 @pytest.mark.parametrize("region_name", ["chajnantor"])

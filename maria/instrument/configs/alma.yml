@@ -1,0 +1,9 @@
+ALMA:
+  aliases: ["alma"]
+  description: ALMA Configuration 1
+  documentation: https://www.eso.org/public/teles-instr/alma/
+  array:
+    field_of_view: 0
+    file: alma/alma_f144.csv
+    bands: [alma/f144]
+    primary_size: 12
