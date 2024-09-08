@@ -289,8 +289,9 @@ class Instrument:
         #     self.units = "degrees"
 
     def __repr__(self):
+        arrays_repr = self.arrays.__repr__().replace("\n", "\n  ")
         return f"""Instrument:
-{self.arrays.__repr__().replace('\n', '\n  ')})"""
+{arrays_repr})"""
 
     @property
     def dets(self):
