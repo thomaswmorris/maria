@@ -40,26 +40,78 @@ def repr_lat_lon(lat, lon):
     return f"{lat_repr}, {lon_repr}"
 
 
-def lazy_diameter(offsets, MAX_SAMPLE_SIZE: int = 10000) -> float:
+def generate_power_law_noise(n: tuple = (256, 256), cutoff=1e0, beta=None):
+    ndim = len(n)  # noqa
+    beta = beta or 8 / 6
+
+    X_list = np.meshgrid(*[np.linspace(0, 1, _n) for _n in n])
+    K_list = np.meshgrid(*[np.fft.fftfreq(_n, d=1 / _n) for _n in n])
+
+    P = (cutoff**2 + sum([K**2 for K in K_list])) ** -(beta / 2)
+
+    F = np.real(np.fft.fftn(P * np.fft.ifftn(np.random.standard_normal(size=n))))
+
+    return *X_list, (F - F.mean()) / F.std()
+
+
+def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
     """
     Parameters
     ----------
-    offsets : type
+    points : type
         An (..., n_dim) array of offsets of something.
     """
 
-    *input_shape, n_dim = offsets.shape
-    X = offsets.reshape(-1, n_dim)
+    *input_shape, n_dim = points.shape
+    X = points.reshape(-1, n_dim)
 
     dim_mask = np.ptp(X, axis=tuple(range(X.ndim - 1))) > 0
     if not dim_mask.any():
         return 0.0
 
-    subset_index = np.random.choice(
-        a=len(X), size=np.minimum(len(X), MAX_SAMPLE_SIZE), replace=False
-    )
-    hull = sp.spatial.ConvexHull(X[subset_index][:, dim_mask])
+    if lazy:
+        X = X[
+            np.random.choice(
+                a=len(X), size=np.minimum(len(X), MAX_SAMPLE_SIZE), replace=False
+            )
+        ]
+    hull = sp.spatial.ConvexHull(X[:, dim_mask])
     vertices = hull.points[hull.vertices]
     i, j = np.triu_indices(len(vertices), k=1)
 
     return float(np.sqrt(np.max(np.square(vertices[i] - vertices[j]).sum(axis=-1))))
+
+
+def get_rotation_matrix(**rotations):
+    """
+    A list of tuples [(dim, angle), ...] where we successively rotate around dim by angle.
+    """
+    dims = {"x": 0, "y": 1, "z": 2}
+    R = np.eye(3)
+    for axis, angle in rotations.items():
+        i, j = [index for dim, index in dims.items() if dim != axis]
+        S = np.zeros((3, 3))
+        S[i, j] = angle
+        R = sp.linalg.expm(S - S.T) @ R
+    return R
+
+
+def compute_optimal_rotation(points, axes=None):
+    """
+    Find a rotation for some points so that the projection onto the last two axes has the minimum area.
+    """
+
+    *input_shape, ndim = points.shape
+    axes = axes or tuple(range(ndim))
+
+    def loss(a, *args):
+        tp = args[0] @ get_rotation_matrix(z=a[0])
+        ch = sp.spatial.ConvexHull(tp[:, 1:])
+        return ch.volume
+
+    res = sp.optimize.minimize(loss, x0=[0], args=points, tol=1e-10, method="SLSQP")
+
+    if not res.success:
+        raise RuntimeError("Could not find optimal rotation.")
+
+    return get_rotation_matrix(z=res.x[0])

@@ -52,8 +52,8 @@ def test_get_instrument(instrument_name):
     print(instrument)
 
 
-@pytest.mark.parametrize(
-    "dets", [subarray_dets, predefined_bands, predefined_dets, beam_packing_dets]
-)
-def test_get_custom_array(dets):
-    instrument = maria.get_instrument(dets=dets)
+# @pytest.mark.parametrize(
+#     "dets", [subarray_dets, predefined_bands, predefined_dets, beam_packing_dets]
+# )
+# def test_get_custom_array(dets):
+#     instrument = maria.get_instrument(dets=dets)

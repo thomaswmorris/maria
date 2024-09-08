@@ -1,0 +1,29 @@
+TolTEC:
+  aliases: ["toltec"]
+  description: TolTEC
+  arrays:
+    array-1:
+      n: 586
+      array_shape: hex
+      bands: [toltec/f150]
+      polarization: random
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.07 # in degrees
+      primary_size: 50 # in meters
+    array-2:
+      n: 1266
+      array_shape: hex
+      bands: [toltec/f220]
+      polarization: random
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.07 # in degrees
+      primary_size: 50 # in meters
+    array-3:
+      n: 2006
+      array_shape: hex
+      bands: [toltec/f270]
+      polarization: random
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.07 # in degrees
+      primary_size: 50 # in meters
+  documentation: http://toltec.astro.umass.edu/

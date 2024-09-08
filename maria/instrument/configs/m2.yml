@@ -1,0 +1,11 @@
+MUSTANG-2:
+  aliases: ["mustang2", "mustang-2"]
+  description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
+  array:
+    n: 217
+    field_of_view: 0.07
+    array_shape: hex
+    bands: [m2/f093]
+    bath_temp: 100.e-3 # in K
+    primary_size: 100 # in meters
+  documentation: https://www.atlast.uio.no/

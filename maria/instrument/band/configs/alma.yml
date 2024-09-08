@@ -6,6 +6,7 @@ f043:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f078:
   center: 78
@@ -15,6 +16,7 @@ f078:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f100:
   center: 100
@@ -24,6 +26,7 @@ f100:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f144:
   center: 144
@@ -33,6 +36,7 @@ f144:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f187:
   center: 187
@@ -42,6 +46,7 @@ f187:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f243:
   center: 243
@@ -51,6 +56,7 @@ f243:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f324:
   center: 324
@@ -60,6 +66,7 @@ f324:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f447:
   center: 447
@@ -69,6 +76,7 @@ f447:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f661:
   center: 661
@@ -78,6 +86,7 @@ f661:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f869:
   center: 869
@@ -87,3 +96,4 @@ f869:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2

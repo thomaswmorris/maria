@@ -6,6 +6,7 @@ f150:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f220:
   center: 220
@@ -15,6 +16,7 @@ f220:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 f270:
   center: 270
@@ -24,3 +26,4 @@ f270:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2

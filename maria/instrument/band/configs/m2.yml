@@ -6,6 +6,7 @@ f093:
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
+  gain_error: 5.e-2
 
 
 f093-custom:

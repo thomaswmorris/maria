@@ -1,16 +1,16 @@
 import glob
 import os
 from collections.abc import Mapping
-from typing import Sequence
+from typing import Sequence, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from ...atmosphere.spectrum import Spectrum
 from ...constants import T_CMB, c, k_B
 from ...functions import planck_spectrum
 from ...io import flatten_config, read_yaml
+from ...spectrum import AtmosphericSpectrum
 
 here, this_filename = os.path.split(__file__)
 
@@ -76,7 +76,7 @@ class Band:
         efficiency: float = 0.5,
         sensitivity: float = None,
         sensitivity_kind: str = "rayleigh-jeans",
-        rel_gain_error: float = 0,
+        gain_error: float = 0,
         NEP: float = None,
         NEP_per_loading: float = 0.0,
         knee: float = 1.0,
@@ -94,9 +94,7 @@ class Band:
         self.knee = knee
         self.time_constant = time_constant
 
-        self.rel_gain_error = rel_gain_error
-
-        self.spectrum = Spectrum(region="chajnantor")
+        self.gain_error = gain_error
 
         if (NEP is None) and (sensitivity is None):
             self.sensitivity = 1e-6
@@ -185,8 +183,10 @@ class Band:
         self._sensitivity_kind = kind
 
     def transmission(self, region="chajnantor", zenith_pwv=1, elevation=90) -> float:
-        if self.spectrum.region != region:
-            self.spectrum = Spectrum(region=region)
+        if not hasattr(self, "spectrum"):
+            self.spectrum = AtmosphericSpectrum(region=region)
+        elif self.spectrum.region != region:
+            self.spectrum = AtmosphericSpectrum(region=region)
         return self.spectrum.transmission(
             nu=self.center, zenith_pwv=zenith_pwv, elevation=elevation
         )
@@ -292,12 +292,22 @@ class Band:
 
 
 class BandList(Sequence):
-    def __init__(self, bands: list = []):
-        for band in bands:
-            if not isinstance(band, Band):
-                raise TypeError(f"Invalid band: {band}.")
+    def __init__(self, bands: Union[Mapping, list]):
+        self.bands = []
 
-        self.bands = bands
+        if isinstance(bands, BandList):
+            self.bands = bands
+
+        elif isinstance(bands, Mapping):
+            for band_name, band_config in bands.items():
+                self.bands.append(Band(name=band_name, **band_config))
+
+        elif isinstance(bands, list):
+            for band in bands:
+                if isinstance(band, Band):
+                    self.bands.append(band)
+                else:
+                    self.bands.append(get_band(band))
 
     # @classmethod
     # def from_list(cls, bands):
