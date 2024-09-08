@@ -28,7 +28,7 @@ def load_mustang2_tod(fname: str, hdu: int = 1):
         time=t,
         phi=ra,
         theta=dec,
-        location=site.get_location("green_bank"),
+        earth_location=site.get_location("green_bank"),
         frame="ra_dec",
     )
 

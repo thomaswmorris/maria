@@ -6,8 +6,8 @@ from .. import utils
 from ..coords import Coordinates, get_center_phi_theta
 from ..functions import approximate_normalized_matern
 from ..instrument import Instrument
-from ..instrument.beams import construct_beam_filter, separably_filter
-from .weather import Weather
+from ..instrument.beam import construct_beam_filter, separably_filter
+from ..weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
 RIBBON_SAMPLE_DECAY = 2
@@ -63,10 +63,10 @@ class TurbulentLayer:
         self.layer_altitude = self.weather.altitude + self.depth / np.sin(self.sim_el)
 
         layer_wind_north = sp.interpolate.interp1d(
-            self.weather.altitude_levels, self.weather.wind_north, axis=0
+            self.weather.altitude, self.weather.wind_north, axis=0
         )(self.layer_altitude)
         layer_wind_east = sp.interpolate.interp1d(
-            self.weather.altitude_levels, self.weather.wind_east, axis=0
+            self.weather.altitude, self.weather.wind_east, axis=0
         )(self.layer_altitude)
 
         angular_velocity_x = (

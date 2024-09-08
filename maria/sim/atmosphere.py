@@ -1,17 +1,140 @@
 import os
 
+import dask.array as da
 import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
+from ..atmosphere.turbulent_layer import TurbulentLayer
 from ..constants import k_B
-from ..plan import validate_pointing
-from .turbulent_layer import TurbulentLayer
 
 here, this_filename = os.path.split(__file__)
 
 
 class AtmosphereMixin:
+    def _simulate_atmosphere(self):
+        # this produces self.atmosphere.zenith_scaled_pwv, which we use to compute emission and transmission
+        self.atmosphere.simulate_pwv()
+
+    def _compute_atmospheric_emission(self):
+        self.atmosphere.emission = da.zeros_like(self.atmosphere.zenith_scaled_pwv)
+
+        bands = (
+            tqdm(self.instrument.dets.bands)
+            if self.verbose
+            else self.instrument.dets.bands
+        )
+
+        for band in bands:
+            band_index = self.instrument.dets.mask(band_name=band.name)
+
+            if self.verbose:
+                bands.set_description(f"Computing atmospheric emission ({band.name})")
+
+            # in picowatts. the 1e9 is for GHz -> Hz
+            det_power_grid = (
+                1e12
+                * k_B
+                * np.trapezoid(
+                    self.atmosphere.spectrum._emission
+                    * band.passband(self.atmosphere.spectrum._side_nu),
+                    1e9 * self.atmosphere.spectrum._side_nu,
+                    axis=-1,
+                )
+            )
+
+            band_power_interpolator = sp.interpolate.RegularGridInterpolator(
+                (
+                    self.atmosphere.spectrum._side_zenith_pwv,
+                    self.atmosphere.spectrum._side_base_temperature,
+                    self.atmosphere.spectrum._side_elevation,
+                ),
+                det_power_grid,
+            )
+
+            self.atmosphere.emission[band_index] = band_power_interpolator(
+                (
+                    self.atmosphere.zenith_scaled_pwv[band_index],
+                    self.atmosphere.weather.temperature[0],
+                    np.degrees(self.atmosphere.coords.el[band_index]),
+                )
+            )
+
+        self.data["atmosphere"] = da.from_array(
+            sp.interpolate.interp1d(
+                self.atmosphere.coords.time,
+                self.atmosphere.emission,
+                bounds_error=False,
+                fill_value="extrapolate",
+            )(self.coords.time)
+        ).astype(np.float32)
+
+    def _compute_atmospheric_transmission(self):
+        self.atmosphere.transmission = da.zeros_like(self.atmosphere.zenith_scaled_pwv)
+
+        # to make a new progress bar
+        bands = (
+            tqdm(self.instrument.dets.bands)
+            if self.verbose
+            else self.instrument.dets.bands
+        )
+
+        for band in bands:
+            band_index = self.instrument.dets.mask(band_name=band.name)
+
+            if self.verbose:
+                bands.set_description(
+                    f"Computing atmospheric transmission ({band.name})"
+                )
+
+            rel_T_RJ_spectrum = (
+                band.passband(self.atmosphere.spectrum._side_nu)
+                * self.atmosphere.spectrum._side_nu**2
+            )
+
+            self.det_transmission_grid = np.trapezoid(
+                rel_T_RJ_spectrum * self.atmosphere.spectrum._transmission,
+                1e9 * self.atmosphere.spectrum._side_nu,
+                axis=-1,
+            ) / np.trapezoid(
+                rel_T_RJ_spectrum,
+                1e9 * self.atmosphere.spectrum._side_nu,
+                axis=-1,
+            )
+
+            band_transmission_interpolator = sp.interpolate.RegularGridInterpolator(
+                (
+                    self.atmosphere.spectrum._side_zenith_pwv,
+                    self.atmosphere.spectrum._side_base_temperature,
+                    self.atmosphere.spectrum._side_elevation,
+                ),
+                self.det_transmission_grid,
+            )
+
+            # what's happening here? the atmosphere blocks some of the light from space.
+            # we want to calibrate to the stuff in space, so we make the atmosphere *hotter*
+
+            self.atmosphere.transmission[band_index] = band_transmission_interpolator(
+                (
+                    self.atmosphere.zenith_scaled_pwv[band_index],
+                    self.atmosphere.weather.temperature[0],
+                    np.degrees(self.atmosphere.coords.el[band_index]),
+                )
+            )
+
+        self.atmospheric_transmission = da.from_array(
+            sp.interpolate.interp1d(
+                self.atmosphere.coords.time,
+                self.atmosphere.transmission,
+                bounds_error=False,
+                fill_value="extrapolate",
+            )(self.coords.time)
+        ).astype(np.float32)
+
+        # if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸
+        #     self._simulate_atmospheric_emission(self, units="K_RJ")
+        #     self.data["atmosphere"] = 1.8 * (self.data["atmosphere"] - 273.15) + 32
+
     def _initialize_2d_atmosphere(
         self,
         min_atmosphere_height=500,
@@ -23,8 +146,6 @@ class AtmosphereMixin:
         """
         This assume that BaseSimulation.__init__() has been called.
         """
-
-        validate_pointing(self.coords.az, self.coords.el)
 
         self.atmosphere_model = "2d"
 
@@ -43,7 +164,7 @@ class AtmosphereMixin:
 
         for layer_depth in depths:
             layer_res = (
-                self.instrument.physical_fwhm(z=layer_depth).min()
+                self.instrument.dets.physical_fwhm(z=layer_depth).min()
                 / min_atmosphere_beam_res
             )  # in meters
 
@@ -102,7 +223,7 @@ class AtmosphereMixin:
         turbulence = self._simulate_2d_turbulence()
 
         rel_layer_scaling = sp.interpolate.interp1d(
-            self.atmosphere.weather.altitude_levels,
+            self.atmosphere.weather.altitude,
             self.atmosphere.weather.absolute_humidity,
             kind="linear",
         )(
@@ -121,7 +242,7 @@ class AtmosphereMixin:
             self.layer_scaling * turbulence
         ).sum(axis=0)
 
-    def _simulate_atmospheric_emission(self, units="K_RJ"):
+    def _classic_simulate_atmospheric_emission(self, units="K_RJ"):
         if units == "K_RJ":  # Kelvin Rayleigh-Jeans
             self._simulate_atmospheric_fluctuations()
             self.data["atmosphere"] = np.empty(
@@ -138,7 +259,9 @@ class AtmosphereMixin:
                 band_index = self.instrument.dets.subset(band_name=band.name).index
 
                 if self.verbose:
-                    bands.set_description(f"Computing atm. emission ({band.name})")
+                    bands.set_description(
+                        f"Computing atmospheric emission ({band.name})"
+                    )
 
                 # in picowatts. the 1e9 is for GHz -> Hz
                 det_power_grid = (
@@ -184,7 +307,9 @@ class AtmosphereMixin:
                 band_index = self.instrument.dets.subset(band_name=band.name).index
 
                 if self.verbose:
-                    bands.set_description(f"Computing atm. transmission ({band.name})")
+                    bands.set_description(
+                        f"Computing atmospheric transmission ({band.name})"
+                    )
 
                 rel_T_RJ_spectrum = (
                     band.passband(self.atmosphere.spectrum._side_nu)

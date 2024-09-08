@@ -1,0 +1,12 @@
+# this is a list of pre-defined instruments, which can be accessed with maria.get_instrument()
+
+default:
+  aliases: ["default"]
+  description: A simple test array
+  array:
+    field_of_view: 1
+    primary_size: 5
+    bands:
+      f150:
+        center: 150
+        width: 30

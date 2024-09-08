@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 import time as ttime
@@ -11,6 +12,8 @@ import pytz
 import requests
 import yaml
 from tqdm import tqdm
+
+logger = logging.getLogger("maria")
 
 
 def flatten_config(m: dict, prefix: str = ""):
@@ -51,19 +54,19 @@ def cache_is_ok(path: str, max_age: float = 30 * 86400, verbose: bool = False):
     """
     if not os.path.exists(path):
         if verbose:
-            print(f"Cached file at {path} does not exist.")
+            logger.info(f"Cached file at {path} does not exist.")
         return False
 
     cache_age = ttime.time() - os.path.getmtime(path)
 
     if cache_age > max_age:
         if verbose:
-            print(f"Cached file at {path} is too old.")
+            logger.info(f"Cached file at {path} is too old.")
         return False
 
     if not test_file(path):
         if verbose:
-            print(f"Could not open cached file at {path}.")
+            logger.info(f"Could not open cached file at {path}.")
         return False
 
     return True
@@ -118,7 +121,7 @@ def fetch_from_url(
 
     # make the cache directory if it doesn't exist
     if not os.path.exists(cache_dir):
-        print(f"created cache at {cache_dir}")
+        logger.info(f"created cache at {cache_dir}")
         os.makedirs(cache_dir, exist_ok=True)
 
     if (not cache_is_ok(cache_path, max_age=max_age, verbose=verbose)) or refresh:
@@ -134,7 +137,7 @@ def fetch_from_url(
                     f.write(chunk)
 
         cache_size = os.path.getsize(cache_path)
-        print(f"downloaded data ({1e-6 * cache_size:.01f} MB) to {cache_path}")
+        logger.info(f"downloaded data ({1e-6 * cache_size:.01f} MB) to {cache_path}")
 
         if not test_file(cache_path):
             raise RuntimeError("Could not open cached file.")

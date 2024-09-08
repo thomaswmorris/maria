@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Union
 
 import numpy as np
 
@@ -12,7 +13,7 @@ from ..tod import TOD
 
 here, this_filename = os.path.split(__file__)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("maria")
 
 
 class InvalidSimulationParameterError(Exception):
@@ -54,9 +55,9 @@ class BaseSimulation:
 
     def __init__(
         self,
-        instrument: Instrument or str = "default",
-        plan: Plan or str = "stare",
-        site: Site or str = "default",
+        instrument: Union[Instrument, str] = "default",
+        plan: Union[Plan, str] = "stare",
+        site: Union[Site, str] = "default",
         verbose=False,
         **kwargs,
     ):
@@ -71,17 +72,17 @@ class BaseSimulation:
             self.instrument = instrument
         else:
             self.instrument = get_instrument(
-                instrument_name=instrument, **parsed_sim_kwargs["instrument"]
+                name=instrument, **parsed_sim_kwargs["instrument"]
             )
 
-        logger.info("Constructed instrument.")
+        logger.debug("Constructed instrument.")
 
         if isinstance(plan, Plan):
             self.plan = plan
         else:
             self.plan = get_plan(scan_pattern=plan, **parsed_sim_kwargs["plan"])
 
-        logger.info("Constructed plan.")
+        logger.debug("Constructed plan.")
 
         if isinstance(site, Site):
             self.site = site
@@ -92,20 +93,20 @@ class BaseSimulation:
                 "The passed site must be either a Site object or a string."
             )
 
-        logger.info("Constructed site.")
+        logger.debug("Constructed site.")
 
         self.data = {}
-        self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
+        # self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
 
         self.boresight = Coordinates(
             time=self.plan.time,
             phi=self.plan.phi,
             theta=self.plan.theta,
-            location=self.site.earth_location,
+            earth_location=self.site.earth_location,
             frame=self.plan.frame,
         )
 
-        logger.info("Constructed boresight.")
+        logger.debug("Constructed boresight.")
 
         if self.plan.max_vel > np.radians(self.instrument.vel_limit):
             raise ValueError(
@@ -131,11 +132,11 @@ class BaseSimulation:
             time=self.boresight.time,
             phi=det_az,
             theta=det_el,
-            location=self.site.earth_location,
+            earth_location=self.site.earth_location,
             frame="az_el",
         )
 
-        logger.info("Constructed offsets.")
+        logger.debug("Constructed offsets.")
 
     def _run(self):
         raise NotImplementedError()

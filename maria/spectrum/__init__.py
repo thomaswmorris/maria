@@ -10,7 +10,7 @@ from ..site import InvalidRegionError, all_regions
 here, this_filename = os.path.split(__file__)
 
 
-class Spectrum:
+class AtmosphericSpectrum:
     def __init__(self, region, source="am", refresh_cache=False):
         if region not in all_regions:
             raise InvalidRegionError(region)

@@ -39,26 +39,34 @@ def normalized_matern(r, nu):
     )
 
 
-def approximate_normalized_matern(r_eff, nu, n_test_points=1024):
+def approximate_normalized_matern(r, nu=1 / 3, r0=1e0, n_test_points=1024):
     """
     Computing BesselK[nu,z] for arbitrary nu is expensive. This is good for casting over huge matrices.
     """
+    r_eff = r / r0
+    r_eff_min, r_eff_max = 1e-6, 1e3
 
-    r_min, r_max = 1e-6, 1e3
-    r_eff_safe = np.atleast_1d(np.abs(r_eff)).clip(min=r_min, max=r_max)
-    r_samples = np.geomspace(r_min, r_max, n_test_points)
-    cov_samples = normalized_matern(r_samples, nu=nu)
+    r_eff_safe = np.atleast_1d(np.abs(r_eff)).clip(min=r_eff_min)
+    r_eff_nonzero = r_eff_safe[r_eff_safe < r_eff_max]
+
+    r_eff_samples = np.geomspace(r_eff_min, r_eff_max, n_test_points)
+    cov_samples = normalized_matern(r_eff_samples, nu=nu)
 
     with np.errstate(divide="ignore"):
         sf = np.exp(
-            np.interp(np.log(r_eff_safe), np.log(r_samples), np.log(1 - cov_samples))
+            np.interp(
+                np.log(r_eff_nonzero), np.log(r_eff_samples), np.log(1 - cov_samples)
+            )
         )
         cov = np.exp(
-            np.interp(np.log(r_eff_safe), np.log(r_samples), np.log(cov_samples))
+            np.interp(np.log(r_eff_nonzero), np.log(r_eff_samples), np.log(cov_samples))
         )
 
     # we combine the log interpolations so that both extremes have really good precision
     # the structure function and covariance are equal at around 1, so that's our inflection point
-    t = 1 / (1 + r_eff_safe**2)
+    t = 1 / (1 + r_eff_nonzero**2)
 
-    return t * (1 - sf) + (1 - t) * cov
+    res = np.zeros(r.shape)
+    res[r_eff_safe < r_eff_max] = t * (1 - sf) + (1 - t) * cov
+
+    return res

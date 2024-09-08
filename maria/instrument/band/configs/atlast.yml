@@ -4,6 +4,7 @@ f027:
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
+  gain_error: 5.e-2
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
 
@@ -13,6 +14,7 @@ f039:
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
+  gain_error: 5.e-2
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
 
@@ -22,6 +24,7 @@ f093:
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
+  gain_error: 5.e-2
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
 
@@ -31,6 +34,7 @@ f150:
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
+  gain_error: 5.e-2
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
 
@@ -40,6 +44,7 @@ f225:
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
+  gain_error: 5.e-2
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz
 
@@ -49,5 +54,6 @@ f280:
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
+  gain_error: 5.e-2
   NEP: 3.e-5 # pW / sqrt(s)
   knee: 1.0 # Hz

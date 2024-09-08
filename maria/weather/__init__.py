@@ -54,11 +54,9 @@ class Weather:
     def __init__(
         self,
         region: str = "chajnantor",
-        t: float = 0,
+        t: float = None,
         altitude: float = None,
-        utc_time: str = "",
-        local_time: str = "",
-        time_zone: str = "",
+        time_zone: str = pytz.utc,
         quantiles: dict = {},
         override: dict = {},
         source: str = "era5",
@@ -70,12 +68,13 @@ class Weather:
         self.region = region
         self.t = t
         self.altitude = altitude
-        self.utc_time = utc_time
-        self.local_time = local_time
         self.time_zone = time_zone
         self.quantiles = quantiles
         self.override = override
         self.source = source
+
+        if self.t is None:
+            self.t = datetime.now().timestamp()
 
         self.cache_path = fetch(
             f"atmosphere/weather/{source}/{self.region}.h5",
@@ -89,16 +88,16 @@ class Weather:
         self.t = np.round(self.t, 0)
         self.altitude = np.round(self.altitude, 0)
         self.time_zone = supported_regions_table.loc[self.region, "timezone"]
-        self.utc_datetime = datetime.fromtimestamp(self.t).astimezone(pytz.utc)
+        self.utc_datetime = datetime.fromtimestamp(self.t.min()).astimezone(pytz.utc)
         self.utc_time = self.utc_datetime.ctime()
         self.local_time = self.utc_datetime.astimezone(
             pytz.timezone(self.time_zone)
         ).ctime()
 
-        with h5py.File(self.cache_path, "r") as f:
-            self.utc_day_hour = get_utc_day_hour(self.t)
-            self.utc_year_day = get_utc_year_day(self.t)
+        self.utc_day_hour = get_utc_day_hour(self.t)
+        self.utc_year_day = get_utc_year_day(self.t)
 
+        with h5py.File(self.cache_path, "r") as f:
             self.quantile_levels = f["quantile_levels"][:]
             self.pressure_levels = f["pressure_levels"][:]
 
@@ -126,6 +125,10 @@ class Weather:
                 )((self.utc_year_day, self.utc_day_hour, self.quantiles.get(attr, 0.5)))
                 setattr(self, attr, y)
 
+        self.altitude = self.geopotential / g
+
+        self.is_scalar = False
+
     @property
     def absolute_humidity(self):
         return relative_to_absolute_humidity(self.temperature, self.humidity)
@@ -143,14 +146,19 @@ class Weather:
         return np.sqrt(self.wind_east**2 + self.wind_north**2)
 
     @property
-    def altitude_levels(self):
-        return self.geopotential / g
-
-    @property
     def pwv(self):
         if "pwv" in self.override.keys():
             return self.override["pwv"]
-        z = np.linspace(self.altitude * g, self.geopotential.max(), 1024)
+        altitude_samples = np.linspace(self.altitude * g, self.geopotential.max(), 1024)
         return np.trapezoid(
-            np.interp(z, self.geopotential, self.absolute_humidity), z / g
+            np.interp(altitude_samples, self.geopotential, self.absolute_humidity),
+            self.altitude,
         )
+
+    def __call__(self, altitude):
+        res = {}
+        for field in self.fields:
+            res[field] = sp.interpolate.interp1d(self.altitude, getattr(self, field))(
+                altitude
+            )
+        return res

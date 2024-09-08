@@ -18,9 +18,9 @@ def test_map_sim():
     f090 = Band(center=90, width=20, sensitivity=5e-5)
     f150 = Band(center=150, width=30, sensitivity=5e-5)
 
-    array = {"field_of_view": 0.02, "bands": [f090, f150]}
+    array = {"field_of_view": 0.02, "bands": [f090, f150], "primary_size": 50}
 
-    instrument = maria.get_instrument(array=array, primary_size=100)
+    instrument = maria.get_instrument(array=array)
 
     map_filename = fetch("maps/cluster.fits")
 
@@ -57,7 +57,7 @@ def test_map_sim():
         tod_postprocessing={
             "remove_modes": {"n": 1},
             "filter": {"f": 0.08},
-            "despline": {"spacing": 10},
+            "despline": {"knot_spacing": 10},
         },
         map_postprocessing={
             "gaussian_filter": {"sigma": 1},

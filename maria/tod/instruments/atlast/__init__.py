@@ -31,7 +31,7 @@ def load_atlast_tod(
         time=t,
         phi=ra,
         theta=dec,
-        location=site.get_location("llano_de_chajnantor"),
+        earth_location=site.get_location("llano_de_chajnantor"),
         frame="ra_dec",
     )
 

@@ -4,10 +4,10 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 
-from ...units import Angle
-from ...utils import lazy_diameter
-from ..bands import BandList
-from .arrays import generate_array  # noqa
+from ..units import Angle
+from ..utils import compute_diameter
+from .band import BandList
+from .beam import compute_angular_fwhm
 
 here, this_filename = os.path.split(__file__)
 
@@ -19,6 +19,7 @@ HEX_CODE_LIST = [
 DET_COLUMN_TYPES = {
     "array": "str",
     "uid": "str",
+    "array_name": "str",
     "band_name": "str",
     "band_center": "float",
     "sky_x": "float",
@@ -41,9 +42,11 @@ SUPPORTED_ARRAY_SHAPES = ["hex", "square", "circle"]
 
 
 class Detectors:
-    def __init__(self, df: pd.DataFrame, bands: dict = {}, config: dict = {}):
+    def __init__(self, df: pd.DataFrame, bands: BandList, config: dict = {}):
         self.df = df
-        self.bands = bands
+        self.df.index = np.arange(len(self.df.index))
+
+        self.bands = BandList(bands)
         self.config = config
 
         for band_attr, det_attr in {
@@ -64,9 +67,17 @@ class Detectors:
 
         raise AttributeError(f"'Detectors' object has no attribute '{attr}'")
 
-    def subset(self, band_name=None):
-        bands = BandList([self.bands[band_name]])
-        return Detectors(bands=bands, df=self.df.loc[self.band_name == band_name])
+    def mask(self, **kwargs):
+        mask = np.ones(len(self.df)).astype(bool)
+        for k, v in kwargs.items():
+            mask &= self.df.loc[:, k].values == v
+        return mask
+
+    def subset(self, **kwargs):
+        df = self.df.loc[self.mask(**kwargs)]
+        return Detectors(
+            df=df, bands=[b for b in self.bands if b.name in self.df.band_name.values]
+        )
 
     @property
     def n(self):
@@ -82,13 +93,12 @@ class Detectors:
 
     @property
     def field_of_view(self):
-        return Angle(lazy_diameter(self.offsets))
+        return Angle(compute_diameter(self.offsets))
 
     @property
     def max_baseline(self):
-        return lazy_diameter(self.baselines)
+        return compute_diameter(self.baselines)
 
-    @property
     def __len__(self):
         return len(self.df)
 
@@ -100,16 +110,44 @@ class Detectors:
     def ubands(self):
         return list(self.bands.keys())
 
+    @property
+    def fwhm(self):
+        """
+        Returns the angular FWHM (in radians) at infinite distance.
+        """
+        return self.angular_fwhm(z=np.inf)
+
+    def angular_fwhm(self, z):  # noqa F401
+        """
+        Angular beam width (in radians) as a function of depth (in meters)
+        """
+        nu = self.band_center  # in GHz
+        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, f=1e9 * nu)
+
+    def physical_fwhm(self, z):
+        """
+        Physical beam width (in meters) as a function of depth (in meters)
+        """
+        return z * self.angular_fwhm(z)
+
     def passband(self, nu):
         _nu = np.atleast_1d(nu)
-
         PB = np.zeros((len(self.df), len(_nu)))
-
         for band in self.bands:
             PB[self.band_name == band.name] = band.passband(_nu)
-
         return PB
 
+    def cal(self, units: str):
+        c = np.zeros(self.n)
+        attr = units  # TODO: make this more flexible
+        for band in self.bands:
+            mask = self.mask(band_name=band.name)
+            c[mask] = getattr(band, attr)
+
+        return c
+
     def __repr__(self):
-        fov = self.field_of_view
-        return f"Detectors(fov={getattr(fov, fov.units):.03f} {fov.units}, baseline={self.max_baseline:.01f} m)"
+        return self.df.__repr__()
+
+    def _repr_html_(self):
+        return self.df._repr_html_()

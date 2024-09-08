@@ -1,0 +1,7 @@
+sat-wafer:
+  primary_size: 0.5
+  beam_spacing: 1.2
+  array_offset: [5.2, 9.0]
+  field_of_view: 10.0
+  array_shape: hex
+  bands: [act/pa5/f150]

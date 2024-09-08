@@ -55,9 +55,17 @@ class Angle:
     def arcsec(self):
         return (3600 * 180 / np.pi) * self.a
 
+    def __float__(self):
+        return self.rad
+
     def __repr__(self):
         units = self.units
-        return f"Angle(value={getattr(self, units):.02f}, units='{units}')"
+        if units == "arcsec":
+            return f"{round(self.arcsec, 2)}”"
+        if units == "arcmin":
+            return f"{round(self.arcmin, 2)}’"
+        if units == "degrees":
+            return f"{round(self.deg, 2)}°"
 
     @property
     def units(self):

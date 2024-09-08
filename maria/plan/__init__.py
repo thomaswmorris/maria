@@ -11,7 +11,9 @@ import pytz
 
 from .. import coords
 from ..io import datetime_handler, read_yaml
-from . import patterns
+from .patterns import PATTERNS, get_pattern_generator
+
+all_patterns = list(PATTERNS.index.values)
 
 MAX_VELOCITY_WARN = 10  # in deg/s
 MAX_ACCELERATION_WARN = 10  # in deg/s
@@ -51,22 +53,6 @@ def get_plan(plan_name="daisy", **kwargs):
     return Plan(**plan_config)
 
 
-class PointingError(Exception):
-    pass
-
-
-def validate_pointing(azim, elev):
-    el_min = np.atleast_1d(elev).min().compute()
-    if el_min < np.radians(MIN_ELEVATION_WARN):
-        warnings.warn(
-            f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
-        )
-    if el_min <= np.radians(MIN_ELEVATION_ERROR):
-        raise PointingError(
-            f"Some detectors come within {MIN_ELEVATION_ERROR} degrees of the horizon (el_min = {np.degrees(el_min):.01f}°)"
-        )
-
-
 @dataclass
 class Plan:
     """
@@ -97,7 +83,7 @@ class Plan:
         if not self.sample_rate > 0:
             raise ValueError("Parameter 'sample_rate' must be greater than zero!")
 
-        self.scan_center = tuple([float(x) for x in self.scan_center])
+        self.scan_center = tuple(np.array(self.scan_center))
 
         # for k, v in plan_configs[self.scan_pattern]["scan_options"].items():
         #     if k not in self.scan_options.keys():
@@ -120,7 +106,7 @@ class Plan:
             self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
 
         # this is in pointing_units
-        x_scan_offsets, y_scan_offsets = getattr(patterns, self.scan_pattern)(
+        x_scan_offsets, y_scan_offsets = get_pattern_generator(self.scan_pattern)(
             self.time,
             **self.scan_options,
         )

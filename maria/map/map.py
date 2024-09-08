@@ -96,8 +96,10 @@ class Map:
 
         center_degrees = np.degrees(self.center)
 
-        parts.append(f"shape = {self.data.shape}")
-        parts.append(f"center = ({center_degrees[0]:.02f}, {center_degrees[1]:.02f})")
+        parts.append(f"shape={self.data.shape}")
+        parts.append(f"freqs={self.frequency}")
+        parts.append(f"center=({center_degrees[0]:.02f}, {center_degrees[1]:.02f})")
+        parts.append(f"width={np.degrees(self.width).round()}°")
 
         return f"Map({', '.join(parts)})"
 

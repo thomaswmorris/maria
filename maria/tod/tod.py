@@ -119,7 +119,7 @@ class TOD:
                 time=self.coords.time[time_mask],
                 phi=self.coords.az[:, time_mask],
                 theta=self.coords.el[:, time_mask],
-                location=self.location,
+                earth_location=self.earth_location,
                 frame="az_el",
             )
 
@@ -144,7 +144,7 @@ class TOD:
                 time=self.time,
                 phi=self.coords.az[det_mask],
                 theta=self.coords.el[det_mask],
-                location=self.location,
+                earth_location=self.earth_location,
                 frame="az_el",
             )
 
@@ -203,7 +203,7 @@ class TOD:
         if "despline" in kwargs:
             B = utils.signal.get_bspline_basis(
                 self.time,
-                spacing=kwargs["despline"].get("knot_spacing", 10),
+                spacing=kwargs["despline"]["knot_spacing"],
                 order=kwargs["despline"].get("spline_order", 3),
             )
 
@@ -217,20 +217,20 @@ class TOD:
         return self.coords.time
 
     @property
-    def location(self):
-        return self.coords.location
+    def earth_location(self):
+        return self.coords.earth_location
 
     @property
     def lat(self):
-        return np.round(self.location.lat.deg, 6)
+        return np.round(self.earth_location.lat.deg, 6)
 
     @property
     def lon(self):
-        return np.round(self.location.lon.deg, 6)
+        return np.round(self.earth_location.lon.deg, 6)
 
     @property
     def alt(self):
-        return np.round(self.location.height.value, 6)
+        return np.round(self.earth_location.height.value, 6)
 
     @property
     def az(self):
@@ -386,7 +386,7 @@ class TOD:
 
                 ps_ax.plot(f_mids[use], binned_ps[use], label=f"{band_name} {field}")
                 tod_ax.plot(
-                    self.time - self.time.min(),
+                    self.time,
                     d[0],
                     lw=5e-1,
                     label=f"{band_name} {field}",
@@ -406,7 +406,7 @@ class TOD:
             else r"Power spectrum [pW$^2$Hz$^{-1}$]"
         )
 
-        tod_ax.set_xlim(0, float(self.time.max()))
+        tod_ax.set_xlim(float(self.time.min()), float(self.time.max()))
         tod_ax.set_ylabel(ylabel)
 
 

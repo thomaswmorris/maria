@@ -23,7 +23,7 @@ from .transforms import (  # noqa
     xyz_to_phi_theta,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("maria")
 
 
 frames = {
@@ -57,7 +57,9 @@ frames = {
 }
 
 
-DEFAULT_LOCATION = EarthLocation.from_geodetic(0.0, 90.0, height=0.0, ellipsoid=None)
+DEFAULT_EARTH_LOCATION = EarthLocation.from_geodetic(
+    0.0, 90.0, height=0.0, ellipsoid=None
+)
 DEFAULT_TIMESTAMP = datetime.now().timestamp()
 
 
@@ -75,7 +77,7 @@ class Coordinates:
         phi: float = 0.0,
         theta: float = 0.0,
         time: float = DEFAULT_TIMESTAMP,
-        location: EarthLocation = DEFAULT_LOCATION,
+        earth_location: EarthLocation = DEFAULT_EARTH_LOCATION,
         frame: str = "ra_dec",
         dtype=np.float32,
     ):
@@ -108,7 +110,7 @@ class Coordinates:
         except ValueError:
             raise ValueError("Input coordinates are not broadcastable.")
 
-        self.location = location
+        self.earth_location = earth_location
         self.frame = frame
         self.dtype = dtype
 
@@ -155,7 +157,7 @@ class Coordinates:
                 format="unix",
             ),
             frame=frames[frame]["astropy_name"],
-            location=self.location,
+            location=self.earth_location,
         )
 
         # lazily compute all the coordinates
@@ -180,7 +182,7 @@ class Coordinates:
             time=ds_time,
             phi=ds_phi,
             theta=ds_theta,
-            location=self.location,
+            earth_location=self.earth_location,
             frame=self.frame,
             dtype=self.dtype,
         )
@@ -193,7 +195,7 @@ class Coordinates:
             time=self.time,
             phi=cphi,
             theta=ctheta,
-            location=self.location,
+            earth_location=self.earth_location,
             frame=self.frame,
             dtype=self.dtype,
         )
@@ -348,8 +350,8 @@ class Coordinates:
             return 3600 * np.degrees(dx), 3600 * np.degrees(dy)
 
     def __repr__(self):
-        lon = self.location.lon.deg
-        lat = self.location.lat.deg
+        lon = self.earth_location.lon.deg
+        lat = self.earth_location.lat.deg
 
         date_string = (
             datetime.fromtimestamp(self.time.mean())
@@ -357,7 +359,7 @@ class Coordinates:
             .strftime("%Y %h %-d %H:%M:%S")
         )
 
-        return f"Coordinates(shape={self.phi.shape}, location=({repr_lat_lon(lat, lon)}), time='{date_string} UTC')"
+        return f"Coordinates(shape={self.phi.shape}, earth_location=({repr_lat_lon(lat, lon)}), time='{date_string} UTC')"
         # return self.summary.__repr__()
 
     # def longitude(self):
