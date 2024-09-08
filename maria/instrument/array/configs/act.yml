@@ -1,0 +1,26 @@
+pa4:
+  n: 397
+  array_offset: [-0.8, -0.5]
+  field_of_view: 1.0
+  array_shape: hex
+  bands: [act/pa4/f150, act/pa4/f220]
+  primary_size: 6
+  polarization: random
+
+pa5:
+  n: 397
+  array_offset: [0.0, 1.0]
+  field_of_view: 1.0
+  array_shape: hex
+  bands: [act/pa5/f090, act/pa5/f150]
+  primary_size: 6
+  polarization: random
+
+pa6:
+  n: 397
+  array_offset: [0.8, -0.5]
+  field_of_view: 1.0
+  array_shape: hex
+  bands: [act/pa6/f090, act/pa6/f150]
+  primary_size: 6
+  polarization: random
