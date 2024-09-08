@@ -1,0 +1,24 @@
+
+ABS:
+  aliases: ["abs"]
+  description: Atacama B-Mode Search
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+  array:
+    n: 250
+    field_of_view: 25
+    array_shape: hex
+    bands: [abs/f150]
+    primary_size: 0.5
+
+
+AdvACT:
+  aliases: ["act", "advact"]
+  description: Atacama Cosmology Telescope
+  documentation: https://act.princeton.edu/overview/camera-specifications/advact
+  arrays:
+    pa4:
+      key: act/pa4
+    pa5:
+      key: act/pa5
+    pa6:
+      key: act/pa6

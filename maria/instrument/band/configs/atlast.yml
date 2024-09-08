@@ -1,0 +1,59 @@
+f027:
+  center: 27
+  width: 5
+  shape: gaussian
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz
+
+f039:
+  center: 39
+  width: 5
+  shape: gaussian
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz
+
+f093:
+  center: 93
+  width: 10
+  shape: gaussian
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz
+
+f150:
+  center: 150
+  width: 10
+  shape: gaussian
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz
+
+f225:
+  center: 225
+  width: 30
+  shape: gaussian
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz
+
+f280:
+  center: 280
+  width: 40
+  shape: gaussian
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz

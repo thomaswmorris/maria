@@ -1,0 +1,17 @@
+f093:
+  # file: data/mustang2/passbands/f093.csv
+  center: 90
+  width: 30
+  time_constant: 0
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz
+  efficiency: 0.5
+  gain_error: 5.e-2
+
+
+f093-custom:
+  passband: data/passbands/m2/f093.csv
+  time_constant: 0
+  NEP: 3.e-5 # pW / sqrt(s)
+  knee: 1.0 # Hz
+  efficiency: 0.2

@@ -1,0 +1,27 @@
+
+sat:
+  aliases: ["sat"]
+  description: Small Aperture Telescope
+  documentation: https://act.princeton.edu/overview/camera-specifications/advact
+  arrays:
+    ws0:
+      key: so/sat-wafer
+      array_offset: [0.0, 0.0]
+    ws1:
+      key: so/sat-wafer
+      array_offset: [5.2, 9.0]
+    ws2:
+      key: so/sat-wafer
+      array_offset: [5.2, -9.0]
+    ws3:
+      key: so/sat-wafer
+      array_offset: [-10.4, 0]
+    ws4:
+      key: so/sat-wafer
+      array_offset: [-5.2, -9.0]
+    ws5:
+      key: so/sat-wafer
+      array_offset: [-5.2, 9.0]
+    ws6:
+      key: so/sat-wafer
+      array_offset: [10.4, 0]
