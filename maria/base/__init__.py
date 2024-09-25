@@ -4,7 +4,7 @@ from typing import Union
 
 import numpy as np
 
-from ..coords import Coordinates, dx_dy_to_phi_theta
+from ..coords import Coordinates
 from ..instrument import Instrument, get_instrument
 from ..io import read_yaml
 from ..plan import Plan, get_plan
@@ -124,17 +124,8 @@ class BaseSimulation:
                 ),
             )
 
-        det_az, det_el = dx_dy_to_phi_theta(
-            *self.instrument.offsets.T[..., None], self.boresight.az, self.boresight.el
-        )
-
-        self.coords = Coordinates(
-            time=self.boresight.time,
-            phi=det_az,
-            theta=det_el,
-            earth_location=self.site.earth_location,
-            frame="az_el",
-        )
+        # this can be expensive sometimes
+        self.coords = self.boresight.broadcast(self.instrument.dets)
 
         logger.debug("Constructed offsets.")
 

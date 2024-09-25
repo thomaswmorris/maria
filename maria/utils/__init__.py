@@ -28,6 +28,13 @@ def now():
     return ttime.time()
 
 
+# def time():
+#     global reference_time
+#     duration = ttime.monotonic() - ref_time
+#     logger.info(f"Initialized atmosphere in {int(1e3 * duration)} ms.")
+#     ref_time = ttime.monotonic()
+
+
 def repr_dms(x):
     mnt, sec = divmod(abs(x) * 3600, 60)
     deg, mnt = divmod(mnt, 60)
@@ -96,22 +103,51 @@ def get_rotation_matrix(**rotations):
     return R
 
 
-def compute_optimal_rotation(points, axes=None):
+def get_orthogonal_transform(signature, entries):
     """
-    Find a rotation for some points so that the projection onto the last two axes has the minimum area.
+    A list of tuples [(dim, angle), ...] where we successively rotate around dim by angle.
     """
 
-    *input_shape, ndim = points.shape
-    axes = axes or tuple(range(ndim))
+    axes = np.where(signature)[0]
+    n_dim = len(signature)
+    n_axes = sum(signature)
 
-    def loss(a, *args):
-        tp = args[0] @ get_rotation_matrix(z=a[0])
-        ch = sp.spatial.ConvexHull(tp[:, 1:])
-        return ch.volume
+    if n_axes * (n_axes - 1) / 2 != len(entries):
+        raise ValueError(
+            f"Bad shape for entries (for signature {signature} we expect len(entries) = {int(n_axes * (n_axes - 1) / 2)}."
+        )
 
-    res = sp.optimize.minimize(loss, x0=[0], args=points, tol=1e-10, method="SLSQP")
+    i, j = np.triu_indices(n=n_axes, k=1)
+    S = np.zeros((n_dim, n_dim))
+    S[axes[i], axes[j]] = entries
+    return sp.linalg.expm(S - S.T)
+
+
+def compute_aligning_transform(points, signature, axes=None):
+    """
+    Find a transform for some (..., n_dim) array of points so that the volume over all but the first axis is minimized.
+    """
+    *input_shape, n_dim = points.shape
+    axes = axes or tuple(range(1, n_dim))
+
+    def loss(entries, *args):
+        tp = args[0] @ get_orthogonal_transform(signature=signature, entries=entries)
+        if n_dim > 2:
+            ch = sp.spatial.ConvexHull(tp[..., 1:])
+            return np.log(ch.volume)
+        else:
+            return np.ptp(tp[..., 1:])
+
+    n_axes = sum(signature)
+    res = sp.optimize.minimize(
+        loss,
+        x0=np.zeros(int(n_axes * (n_axes - 1) / 2)),
+        args=points.reshape(-1, n_dim),
+        tol=1e-10,
+        method="SLSQP",
+    )
 
     if not res.success:
         raise RuntimeError("Could not find optimal rotation.")
 
-    return get_rotation_matrix(z=res.x[0])
+    return get_orthogonal_transform(signature=signature, entries=res.x)

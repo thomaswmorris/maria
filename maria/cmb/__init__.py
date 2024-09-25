@@ -1,8 +1,13 @@
+import logging
+
 import healpy as hp
 import numpy as np
 import pandas as pd
 
 from ..io import fetch, fetch_from_url
+
+# shut up healpy I don't care about the resolution
+logging.getLogger("healpy").setLevel(logging.WARNING)
 
 CMB_SPECTRUM_SOURCE_URL = (
     "https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/"

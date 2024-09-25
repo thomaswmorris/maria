@@ -59,7 +59,7 @@ frames = {
 
 DEFAULT_EARTH_LOCATION = EarthLocation.from_geodetic(
     0.0, 90.0, height=0.0, ellipsoid=None
-)
+)  # noqa
 DEFAULT_TIMESTAMP = datetime.now().timestamp()
 
 
@@ -79,6 +79,7 @@ class Coordinates:
         time: float = DEFAULT_TIMESTAMP,
         earth_location: EarthLocation = DEFAULT_EARTH_LOCATION,
         frame: str = "ra_dec",
+        distributed: bool = True,
         dtype=np.float32,
     ):
         self._x = x
@@ -92,7 +93,7 @@ class Coordinates:
         for attr in ["x", "y", "z", "r", "phi", "theta"]:
             values = getattr(self, f"_{attr}")
             if np.ndim(values) > 0:
-                if not isinstance(values, da.Array):
+                if (not isinstance(values, da.Array)) and (distributed):
                     setattr(self, f"_{attr}", da.from_array(values).astype(dtype))
 
         self.timestep = (
@@ -163,7 +164,7 @@ class Coordinates:
         # lazily compute all the coordinates
         for frame, config in frames.items():
             with dask.config.set(**{"array.slicing.split_large_chunks": True}):
-                phi, theta = self.to_frame(frame=frame)
+                phi, theta = self.to(frame=frame)
 
             setattr(self, config["phi"], phi)
             setattr(self, config["theta"], theta)
@@ -213,10 +214,28 @@ class Coordinates:
 
         return summary
 
+    def project(self, z, frame="az_el"):
+        # if not ((h is None) ^ (z is None)):
+        #     raise ValueError("You must specify exactly one of 'h' or 'z'.")
+
+        phi, theta = self.to(frame=frame)
+
+        tan_theta = np.tan(theta)[..., None]
+        p = (z - self.z) * np.concatenate(
+            [
+                np.cos(phi)[..., None] / tan_theta,
+                np.sin(phi)[..., None] / tan_theta,
+                np.ones((*phi.shape, 1)),
+            ],
+            axis=-1,
+        )
+
+        return p + np.c_[self.x, self.y, self.z][None]
+
     def compute_points(self):
         return phi_theta_to_xyz(self.phi, self.theta)
 
-    def to_frame(self, frame):
+    def to(self, frame):
         """
         Convert to a frame. This is expensive to compute, so we cache the output.
         """
@@ -269,11 +288,42 @@ class Coordinates:
         )
 
     def center(self, frame="ra_dec"):
-        return get_center_phi_theta(*self.to_frame(frame=frame))
+        return get_center_phi_theta(*self.to(frame=frame))
+
+    def broadcast(self, dets):
+        det_az, det_el = dx_dy_to_phi_theta(
+            *dets.offsets.T[..., None], self.az, self.el
+        )
+        return Coordinates(
+            time=self.time,
+            phi=det_az.compute(),
+            theta=det_el.compute(),
+            earth_location=self.earth_location,
+            frame="az_el",
+        )
+
+    def __getitem__(self, i):
+        """
+        TODO: error handling for slicing
+        """
+        if not isinstance(i, tuple):
+            i = tuple(
+                [
+                    i,
+                ]
+            )
+        *_, time_slice = i
+        return Coordinates(
+            time=self.time[time_slice],
+            phi=self.phi[i],
+            theta=self.theta[i],
+            earth_location=self.earth_location,
+            frame=self.frame,
+        )
 
     @functools.cached_property
     def az_el(self):
-        return self.to_frame(frame="az_el")
+        return self.to(frame="az_el")
 
     @functools.cached_property
     def center_az_el(self):
@@ -281,7 +331,7 @@ class Coordinates:
 
     @functools.cached_property
     def ra_dec(self):
-        return self.to_frame(frame="ra_dec")
+        return self.to(frame="ra_dec")
 
     @functools.cached_property
     def center_ra_dec(self):
@@ -289,7 +339,7 @@ class Coordinates:
 
     @functools.cached_property
     def galactic(self):
-        return self.to_frame(frame="galactic")
+        return self.to(frame="galactic")
 
     @functools.cached_property
     def center_galactic(self):
@@ -331,7 +381,7 @@ class Coordinates:
     def offsets(self, frame, center="auto", units="radians"):
         if isinstance(center, str):
             if center == "auto":
-                center = get_center_phi_theta(*self.to_frame(frame))
+                center = get_center_phi_theta(*self.to(frame))
 
         if frame == "az_el":
             dx, dy = phi_theta_to_dx_dy(self.az, self.el, *center)

@@ -147,8 +147,6 @@ class AtmosphereMixin:
         This assume that BaseSimulation.__init__() has been called.
         """
 
-        self.atmosphere_model = "2d"
-
         self.turbulent_layer_depths = np.linspace(
             min_atmosphere_height,
             max_atmosphere_height,
@@ -180,10 +178,10 @@ class AtmosphereMixin:
             self.atmosphere.layers.append(layer)
 
     def _simulate_atmospheric_fluctuations(self):
-        if self.atmosphere_model == "2d":
+        if self.atmosphere.model == "2d":
             self._simulate_2d_atmospheric_fluctuations()
 
-        if self.atmosphere_model == "3d":
+        if self.atmosphere.model == "3d":
             self._simulate_3d_atmospheric_fluctuations()
 
     def _simulate_2d_turbulence(self):

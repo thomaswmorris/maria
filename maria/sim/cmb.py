@@ -1,3 +1,4 @@
+import dask.array as da
 import healpy as hp
 import numpy as np
 import scipy as sp
@@ -23,7 +24,9 @@ class CMBMixin:
             1e9 * test_nu, cmb_temperature_samples_K[:, None]
         )
 
-        self.data["cmb"] = np.zeros((self.instrument.dets.n, self.plan.n_time))
+        self.data["cmb"] = da.zeros_like(
+            np.empty((self.instrument.dets.n, self.plan.n_time))
+        )
 
         pbar = tqdm(self.instrument.bands, disable=not self.verbose)
 
