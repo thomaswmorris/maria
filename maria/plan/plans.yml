@@ -36,15 +36,15 @@ back_and_forth:
     y_throw: 0
     speed: 0.5
 
-double_circle:
-  description: 'A double circle scan.'
-  frame: ra_dec
-  duration: 60
-  sample_rate: 50
-  scan_pattern: double_circle
-  scan_center: [150., 10]
-  scan_options:
-    radius: 2
-    speed: 0.25
-    miss_freq: 10.1
-  degrees: True
+# double_circle:
+#   description: 'A double circle scan.'
+#   frame: ra_dec
+#   duration: 60
+#   sample_rate: 50
+#   scan_pattern: double_circle
+#   scan_center: [150., 10]
+#   scan_options:
+#     radius: 2
+#     speed: 0.25
+#     miss_freq: 10.1
+#   degrees: True

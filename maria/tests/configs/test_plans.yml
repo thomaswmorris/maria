@@ -1,0 +1,35 @@
+stare:
+  description: A stare.
+  duration: 60
+  scan_pattern: stare
+  frame: az_el
+  scan_center: [130, 45]
+  degrees: True
+  sample_rate: 20
+  scan_options: {}
+
+back_and_forth:
+  description: A back-and-forth scan.
+  start_time: '2022-07-01T08:00:00'
+  duration: 60
+  scan_pattern: back_and_forth
+  scan_center: [45, 45]
+  frame: az_el
+  degrees: True
+  sample_rate: 20
+  scan_options:
+    radius: 10
+    speed: 0.5
+
+# double_circle:
+#   description: 'A double circle scan.'
+#   frame: ra_dec
+#   duration: 60
+#   sample_rate: 50
+#   scan_pattern: double_circle
+#   scan_center: [150., 10]
+#   scan_options:
+#     radius: 2
+#     speed: 0.25
+#     miss_freq: 10.1
+#   degrees: True
