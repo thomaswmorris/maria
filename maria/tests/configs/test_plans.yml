@@ -3,24 +3,10 @@ stare:
   duration: 60
   scan_pattern: stare
   frame: az_el
-  scan_center: [0, 45]
+  scan_center: [130, 45]
   degrees: True
   sample_rate: 20
   scan_options: {}
-
-daisy:
-  description: A daisy scan.
-  frame: ra_dec
-  degrees: True
-  scan_pattern: daisy
-  scan_center: [150., 10]
-  sample_rate: 50
-  scan_options:
-    radius: 2
-    speed: 0.5
-    petals: 3.18
-    miss_factor: 0.15
-    miss_freq: 1.41
 
 back_and_forth:
   description: A back-and-forth scan.
@@ -32,8 +18,7 @@ back_and_forth:
   degrees: True
   sample_rate: 20
   scan_options:
-    x_throw: 5
-    y_throw: 0
+    radius: 10
     speed: 0.5
 
 # double_circle:
