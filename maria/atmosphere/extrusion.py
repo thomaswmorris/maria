@@ -7,11 +7,88 @@ import dask.array as da
 import numpy as np
 import pandas as pd
 import scipy as sp
+from pandas import DataFrame
 from tqdm import tqdm
 
+from ..functions import approximate_normalized_matern
 from ..utils.linalg import fast_psd_inverse
 
 logger = logging.getLogger("maria")
+
+
+MIN_RES = {"2d": 5, "3d": 15}
+MIN_RES_PER_BEAM = {"2d": 0.25, "3d": 0.5}
+MIN_RES_PER_FOV = {"2d": 0.05, "3d": 0.1}
+
+
+def generate_layers(
+    sim,
+    mode: str = "2d",
+    angular: bool = True,
+    h_max: float = 2e3,  # in meters
+    min_res: float = None,  # in meters
+    min_res_per_beam: float = None,
+    min_res_per_fov: float = None,
+    layer_spacing: float = 500,
+) -> DataFrame:
+    """
+    Generate atmospheric layers.
+    N.B.: We implicitly parametrize this model with a single, constant elevation.
+    """
+
+    min_res = min_res or MIN_RES[mode]
+    min_res_per_beam = min_res_per_beam or MIN_RES_PER_BEAM[mode]
+    min_res_per_fov = min_res_per_fov or MIN_RES_PER_FOV[mode]
+
+    min_el = sim.boresight.el.min().compute()
+
+    h_samples = np.arange(0, h_max + 1e0, 1e-1)
+
+    z_samples = h_samples / np.sin(min_el)
+
+    fov = sim.instrument.dets.field_of_view.rad
+    fwhm = (
+        sim.instrument.dets.one_detector_from_each_band()
+        .physical_fwhm(z_samples[:, None] + 1e-16)
+        .min(axis=1)
+    )
+    r1 = min_res * np.ones(len(z_samples))
+    r2 = min_res_per_beam * fwhm
+    r3 = min_res_per_fov * z_samples * fov
+    res_samples = np.minimum(1e3, np.maximum.reduce([r1, r2, r3]))
+
+    def res_func(h):
+        return sp.interpolate.interp1d(h_samples, res_samples)(h)
+
+    if mode == "2d":
+        h_boundaries = np.arange(0, h_max + layer_spacing, layer_spacing)
+        process_index = np.arange(len(h_boundaries) - 1)
+    elif mode == "3d":
+        h_boundaries = [0]
+        while True:
+            new_h = h_boundaries[-1] + res_func(h_boundaries[-1])
+            if new_h > h_max:
+                break
+            h_boundaries.append(h_boundaries[-1] + res_func(h_boundaries[-1]))
+        h_boundaries = np.array(h_boundaries)
+        process_index = 0
+
+    h_centers = (h_boundaries[1:] + h_boundaries[:-1]) / 2
+
+    w = sim.atmosphere.weather(altitude=sim.site.altitude + h_centers)
+
+    layers = pd.DataFrame(w)
+    layers.insert(0, "process_index", process_index)
+    layers.insert(1, "h", h_centers)
+    layers.insert(2, "dh", np.diff(h_boundaries))
+    layers.insert(3, "res", res_func(layers.h))
+    layers.insert(4, "z", h_centers / np.sin(min_el))
+    layers.insert(5, "angular", angular)
+
+    if angular:
+        layers.res /= layers.z
+
+    return layers
 
 
 def construct_extrusion_layers(
@@ -42,7 +119,7 @@ def construct_extrusion_layers(
         interior = triangulation.find_simplex(wide_lp_dense) > -1
         lp_dense_x = wide_lp_x_dense[interior]
         n_lp = np.maximum(2, int(np.ptp(np.atleast_1d(lp_dense_x)) / res))
-        lp_x = np.linspace(lp_dense_x.min() - res, lp_dense_x.max() + res, n_lp)
+        lp_x = np.linspace(lp_dense_x.min() - 2 * res, lp_dense_x.max() + 2 * res, n_lp)
 
         layers.loc[i, "x"] = lp_x
         layers.loc[i, "z"] = z
@@ -75,7 +152,7 @@ class ProcessExtrusion:
         self,
         cross_section,
         extrusion,
-        callback,
+        callback=approximate_normalized_matern,
         callback_kwargs: dict = {},
         lookback_decay_rate: float = 2,
         jitter: float = 1e-6,
@@ -241,7 +318,12 @@ class ProcessExtrusion:
         BUFFER = np.random.standard_normal(
             (self.n_extrusion + n_steps, self.n_cross_section)
         )
-        for buffer_index in tqdm(np.arange(n_steps)[::-1], desc=desc):
+
+        iterator = np.arange(n_steps)[::-1]
+        if desc:
+            iterator = tqdm(iterator, desc=desc)
+
+        for buffer_index in iterator:
             new_values = self.A @ BUFFER[
                 buffer_index + self.extrusion_sample_index + 1,
                 self.cross_section_sample_index,

@@ -110,16 +110,14 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 weather_kwargs=weather_kwargs,
             )
 
-            if atmosphere == "2d-classic":
-                self._initialize_2d_atmosphere(**atmosphere_kwargs)
+            # give it the simulation, so that it knows about pointing, site, etc.
+            self.atmosphere.initialize(self)
 
-            else:
-                self.atmosphere.initialize(self)
+            # self._initialize_2d_atmosphere(**atmosphere_kwargs)
 
             duration = ttime.monotonic() - ref_time
-            ref_time = ttime.monotonic()
-
             logger.info(f"Initialized atmosphere in {int(1e3 * duration)} ms.")
+            ref_time = ttime.monotonic()
 
         if cmb:
             if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
@@ -138,10 +136,10 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if hasattr(self, "atmosphere"):
             if self.atmosphere.model == "2d-classic":
                 self._classic_simulate_atmospheric_emission()
-            # else:
-            #     self._simulate_atmosphere()
-            #     self._compute_atmospheric_emission()
-            #     self._compute_atmospheric_transmission()
+            else:
+                self._simulate_atmosphere()
+                self._compute_atmospheric_emission()
+                self._compute_atmospheric_transmission()
 
         if hasattr(self, "cmb"):
             self._simulate_cmb_emission()

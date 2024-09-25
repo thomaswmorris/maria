@@ -3,6 +3,7 @@ import os
 import matplotlib as mpl
 import numpy as np
 import pandas as pd
+import scipy as sp
 
 from ..units import Angle
 from ..utils import compute_diameter
@@ -74,10 +75,24 @@ class Detectors:
         return mask
 
     def subset(self, **kwargs):
-        df = self.df.loc[self.mask(**kwargs)]
+        return self._subset(self.mask(**kwargs))
+
+    def _subset(self, mask):
+        df = self.df.loc[mask]
         return Detectors(
             df=df, bands=[b for b in self.bands if b.name in self.df.band_name.values]
         )
+
+    def one_detector_from_each_band(self):
+        first_det_mask = np.isin(
+            np.arange(self.n), np.unique(self.band_name, return_index=True)[1]
+        )
+        return self._subset(mask=first_det_mask)
+
+    def outer(self):
+        outer_dets_index = sp.spatial.ConvexHull(self.offsets).vertices
+        outer_dets_mask = np.isin(np.arange(self.n), outer_dets_index)
+        return self._subset(mask=outer_dets_mask)
 
     @property
     def n(self):

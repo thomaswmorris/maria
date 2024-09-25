@@ -157,7 +157,7 @@ class Weather:
 
     def __call__(self, altitude):
         res = {}
-        for field in self.fields:
+        for field in [*self.fields, "absolute_humidity"]:
             res[field] = sp.interpolate.interp1d(self.altitude, getattr(self, field))(
                 altitude
             )

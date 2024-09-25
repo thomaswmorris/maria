@@ -104,7 +104,7 @@ def raster(time, radius=1, height=None, speed=0.5, n=16, turnaround_time=0.5):
     )
 
 
-def back_and_forth(time, speed=1, radius=5, turnaround_time=5):  # noqa
+def back_and_forth(time, speed=1, radius=5, turnaround_time=0.5):  # noqa
     return raster(
         time, speed=speed, radius=radius, height=0, turnaround_time=turnaround_time
     )
