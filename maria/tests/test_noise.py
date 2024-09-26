@@ -5,10 +5,10 @@ from maria import Simulation
 
 
 @pytest.mark.noise
-def test_linear_angular_model():
+def test_noise_levels():
     sim = Simulation(
         instrument="MUSTANG-2",
-        plan="daisy",
+        plan="one_minute_zenith_stare",
         site="green_bank",
         noise=True,
     )
