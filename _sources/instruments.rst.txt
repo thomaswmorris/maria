@@ -14,11 +14,6 @@ The simplest way to get an instrument is to grab a pre-defined one, e.g.::
     # MUSTANG-2
     m2 = maria.get_instrument('MUSTANG-2')
 
-    # and many more!
-
-
-
-
 
 +++++++++++++++++++++
 Customizing passbands
