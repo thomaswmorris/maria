@@ -17,7 +17,7 @@ def test_linear_angular_model():
     target_error = sim.instrument.dets.NEP / np.sqrt(sim.plan.duration)
 
     scaled_residuals = (
-        tod.data.compute().mean(axis=1) / target_error
+        tod.noise.compute().mean(axis=1) / target_error
     )  # this is should be distributed as a zero-mean unit-variance Gaussian
 
     min_noise = 0.8
