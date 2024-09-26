@@ -4,11 +4,13 @@ import warnings
 
 import dask.array as da
 import h5py
+import matplotlib as mpl  # noqa
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
 from astropy.io import fits
+from matplotlib.gridspec import GridSpec
 
 from maria import utils
 
@@ -26,7 +28,7 @@ class TOD:
         """
         return TOD(
             coords=self.coords,
-            components=self.components,
+            data=self.data,
             units=self.units,
             dets=self.dets,
             abscal=self.abscal,
@@ -35,13 +37,15 @@ class TOD:
 
     def __init__(
         self,
-        coords: Coordinates,
-        components: dict = {},
-        units: dict = {},
+        data,
+        weight=None,
+        coords: Coordinates = None,
+        units: str = "K_RJ",
         dets: pd.DataFrame = None,
         abscal: float = 1.0,
         dtype=np.float32,
     ):
+        self.weight = weight
         self.coords = coords
         self.dets = dets
         self.header = fits.header.Header()
@@ -49,36 +53,43 @@ class TOD:
         self.units = units
         self.dtype = dtype
 
-        self.components = {}
+        self.data = {}
 
-        for field, data in components.items():
-            self.components[field] = (
+        for field, data in data.items():
+            self.data[field] = (
                 data if isinstance(data, da.Array) else da.from_array(data)
             )
-            self.components[field] = self.components[field].astype(dtype)
+            self.data[field] = self.data[field].astype(dtype)
 
         # sort them alphabetically
-        self.components = {k: self.components[k] for k in sorted(list(self.fields))}
+        self.data = {k: self.data[k] for k in sorted(list(self.fields))}
 
-    def __getattr__(self, attr):
-        if attr in self.fields:
-            return self.components[attr]
-        raise AttributeError(f"No attribute named '{attr}'.")
+        if self.weight is None:
+            self.weight = da.ones_like(self.signal)
 
-    def __repr__(self):
-        return f"TOD(shape={self.shape}, fields={self.fields})"
+    def to(self, units: str):
+        cal = self.dets.cal(f"{self.units} -> {units}")
+
+        return TOD(
+            coords=self.coords,
+            data={k: cal[:, None] * v for k, v in self.data.items()},
+            units=units,
+            dets=self.dets,
+            abscal=self.abscal,
+            dtype=self.dtype,
+        )
 
     @property
     def shape(self):
-        return self.data.shape
+        return self.signal.shape
 
     @property
-    def fields(self):
-        return sorted(list(self.components.keys()))
+    def fields(self) -> list:
+        return sorted(list(self.data.keys()))
 
     @functools.cached_property
-    def data(self):
-        return sum(self.components.values())
+    def signal(self) -> da.Array:
+        return sum(self.data.values())
 
     @functools.cached_property
     def boresight(self):
@@ -94,11 +105,11 @@ class TOD:
 
     @property
     def nd(self) -> int:
-        return int(self.data.shape[0])
+        return int(self.signal.shape[0])
 
     @property
     def nt(self) -> int:
-        return int(self.data.shape[-1])
+        return int(self.signal.shape[-1])
 
     def subset(
         self, det_mask=None, time_mask=None, band: str = None, fields: list = None
@@ -124,9 +135,9 @@ class TOD:
             )
 
             return TOD(
-                components={
+                data={
                     field: data[det_mask]
-                    for field, data in self.components.items()
+                    for field, data in self.data.items()
                     if field in fields
                 },
                 coords=subset_coords,
@@ -138,7 +149,7 @@ class TOD:
             if not (len(det_mask) == self.nd):
                 raise ValueError("The detector mask must have shape (n_dets,).")
 
-            subset_dets = self.dets.loc[det_mask] if self.dets is not None else None
+            subset_dets = self.dets._subset(det_mask) if self.dets is not None else None
 
             subset_coords = Coordinates(
                 time=self.time,
@@ -149,18 +160,19 @@ class TOD:
             )
 
             return TOD(
-                components={
+                data={
                     field: data[det_mask]
-                    for field, data in self.components.items()
+                    for field, data in self.data.items()
                     if field in fields
                 },
+                weight=self.weight[det_mask],
                 coords=subset_coords,
                 dets=subset_dets,
                 units=self.units,
             )
 
     def process(self, **kwargs):
-        D = self.data.compute()
+        D = self.signal.compute()
         W = np.ones(D.shape)
 
         if "window" in kwargs:
@@ -210,7 +222,14 @@ class TOD:
             A = np.linalg.inv(B @ B.T) @ B @ D.T
             D -= A.T @ B
 
-        return W, D
+        return TOD(
+            data={"data": D},
+            weight=W,
+            coords=self.coords,
+            units=self.units,
+            dets=self.dets,
+            dtype=np.float32,
+        )
 
     @property
     def time(self):
@@ -312,7 +331,7 @@ class TOD:
             col03 = fits.Column(
                 name="FNU  ",
                 format="E",
-                array=self.data.flatten(),
+                array=self.signal.flatten(),
                 unit=self.units["data"],
             )
             col04 = fits.Column(name="UFNU ", format="E")
@@ -348,28 +367,39 @@ class TOD:
 
     def to_hdf(self, fname):
         with h5py.File(fname, "w") as f:
-            f.createcomponentsset(fname)
+            f.createdataset(fname)
 
-    def plot(self, calibrate=True, detrend=True, mean=True, n_freq_bins: int = 256):
-        fig, axes = plt.subplots(
-            1,
+    def plot(self, detrend=True, mean=True, n_freq_bins: int = 256):
+        # def format_axes(fig):
+        #     for i, ax in enumerate(fig.axes):
+        #         ax.text(0.5, 0.5, "ax%d" % (i+1), va="center", ha="center")
+        #         ax.tick_params(labelbottom=False, labelleft=False)
+
+        fig = plt.figure(figsize=(8, 5), dpi=160, constrained_layout=True)
+
+        gs = GridSpec(
+            len(self.fields),
             2,
-            figsize=(10, 4),
-            dpi=256,
-            constrained_layout=True,
-            gridspec_kw={"width_ratios": [1, 1.6]},
+            figure=fig,
         )
-        ps_ax, tod_ax = axes
 
-        for field, data in self.components.items():
+        ps_ax = fig.add_subplot(gs[:, 1])
+
+        color_iterator = iter(plt.rcParams["axes.prop_cycle"].by_key()["color"])
+
+        n_fields = len(self.data)
+
+        for i, (field, data) in enumerate(self.data.items()):
+            tod_ax = fig.add_subplot(gs[i, 0])
+
             for band_name in np.unique(self.dets.band_name):
+                color = next(color_iterator)
+
                 band_mask = self.dets.band_name == band_name
                 d = data[band_mask]
 
                 if detrend:
                     d = sp.signal.detrend(d)
-                if calibrate:
-                    d *= self.dets.cal.loc[band_mask].mean()
 
                 f, ps = sp.signal.periodogram(
                     sp.signal.detrend(d), fs=self.fs, window="tukey"
@@ -384,30 +414,61 @@ class TOD:
 
                 use = binned_ps > 0
 
-                ps_ax.plot(f_mids[use], binned_ps[use], label=f"{band_name} {field}")
+                ps_ax.plot(
+                    f_mids[use],
+                    binned_ps[use],
+                    lw=1e0,
+                    color=color,
+                    label=f"{band_name} {field}",
+                )
                 tod_ax.plot(
                     self.time,
                     d[0],
                     lw=5e-1,
                     label=f"{band_name} {field}",
+                    color=color,
                 )
 
-        ps_ax.set_xlabel("Time [s]")
-        ps_ax.set_ylabel("$T_{RJ}$ [K]" if calibrate else "[pW]")
+            tod_ax.set_xlim(self.time.min(), self.time.max())
+
+            if self.units == "K_RJ":
+                ylabel = f"{field} [K]"
+            elif self.units == "K_CMB":
+                ylabel = rf"{field} [K]"
+            elif self.units == "pW":
+                ylabel = f"{field} [pW]"
+
+            tod_ax.set_ylabel(ylabel)
+
+            if i + 1 < n_fields:
+                tod_ax.set_xticklabels([])
+
+        ps_ax.yaxis.tick_right()
+        ps_ax.yaxis.set_label_position("right")
+
+        if self.units == "K_RJ":
+            pslabel = rf"{field} [K$^2$/Hz]"
+        elif self.units == "K_CMB":
+            pslabel = rf"{field} [K$^2$/Hz]"
+        elif self.units == "pW":
+            pslabel = rf"{field} [pW$^2$/Hz]"
+
+        ps_ax.set_xlabel("T [s]")
+        ps_ax.set_ylabel(pslabel)
+
         ps_ax.legend()
         ps_ax.loglog()
         ps_ax.set_xlim(f_mids.min(), f_mids.max())
 
         ps_ax.set_xlabel("Frequency [Hz]")
 
-        ylabel = (
-            r"Power spectrum [$K_{\rm RJ}^2~{\rm Hz}^{-1}$]"
-            if calibrate
-            else r"Power spectrum [pW$^2$Hz$^{-1}$]"
-        )
+    def __getattr__(self, attr):
+        if attr in self.fields:
+            return self.data[attr]
+        raise AttributeError(f"No attribute named '{attr}'.")
 
-        tod_ax.set_xlim(float(self.time.min()), float(self.time.max()))
-        tod_ax.set_ylabel(ylabel)
+    def __repr__(self):
+        return f"TOD(shape={self.shape}, fields={self.fields})"
 
 
 class KeyNotFoundError(Exception):

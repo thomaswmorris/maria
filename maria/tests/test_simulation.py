@@ -32,5 +32,9 @@ def test_complete_sim(instrument, site, plan_config):
     tod = sim.run()
 
     for field in ["atmosphere", "cmb"]:
-        if np.isnan(tod.components[field]).any():
+        if np.isnan(tod.data[field]).any():
             raise ValueError(f"There are NaNs in the '{field}' field.")
+
+    tod = tod.to("K_RJ")
+
+    tod.plot()

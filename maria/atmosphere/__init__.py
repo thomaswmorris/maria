@@ -78,16 +78,11 @@ class Atmosphere:
             sim, mode=self.model, angular=self.angular, h_max=self.h_max
         )
 
-        atm_boresight = sim.boresight.downsample(timestep=timestep)
-        self.coords = atm_boresight.broadcast(dets=sim.instrument.dets)
-
-        # time_subset = list(sp.spatial.ConvexHull(np.c_[atm_boresight.az, atm_boresight.el]).vertices)
-        # time_subset.extend(np.arange(0, len(atm_boresight.time), 10))
-        # time_subset.extend([0, -1])
-        # time_subset = np.sort(np.unique(time_subset))
+        self.boresight = sim.boresight.downsample(timestep=timestep)
+        self.coords = self.boresight.broadcast(dets=sim.instrument.dets)
 
         # this is a smaller version of the sim coords
-        outer_coords = atm_boresight.broadcast(dets=sim.instrument.dets.outer())
+        outer_coords = self.boresight.broadcast(dets=sim.instrument.dets.outer())
 
         self.processes = {}
 
@@ -104,23 +99,23 @@ class Atmosphere:
 
             if process_layers.angular.any():
                 vx = (
-                    process_layers.wind_east.values[:, None] * np.cos(atm_boresight.az)
+                    process_layers.wind_east.values[:, None] * np.cos(self.boresight.az)
                     - process_layers.wind_north.values[:, None]
-                    * np.sin(atm_boresight.az)
+                    * np.sin(self.boresight.az)
                 ) / process_layers.h.values[:, None]
                 vy = (
                     -process_layers.wind_north.values[:, None]
-                    * np.cos(atm_boresight.az)
+                    * np.cos(self.boresight.az)
                     - process_layers.wind_east.values[:, None]
-                    * np.sin(atm_boresight.az)
-                ) / (process_layers.h.values[:, None] * np.sin(atm_boresight.el))
+                    * np.sin(self.boresight.az)
+                ) / (process_layers.h.values[:, None] * np.sin(self.boresight.el))
                 vx, vy = vx.compute(), vy.compute()
             else:
                 vx = process_layers.wind_east.values[:, None] * np.ones(
-                    atm_boresight.shape[-1]
+                    self.boresight.shape[-1]
                 )
                 vy = process_layers.wind_north.values[:, None] * np.ones(
-                    atm_boresight.shape[-1]
+                    self.boresight.shape[-1]
                 )
 
             w = (
@@ -190,10 +185,10 @@ class Atmosphere:
                 wide_lp_dense = np.c_[wide_lp_x_dense, wide_lp_z_dense]
                 interior = triangulation.find_simplex(wide_lp_dense) > -1
                 lp_dense_x = wide_lp_x_dense[interior]
-                n_lp = np.maximum(2, int(np.ptp(np.atleast_1d(lp_dense_x)) / res))
-                lp_x = np.linspace(
-                    lp_dense_x.min() - res, lp_dense_x.max() + 2 * res, n_lp
-                )
+                lp_x_min = lp_dense_x.min() - 2 * res
+                lp_x_max = lp_dense_x.max() + 2 * res
+                n_lp = np.maximum(3, int((lp_x_max - lp_x_min) / res))
+                lp_x = np.linspace(lp_x_min, lp_x_max, n_lp)
                 lp_z = layer_entry.h * np.ones(len(lp_x))
                 lp = np.c_[lp_x, lp_z]
                 n_lp = len(lp)

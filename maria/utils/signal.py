@@ -95,6 +95,14 @@ def get_bspline_basis(x, spacing=60, order=3, **kwargs):
     return basis
 
 
+def detrend(D, order=3):
+    x = np.linspace(-1, 1, D.shape[-1])
+    X = np.c_[[x**i for i in range(order + 1)]]
+    A = D @ X.T @ np.linalg.inv(X @ X.T).T
+
+    return D - A @ X
+
+
 def lowpass(data, fc, fs, order=1, method="bessel"):
     if method == "bessel":
         sos = sp.signal.bessel(

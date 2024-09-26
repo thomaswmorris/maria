@@ -96,7 +96,6 @@ class BaseSimulation:
         logger.debug("Constructed site.")
 
         self.data = {}
-        # self.calibration = np.ones((self.instrument.dets.n, self.plan.n_time))
 
         self.boresight = Coordinates(
             time=self.plan.time,
@@ -139,16 +138,10 @@ class BaseSimulation:
         self._run()
 
         tod = TOD(
-            components={k: v.astype(dtype) for k, v in self.data.items()},
-            dets=self.instrument.dets.df,
+            data={k: v.astype(dtype) for k, v in self.data.items()},
+            dets=self.instrument.dets,
             coords=self.coords,
+            units="pW",
         )
-
-        tod.dets.loc[:, "cal"] = (
-            1 / self.instrument.dets.dP_dTRJ
-        )  # takes the data to TRJ
-
-        # tod.metadata = pd.Series({"pwv": self.atmosphere.weather.pwv,
-        #                         "region": self.site.region})
 
         return tod

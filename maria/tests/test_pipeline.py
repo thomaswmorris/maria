@@ -54,7 +54,7 @@ def test_map_sim():
         height=np.radians(10.0 / 60.0),
         resolution=np.radians(4.0 / 3600.0),
         degrees=False,
-        tod_postprocessing={
+        tod_preprocessing={
             "remove_modes": {"n": 1},
             "filter": {"f": 0.08},
             "despline": {"knot_spacing": 10},
