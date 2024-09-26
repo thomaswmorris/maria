@@ -13,3 +13,4 @@ Usage
    cmb.rst
    maps.rst
    noise.rst
+   mapping.rst
