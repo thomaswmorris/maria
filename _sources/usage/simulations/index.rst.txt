@@ -1,6 +1,6 @@
-###########
-Simulations
-###########
+########
+Overview
+########
 
 Simulations in ``maria`` are done with a ``Simulation``, to which we pass an instrument, a site, and an observing plan::
 
@@ -18,6 +18,7 @@ which has the simulated timestreams for each pixel along with some metadata. The
     another_tod = sim.run()
 
     yet_another_tod = sim.run()
+
 
 
 +++++++++++++++++++++++
