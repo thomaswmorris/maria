@@ -385,7 +385,8 @@ class TOD:
 
         ps_ax = fig.add_subplot(gs[:, 1])
 
-        color_iterator = iter(plt.rcParams["axes.prop_cycle"].by_key()["color"])
+        i = 0
+        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
         n_fields = len(self.data)
 
@@ -393,7 +394,8 @@ class TOD:
             tod_ax = fig.add_subplot(gs[i, 0])
 
             for band_name in np.unique(self.dets.band_name):
-                color = next(color_iterator)
+                color = colors[i]
+                i = (i + 1) % len(colors)
 
                 band_mask = self.dets.band_name == band_name
                 d = data[band_mask]

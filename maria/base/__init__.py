@@ -80,7 +80,7 @@ class BaseSimulation:
         if isinstance(plan, Plan):
             self.plan = plan
         else:
-            self.plan = get_plan(scan_pattern=plan, **parsed_sim_kwargs["plan"])
+            self.plan = get_plan(plan_name=plan, **parsed_sim_kwargs["plan"])
 
         logger.debug("Constructed plan.")
 

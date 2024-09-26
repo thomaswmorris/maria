@@ -34,12 +34,12 @@ all_plans = list(plan_data.index.values)
 class UnsupportedPlanError(Exception):
     def __init__(self, invalid_plan):
         super().__init__(
-            f"""The site '{invalid_plan}' is not in the database of default plans."""
-            f"""Default plans are:\n\n{plan_data.to_string()}"""
+            f"""The plan '{invalid_plan}' is not a supported plan. """
+            f"""Supported plans are:\n\n{plan_data.to_string()}"""
         )
 
 
-def get_plan_config(plan_name="daisy", **kwargs):
+def get_plan_config(plan_name="one_minute_zenith_stare", **kwargs):
     if plan_name not in plan_configs.keys():
         raise UnsupportedPlanError(plan_name)
     plan_config = plan_configs[plan_name].copy()
@@ -48,7 +48,7 @@ def get_plan_config(plan_name="daisy", **kwargs):
     return plan_config
 
 
-def get_plan(plan_name="daisy", **kwargs):
+def get_plan(plan_name="one_minute_zenith_stare", **kwargs):
     plan_config = get_plan_config(plan_name, **kwargs)
     return Plan(**plan_config)
 

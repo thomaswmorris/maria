@@ -1,15 +1,16 @@
-stare:
+one_minute_zenith_stare:
   description: A stare.
   duration: 60
   scan_pattern: stare
   frame: az_el
-  scan_center: [0, 45]
+  scan_center: [0, 90]
   degrees: True
   sample_rate: 20
   scan_options: {}
 
-daisy:
+daisy_2deg_10min:
   description: A daisy scan.
+  duration: 60
   frame: ra_dec
   degrees: True
   scan_pattern: daisy
@@ -22,7 +23,7 @@ daisy:
     miss_factor: 0.15
     miss_freq: 1.41
 
-back_and_forth:
+back_and_forth_10deg_45el:
   description: A back-and-forth scan.
   start_time: '2022-07-01T08:00:00'
   duration: 60
@@ -32,8 +33,7 @@ back_and_forth:
   degrees: True
   sample_rate: 20
   scan_options:
-    x_throw: 5
-    y_throw: 0
+    radius: 5
     speed: 0.5
 
 # double_circle:
