@@ -3,14 +3,10 @@ Usage
 =====
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   simulations.rst
-   instruments.rst
-   sites.rst
-   plans.rst
-   atmosphere.rst
-   cmb.rst
-   maps.rst
-   noise.rst
-   mapping.rst
+   usage/instruments.rst
+   usage/sites.rst
+   usage/plans.rst
+   usage/simulations.rst
+   usage/mapping.rst

@@ -13,7 +13,7 @@ all_test_plan_configs = list(read_yaml(f"{here}/configs/test_plans.yml").values(
 
 all_instruments.pop(all_instruments.index("alma/ALMA"))
 
-n_sims = 6
+n_sims = 8
 test_instruments = np.random.choice(a=all_instruments, size=n_sims)
 test_sites = np.random.choice(a=all_sites, size=n_sims)
 test_plan_configs = np.random.choice(a=all_test_plan_configs, size=n_sims)
