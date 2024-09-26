@@ -25,7 +25,7 @@ def test_weather_from_cache(region_name):
 def test_atmosphere_2d():
     sim = Simulation(
         instrument="MUSTANG-2",
-        plan="daisy",
+        plan="one_minute_zenith_stare",
         site="green_bank",
         atmosphere="2d",
     )
