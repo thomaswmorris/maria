@@ -56,18 +56,6 @@ class Detectors:
         }.items():
             self.df.loc[:, det_attr] = getattr(self, band_attr)
 
-    def __getattr__(self, attr):
-        if attr in self.df.columns:
-            return self.df.loc[:, attr].values.astype(DET_COLUMN_TYPES[attr])
-
-        if all(hasattr(band, attr) for band in self.bands):
-            values = np.zeros(shape=self.n, dtype=float)
-            for band in self.bands:
-                values[self.band_name == band.name] = getattr(band, attr)
-            return values
-
-        raise AttributeError(f"'Detectors' object has no attribute '{attr}'")
-
     def mask(self, **kwargs):
         mask = np.ones(len(self.df)).astype(bool)
         for k, v in kwargs.items():
@@ -114,9 +102,6 @@ class Detectors:
     def max_baseline(self):
         return compute_diameter(self.baselines)
 
-    def __len__(self):
-        return len(self.df)
-
     @property
     def index(self):
         return self.df.index.values
@@ -152,14 +137,27 @@ class Detectors:
             PB[self.band_name == band.name] = band.passband(_nu)
         return PB
 
-    def cal(self, units: str):
+    def cal(self, signature: str) -> float:
+        """ """
         c = np.zeros(self.n)
-        attr = units  # TODO: make this more flexible
         for band in self.bands:
-            mask = self.mask(band_name=band.name)
-            c[mask] = getattr(band, attr)
-
+            c[self.mask(band_name=band.name)] = band.cal(signature)
         return c
+
+    def __getattr__(self, attr):
+        if attr in self.df.columns:
+            return self.df.loc[:, attr].values.astype(DET_COLUMN_TYPES[attr])
+
+        if all(hasattr(band, attr) for band in self.bands):
+            values = np.zeros(shape=self.n, dtype=float)
+            for band in self.bands:
+                values[self.band_name == band.name] = getattr(band, attr)
+            return values
+
+        raise AttributeError(f"'Detectors' object has no attribute '{attr}'")
+
+    def __len__(self):
+        return len(self.df)
 
     def __repr__(self):
         return self.df.__repr__()

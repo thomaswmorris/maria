@@ -1,5 +1,6 @@
 import functools
 import logging
+import time as ttime
 from datetime import datetime
 from typing import Any
 
@@ -82,6 +83,8 @@ class Coordinates:
         distributed: bool = True,
         dtype=np.float32,
     ):
+        ref_time = ttime.monotonic()
+
         self._x = x
         self._y = y
         self._z = z
@@ -139,7 +142,7 @@ class Coordinates:
         # self.sampled_time += self.time.mean() - self.sampled_time.mean()
 
         self.sampled_time = np.linspace(
-            self.time.min(), self.time.max(), int(np.maximum(2, duration / 10))
+            self.time.min(), self.time.max(), int(np.maximum(2, duration / 5))
         )
 
         sample_indices = interp1d(self.time, np.arange(len(self.time)), axis=0)(
@@ -168,6 +171,11 @@ class Coordinates:
 
             setattr(self, config["phi"], phi)
             setattr(self, config["theta"], theta)
+
+        duration_ms = 1e3 * (ttime.monotonic() - ref_time)
+        logger.debug(
+            f"Initialized coordinates with shape {self.shape} in {int(duration_ms)} ms."
+        )
 
     def downsample(self, timestep: float = None, factor: int = None):
         if timestep is None and factor is None:
@@ -275,7 +283,7 @@ class Coordinates:
             interp1d(
                 self.sampled_time,
                 sampled_rotation_matrix,
-                kind="nearest",
+                kind="linear",
                 bounds_error=False,
                 fill_value="extrapolate",
                 axis=0,
@@ -382,7 +390,6 @@ class Coordinates:
         if isinstance(center, str):
             if center == "auto":
                 center = get_center_phi_theta(*self.to(frame))
-
         if frame == "az_el":
             dx, dy = phi_theta_to_dx_dy(self.az, self.el, *center)
         elif frame == "ra_dec":

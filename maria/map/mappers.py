@@ -125,7 +125,7 @@ class BinMapper(BaseMapper):
         units: str = "K_RJ",
         degrees: bool = True,
         calibrate: bool = False,
-        tod_postprocessing: dict = {},
+        tod_preprocessing: dict = {},
         map_postprocessing: dict = {},
         tods: Sequence[TOD] = [],
     ):
@@ -141,8 +141,9 @@ class BinMapper(BaseMapper):
             units=units,
         )
 
-        self.tod_postprocessing = tod_postprocessing
+        self.tod_preprocessing = tod_preprocessing
         self.map_postprocessing = map_postprocessing
+        self.units = units
 
     def _run(self, band):
         """
@@ -159,21 +160,18 @@ class BinMapper(BaseMapper):
         )  # noqa
 
         for tod in tods_pbar:
-            band_tod = tod.subset(band=band)
-
-            W, D = band_tod.process(**self.tod_postprocessing)
-            D *= band_tod.dets.cal.values[..., None]  # convert to KRJ
+            band_tod = (
+                tod.subset(band=band).process(**self.tod_preprocessing).to(self.units)
+            )
 
             dx, dy = band_tod.coords.offsets(frame=self.frame, center=self.center)
 
             nu = band_tod.dets.band_center.mean()
 
-            del band_tod
-
             map_sum = sp.stats.binned_statistic_2d(
                 dx.ravel(),
                 dy.ravel(),
-                D.ravel(),
+                (band_tod.weight * band_tod.signal).ravel(),
                 bins=(self.x_bins, self.y_bins),
                 statistic="sum",
             )[0]
@@ -181,10 +179,12 @@ class BinMapper(BaseMapper):
             map_weight = sp.stats.binned_statistic_2d(
                 dx.ravel(),
                 dy.ravel(),
-                W.ravel(),
+                band_tod.weight.ravel(),
                 bins=(self.x_bins, self.y_bins),
                 statistic="sum",
             )[0]
+
+            del band_tod
 
             band_map_data["sum"] += map_sum
             band_map_data["weight"] += map_weight

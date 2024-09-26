@@ -18,7 +18,7 @@ def load_mustang2_tod(fname: str, hdu: int = 1):
     n_dets = len(det_uids)
     n_samp = det_counts.max()
 
-    components = {"data": raw["FNU"].astype("float32").reshape((n_dets, n_samp))}
+    data = {"data": raw["FNU"].astype("float32").reshape((n_dets, n_samp))}
 
     ra = raw["dx"].astype(float).reshape((n_dets, n_samp))
     dec = raw["dy"].astype(float).reshape((n_dets, n_samp))
@@ -37,4 +37,4 @@ def load_mustang2_tod(fname: str, hdu: int = 1):
 
     m2 = instrument.get_instrument(**m2_config)
 
-    return TOD(coords=coords, dets=m2.dets, components=components, units={"data": "K"})
+    return TOD(coords=coords, dets=m2.dets, data=data, units={"data": "K"})

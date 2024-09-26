@@ -66,6 +66,21 @@ def parse_bands(bands):
     return band_list
 
 
+def parse_calibration_signature(s):
+    valid_units = ["pW", "K_RJ", "K_CMB"]
+    for sep in ["/", "->"]:
+        if s.count(sep) == 1:
+            if sep is not None:
+                items = [u.strip() for u in s.split(sep)]
+                if len(items) == 2:
+                    for u in items:
+                        if u not in valid_units:
+                            raise ValueError(f"Invalid units '{u}'.")
+                    return items
+
+    raise ValueError("Calibration must have signature 'units1 -> units2'.")
+
+
 class Band:
     def __init__(
         self,
@@ -282,6 +297,32 @@ class Band:
             * np.diff(np.trapezoid(TRJ * self.passband(nu), 1e9 * nu))[0]
             / eps
         )
+
+    def cal(self, signature: str) -> float:
+        """
+        We compute this as
+
+
+        d(out units) / d(in units) = (d(out units) / d(pW)) / (d(in units) / d(pW))
+        """
+
+        in_units, out_units = parse_calibration_signature(signature)
+
+        if in_units == "K_RJ":
+            d_in_d_pW = 1 / self.dP_dTRJ
+        elif in_units == "K_CMB":
+            d_in_d_pW = 1 / self.dP_dTCMB
+        else:
+            d_in_d_pW = 1
+
+        if out_units == "K_RJ":
+            d_out_d_pW = 1 / self.dP_dTRJ
+        elif out_units == "K_CMB":
+            d_out_d_pW = 1 / self.dP_dTCMB
+        else:
+            d_out_d_pW = 1
+
+        return d_out_d_pW / d_in_d_pW
 
     @property
     def wavelength(self):
