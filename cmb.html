@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Sites" href="sites.html" /><link rel="prev" title="Simulations" href="simulations.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Maps" href="maps.html" /><link rel="prev" title="Plans" href="plans.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
-        <title>Instruments - maria</title>
+        <title>Simulations - maria</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -180,7 +180,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -204,10 +204,10 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="usage.html">Usage</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="simulations.html">Simulations</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Instruments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instruments.html">Instruments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sites.html">Sites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plans.html">Plans</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cmb.html">Simulations</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="maps.html">Maps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="noise.html">Sites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mapping.html">Sites</a></li>
@@ -241,7 +241,7 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="_sources/instruments.rst.txt" title="View this page">
+  <a class="muted-link" href="_sources/cmb.rst.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -255,73 +255,33 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="instruments">
-<h1>Instruments<a class="headerlink" href="#instruments" title="Link to this heading">¶</a></h1>
-<p>The observing instrument is instantiated as an <code class="docutils literal notranslate"><span class="pre">Instrument</span></code>.
-The simplest way to get an instrument is to grab a pre-defined one, e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The Atacama Cosmology Telescope</span>
-<span class="n">act</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;ACT&#39;</span><span class="p">)</span>
+          <section id="simulations">
+<h1>Simulations<a class="headerlink" href="#simulations" title="Link to this heading">¶</a></h1>
+<p>Simulations in <code class="docutils literal notranslate"><span class="pre">maria</span></code> are done with a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>, to which we pass an instrument, a site, and an observing plan:</p>
+<blockquote>
+<div><p>import maria</p>
+<dl class="simple">
+<dt>sim = maria.Simulation(instrument=”ACT”,</dt><dd><p>site=”llano_de_chajnantor”,
+plan=”one_minute_zenith_stare”)</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Running a simulation will spit out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (short for time-ordered data)</p>
+<blockquote>
+<div><p>tod = sim.run()</p>
+</div></blockquote>
+<p>which has the simulated timestreams for each pixel along with some metadata. The same simulation can produce any number of <code class="docutils literal notranslate"><span class="pre">TOD</span></code> objects, continuing from where the last TOD left off:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="c1"># The Atacama Large Millimeter Array</span>
-<span class="n">alma</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;ALMA&#39;</span><span class="p">)</span>
-
-<span class="c1"># MUSTANG-2</span>
-<span class="n">m2</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">)</span>
+<span class="n">yet_another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
-<section id="customizing-passbands">
-<h2>Customizing passbands<a class="headerlink" href="#customizing-passbands" title="Link to this heading">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.instrument</span> <span class="kn">import</span> <span class="n">Band</span>
-
-<span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="c1"># in GHz</span>
-               <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="c1"># in GHz</span>
-               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
-               <span class="n">sensitivity</span><span class="o">=</span><span class="mf">1e-5</span>
-               <span class="p">)</span>
-</pre></div>
-</div>
-<p>Note that any sensitivity units are only implicit due to the imperfect efficiency (caused by the instrument and the atmosphere).
-For a heuristic, the band implicitly assumes that we are observing the zenith at the ALMA site with a PWV of 1mm, and converts the given sensitivity to the corresponding noise equivalent power.
-We can customize this by setting the sensitivity as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span><span class="o">.</span><span class="n">set_sensitivity</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">pwv</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;mauna_kea&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="customizing-arrays">
-<h2>Customizing arrays<a class="headerlink" href="#customizing-arrays" title="Link to this heading">¶</a></h2>
-<p>To customize an array, we specify a field of view and add some <cite>Band</cite>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span> <span class="c1"># in meters</span>
-         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span> <span class="c1"># in degrees</span>
-         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">my_band</span><span class="p">],</span>
-         <span class="p">}</span>
-</pre></div>
-</div>
-<p>When passed to <cite>Instrument</cite>, this will generate an array such that the beams do not overlap and fill up the field of view.
-Instead of a <cite>Band</cite>, we can also pass a string that names a pre-defined band, or a mixture of the two.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span> <span class="c1"># in meters</span>
-         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span> <span class="c1"># in degrees</span>
-         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">my_band</span><span class="p">,</span> <span class="s2">&quot;mustang2/f093&quot;</span><span class="p">],</span>
-         <span class="p">}</span>
-</pre></div>
-</div>
-<p>Constructing an <cite>Instrument</cite> is then done as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="n">array</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>To construct an instrument with multiple subarrays, we can create a <cite>dict</cite> wherein each value is a valid array:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">subarrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;array1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;array_offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f150</span><span class="p">]},</span>
-            <span class="s2">&quot;array2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;array_offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f150</span><span class="p">]},}</span>
-
-<span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">subarrays</span><span class="o">=</span><span class="n">subarrays</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
 </section>
 
         </article>
@@ -329,23 +289,23 @@ Instead of a <cite>Band</cite>, we can also pass a string that names a pre-defin
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="sites.html">
+          <a class="next-page" href="maps.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Sites</div>
+                <div class="title">Maps</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="simulations.html">
+          <a class="prev-page" href="plans.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Simulations</div>
+                <div class="title">Plans</div>
                 
               </div>
             </a>
@@ -367,28 +327,8 @@ Instead of a <cite>Band</cite>, we can also pass a string that names a pre-defin
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Instruments</a><ul>
-<li><a class="reference internal" href="#customizing-passbands">Customizing passbands</a></li>
-<li><a class="reference internal" href="#customizing-arrays">Customizing arrays</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
