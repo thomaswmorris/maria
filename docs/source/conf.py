@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "maria"
-copyright = "2023, Thomas W. Morris"
+copyright = "2024, Thomas W. Morris"
 author = "Thomas W. Morris"
 
 html_title = "maria"
