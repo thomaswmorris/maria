@@ -5,16 +5,15 @@ import warnings
 import dask.array as da
 import h5py
 import matplotlib as mpl  # noqa
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
 from astropy.io import fits
-from matplotlib.gridspec import GridSpec
 
 from maria import utils
 
 from ..coords import Coordinates
+from ..plotting import plot_tod
 
 
 class TOD:
@@ -43,6 +42,7 @@ class TOD:
         units: str = "K_RJ",
         dets: pd.DataFrame = None,
         abscal: float = 1.0,
+        distributed: bool = True,
         dtype=np.float32,
     ):
         self.weight = weight
@@ -55,11 +55,12 @@ class TOD:
 
         self.data = {}
 
-        for field, data in data.items():
-            self.data[field] = (
-                data if isinstance(data, da.Array) else da.from_array(data)
-            )
-            self.data[field] = self.data[field].astype(dtype)
+        for field, field_data in data.items():
+            self.data[field] = field_data
+            d = field_data["data"]
+
+            if distributed and not isinstance(d, da.Array):
+                self.data[field]["data"] = da.from_array(d)
 
         # sort them alphabetically
         self.data = {k: self.data[k] for k in sorted(list(self.fields))}
@@ -67,12 +68,37 @@ class TOD:
         if self.weight is None:
             self.weight = da.ones_like(self.signal)
 
+    def get_field(self, field: str):
+        if field not in self.fields:
+            raise ValueError(f"Field '{field}' not found.")
+
+        d = self.data[field]["data"]
+
+        if "scale" in self.data[field]:
+            d *= self.data[field]["scale"]
+
+        if "offset" in self.data[field]:
+            d += self.data[field]["offset"]
+
+        return d
+
     def to(self, units: str):
         cal = self.dets.cal(f"{self.units} -> {units}")
 
+        cal_data = {}
+        for field in self.fields:
+            cal_data[field] = self.data[field]
+            scale = (
+                cal_data[field].get(
+                    "scale", np.ones(cal_data[field]["data"].shape[:-1])
+                )
+                * cal
+            )[:, None]
+            cal_data[field]["scale"] = scale
+
         return TOD(
             coords=self.coords,
-            data={k: cal[:, None] * v for k, v in self.data.items()},
+            data=cal_data,
             units=units,
             dets=self.dets,
             abscal=self.abscal,
@@ -89,7 +115,7 @@ class TOD:
 
     @functools.cached_property
     def signal(self) -> da.Array:
-        return sum(self.data.values())
+        return sum([self.get_field(field) for field in self.fields])
 
     @functools.cached_property
     def boresight(self):
@@ -161,9 +187,8 @@ class TOD:
 
             return TOD(
                 data={
-                    field: data[det_mask]
-                    for field, data in self.data.items()
-                    if field in fields
+                    field: {k: v[det_mask] for k, v in self.data[field].items()}
+                    for field in self.fields
                 },
                 weight=self.weight[det_mask],
                 coords=subset_coords,
@@ -223,7 +248,7 @@ class TOD:
             D -= A.T @ B
 
         return TOD(
-            data={"data": D},
+            data={"total": {"data": D}},
             weight=W,
             coords=self.coords,
             units=self.units,
@@ -370,103 +395,15 @@ class TOD:
             f.createdataset(fname)
 
     def plot(self, detrend=True, mean=True, n_freq_bins: int = 256):
-        # def format_axes(fig):
-        #     for i, ax in enumerate(fig.axes):
-        #         ax.text(0.5, 0.5, "ax%d" % (i+1), va="center", ha="center")
-        #         ax.tick_params(labelbottom=False, labelleft=False)
-
-        fig = plt.figure(figsize=(8, 5), dpi=160, constrained_layout=True)
-
-        gs = GridSpec(
-            len(self.fields),
-            2,
-            figure=fig,
+        plot_tod(
+            self,
+            detrend=detrend,
+            n_freq_bins=n_freq_bins,
         )
-
-        ps_ax = fig.add_subplot(gs[:, 1])
-
-        i = 0
-        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
-        n_fields = len(self.data)
-
-        for i, (field, data) in enumerate(self.data.items()):
-            tod_ax = fig.add_subplot(gs[i, 0])
-
-            for band_name in np.unique(self.dets.band_name):
-                color = colors[i]
-                i = (i + 1) % len(colors)
-
-                band_mask = self.dets.band_name == band_name
-                d = data[band_mask]
-
-                if detrend:
-                    d = sp.signal.detrend(d)
-
-                f, ps = sp.signal.periodogram(
-                    sp.signal.detrend(d), fs=self.fs, window="tukey"
-                )
-
-                f_bins = np.geomspace(f[1], f[-1], n_freq_bins)
-                f_mids = np.sqrt(f_bins[1:] * f_bins[:-1])
-
-                binned_ps = sp.stats.binned_statistic(
-                    f, ps.mean(axis=0), bins=f_bins, statistic="mean"
-                )[0]
-
-                use = binned_ps > 0
-
-                ps_ax.plot(
-                    f_mids[use],
-                    binned_ps[use],
-                    lw=1e0,
-                    color=color,
-                    label=f"{band_name} {field}",
-                )
-                tod_ax.plot(
-                    self.time,
-                    d[0],
-                    lw=5e-1,
-                    label=f"{band_name} {field}",
-                    color=color,
-                )
-
-            tod_ax.set_xlim(self.time.min(), self.time.max())
-
-            if self.units == "K_RJ":
-                ylabel = f"{field} [K]"
-            elif self.units == "K_CMB":
-                ylabel = rf"{field} [K]"
-            elif self.units == "pW":
-                ylabel = f"{field} [pW]"
-
-            tod_ax.set_ylabel(ylabel)
-
-            if i + 1 < n_fields:
-                tod_ax.set_xticklabels([])
-
-        ps_ax.yaxis.tick_right()
-        ps_ax.yaxis.set_label_position("right")
-
-        if self.units == "K_RJ":
-            pslabel = rf"{field} [K$^2$/Hz]"
-        elif self.units == "K_CMB":
-            pslabel = rf"{field} [K$^2$/Hz]"
-        elif self.units == "pW":
-            pslabel = rf"{field} [pW$^2$/Hz]"
-
-        ps_ax.set_xlabel("T [s]")
-        ps_ax.set_ylabel(pslabel)
-
-        ps_ax.legend()
-        ps_ax.loglog()
-        ps_ax.set_xlim(f_mids.min(), f_mids.max())
-
-        ps_ax.set_xlabel("Frequency [Hz]")
 
     def __getattr__(self, attr):
         if attr in self.fields:
-            return self.data[attr]
+            return self.get_field(attr)
         raise AttributeError(f"No attribute named '{attr}'.")
 
     def __repr__(self):

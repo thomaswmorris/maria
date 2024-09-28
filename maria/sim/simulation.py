@@ -39,7 +39,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
     def __init__(
         self,
         instrument: tuple[Instrument, str] = "default",
-        plan: tuple[Plan, str] = "daisy",
+        plan: tuple[Plan, str] = "one_minute_zenith_stare",
         site: tuple[Site, str] = "hoagie_haven",
         atmosphere: tuple[Atmosphere, str] = None,
         cmb: tuple[CMB, str] = None,
@@ -129,23 +129,20 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 raise ValueError(f"Invalid value for cmb: '{cmb}'.")
 
     def _run(self):
-        # number of bands are lost here
-        if self.noise:
-            self._simulate_noise()
-
         if hasattr(self, "atmosphere"):
-            if self.atmosphere.model == "2d-classic":
-                self._classic_simulate_atmospheric_emission()
-            else:
-                self._simulate_atmosphere()
-                self._compute_atmospheric_emission()
-                self._compute_atmospheric_transmission()
+            self._simulate_atmosphere()
+            self._compute_atmospheric_emission()
+            self._compute_atmospheric_transmission()
 
         if hasattr(self, "cmb"):
             self._simulate_cmb_emission()
 
         if hasattr(self, "map"):
             self._sample_maps()
+
+        # number of bands are lost here
+        if self.noise:
+            self._simulate_noise()
 
         # scale the noise so that there is
         if hasattr(self, "atmospheric_transmission"):

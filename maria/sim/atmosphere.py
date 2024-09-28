@@ -67,7 +67,7 @@ class AtmosphereMixin:
                 bounds_error=False,
                 fill_value="extrapolate",
             )(self.coords.time)
-        ).astype(np.float32)
+        )
 
     def _compute_atmospheric_transmission(self):
         self.atmosphere.transmission = da.zeros_like(self.atmosphere.zenith_scaled_pwv)
@@ -129,7 +129,7 @@ class AtmosphereMixin:
                 bounds_error=False,
                 fill_value="extrapolate",
             )(self.coords.time)
-        ).astype(np.float32)
+        )
 
         # if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸
         #     self._simulate_atmospheric_emission(self, units="K_RJ")
@@ -244,7 +244,7 @@ class AtmosphereMixin:
         if units == "K_RJ":  # Kelvin Rayleigh-Jeans
             self._simulate_atmospheric_fluctuations()
             self.data["atmosphere"] = np.empty(
-                (self.instrument.n_dets, self.plan.n_time), dtype=np.float32
+                (self.instrument.n_dets, self.plan.n_time)
             )
 
             bands = (
@@ -291,7 +291,7 @@ class AtmosphereMixin:
                 )
 
             self.atmospheric_transmission = np.empty(
-                (self.instrument.n_dets, self.plan.n_time), dtype=np.float32
+                (self.instrument.n_dets, self.plan.n_time)
             )
 
             # to make a new progress bar

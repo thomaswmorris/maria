@@ -81,7 +81,7 @@ class Coordinates:
         earth_location: EarthLocation = DEFAULT_EARTH_LOCATION,
         frame: str = "ra_dec",
         distributed: bool = True,
-        dtype=np.float32,
+        dtype=np.float64,
     ):
         ref_time = ttime.monotonic()
 
