@@ -9,7 +9,7 @@ maria
 .. `Oh, maria blows the stars around / and sends the clouds
 .. a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
 
-*Oh, maria blows the stars around / and sends the clouds a-flyin’*
+*maria blows the stars around / and sends the clouds a-flyin’*
 
 .. raw:: html
 

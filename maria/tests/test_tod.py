@@ -20,4 +20,4 @@ def test_TOD():
 
     noise = generate_noise_with_knee(t=time, n=n, NEP=0.01, knee=0.5)
 
-    tod = TOD(data=dict(noise=noise), coords=coords)
+    tod = TOD(data=dict(noise=dict(data=noise)), coords=coords)
