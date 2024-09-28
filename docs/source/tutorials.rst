@@ -7,4 +7,4 @@ Tutorials
 
    tutorials/custom-map-simulations
    tutorials/MUSTANG-2_cluster
-   tutorials/AtLAST_cluster
+   .. tutorials/AtLAST_cluster
