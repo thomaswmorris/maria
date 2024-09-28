@@ -55,15 +55,17 @@ class BaseSimulation:
 
     def __init__(
         self,
-        instrument: Union[Instrument, str] = "default",
-        plan: Union[Plan, str] = "stare",
-        site: Union[Site, str] = "default",
+        instrument: Union[Instrument, str],
+        plan: Union[Plan, str],
+        site: Union[Site, str],
         verbose=False,
+        dtype=np.float32,
         **kwargs,
     ):
         if hasattr(self, "boresight"):
             return
 
+        self.dtype = dtype
         self.verbose = verbose
 
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
@@ -131,14 +133,22 @@ class BaseSimulation:
     def _run(self):
         raise NotImplementedError()
 
-    def run(self, dtype=np.float32):
+    def run(self):
         self.data = {}
 
         # Simulate all the junk
         self._run()
 
+        tod_data = {}
+
+        for k, data in self.data.items():
+            # scaling floats doesn't make them more accurate, unless they're huge or tiny
+            offset = data.mean(axis=-1)[..., None]
+            # scale = data.std(axis=-1)[..., None]
+            tod_data[k] = {"data": (data - offset).astype(self.dtype), "offset": offset}
+
         tod = TOD(
-            data={k: v.astype(dtype) for k, v in self.data.items()},
+            data=tod_data,
             dets=self.instrument.dets,
             coords=self.coords,
             units="pW",

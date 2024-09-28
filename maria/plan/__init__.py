@@ -127,8 +127,8 @@ class Plan:
             x_scan_offsets_radians, y_scan_offsets_radians
         ].T
 
-        # add jitter, should be well sub-arcsecond
-        self.scan_offsets_radians += 1e-7 * np.random.standard_normal(
+        # add 0.1 arcseconds of jitter
+        self.scan_offsets_radians += np.radians(0.1 / 3600) * np.random.standard_normal(
             size=self.scan_offsets_radians.shape
         )
 

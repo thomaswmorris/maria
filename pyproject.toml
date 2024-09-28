@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "maria"
 dynamic = ["version"]
-description = "Ground-based telescope simulations"
+description = "A simulator for ground-based millimeter- and submillimeter-wave telescopes."
 readme = { file = "README.rst", content-type = "text/x-rst" }
 dependencies = [
   "astropy",

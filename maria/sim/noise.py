@@ -12,7 +12,7 @@ class NoiseMixin:
 
     def _simulate_noise(self):
         self.data["noise"] = da.from_array(
-            np.zeros((self.instrument.n_dets, self.plan.n_time), dtype=np.float32)
+            np.zeros((self.instrument.n_dets, self.plan.n_time))
         )
 
         bands = tqdm(
