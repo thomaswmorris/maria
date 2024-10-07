@@ -276,24 +276,6 @@
 <p>We use Maria to generate synthetic mock observations for bolometric arrays installed on single-dish telescopes. The tool consists of four parts: An input map, an observing plan, an instrument, and a site. All are then combined in a wrapper named Simulation. As explained in the section “Usage”, we can emulate all kinds of telescopes, like ACT, Toltec, GBT, and AtLAST.</p>
 <p>The simulation tool generates time-ordered domain (TOD) data. By simulating distinct atmospheric layers corresponding to the designated site within the simulation, we allow the mock array to sweep across the input celestial sky while scanning through the evolving atmosphere. As a result, the TODs produced combine elements of the real sky and atmospheric and detector noise.</p>
 <p>This tutorial will guide you through the process of setting up the simulation tool and creating your own mock observations – In particular for GBT/MUSTANG-2 like observations of a galaxy cluster.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">maria</span>
-</pre></div>
-</div>
-</div>
 <section id="Setting-up-a-MUSTANG-2-Simulation">
 <h2>Setting up a MUSTANG-2 Simulation<a class="headerlink" href="#Setting-up-a-MUSTANG-2-Simulation" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">maria</span></code> offers flexibility for customizing atmospheric simulations. You can configure it to replicate observatories like ‘AtLAST’ at the APEX site or simulate specific observations, such as MUSTANG-2, under different weather conditions by adjusting the observing time.</p>
@@ -301,14 +283,19 @@
 <h3>Input map<a class="headerlink" href="#Input-map" title="Link to this heading">¶</a></h3>
 <p>First we specify the input map, our astronomical signal from which we want to make a mock observation. You can give it a fits file and load the map as outlined below. Don’t forgot to put the map at an RA and Dec (in degrees) in the sky. Also, the width or the pixel size (resolution) needs to be specified.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">map_filename</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster.fits&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">maria</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">map_filename</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster.fits&quot;</span><span class="p">)</span>
 
 <span class="c1"># load in the map from a fits file</span>
 <span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">read_fits</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span> <span class="c1">#filename</span>
-                                <span class="n">resolution</span><span class="o">=-</span><span class="mf">8.714e-05</span><span class="p">,</span> <span class="c1">#pixel size in degrees</span>
+                                <span class="n">resolution</span><span class="o">=</span><span class="mf">8.714e-05</span><span class="p">,</span> <span class="c1">#pixel size in degrees</span>
                                 <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="c1">#index for fits file</span>
                                 <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="c1"># position in the sky</span>
                                 <span class="n">units</span><span class="o">=</span><span class="s1">&#39;Jy/pixel&#39;</span> <span class="c1"># Units of the input map</span>
@@ -323,15 +310,15 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-09-28 18:38:50.605 INFO: created cache at /tmp/maria-data/maps
-2024-09-28 18:38:51.237 INFO: downloaded data (4.0 MB) to /tmp/maria-data/maps/cluster.fits
+2024-10-07 00:12:54.995 INFO: created cache at /tmp/maria-data/maps
+2024-10-07 00:12:56.071 INFO: downloaded data (4.0 MB) to /tmp/maria-data/maps/cluster.fits
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_6_1.png" src="../_images/tutorials_MUSTANG-2_cluster_6_1.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_4_1.png" src="../_images/tutorials_MUSTANG-2_cluster_4_1.png" />
 </div>
 </div>
 </section>
@@ -339,7 +326,7 @@
 <h3>Observing strategy<a class="headerlink" href="#Observing-strategy" title="Link to this heading">¶</a></h3>
 <p>Below we define the observing strategy containing the duration, integration time, read out rate, and pointing center</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1">#load the map into maria</span>
@@ -358,7 +345,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_8_0.png" src="../_images/tutorials_MUSTANG-2_cluster_8_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_6_0.png" src="../_images/tutorials_MUSTANG-2_cluster_6_0.png" />
 </div>
 </div>
 </section>
@@ -366,7 +353,7 @@
 <h3>Define instrument<a class="headerlink" href="#Define-instrument" title="Link to this heading">¶</a></h3>
 <p>We have configuration files in place to mimic typical telescopes and instruments. To run a MUSTANG-2 like observations, simply initialize the instrument as follows. Other tutorials will go into more detail on how to adjust it to test out how telescope designs affect the recovered signal.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">)</span>
@@ -375,7 +362,7 @@
 </div>
 <p>We can plot the instruments which will show the location of the detectors in the FoV with their diffrection limited beam size. The detectors for MUSTANG-2 are spaced at 2 f-lambda.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -386,7 +373,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_12_0.png" src="../_images/tutorials_MUSTANG-2_cluster_12_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_10_0.png" src="../_images/tutorials_MUSTANG-2_cluster_10_0.png" />
 </div>
 </div>
 </section>
@@ -394,7 +381,7 @@
 <h3>Initialize the simulation<a class="headerlink" href="#Initialize-the-simulation" title="Link to this heading">¶</a></h3>
 <p>The simulation class combines all the components into one.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="p">,</span>
@@ -412,16 +399,16 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-09-28 18:39:02.327 INFO: Initialized base in 10254 ms.
-2024-09-28 18:39:02.337 INFO: created cache at /tmp/maria-data/atmosphere/spectra/am
-2024-09-28 18:39:02.508 INFO: downloaded data (11.4 MB) to /tmp/maria-data/atmosphere/spectra/am/chajnantor.h5
-2024-09-28 18:39:02.911 INFO: created cache at /tmp/maria-data/atmosphere/weather/era5
-2024-09-28 18:39:03.485 INFO: downloaded data (3.8 MB) to /tmp/maria-data/atmosphere/weather/era5/chajnantor.h5
-Building atmosphere: 100%|██████████| 6/6 [00:05&lt;00:00,  1.18it/s]
-2024-09-28 18:39:09.274 INFO: Initialized atmosphere in 6936 ms.
-Generating CMB:   0%|          | 0/1 [00:00&lt;?, ?it/s]2024-09-28 18:39:09.276 INFO: created cache at /tmp/maria-data/cmb/spectra
-2024-09-28 18:39:09.433 INFO: downloaded data (0.3 MB) to /tmp/maria-data/cmb/spectra/planck.csv
-Generating CMB: 100%|██████████| 1/1 [00:05&lt;00:00,  5.75s/it]
+2024-10-07 00:13:11.169 INFO: Initialized base in 14317 ms.
+2024-10-07 00:13:11.181 INFO: created cache at /tmp/maria-data/atmosphere/spectra/am
+2024-10-07 00:13:11.679 INFO: downloaded data (11.4 MB) to /tmp/maria-data/atmosphere/spectra/am/chajnantor.h5
+2024-10-07 00:13:12.095 INFO: created cache at /tmp/maria-data/atmosphere/weather/era5
+2024-10-07 00:13:12.192 INFO: downloaded data (3.8 MB) to /tmp/maria-data/atmosphere/weather/era5/chajnantor.h5
+Building atmosphere: 100%|██████████| 6/6 [00:06&lt;00:00,  1.02s/it]
+2024-10-07 00:13:20.317 INFO: Initialized atmosphere in 9136 ms.
+Generating CMB:   0%|          | 0/1 [00:00&lt;?, ?it/s]2024-10-07 00:13:20.319 INFO: created cache at /tmp/maria-data/cmb/spectra
+2024-10-07 00:13:20.397 INFO: downloaded data (0.3 MB) to /tmp/maria-data/cmb/spectra/planck.csv
+Generating CMB: 100%|██████████| 1/1 [00:05&lt;00:00,  5.67s/it]
 </pre></div></div>
 </div>
 </section>
@@ -430,7 +417,7 @@ Generating CMB: 100%|██████████| 1/1 [00:05&lt;00:00,  5.75s
 <h2>Obtaining time-ordered data (TODs)<a class="headerlink" href="#Obtaining-time-ordered-data-(TODs)" title="Link to this heading">¶</a></h2>
 <p>To acquire time-ordered data (TODs), you only need to run the script. The TOD object contains time stamps, coordinates (in RA and Dec), and the intensity of each scan for every detector. The intensity units are expressed in power can be converted to surface brightness temperature units: Kelvin Rayleigh-Jeans (Even if the input map is given in Jy/pixel. We convert the units under the hood).</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -442,17 +429,17 @@ Generating CMB: 100%|██████████| 1/1 [00:05&lt;00:00,  5.75s
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 976.74it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:00&lt;00:00,  6.68it/s]
-Computing atmospheric emission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  4.94it/s]
-Computing atmospheric transmission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  5.39it/s]
-Sampling CMB (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00, 12.64it/s]
-Sampling map (m2/f093): 100%|██████████| 1/1 [00:03&lt;00:00,  3.18s/it]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.66it/s]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 732.46it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:00&lt;00:00,  6.93it/s]
+Computing atmospheric emission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  4.56it/s]
+Computing atmospheric transmission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  4.87it/s]
+Sampling CMB (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00, 12.27it/s]
+Sampling map (m2/f093): 100%|██████████| 1/1 [00:03&lt;00:00,  3.30s/it]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.62it/s]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">fields</span>
@@ -460,7 +447,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.6
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -472,7 +459,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.6
 <h3>Useful visualizations:<a class="headerlink" href="#Useful-visualizations:" title="Link to this heading">¶</a></h3>
 <p>Now, let’s visualize the TODS. The figure shows the mean powerspectra and a time series of the observations.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -483,7 +470,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.6
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_20_0.png" src="../_images/tutorials_MUSTANG-2_cluster_20_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_18_0.png" src="../_images/tutorials_MUSTANG-2_cluster_18_0.png" />
 </div>
 </div>
 </section>
@@ -494,7 +481,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.6
 is designed to effectively eliminate correlated atmospheric noise among different scans, thereby increasing SNR of the output map.</p>
 <p>An example of how to run the mapper on the TOD is as follows:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
@@ -525,7 +512,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (m2/f093): 100%|██████████| 1/1 [00:06&lt;00:00,  6.11s/it]
+Running mapper (m2/f093): 100%|██████████| 1/1 [00:10&lt;00:00, 10.83s/it]
 </pre></div></div>
 </div>
 </section>
@@ -533,7 +520,7 @@ Running mapper (m2/f093): 100%|██████████| 1/1 [00:06&lt;00:
 <h2>Visualizing the maps<a class="headerlink" href="#Visualizing-the-maps" title="Link to this heading">¶</a></h2>
 <p>As interesting as the detector setup, power spectra, and time series are, intuitively we think in the image plane. so let’s visualize it!</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -544,12 +531,12 @@ Running mapper (m2/f093): 100%|██████████| 1/1 [00:06&lt;00:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_24_0.png" src="../_images/tutorials_MUSTANG-2_cluster_24_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_22_0.png" src="../_images/tutorials_MUSTANG-2_cluster_22_0.png" />
 </div>
 </div>
 <p>You can also save the map to a fits file. Here, we recover the units in which the map was initially specified in.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s1">&#39;/tmp/simulated_map.fits&#39;</span><span class="p">)</span>
