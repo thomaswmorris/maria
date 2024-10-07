@@ -126,7 +126,9 @@ class BaseSimulation:
             )
 
         # this can be expensive sometimes
-        self.coords = self.boresight.broadcast(self.instrument.dets)
+        self.coords = self.boresight.broadcast(
+            self.instrument.dets.offsets, frame="az_el"
+        )
 
         logger.debug("Constructed offsets.")
 

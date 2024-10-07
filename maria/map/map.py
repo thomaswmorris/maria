@@ -63,9 +63,13 @@ class Map:
         if not (width is None) ^ (resolution is None):
             raise ValueError("You must pass exactly one of 'width' or 'resolution'.")
         if width is not None:
+            if not width > 0:
+                raise ValueError("'width' must be positive.")
             width_radians = np.radians(width) if degrees else width
             self.resolution = width_radians / self.n_x
         else:
+            if not resolution > 0:
+                raise ValueError("'resolution' must be positive.")
             self.resolution = np.radians(resolution) if degrees else resolution
 
         if len(self.frequency) != self.n_f:
