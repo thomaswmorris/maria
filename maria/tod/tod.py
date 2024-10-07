@@ -68,6 +68,8 @@ class TOD:
         if self.weight is None:
             self.weight = da.ones_like(self.signal)
 
+        self.boresight = self.coords.boresight()
+
     def get_field(self, field: str):
         if field not in self.fields:
             raise ValueError(f"Field '{field}' not found.")
@@ -116,10 +118,6 @@ class TOD:
     @functools.cached_property
     def signal(self) -> da.Array:
         return sum([self.get_field(field) for field in self.fields])
-
-    @functools.cached_property
-    def boresight(self):
-        return self.coords.boresight
 
     @property
     def dt(self) -> float:

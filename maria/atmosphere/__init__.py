@@ -79,10 +79,14 @@ class Atmosphere:
         )
 
         self.boresight = sim.boresight.downsample(timestep=timestep)
-        self.coords = self.boresight.broadcast(dets=sim.instrument.dets)
+        self.coords = self.boresight.broadcast(
+            sim.instrument.dets.offsets, frame="az_el"
+        )
 
         # this is a smaller version of the sim coords
-        outer_coords = self.boresight.broadcast(dets=sim.instrument.dets.outer())
+        outer_coords = self.boresight.broadcast(
+            sim.instrument.dets.outer().offsets, frame="az_el"
+        )
 
         self.processes = {}
 

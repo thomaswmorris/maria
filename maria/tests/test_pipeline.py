@@ -48,7 +48,7 @@ def test_map_sim():
     tod = sim.run()
 
     mapper = BinMapper(
-        center=(tod.coords.center_ra, tod.coords.center_dec),
+        center=(150.01, 10.01),
         frame="ra_dec",
         width=np.radians(10.0 / 60.0),
         height=np.radians(10.0 / 60.0),

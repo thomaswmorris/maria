@@ -212,56 +212,13 @@ class Instrument:
 
         return cls(arrays=arrays, **c)
 
-        # subarrays = get_subarrays(copy.deepcopy(config))
-
-        # bands = BandList(bands=[])
-        # df = pd.DataFrame(columns=["uid", "array_name", "band_name", "band_center"])
-
-        # for subarray_name, subarray in subarrays.items():
-        #     array_bands = subarray["bands"]
-
-        #     array_df = Array(**subarray)
-
-        #     if "file" in subarray:
-        #         for col, values in pd.read_csv(
-        #             subarray["file"], index_col=0
-        #         ).T.iterrows():
-        #             array_df[col] = values
-
-        #     # add leading zeros to detector uids
-        #     fill_level = int(np.log(np.maximum(len(array_df) - 1, 1)) / np.log(10) + 1)
-
-        #     uid_predix = f"{subarray_name}_" if subarray_name else ""
-        #     uids = [
-        #         f"{uid_predix}{str(i).zfill(fill_level)}" for i in range(len(array_df))
-        #     ]
-
-        #     array_df.insert(0, "uid", uids)
-        #     array_df.insert(1, "array_name", subarray_name)
-
-        #     df = pd.concat([df, array_df])
-
-        #     for band in array_bands:
-        #         if band not in bands.bands:
-        #             bands.add(band)
-
-        # df.index = np.arange(len(df))
-
-        # dets = Detectors(df=df, bands=bands)
-
-        # for key in ["dets", "aliases"]:
-        #     if key in config:
-        #         config.pop(key)
-
-        # return cls(bands=dets.bands, dets=dets)
-
     def __init__(
         self,
         arrays: Union[ArrayList, list],
         description: str = "An instrument.",
         documentation: str = "",
-        vel_limit: float = 5,  # in deg/s
-        acc_limit: float = 2,  # in deg/s^2
+        vel_limit: float = 1e2,  # in deg/s
+        acc_limit: float = 1e2,  # in deg/s^2
     ):
         """
         Parameters

@@ -52,16 +52,11 @@ def phi_theta_to_dx_dy(phi, theta, cphi, ctheta):
 
 def phi_theta_to_xyz(phi, theta):
     """
-    Project a longitude and lattitude onto the unit sphere.
+    Project some angular coordinates phi (longitude) and theta (latitude) onto the 3d unit sphere.
     """
-    # you can add a newaxis on numpy floats, but not python floats. who knew?
-    return np.concatenate(
-        [
-            (np.cos(phi) * np.cos(theta))[..., None],
-            (np.sin(phi) * np.cos(theta))[..., None],
-            (np.sin(theta))[..., None],
-        ],
-        axis=-1,
+    cos_theta = np.cos(theta)
+    return np.stack(
+        [np.cos(phi) * cos_theta, np.sin(phi) * cos_theta, np.sin(theta)], axis=-1
     )
 
 
@@ -74,15 +69,17 @@ def xyz_to_phi_theta(xyz):
     )
 
 
-def get_center_phi_theta(phi, theta, keep_last_dim=False):
+def get_center_phi_theta(phi, theta, keep_dims=()):
     """ """
+
     xyz = phi_theta_to_xyz(phi, theta)
 
-    if keep_last_dim:
-        center_xyz = xyz.mean(axis=tuple(range(xyz.ndim - 2)))
-        center_xyz /= np.sqrt(np.sum(np.square(center_xyz), axis=-1))[..., None]
-    else:
-        center_xyz = xyz.mean(axis=tuple(range(xyz.ndim - 1)))
-        center_xyz /= np.sqrt(np.sum(np.square(center_xyz)))
+    axes = list(range(xyz.ndim - 1))
+
+    for dim in keep_dims:
+        axes.pop(dim)
+
+    center_xyz = xyz.mean(axis=tuple(axes))
+    center_xyz /= np.sqrt(np.sum(np.square(center_xyz)))[..., None]
 
     return xyz_to_phi_theta(center_xyz)

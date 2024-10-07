@@ -19,6 +19,7 @@ def plot_tod(
     fig, axes = plt.subplots(
         ncols=2, nrows=len(tod.fields), sharex="col", figsize=(8, 4), dpi=160
     )
+    axes = np.atleast_2d(axes)
     gs = axes[0, 0].get_gridspec()
 
     plt.subplots_adjust(top=0.99, bottom=0.01, hspace=0, wspace=0.02)
