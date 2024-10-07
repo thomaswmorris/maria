@@ -338,7 +338,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-09-28 18:39:36.978 INFO: downloaded data (4.2 MB) to /tmp/maria-data/maps/big_cluster.fits
+2024-10-07 00:13:55.486 INFO: downloaded data (4.2 MB) to /tmp/maria-data/maps/big_cluster.fits
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -353,7 +353,7 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Plan</span><span class="p">(</span><span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
-                  <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span> <span class="c1"># in degrees</span>
+                  <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="c1"># in degrees</span>
                   <span class="n">duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="c1"># in seconds</span>
                   <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="c1"># in Hz</span>
                   <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
@@ -388,9 +388,9 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-09-28 18:39:41.944 INFO: Initialized base in 4419 ms.
-Building atmosphere: 100%|██████████| 6/6 [00:28&lt;00:00,  4.67s/it]
-2024-09-28 18:40:11.902 INFO: Initialized atmosphere in 29934 ms.
+2024-10-07 00:14:03.477 INFO: Initialized base in 7451 ms.
+Building atmosphere: 100%|██████████| 6/6 [00:31&lt;00:00,  5.24s/it]
+2024-10-07 00:14:38.669 INFO: Initialized atmosphere in 35165 ms.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -406,12 +406,12 @@ Building atmosphere: 100%|██████████| 6/6 [00:28&lt;00:00,  
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 214.32it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:07&lt;00:00,  1.28s/it]
-Computing atmospheric emission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.05s/it]
-Computing atmospheric transmission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.07s/it]
-Sampling map (f150): 100%|██████████| 2/2 [00:28&lt;00:00, 14.43s/it]
-Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.78s/it]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 190.99it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:07&lt;00:00,  1.32s/it]
+Computing atmospheric emission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.16s/it]
+Computing atmospheric transmission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.13s/it]
+Sampling map (f150): 100%|██████████| 2/2 [00:29&lt;00:00, 14.66s/it]
+Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.82s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -427,8 +427,7 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.7
                    <span class="n">resolution</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span>
                    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tukey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
-                        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                        <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+                        <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
                     <span class="p">},</span>
                     <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
@@ -447,12 +446,38 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.7
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (f090): 100%|██████████| 1/1 [00:19&lt;00:00, 19.92s/it]
-Running mapper (f150): 100%|██████████| 1/1 [00:19&lt;00:00, 19.75s/it]
+Running mapper (f090): 100%|██████████| 1/1 [00:27&lt;00:00, 27.20s/it]
+Running mapper (f150): 100%|██████████| 1/1 [00:26&lt;00:00, 26.77s/it]
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptod</span> <span class="o">=</span> <span class="n">tod</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tukey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
+                        <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+                    <span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_custom-map-simulations_11_0.png" src="../_images/tutorials_custom-map-simulations_11_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -463,14 +488,22 @@ Running mapper (f150): 100%|██████████| 1/1 [00:19&lt;00:00,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_10_0.png" src="../_images/tutorials_custom-map-simulations_10_0.png" />
+<img alt="../_images/tutorials_custom-map-simulations_12_0.png" src="../_images/tutorials_custom-map-simulations_12_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_10_1.png" src="../_images/tutorials_custom-map-simulations_10_1.png" />
+<img alt="../_images/tutorials_custom-map-simulations_12_1.png" src="../_images/tutorials_custom-map-simulations_12_1.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
 </div>
 </div>
 </section>
