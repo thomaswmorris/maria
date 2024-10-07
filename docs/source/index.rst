@@ -13,7 +13,7 @@ maria
 
 .. raw:: html
 
-    <audio controls="controls">
+    <audio controls="controls" title="“They Call the Wind Maria” from Paint Your Wagon">
       <source src="./_static/they_call_the_wind_maria.mp4" type="audio/wav">
       Your browser does not support the <code>audio</code> element.
     </audio>
