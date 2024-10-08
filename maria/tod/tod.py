@@ -68,8 +68,6 @@ class TOD:
         if self.weight is None:
             self.weight = da.ones_like(self.signal)
 
-        self.boresight = self.coords.boresight()
-
     def get_field(self, field: str):
         if field not in self.fields:
             raise ValueError(f"Field '{field}' not found.")
@@ -83,6 +81,12 @@ class TOD:
             d += self.data[field]["offset"]
 
         return d
+
+    @property
+    def boresight(self):
+        if not hasattr(self, "_boresight"):
+            self._boresight = self.coords.boresight()
+        return self._boresight
 
     def to(self, units: str):
         cal = self.dets.cal(f"{self.units} -> {units}")
