@@ -111,11 +111,14 @@ class Coordinates:
                 if (np.ptp(self.time, axis=axis) > 0).any():
                     raise ValueError("Only the last axis can vary in time.")
 
+        ref_time = ttime.monotonic()
         self.compute_transforms()
+        duration_ms = 1e3 * (ttime.monotonic() - ref_time)
+        logger.debug(
+            f"Initialized coordinates with shape {self.shape} in {int(duration_ms)} ms."
+        )  # noqa
 
     def compute_transforms(self):
-        ref_time = ttime.monotonic()
-
         self.shaped_time = np.atleast_1d(self.time)
         keep_dims = (-1,) if hasattr(self.time, "__len__") else ()
         time_ordered_center_phi_theta = np.c_[
@@ -123,7 +126,7 @@ class Coordinates:
         ]
 
         # (nt) time samples on which to explicitly compute the transformation from astropy
-        time_samples_min_res_seconds = 5
+        time_samples_min_res_seconds = 10
         time_samples_min = np.min(self.time) - 1e0
         time_samples_max = np.max(self.time) + 1e0
         n_time_samples = int(
@@ -213,11 +216,6 @@ class Coordinates:
 
             setattr(self, frames[frame]["phi"], frame_phi)
             setattr(self, frames[frame]["theta"], frame_theta)
-
-        duration_ms = 1e3 * (ttime.monotonic() - ref_time)
-        logger.debug(
-            f"Initialized coordinates with shape {self.shape} in {int(duration_ms)} ms."
-        )
 
     def downsample(self, timestep: float = None, factor: int = None):
         if timestep is None and factor is None:

@@ -246,14 +246,14 @@ class Map:
         self.header["comment"] = "Made Synthetic observations via maria code"
         self.header["comment"] = "Overwrote resolution and size of the output map"
 
-        self.header["CDELT1"] = np.rad2deg(self.resolution)
-        self.header["CDELT2"] = np.rad2deg(self.resolution)
+        self.header["CDELT1"] = np.radians(self.resolution)
+        self.header["CDELT2"] = np.radians(self.resolution)
 
         self.header["CRPIX1"] = self.n_x / 2
         self.header["CRPIX2"] = self.n_y / 2
 
-        self.header["CRVAL1"] = np.rad2deg(self.center[0])
-        self.header["CRVAL2"] = np.rad2deg(self.center[1])
+        self.header["CRVAL1"] = np.radians(self.center[0])
+        self.header["CRVAL2"] = np.radians(self.center[1])
 
         self.header["CTYPE1"] = "RA---SIN"
         self.header["CTYPE2"] = "DEC--SIN"
