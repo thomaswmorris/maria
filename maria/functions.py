@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as sp
 
-from maria.constants import c, h, k_B
+from maria.units.constants import c, h, k_B
 
 
 def rayleigh_jeans_spectrum(nu: float, T: float):

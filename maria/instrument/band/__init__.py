@@ -1,5 +1,6 @@
 import glob
 import os
+import re
 from collections.abc import Mapping
 from typing import Sequence, Union
 
@@ -7,12 +8,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from ...constants import T_CMB, c, k_B
 from ...functions import planck_spectrum
 from ...io import flatten_config, read_yaml
 from ...spectrum import AtmosphericSpectrum
+from ...units import BASE_TOD_UNITS, prefixes
+from ...units.constants import T_CMB, c, k_B
 
 here, this_filename = os.path.split(__file__)
+
+prefix_phrase = "|".join(prefixes.index)
+units_phrase = "|".join(BASE_TOD_UNITS)
+units_pattern = re.compile(rf"(?P<prefix>({prefix_phrase}))?(?P<base>.+)")
 
 FIELD_FORMATS = pd.read_csv(f"{here}/format.csv", index_col=0)
 
@@ -66,18 +72,26 @@ def parse_bands(bands):
     return band_list
 
 
-def parse_calibration_signature(s):
-    valid_units = ["pW", "K_RJ", "K_CMB"]
-    for sep in ["/", "->"]:
+def parse_tod_calibration_signature(s):
+    res = {}
+    for sep in ["->"]:
         if s.count(sep) == 1:
             if sep is not None:
                 items = [u.strip() for u in s.split(sep)]
                 if len(items) == 2:
-                    for u in items:
-                        if u not in valid_units:
-                            raise ValueError(f"Invalid units '{u}'.")
-                    return items
-
+                    for io, u in zip(["in", "out"], items):
+                        match = units_pattern.search(u)
+                        if match is None:
+                            raise ValueError(
+                                f"Invalid units '{u}'. Valid units are a combination of an SI prefix "
+                                f"(one of {prefixes.index}) and a base units (one of {BASE_TOD_UNITS})."
+                            )
+                        prefix = match["prefix"]
+                        res[f"{io}_factor"] = (
+                            prefixes.loc[prefix].factor if prefix else 1e0
+                        )
+                        res[f"{io}_units"] = match["base"]
+        return res
     raise ValueError("Calibration must have signature 'units1 -> units2'.")
 
 
@@ -189,10 +203,10 @@ class Band:
         )
 
         if kind.lower() == "rayleigh-jeans":
-            self.NEP = self.dP_dTRJ * value / transmission
+            self.NEP = 1e12 * self.dP_dTRJ * value / transmission
 
         elif kind.lower() == "cmb":
-            self.NEP = self.dP_dTCMB * value / transmission
+            self.NEP = 1e12 * self.dP_dTCMB * value / transmission
 
         self._sensitivity = value
         self._sensitivity_kind = kind
@@ -263,7 +277,7 @@ class Band:
     @property
     def dP_dTRJ(self) -> float:
         """
-        In picowatts per kelvin Rayleigh-Jeans, assuming perfect transmission.
+        In watts per kelvin Rayleigh-Jeans, assuming perfect transmission.
         """
 
         nu = np.linspace(self.nu_min, self.nu_max, 256)
@@ -272,15 +286,15 @@ class Band:
         # dP_dTRJ = np.trapezoid(dI_dTRJ * self.passband(nu), 1e9 * nu)
         dP_dTRJ = k_B * np.trapezoid(self.passband(nu), 1e9 * nu)
 
-        return 1e12 * self.efficiency * dP_dTRJ
+        return self.efficiency * dP_dTRJ
 
     @property
     def dP_dTCMB(self) -> float:
         """
-        In picowatts per kelvin CMB, assuming perfect transmission.
+        In watts per kelvin CMB, assuming perfect transmission.
         """
 
-        eps = 1e-2
+        eps = 1e-3
         delta_T = np.array([-eps / 2, eps / 2])
 
         nu = np.linspace(self.nu_min, self.nu_max, 256)
@@ -291,8 +305,7 @@ class Band:
         )
 
         return (
-            1e12
-            * self.efficiency
+            self.efficiency
             * k_B
             * np.diff(np.trapezoid(TRJ * self.passband(nu), 1e9 * nu))[0]
             / eps
@@ -300,29 +313,29 @@ class Band:
 
     def cal(self, signature: str) -> float:
         """
-        We compute this as
-
-
+        Remember that:
         d(out units) / d(in units) = (d(out units) / d(pW)) / (d(in units) / d(pW))
         """
 
-        in_units, out_units = parse_calibration_signature(signature)
+        res = parse_tod_calibration_signature(signature)
 
-        if in_units == "K_RJ":
-            d_in_d_pW = 1 / self.dP_dTRJ
-        elif in_units == "K_CMB":
-            d_in_d_pW = 1 / self.dP_dTCMB
+        if res["in_units"] == "K_RJ":
+            d_in_d_W = 1 / self.dP_dTRJ
+        elif res["in_units"] == "K_CMB":
+            d_in_d_W = 1 / self.dP_dTCMB
         else:
-            d_in_d_pW = 1
+            d_in_d_W = 1
 
-        if out_units == "K_RJ":
-            d_out_d_pW = 1 / self.dP_dTRJ
-        elif out_units == "K_CMB":
-            d_out_d_pW = 1 / self.dP_dTCMB
+        if res["out_units"] == "K_RJ":
+            d_out_d_W = 1 / self.dP_dTRJ
+        elif res["out_units"] == "K_CMB":
+            d_out_d_W = 1 / self.dP_dTCMB
         else:
-            d_out_d_pW = 1
+            d_out_d_W = 1
 
-        return d_out_d_pW / d_in_d_pW
+        overall_factor = res["in_factor"] / res["out_factor"]
+
+        return overall_factor * d_out_d_W / d_in_d_W
 
     @property
     def wavelength(self):

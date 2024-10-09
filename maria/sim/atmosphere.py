@@ -6,7 +6,7 @@ import scipy as sp
 from tqdm import tqdm
 
 from ..atmosphere.turbulent_layer import TurbulentLayer
-from ..constants import k_B
+from ..units.constants import k_B
 
 here, this_filename = os.path.split(__file__)
 

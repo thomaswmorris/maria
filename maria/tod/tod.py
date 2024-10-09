@@ -75,10 +75,10 @@ class TOD:
         d = self.data[field]["data"]
 
         if "scale" in self.data[field]:
-            d *= self.data[field]["scale"]
+            d *= self.data[field]["scale"][..., None]
 
         if "offset" in self.data[field]:
-            d += self.data[field]["offset"]
+            d += self.data[field]["offset"][..., None]
 
         return d
 
@@ -93,14 +93,9 @@ class TOD:
 
         cal_data = {}
         for field in self.fields:
-            cal_data[field] = self.data[field]
-            scale = (
-                cal_data[field].get(
-                    "scale", np.ones(cal_data[field]["data"].shape[:-1])
-                )
-                * cal
-            )[:, None]
-            cal_data[field]["scale"] = scale
+            cal_data[field] = self.data[field].copy()
+            current_scale = cal_data[field].get("scale", 1e0)
+            cal_data[field]["scale"] = current_scale * cal
 
         return TOD(
             coords=self.coords,
