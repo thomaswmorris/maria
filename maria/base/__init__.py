@@ -145,9 +145,12 @@ class BaseSimulation:
 
         for k, data in self.data.items():
             # scaling floats doesn't make them more accurate, unless they're huge or tiny
-            offset = data.mean(axis=-1)[..., None]
+            offset = data.mean(axis=-1)
             # scale = data.std(axis=-1)[..., None]
-            tod_data[k] = {"data": (data - offset).astype(self.dtype), "offset": offset}
+            tod_data[k] = {
+                "data": (data - offset[..., None]).astype(self.dtype),
+                "offset": offset,
+            }
 
         tod = TOD(
             data=tod_data,

@@ -217,6 +217,12 @@ class Coordinates:
             setattr(self, frames[frame]["phi"], frame_phi)
             setattr(self, frames[frame]["theta"], frame_theta)
 
+    @property
+    def timestep(self):
+        if len(self.time):
+            return np.mean(np.gradient(self.time))
+        return None
+
     def downsample(self, timestep: float = None, factor: int = None):
         if timestep is None and factor is None:
             raise ValueError("You must supply either 'timestep' or 'factor'.")

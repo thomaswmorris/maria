@@ -4,8 +4,8 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..constants import T_CMB
 from ..functions import planck_spectrum
+from ..units.constants import T_CMB
 
 
 class CMBMixin:

@@ -111,9 +111,8 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             )
 
             # give it the simulation, so that it knows about pointing, site, etc.
+            # kind of cursed
             self.atmosphere.initialize(self)
-
-            # self._initialize_2d_atmosphere(**atmosphere_kwargs)
 
             duration = ttime.monotonic() - ref_time
             logger.info(f"Initialized atmosphere in {int(1e3 * duration)} ms.")
