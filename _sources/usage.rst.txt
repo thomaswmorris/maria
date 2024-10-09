@@ -9,4 +9,5 @@ Usage
    usage/sites.rst
    usage/plans.rst
    usage/simulations.rst
+   usage/tods.rst
    usage/mapping.rst

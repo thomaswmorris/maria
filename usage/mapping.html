@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Tutorials" href="../tutorials.html" /><link rel="prev" title="Maps" href="simulations/maps.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Mapping" href="mapping/index.html" /><link rel="prev" title="TODs" href="tods/index.html" />
 
     <!-- Generated with Sphinx 8.0.2 and Furo 2024.08.06 -->
         <title>Mapping - maria</title>
@@ -214,16 +214,22 @@
 <li class="toctree-l2"><a class="reference internal" href="plans.html">Plans</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="simulations.html">Simulations</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="simulations/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="simulations/tods.html">TODs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="simulations/atmosphere.html">Atmosphere</a></li>
 <li class="toctree-l3"><a class="reference internal" href="simulations/cmb.html">Simulations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="simulations/maps.html">Maps</a></li>
 </ul>
 </li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Mapping</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="tods.html">TODs</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of TODs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="tods/index.html">TODs</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">Mapping</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Mapping</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="mapping/index.html">Mapping</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/custom-map-simulations.html">Custom map simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
 </ul>
@@ -272,34 +278,10 @@
         <article role="main" id="furo-main-content">
           <section id="mapping">
 <h1>Mapping<a class="headerlink" href="#mapping" title="Link to this heading">¶</a></h1>
-<p>We can map a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (or several of them) with a <code class="docutils literal notranslate"><span class="pre">Mapper</span></code>. The simplest possible mapper just bins the data:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
-
-<span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
-                   <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
-                   <span class="n">width</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
-                   <span class="n">height</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
-                   <span class="n">resolution</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span>
-                   <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tukey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
-                        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                        <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;f_lower&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span>
-                        <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
-                                    <span class="p">},</span>
-                    <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                        <span class="s2">&quot;median_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                                    <span class="p">},</span>
-                   <span class="n">units</span><span class="o">=</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">,</span>
-                   <span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod</span><span class="p">],</span>
-                   <span class="p">)</span>
-
-<span class="n">output_map</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>where we define the preprocessing to be done on the <code class="docutils literal notranslate"><span class="pre">TOD</span></code>. We can see the output with</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mapping/index.html">Mapping</a></li>
+</ul>
 </div>
 </section>
 
@@ -308,23 +290,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../tutorials.html">
+          <a class="next-page" href="mapping/index.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Tutorials</div>
+                <div class="title">Mapping</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="simulations/maps.html">
+          <a class="prev-page" href="tods/index.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Maps</div>
+                <div class="title">TODs</div>
                 
               </div>
             </a>
