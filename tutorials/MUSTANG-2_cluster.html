@@ -215,16 +215,22 @@
 <li class="toctree-l2"><a class="reference internal" href="../usage/plans.html">Plans</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../usage/simulations.html">Simulations</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../usage/simulations/tods.html">TODs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/atmosphere.html">Atmosphere</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/cmb.html">Simulations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/maps.html">Maps</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../usage/mapping.html">Mapping</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../usage/tods.html">TODs</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of TODs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/tods/index.html">TODs</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../usage/mapping.html">Mapping</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Mapping</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/mapping/index.html">Mapping</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="custom-map-simulations.html">Custom map simulations</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Mock Observations with MUSTANG-2</a></li>
 </ul>
@@ -310,8 +316,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-08 16:22:54.901 INFO: created cache at /tmp/maria-data/maps
-2024-10-08 16:22:56.005 INFO: downloaded data (4.0 MB) to /tmp/maria-data/maps/cluster.fits
+2024-10-09 18:13:01.831 INFO: created cache at /tmp/maria-data/maps
+2024-10-09 18:13:03.411 INFO: downloaded data (4.0 MB) to /tmp/maria-data/maps/cluster.fits
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -399,16 +405,16 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-08 16:23:07.314 INFO: Initialized base in 10523 ms.
-2024-10-08 16:23:07.325 INFO: created cache at /tmp/maria-data/atmosphere/spectra/am
-2024-10-08 16:23:07.453 INFO: downloaded data (11.4 MB) to /tmp/maria-data/atmosphere/spectra/am/chajnantor.h5
-2024-10-08 16:23:07.858 INFO: created cache at /tmp/maria-data/atmosphere/weather/era5
-2024-10-08 16:23:07.957 INFO: downloaded data (3.8 MB) to /tmp/maria-data/atmosphere/weather/era5/chajnantor.h5
+2024-10-09 18:13:18.299 INFO: Initialized base in 14111 ms.
+2024-10-09 18:13:18.310 INFO: created cache at /tmp/maria-data/atmosphere/spectra/am
+2024-10-09 18:13:18.535 INFO: downloaded data (11.4 MB) to /tmp/maria-data/atmosphere/spectra/am/chajnantor.h5
+2024-10-09 18:13:18.937 INFO: created cache at /tmp/maria-data/atmosphere/weather/era5
+2024-10-09 18:13:19.527 INFO: downloaded data (3.8 MB) to /tmp/maria-data/atmosphere/weather/era5/chajnantor.h5
 Building atmosphere: 100%|██████████| 6/6 [00:05&lt;00:00,  1.04it/s]
-2024-10-08 16:23:15.033 INFO: Initialized atmosphere in 7708 ms.
-Generating CMB:   0%|          | 0/1 [00:00&lt;?, ?it/s]2024-10-08 16:23:15.034 INFO: created cache at /tmp/maria-data/cmb/spectra
-2024-10-08 16:23:15.258 INFO: downloaded data (0.3 MB) to /tmp/maria-data/cmb/spectra/planck.csv
-Generating CMB: 100%|██████████| 1/1 [00:05&lt;00:00,  5.81s/it]
+2024-10-09 18:13:26.579 INFO: Initialized atmosphere in 8269 ms.
+Generating CMB:   0%|          | 0/1 [00:00&lt;?, ?it/s]2024-10-09 18:13:26.581 INFO: created cache at /tmp/maria-data/cmb/spectra
+2024-10-09 18:13:27.071 INFO: downloaded data (0.3 MB) to /tmp/maria-data/cmb/spectra/planck.csv
+Generating CMB: 100%|██████████| 1/1 [00:06&lt;00:00,  6.01s/it]
 </pre></div></div>
 </div>
 </section>
@@ -429,13 +435,13 @@ Generating CMB: 100%|██████████| 1/1 [00:05&lt;00:00,  5.81s
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 929.52it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:00&lt;00:00,  7.47it/s]
-Computing atmospheric emission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  4.92it/s]
-Computing atmospheric transmission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  5.36it/s]
-Sampling CMB (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00, 12.67it/s]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 1032.32it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:00&lt;00:00,  7.37it/s]
+Computing atmospheric emission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  4.95it/s]
+Computing atmospheric transmission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  5.37it/s]
+Sampling CMB (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00, 12.70it/s]
 Sampling map (m2/f093): 100%|██████████| 1/1 [00:03&lt;00:00,  3.15s/it]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.68it/s]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.65it/s]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -512,7 +518,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (m2/f093): 100%|██████████| 1/1 [00:06&lt;00:00,  6.53s/it]
+Running mapper (m2/f093): 100%|██████████| 1/1 [00:06&lt;00:00,  6.52s/it]
 </pre></div></div>
 </div>
 </section>

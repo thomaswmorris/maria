@@ -215,16 +215,22 @@
 <li class="toctree-l2"><a class="reference internal" href="../usage/plans.html">Plans</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../usage/simulations.html">Simulations</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../usage/simulations/tods.html">TODs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/atmosphere.html">Atmosphere</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/cmb.html">Simulations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/maps.html">Maps</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../usage/mapping.html">Mapping</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../usage/tods.html">TODs</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of TODs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/tods/index.html">TODs</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../usage/mapping.html">Mapping</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Mapping</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/mapping/index.html">Mapping</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Custom map simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MUSTANG-2_cluster.html">Mock Observations with MUSTANG-2</a></li>
 </ul>
@@ -338,7 +344,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-08 16:23:43.320 INFO: downloaded data (4.2 MB) to /tmp/maria-data/maps/big_cluster.fits
+2024-10-09 18:13:55.142 INFO: downloaded data (4.2 MB) to /tmp/maria-data/maps/big_cluster.fits
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -388,9 +394,9 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-08 16:23:50.815 INFO: Initialized base in 6968 ms.
-Building atmosphere: 100%|██████████| 6/6 [00:29&lt;00:00,  4.99s/it]
-2024-10-08 16:24:23.743 INFO: Initialized atmosphere in 32903 ms.
+2024-10-09 18:14:02.664 INFO: Initialized base in 7002 ms.
+Building atmosphere: 100%|██████████| 6/6 [00:37&lt;00:00,  6.32s/it]
+2024-10-09 18:14:43.497 INFO: Initialized atmosphere in 40809 ms.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -406,12 +412,12 @@ Building atmosphere: 100%|██████████| 6/6 [00:29&lt;00:00,  
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 195.88it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:07&lt;00:00,  1.27s/it]
-Computing atmospheric emission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.05s/it]
-Computing atmospheric transmission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.06s/it]
-Sampling map (f150): 100%|██████████| 2/2 [00:28&lt;00:00, 14.22s/it]
-Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.78s/it]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 207.99it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:07&lt;00:00,  1.28s/it]
+Computing atmospheric emission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.07s/it]
+Computing atmospheric transmission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.08s/it]
+Sampling map (f150): 100%|██████████| 2/2 [00:28&lt;00:00, 14.09s/it]
+Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.80s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -446,8 +452,8 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.7
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (f090): 100%|██████████| 1/1 [00:19&lt;00:00, 19.47s/it]
-Running mapper (f150): 100%|██████████| 1/1 [00:19&lt;00:00, 19.28s/it]
+Running mapper (f090): 100%|██████████| 1/1 [00:19&lt;00:00, 19.37s/it]
+Running mapper (f150): 100%|██████████| 1/1 [00:19&lt;00:00, 19.01s/it]
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
