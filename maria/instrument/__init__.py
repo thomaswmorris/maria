@@ -306,10 +306,10 @@ class Instrument:
     #     """
     #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-    def plot(self):
+    def plot(self, z=np.inf):
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=160)
 
-        fwhms = Angle(self.dets.fwhm)
+        fwhms = Angle(self.dets.angular_fwhm(z=z))
         offsets = Angle(self.dets.offsets)
 
         legend_handles = []

@@ -3,13 +3,13 @@ import numpy as np
 
 def dx_dy_to_phi_theta(dx, dy, cphi, ctheta):
     """
-    A fast and well-conditioned to convert from local dx/dy coordinates to phi/theta coordinates.
+    A fast and well-conditioned method to convert from local dx/dy coordinates to phi/theta coordinates.
     """
 
-    if not dx.shape == dy.shape:
-        raise ValueError(
-            f"The shapes of 'dx' and 'dy' must be the same. Got shapes {np.shape(dx)} and {np.shape(dy)}"
-        )
+    # if not dx.shape == dy.shape:
+    #     raise ValueError(
+    #         f"The shapes of 'dx' and 'dy' must be the same. Got shapes {np.shape(dx)} and {np.shape(dy)}"
+    #     )
 
     r = np.sqrt(dx**2 + dy**2)  # distance from the center
     p = np.arctan2(dx, -dy)  # 0 at the bottom, increases CCW to pi at the top
@@ -33,10 +33,10 @@ def phi_theta_to_dx_dy(phi, theta, cphi, ctheta):
     A fast and well-conditioned to convert from phi/theta coordinates to local dx/dy coordinates.
     """
 
-    if not phi.shape == theta.shape:
-        raise ValueError(
-            f"The shapes of 'phi' and 'theta' must be the same. Got shapes {np.shape(phi)} and {np.shape(theta)}"
-        )
+    # if not phi.shape == theta.shape:
+    #     raise ValueError(
+    #         f"The shapes of 'phi' and 'theta' must be the same. Got shapes {np.shape(phi)} and {np.shape(theta)}"
+    #     )
 
     dphi = phi - cphi
     proj_from_east = (np.cos(dphi) * np.cos(theta) + 1j * np.sin(theta)) * np.exp(
