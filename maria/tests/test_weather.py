@@ -9,4 +9,4 @@ from maria.weather import Weather
 def test_weather_from_cache(region_name):
     weather = Weather(region=region_name, refresh_cache=True)
 
-    weather.pwv
+    print(f"{weather.pwv = }")

@@ -1,0 +1,9 @@
+
+mini:
+  aliases: ["cmb-hd-mini"]
+  array:
+    n: 250
+    field_of_view: 9
+    array_shape: circle
+    bands: [act/pa5/f150]
+    primary_size: 30
