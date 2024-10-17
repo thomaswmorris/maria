@@ -1,6 +1,6 @@
 ,location,country,notes,latitude,longitude,altitude,timezone,training_start,training_end,training_years
 boolardy,"Boolardy, Western Australia",Australia,"MRO, SKA",-26.697,116.631,395,Australia/Perth,2010-01-01,2024-07-05,14.5
-cambridge,"Cambridge, Massachusetts",USA,"Harvard University, MIT",42.374,-71.111,8,America/New_York,2015-01-01,2024-07-05,9.5
+boston,"Cambridge, Massachusetts",USA,"Harvard University, MIT",42.374,-71.111,8,America/New_York,2015-01-01,2024-07-05,9.5
 chajnantor,"Llano de Chajnantor, Antofagasta",Chile,"ACT, ALMA, APEX, SO, TAO",-23.006,-67.759,5040,America/Santiago,1959-08-17,2024-07-04,64.2
 chiang_mai,"Chiang Mai, Thailand",Thailand,TNRT,18.864,99.217,395,Asia/Bangkok,2022-01-01,2024-07-04,1.5
 effelsberg,"Effelsberg, North Rhine-Westphalia",Germany,ERT,50.524,6.883,319,Europe/Berlin,2015-01-01,2024-07-04,9.5
@@ -23,4 +23,4 @@ sierra_negra,"Sierra Negra, Puebla",Mexico,"HAWC, LMT",18.986,-97.314,4640,Ameri
 south_pole,South Pole,Antarctica,"BICEP2, DASI, GML, Keck, SPT",-90.0,0.0,2835,Antarctica/South_Pole,1996-06-22,2024-07-04,26.5
 summit_camp,"Summit Station, Greenland",Greenland,Greenland Telescope,72.583,-38.455,3202,America/Nuuk,2005-10-10,2024-07-05,18.7
 teide,"Mount Teide, Tenerife",Spain,Teide Observatory,28.301,-16.511,2390,Atlantic/Canary,2010-01-01,2024-07-04,14.5
-thule,Thule Air Base,Greenland,Thule Air Base,76.535,-68.686,77,America/Thule,2023-06-26,2024-07-06,1.0
+thule,Thule Air Base,Greenland,Thule Air Base,76.535,-68.686,77,America/Thule,2023-06-23,2024-07-06,1.0
