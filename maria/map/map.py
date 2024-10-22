@@ -29,7 +29,7 @@ class Map:
     def __init__(
         self,
         data: float,
-        nu: float = None,
+        nu: float = 100.0,
         time: float = None,
         weight: float = None,
         width: float = None,

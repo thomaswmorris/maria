@@ -205,13 +205,12 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
     for ax in axes_iterator:
         ax.set_axis_off()
 
-    def update(frame):
-        global subplots
+    def update(frame, subplots):
         # i = frame_index[frame]
 
-        info = f'time = {time_offset:.00f} + {subplot["time"][frame]:.02f} s\naz = {np.degrees(subplot["az"][frame]):.02f} deg\nel = {np.degrees(subplot["el"][frame]):.02f} deg'  # noqa
-
         for band, subplot in subplots.items():
+            info = f'time = {time_offset:.00f} + {subplot["time"][frame]:.02f} s\naz = {np.degrees(subplot["az"][frame]):.02f} deg\nel = {np.degrees(subplot["el"][frame]):.02f} deg'  # noqa
+
             buffer = 4
 
             norm_start = np.maximum(0, frame - buffer)
@@ -233,10 +232,14 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
 
         return subplots
 
-    update(0)
+    update(0, subplots)
 
     ani = FuncAnimation(
-        fig=fig, func=update, frames=len(frame_index), interval=1e3 / fps
+        fig=fig,
+        func=update,
+        fargs=(subplots,),
+        frames=len(frame_index),
+        interval=1e3 / fps,
     )
 
     if filename:
