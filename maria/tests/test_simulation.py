@@ -38,3 +38,7 @@ def test_complete_sim(instrument, site, plan_config):
     tod = tod.to("K_RJ")
 
     tod.plot()
+
+    tod.process(despline={"knot_spacing": 60}).twinkle(
+        rate=2, max_frames=10, filename="/tmp/test_twinkle.gif"
+    )
