@@ -78,11 +78,9 @@ class BaseMapper:
 
         map_data = np.zeros((len(self.map_data), self.n_y, self.n_x))
         map_weight = np.zeros((len(self.map_data), self.n_y, self.n_x))
-        map_names = []
         map_freqs = []
 
         for i, (band_name, band_map_data) in enumerate(self.map_data.items()):
-            map_names.append(band_name)
             map_freqs.append(band_map_data["nom_freq"])
 
             band_map_numer = band_map_data["sum"].copy()
@@ -105,9 +103,8 @@ class BaseMapper:
 
         return Map(
             data=map_data,
-            name=map_names,
             weight=map_weight,
-            frequency=map_freqs,
+            nu=map_freqs,
             resolution=self.resolution,
             center=self.center,
             degrees=False,
