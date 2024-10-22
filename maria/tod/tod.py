@@ -13,7 +13,7 @@ from astropy.io import fits
 from maria import utils
 
 from ..coords import Coordinates
-from ..plotting import plot_tod
+from ..plotting import tod_plot, twinkle_plot
 
 
 class TOD:
@@ -392,10 +392,17 @@ class TOD:
             f.createdataset(fname)
 
     def plot(self, detrend=True, mean=True, n_freq_bins: int = 256):
-        plot_tod(
+        tod_plot(
             self,
             detrend=detrend,
             n_freq_bins=n_freq_bins,
+        )
+
+    def twinkle(self, filename=None, **kwargs):
+        twinkle_plot(
+            self,
+            filename=filename,
+            **kwargs,
         )
 
     def __getattr__(self, attr):

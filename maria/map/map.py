@@ -3,13 +3,12 @@ from typing import Tuple
 
 import astropy as ap
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
-from astropy.wcs import WCS
 from matplotlib.colors import ListedColormap
 
-from ..units import KbrightToJyPix
+from ..plotting import plot_map
+from ..units import MAP_UNITS, Angle, KbrightToJyPix
 
 here, this_filename = os.path.split(__file__)
 
@@ -21,42 +20,55 @@ cmb_cmap.set_bad("white")
 
 mpl.colormaps.register(cmb_cmap)
 
-UNITS_CONFIG = {
-    "K_RJ": {"long_name": "Rayleigh-Jeans Temperature [K]"},
-    "Jy/pixel": {"long_name": "Jy per pixel"},
-}
-
 
 class Map:
     """
-    A map.
+    A map, with shape (n_time, n_nu, n_x, n_y).
     """
 
     def __init__(
         self,
-        name: str = None,
-        data: float = np.zeros((1, 1)),
+        data: float,
+        nu: float = None,
+        time: float = None,
         weight: float = None,
         width: float = None,
         resolution: float = None,
-        frequency: float = 100.0,
         center: Tuple[float, float] = (0.0, 0.0),
         frame: str = "ra_dec",
         degrees: bool = True,
         units: str = "K_RJ",
     ):
-        if units not in UNITS_CONFIG:
-            raise ValueError(f"'units' must be one of {list(UNITS_CONFIG.keys())}.")
+        if units not in MAP_UNITS:
+            raise ValueError(f"'units' must be one of {list(MAP_UNITS.keys())}.")
 
-        self.name = (
-            np.atleast_1d(name)
-            if name is not None
-            else [f"{int(nu)} GHz" for nu in np.atleast_1d(frequency)]
-        )
-        self.data = data if data.ndim > 2 else data[None]
+        self.nu = np.array([np.nan]) if nu is None else np.atleast_1d(nu)
+        self.time = np.array([np.nan]) if time is None else np.atleast_1d(time)
+
+        # give it four dimensions
+        self.data = data * np.ones((1, 1, 1, 1))
+
+        if len(self.time) != self.data.shape[0]:
+            raise ValueError(
+                f"time has length {len(self.time)} but map has shape (t, nu, x, y) = {data.shape}."
+            )
+        if len(self.nu) != self.data.shape[1]:
+            raise ValueError(
+                f"nu has length {len(self.nu)} but map has shape (t, nu, x, y) = {data.shape}."
+            )
+
+        # if time is not None or data.ndim == 4:
+        #     if self.data.ndim != 4:
+        #         raise ValueError("Map data must be 4-dimensional (time, nuuency, x, y).")
+        #     if self.data.shape[0] != len(time):
+        #         raise ValueError(f"Time has shape {time.shape} but map has shape {data.shape}.")
+        #     self.time = time
+        # else:
+        #     self.time = np.array([ttime.time()])
+
         self.weight = weight if weight is not None else np.ones(self.data.shape)
         self.center = tuple(np.radians(center)) if degrees else center
-        self.frequency = np.atleast_1d(frequency)
+
         self.frame = frame
         self.units = units
 
@@ -72,10 +84,10 @@ class Map:
                 raise ValueError("'resolution' must be positive.")
             self.resolution = np.radians(resolution) if degrees else resolution
 
-        if len(self.frequency) != self.n_f:
+        if len(self.nu) != self.n_f:
             raise ValueError(
-                f"Number of supplied frequencies ({len(self.frequency)}) does not match the "
-                f"frequency dimension of the supplied map ({self.n_f})."
+                f"Number of supplied nuuencies ({len(self.nu)}) does not match the "
+                f"nu dimension of the supplied map ({self.n_f})."
             )
 
         # if self.units == "Jy/pixel":
@@ -101,9 +113,9 @@ class Map:
         center_degrees = np.degrees(self.center)
 
         parts.append(f"shape={self.data.shape}")
-        parts.append(f"freqs={self.frequency}")
+        parts.append(f"nus={self.nu}")
         parts.append(f"center=({center_degrees[0]:.02f}, {center_degrees[1]:.02f})")
-        parts.append(f"width={np.degrees(self.width).round()}°")
+        parts.append(f"width={Angle(self.width).__repr__()}")
 
         return f"Map({', '.join(parts)})"
 
@@ -140,7 +152,7 @@ class Map:
     def to(self, units, inplace=False):
         data = np.zeros(self.data.shape)
 
-        for i, nu in enumerate(self.frequency):
+        for i, nu in enumerate(self.nu):
             if units == self.units:
                 data[i] = self.data[i]
 
@@ -164,82 +176,12 @@ class Map:
                 data=data,
                 weight=self.weight,
                 resolution=self.resolution,
-                frequency=self.frequency,
+                nu=self.nu,
                 center=self.center,
                 frame=self.frame,
                 degrees=False,
                 units=units,
             )
-
-    def plot(
-        self, cmap="cmb", rel_vmin=0.001, rel_vmax=0.999, units="degrees", **kwargs
-    ):
-        for i_freq, freq in enumerate(self.frequency):
-            header = fits.header.Header()
-
-            header["RESTFRQ"] = freq
-
-            res_degrees = np.degrees(self.resolution)
-            center_degrees = np.degrees(self.center)
-
-            header["CDELT1"] = res_degrees  # degree
-            header["CDELT2"] = res_degrees  # degree
-
-            header["CRPIX1"] = self.n_x / 2
-            header["CRPIX2"] = self.n_y / 2
-
-            header["CTYPE1"] = "RA---SIN"
-            header["CUNIT1"] = "deg     "
-            header["CTYPE2"] = "DEC--SIN"
-            header["CUNIT2"] = "deg     "
-            header["RADESYS"] = "FK5     "
-
-            header["CRVAL1"] = center_degrees[0]
-            header["CRVAL2"] = center_degrees[1]
-            wcs_input = WCS(header, naxis=2)  # noqa F401
-
-            fig = plt.figure()
-
-            ax = fig.add_subplot(1, 1, 1)  # , projection=wcs_input)
-
-            ax.set_title(f"{freq} GHz")
-
-            map_extent_radians = [
-                -self.width / 2,
-                self.width / 2,
-                -self.height / 2,
-                self.height / 2,
-            ]
-
-            if units == "degrees":
-                map_extent = np.degrees(map_extent_radians)
-            if units == "arcmin":
-                map_extent = 60 * np.degrees(map_extent_radians)
-            if units == "arcsec":
-                map_extent = 3600 * np.degrees(map_extent_radians)
-
-            d = self.data.ravel()
-            w = self.weight.ravel()
-
-            sort = np.argsort(d)
-            d, w = d[sort], w[sort]
-
-            vmin, vmax = np.interp([rel_vmin, rel_vmax], np.cumsum(w) / np.sum(w), d)
-
-            map_im = ax.imshow(
-                self.data[i_freq].T,
-                cmap=cmap,
-                interpolation="none",
-                extent=map_extent,
-                vmin=vmin,
-                vmax=vmax,
-            )
-
-            ax.set_xlabel(rf"$\Delta\,\theta_x$ [{units}]")
-            ax.set_ylabel(rf"$\Delta\,\theta_y$ [{units}]")
-
-            cbar = fig.colorbar(map_im, ax=ax, shrink=1.0)
-            cbar.set_label(UNITS_CONFIG[self.units]["long_name"])
 
     def to_fits(self, filepath):
         self.header = ap.io.fits.header.Header()
@@ -259,7 +201,7 @@ class Map:
         self.header["CTYPE2"] = "DEC--SIN"
         self.header["CUNIT1"] = "deg     "
         self.header["CUNIT2"] = "deg     "
-        self.header["CTYPE3"] = "FREQ    "
+        self.header["CTYPE3"] = "nu    "
         self.header["CUNIT3"] = "Hz      "
         self.header["CRPIX3"] = 1.000000000000e00
 
@@ -279,3 +221,14 @@ class Map:
             header=self.header,
             overwrite=True,
         )
+
+    @property
+    def x(self):
+        return self.width * np.linspace(-0.5, 0.5, self.n_x)
+
+    @property
+    def y(self):
+        return self.height * np.linspace(-0.5, 0.5, self.n_y)
+
+    def plot(self, **kwargs):
+        plot_map(self, **kwargs)

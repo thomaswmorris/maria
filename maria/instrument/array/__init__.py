@@ -179,7 +179,7 @@ class Array:
 
         band_centers = [band.center for band in bands]
         resolutions = [
-            compute_angular_fwhm(primary_size, z=np.inf, f=1e9 * band.center)
+            compute_angular_fwhm(primary_size, z=np.inf, nu=band.center)
             for band in bands
         ]
         detector_spacing = beam_spacing * np.max(resolutions)

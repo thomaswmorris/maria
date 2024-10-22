@@ -122,7 +122,7 @@ class Detectors:
         Angular beam width (in radians) as a function of depth (in meters)
         """
         nu = self.band_center  # in GHz
-        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, f=1e9 * nu)
+        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=nu)
 
     def physical_fwhm(self, z):
         """

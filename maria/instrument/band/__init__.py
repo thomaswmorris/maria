@@ -1,6 +1,5 @@
 import glob
 import os
-import re
 from collections.abc import Mapping
 from typing import Sequence, Union
 
@@ -11,14 +10,10 @@ import pandas as pd
 from ...functions import planck_spectrum
 from ...io import flatten_config, read_yaml
 from ...spectrum import AtmosphericSpectrum
-from ...units import BASE_TOD_UNITS, prefixes
+from ...units import parse_tod_units, prefixes
 from ...units.constants import T_CMB, c, k_B
 
 here, this_filename = os.path.split(__file__)
-
-prefix_phrase = "|".join(prefixes.index)
-units_phrase = "|".join(BASE_TOD_UNITS)
-units_pattern = re.compile(rf"(?P<prefix>({prefix_phrase}))?(?P<base>.+)")
 
 FIELD_FORMATS = pd.read_csv(f"{here}/format.csv", index_col=0)
 
@@ -80,12 +75,7 @@ def parse_tod_calibration_signature(s):
                 items = [u.strip() for u in s.split(sep)]
                 if len(items) == 2:
                     for io, u in zip(["in", "out"], items):
-                        match = units_pattern.search(u)
-                        if match is None:
-                            raise ValueError(
-                                f"Invalid units '{u}'. Valid units are a combination of an SI prefix "
-                                f"(one of {prefixes.index}) and a base units (one of {BASE_TOD_UNITS})."
-                            )
+                        match = parse_tod_units(u)
                         prefix = match["prefix"]
                         res[f"{io}_factor"] = (
                             prefixes.loc[prefix].factor if prefix else 1e0

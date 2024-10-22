@@ -208,10 +208,12 @@ class Atmosphere:
                 self.layers.res.min(),
             )
 
+            outer_scale = np.maximum(1e3, 300 + process_layers.h.mean() / 10)
+
             matern_kwargs = (
-                {"nu": 1 / 3, "r0": 3e2}
+                {"nu": 1 / 3, "r0": outer_scale}
                 if self.model == "3d"
-                else {"nu": 5 / 6, "r0": 3e2}
+                else {"nu": 5 / 6, "r0": outer_scale}
             )
 
             process = ProcessExtrusion(

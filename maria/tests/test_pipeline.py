@@ -5,9 +5,8 @@ import pytest
 
 import maria
 from maria.instrument import Band
+from maria.io import fetch
 from maria.map.mappers import BinMapper
-
-from ..io import fetch
 
 here, this_filename = os.path.split(__file__)
 

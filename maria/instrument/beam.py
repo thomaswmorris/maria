@@ -2,20 +2,20 @@ import numpy as np
 import scipy as sp  # noqa F401
 
 
-def compute_angular_fwhm(fwhm_0, z=np.inf, n=1.0, f=None, l=None):  # noqa F401
+def compute_angular_fwhm(fwhm_0, z=np.inf, n=1.0, nu=None, l=None):  # noqa F401
     """
     Returns the angular full width at half maximum of a Gaussian beam at distance `z` in
-    refractive index `n`. Supply either the wavelength `l` in meters or the frequency `f` in Hz.
+    refractive index `n`. Supply either the wavelength `l` in meters or the frequency `nu` in GHz.
 
     NOTE: For telescope purposes, `fwhm_0` is the width of the objective/primary.
     """
 
-    if (f is None) and (l is None):
+    if (nu is None) and (l is None):
         raise ValueError("You must supply either a frequency 'f' or wavelength 'l'.")
 
     w_0 = fwhm_0 / 2
 
-    l = l if l is not None else 2.998e8 / f  # noqa F401
+    l = l if l is not None else 2.998e-1 / nu  # noqa F401
 
     # Rayleigh range
     z_r = np.pi * w_0**2 * n / l
@@ -23,8 +23,8 @@ def compute_angular_fwhm(fwhm_0, z=np.inf, n=1.0, f=None, l=None):  # noqa F401
     return 2 * w_0 * np.sqrt(1 / z**2 + 1 / z_r**2)
 
 
-def compute_physical_fwhm(fwhm_0, z=np.inf, n=1, f=None, l=None):  # noqa F401
-    return z * compute_angular_fwhm(fwhm_0=fwhm_0, z=z, n=n, f=f, l=l)
+def compute_physical_fwhm(fwhm_0, z=np.inf, n=1, nu=None, l=None):  # noqa F401
+    return z * compute_angular_fwhm(fwhm_0=fwhm_0, z=z, n=n, nu=nu, l=l)
 
 
 def construct_beam_filter(fwhm, res, beam_profile=None, buffer=1):
@@ -51,12 +51,13 @@ def construct_beam_filter(fwhm, res, beam_profile=None, buffer=1):
     return F / F.sum()
 
 
-def separably_filter(data, F, tol=1e-2, return_filter=False):
+def separably_filter_2d(data, F, tol=1e-2, return_filter=False):
     """
     This is more efficient than 2d convolution
     """
 
-    assert data.ndim == 2
+    if F.ndim != 2:
+        raise ValueError("F must be two-dimensional.")
 
     u, s, v = np.linalg.svd(F)
     effective_filter = 0

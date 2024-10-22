@@ -97,6 +97,8 @@ class Weather:
         self.utc_day_hour = get_utc_day_hour(self.t)
         self.utc_year_day = get_utc_year_day(self.t)
 
+        self.region_quantiles = {}
+
         with h5py.File(self.cache_path, "r") as f:
             self.quantile_levels = f["quantile_levels"][:]
             self.pressure_levels = f["pressure_levels"][:]
@@ -113,17 +115,27 @@ class Weather:
                 year_day_edge_index, day_hour_edge_index, indexing="ij"
             )
 
-            for attr in self.fields:
-                quantiles = (
+            for attr in f["data"].keys():
+                self.region_quantiles[attr] = (
                     f["data"][attr]["normalized_quantiles"][:]
                     * f["data"][attr]["scale"][()]
                     + f["data"][attr]["mean"][()]
                 )
+
+            # quantiles["wind_speed"] = np.sqrt(quantiles["wind_east"]**2 + quantiles["wind_north"]**2)
+
+            for attr, data in self.region_quantiles.items():
                 y = sp.interpolate.RegularGridInterpolator(
                     (year_day_side, day_hour_side, self.quantile_levels),
-                    quantiles[YEAR_DAY_EDGE_INDEX, DAY_HOUR_EDGE_INDEX],
+                    data[YEAR_DAY_EDGE_INDEX, DAY_HOUR_EDGE_INDEX],
                 )((self.utc_year_day, self.utc_day_hour, self.quantiles.get(attr, 0.5)))
                 setattr(self, attr, y)
+
+        wind_speed_correction_factor = self.wind_speed / np.sqrt(
+            self.wind_east**2 + self.wind_north**2
+        )
+        self.wind_north *= wind_speed_correction_factor
+        self.wind_east *= wind_speed_correction_factor
 
         self.altitude = self.geopotential / g
 
@@ -141,9 +153,9 @@ class Weather:
     def wind_bearing(self):
         return np.arctan2(-self.wind_east, self.wind_north) % (2 * np.pi)
 
-    @property
-    def wind_speed(self):
-        return np.sqrt(self.wind_east**2 + self.wind_north**2)
+    # @property
+    # def wind_speed(self):
+    #     return np.sqrt(self.wind_east**2 + self.wind_north**2 + self.wind_vertical**2)
 
     @property
     def pwv(self):

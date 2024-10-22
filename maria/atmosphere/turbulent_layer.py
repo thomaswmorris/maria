@@ -6,7 +6,7 @@ from .. import utils
 from ..coords import Coordinates, get_center_phi_theta
 from ..functions import approximate_normalized_matern
 from ..instrument import Instrument
-from ..instrument.beam import construct_beam_filter, separably_filter
+from ..instrument.beam import construct_beam_filter, separably_filter_2d
 from ..weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
@@ -322,7 +322,7 @@ class TurbulentLayer:
                 res=self.angular_resolution,
                 beam_profile=self.instrument.beam_profile,
             )
-            FILTERED_VALUES = separably_filter(self.shaped_values, F)
+            FILTERED_VALUES = separably_filter_2d(self.shaped_values, F)
             FILTERED_VALUES = self.shaped_values
 
             detector_values[band_index] = sp.interpolate.RegularGridInterpolator(

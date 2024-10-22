@@ -39,9 +39,9 @@ class MapMixin:
             nu = np.linspace(band.nu_min, band.nu_max, 64)
 
             TRJ = sp.interpolate.interp1d(
-                self.map.frequency,
+                self.map.nu,
                 self.map.data,
-                axis=0,
+                axis=1,
                 kind="nearest",
                 bounds_error=False,
                 fill_value="extrapolate",
@@ -51,7 +51,7 @@ class MapMixin:
                 1e12
                 * k_B
                 * np.trapezoid(
-                    band.passband(nu)[:, None, None] * TRJ, axis=0, x=1e9 * nu
+                    band.passband(nu)[:, None, None] * TRJ, axis=1, x=1e9 * nu
                 )
             )
 
@@ -59,20 +59,30 @@ class MapMixin:
             nu_fwhm = beam.compute_angular_fwhm(
                 fwhm_0=self.instrument.dets.primary_size.mean(),
                 z=np.inf,
-                f=1e9 * band.center,
+                nu=band.center,
             )
             nu_map_filter = beam.construct_beam_filter(
                 fwhm=nu_fwhm, res=self.map.resolution
             )
-            filtered_power_map = beam.separably_filter(power_map, nu_map_filter)
+            filtered_power_map = beam.separably_filter_2d(power_map, nu_map_filter)
 
-            map_power = sp.interpolate.RegularGridInterpolator(
-                (self.map.x_side, self.map.y_side),
-                filtered_power_map,
-                bounds_error=False,
-                fill_value=0,
-                method="linear",
-            )((dx[band_mask], dy[band_mask]))
+            if len(self.map.time) > 1:
+                map_power = sp.interpolate.RegularGridInterpolator(
+                    (self.map.time, self.map.x_side, self.map.y_side),
+                    filtered_power_map,
+                    bounds_error=False,
+                    fill_value=0,
+                    method="linear",
+                )((self.boresight.time, dx[band_mask], dy[band_mask]))
+
+            else:
+                map_power = sp.interpolate.RegularGridInterpolator(
+                    (self.map.x_side, self.map.y_side),
+                    filtered_power_map[0],
+                    bounds_error=False,
+                    fill_value=0,
+                    method="linear",
+                )((dx[band_mask], dy[band_mask]))
 
             if (map_power == 0).all():
                 warnings.warn("No power from map!")
