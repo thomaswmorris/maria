@@ -10,7 +10,7 @@ Noise is specified for a given band
                            width=30,
                            sensitivity=5e-5,
                            knee=1e0,
-                           gain_error=1e-1)
+                           gain_error=5e-2)
 
 We can also use the
 
@@ -20,7 +20,7 @@ We can also use the
                            width=30,
                            sensitivity=5e-5,
                            knee=1e0,
-                           gain_error=1e-1)
+                           gain_error=5e-2)
 
 
 Note that any sensitivity units are only implicit due to the imperfect efficiency (caused by the instrument and the atmosphere).
