@@ -4,7 +4,9 @@ import maria
 from maria.io import fetch
 
 
-@pytest.mark.parametrize("map_name", ["maps/cluster.fits"])
+@pytest.mark.parametrize(
+    "map_name", ["maps/cluster.fits", "maps/big_cluster.fits", "maps/galaxy.fits"]
+)
 def test_atmosphere(map_name):
     map_filename = fetch(map_name)
 
