@@ -37,7 +37,7 @@
     "            width=30,\n",
     "            sensitivity=5e-5,\n",
     "            knee=1e0,\n",
-    "            gain_error=1e-1)"
+    "            gain_error=5e-2)"
    ]
   },
   {
