@@ -82,7 +82,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if atmosphere:
             el_min = np.atleast_1d(self.coords.el).min().compute()
             if el_min < np.radians(MIN_ELEVATION_WARN):
-                logger.warn(
+                logger.warning(
                     f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon"
                     f"(el_min = {np.degrees(el_min):.01f}°)"
                 )

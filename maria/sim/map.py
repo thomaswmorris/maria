@@ -86,6 +86,6 @@ class MapMixin:
                 )((dx[band_mask], dy[band_mask]))
 
             if (map_power == 0).all():
-                logger.warn("No power from map!")
+                logger.warning("No power from map!")
 
             self.data["map"][band_mask] += map_power
