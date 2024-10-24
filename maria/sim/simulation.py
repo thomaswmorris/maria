@@ -1,7 +1,6 @@
 import logging
 import os
 import time as ttime
-import warnings
 
 import numpy as np
 from tqdm import tqdm
@@ -19,9 +18,8 @@ from .cmb import CMBMixin
 from .map import MapMixin
 from .noise import NoiseMixin
 
-logger = logging.getLogger("maria")
 here, this_filename = os.path.split(__file__)
-
+logger = logging.getLogger("maria")
 
 MIN_ELEVATION_WARN = 10
 MIN_ELEVATION_ERROR = 5
@@ -84,7 +82,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if atmosphere:
             el_min = np.atleast_1d(self.coords.el).min().compute()
             if el_min < np.radians(MIN_ELEVATION_WARN):
-                warnings.warn(
+                logger.warn(
                     f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon"
                     f"(el_min = {np.degrees(el_min):.01f}°)"
                 )

@@ -108,13 +108,13 @@ def fetch(
 def fetch_from_url(
     source_url: str,
     cache_path: str = None,
-    max_age: float = 30 * 86400,
+    max_age: float = 7 * 86400,
     refresh: bool = False,
     chunk_size: int = 8192,
     verbose: bool = False,
 ):
     """
-    Download the cache if needed
+    Download the cache if needed.
     """
 
     cache_dir = os.path.dirname(cache_path)
