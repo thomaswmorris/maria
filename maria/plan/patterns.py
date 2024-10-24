@@ -5,7 +5,7 @@ import scipy as sp
 
 def daisy(
     time,
-    radius=1,
+    radius=1.0,
     speed=None,
     petals=10 / np.pi,
     miss_factor=0.15,
@@ -14,14 +14,26 @@ def daisy(
     speed = speed or radius / 5
     phase = time * speed / np.maximum(radius, 1e-6)  # do not divide by zero
 
-    return daisy_pattern_miss_center(phase, radius, petals, miss_factor, miss_freq)
+    return daisy_pattern_miss_center(
+        phase=phase,
+        radius=radius,
+        petals=petals,
+        miss_factor=miss_factor,
+        miss_freq=miss_freq,
+    )
 
 
-def double_circle(time, radius=1, speed=None, miss_freq=np.sqrt(2)):  # noqa
-    speed = speed or radius / 5
-    phase = time * speed / radius / miss_freq
+def daisy_pattern_miss_center(phase, radius, petals, miss_factor, miss_freq):
+    shifted_phase = phase + np.pi / 2
 
-    return double_circle_offsets(phase, radius, miss_freq)
+    outer_z = np.sin(phase) * np.exp(1j * phase / petals)
+    inner_z = (
+        miss_factor * np.sin(shifted_phase) * np.exp(1j * miss_freq * phase / petals)
+    )
+
+    z = radius * (inner_z + outer_z)
+
+    return np.real(z), np.imag(z)
 
 
 def grid(time, radius=1, speed=None, n=17, turnaround_time=5):  # noqa
@@ -114,28 +126,13 @@ def stare(time):
     return np.zeros(time.shape), np.zeros(time.shape)
 
 
-def double_circle_offsets(phase, radius, miss_freq):
-    x_c = radius * np.sin(phase)
-    y_c = radius * np.cos(phase)
+def double_circle(time, speed=None, radius=1.0, ratio=np.pi):
+    speed = speed or radius / 10
+    phase = time * speed / np.maximum(radius, 1e-6)  # do not divide by zero
 
-    x_p = radius * np.sin(phase * miss_freq) + x_c
-    y_p = radius * np.cos(phase * miss_freq) + y_c
+    x_p = radius * (np.sin(phase) + np.sin(phase * (1 + ratio))) / 2
+    y_p = radius * (np.cos(phase) + np.cos(phase * (1 + ratio))) / 2
     return x_p, y_p
-
-
-def daisy_pattern_miss_center(phase, radius, petals, miss_factor, miss_freq):
-    shifted_phase = phase + np.pi / 2
-
-    outer_z = np.sin(phase) * np.exp(1j * phase / petals)
-    inner_z = (
-        miss_factor * np.sin(shifted_phase) * np.exp(1j * miss_freq * phase / petals)
-    )
-
-    z = radius * (inner_z + outer_z)
-
-    # assert False
-
-    return np.real(z), np.imag(z)
 
 
 def get_constant_speed_offsets(
@@ -162,21 +159,23 @@ def get_constant_speed_offsets(
     return pattern(np.array([p for p in phase_coroutine()]), **scan_options)
 
 
-PATTERNS = {
-    "back_and_forth": {"aliases": ["back-and-forth"], "generator": back_and_forth},
+patterns = {
+    "stare": {"aliases": [], "generator": stare},
     "daisy": {"aliases": ["daisy_scan"], "generator": daisy},
     "raster": {"aliases": [], "generator": raster},
-    "stare": {"aliases": [], "generator": stare},
+    "back_and_forth": {"aliases": ["back-and-forth"], "generator": back_and_forth},
+    "grid": {"aliases": [], "generator": grid},
+    "double_circle": {"aliases": [], "generator": double_circle},
 }
 
-for key in PATTERNS:
-    PATTERNS[key]["aliases"].append(key)
+for key in patterns:
+    patterns[key]["aliases"].append(key)
 
-PATTERNS = pd.DataFrame(PATTERNS).T
+patterns = pd.DataFrame(patterns).T
 
 
 def get_pattern_generator(name):
-    for index, entry in PATTERNS.iterrows():
+    for index, entry in patterns.iterrows():
         if name in entry.aliases:
             return entry.generator
 

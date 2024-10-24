@@ -208,7 +208,7 @@ class TOD:
 
         if "filter" in kwargs:
             if "window" not in kwargs:
-                logger.warn("Filtering without windowing is not recommended.")
+                logger.warning("Filtering without windowing is not recommended.")
 
             if "f_upper" in kwargs["filter"]:
                 D = utils.signal.lowpass(

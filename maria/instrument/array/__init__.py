@@ -205,7 +205,7 @@ class Array:
                     )
                 else:
                     if len(resolutions) > 1:
-                        logger.warn(
+                        logger.warning(
                             "Subarray has more than one band. "
                             f"Generating detector spacing based on the lowest frequency ({np.min(band_centers):.01f}) GHz."
                         )

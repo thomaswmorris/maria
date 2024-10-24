@@ -11,12 +11,12 @@ import pytz
 
 from .. import coords
 from ..io import datetime_handler, read_yaml
-from .patterns import PATTERNS, get_pattern_generator
+from .patterns import get_pattern_generator, patterns
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
-all_patterns = list(PATTERNS.index.values)
+all_patterns = list(patterns.index.values)
 
 MAX_VELOCITY_WARN = 10  # in deg/s
 MAX_ACCELERATION_WARN = 10  # in deg/s
@@ -144,7 +144,7 @@ class Plan:
         self.max_acc = np.sqrt(np.sum(scan_acceleration_radians**2, axis=0)).max()
 
         if self.max_vel > MAX_VELOCITY_WARN:
-            logger.warn(
+            logger.warning(
                 (
                     f"The maximum velocity of the boresight ({np.degrees(self.max_vel):.01f} deg/s) is "
                     "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
@@ -153,7 +153,7 @@ class Plan:
             )
 
         if self.max_acc > MAX_ACCELERATION_WARN:
-            logger.warn(
+            logger.warning(
                 (
                     f"The maximum acceleration of the boresight ({np.degrees(self.max_acc):.01f} deg/s^2) is "
                     "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
