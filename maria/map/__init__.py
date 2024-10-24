@@ -1,6 +1,7 @@
 import os
 
-import astropy as ap
+import numpy as np
+from astropy.io import fits
 
 from .map import Map
 
@@ -15,7 +16,13 @@ def read_fits(
     if not os.path.exists(filename):
         raise FileNotFoundError(filename)
 
-    hudl = ap.io.fits.open(filename)
+    hudl = fits.open(filename)
+
+    indices_with_image = np.where([h.data is not None for h in hudl])[0]
+    if len(indices_with_image) == 0:
+        raise ValueError(f"FITS file '{filename}' has no images.")
+
+    index = index or indices_with_image[0]
 
     map_data = hudl[index].data
     if map_data.ndim < 2:
