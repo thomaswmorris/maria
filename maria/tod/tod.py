@@ -1,6 +1,6 @@
 import functools
 import json
-import warnings
+import logging
 
 import dask.array as da
 import h5py
@@ -14,6 +14,8 @@ from maria import utils
 
 from ..coords import Coordinates
 from ..plotting import tod_plot, twinkle_plot
+
+logger = logging.getLogger("maria")
 
 
 class TOD:
@@ -206,7 +208,7 @@ class TOD:
 
         if "filter" in kwargs:
             if "window" not in kwargs:
-                warnings.warn("Filtering without windowing is not recommended.")
+                logger.warn("Filtering without windowing is not recommended.")
 
             if "f_upper" in kwargs["filter"]:
                 D = utils.signal.lowpass(

@@ -1,5 +1,5 @@
+import logging
 import os
-import warnings
 
 import dask.array as da
 import numpy as np
@@ -10,6 +10,7 @@ from ..instrument import beam
 from ..units.constants import k_B
 
 here, this_filename = os.path.split(__file__)
+logger = logging.getLogger("maria")
 
 
 class MapMixin:
@@ -85,6 +86,6 @@ class MapMixin:
                 )((dx[band_mask], dy[band_mask]))
 
             if (map_power == 0).all():
-                warnings.warn("No power from map!")
+                logger.warn("No power from map!")
 
             self.data["map"][band_mask] += map_power

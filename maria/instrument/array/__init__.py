@@ -2,7 +2,6 @@ import glob
 import logging
 import os
 import time as ttime
-import warnings
 
 import matplotlib as mpl
 import numpy as np
@@ -206,7 +205,7 @@ class Array:
                     )
                 else:
                     if len(resolutions) > 1:
-                        warnings.warn(
+                        logger.warn(
                             "Subarray has more than one band. "
                             f"Generating detector spacing based on the lowest frequency ({np.min(band_centers):.01f}) GHz."
                         )

@@ -1,8 +1,8 @@
+import logging
 import os
-import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +13,9 @@ from .. import coords
 from ..io import datetime_handler, read_yaml
 from .patterns import PATTERNS, get_pattern_generator
 
+here, this_filename = os.path.split(__file__)
+logger = logging.getLogger("maria")
+
 all_patterns = list(PATTERNS.index.values)
 
 MAX_VELOCITY_WARN = 10  # in deg/s
@@ -20,8 +23,6 @@ MAX_ACCELERATION_WARN = 10  # in deg/s
 
 MIN_ELEVATION_WARN = 20  # in deg
 MIN_ELEVATION_ERROR = 10  # in deg
-
-here, this_filename = os.path.split(__file__)
 
 plan_configs = read_yaml(f"{here}/plans.yml")
 plan_params = set()
@@ -60,7 +61,7 @@ class Plan:
     """
 
     description: str = ""
-    start_time: str or int = "2022-02-10T06:00:00"
+    start_time: Union[str, int] = "2022-02-10T06:00:00"
     duration: float = 60.0
     sample_rate: float = 20.0
     frame: str = "ra_dec"
@@ -143,7 +144,7 @@ class Plan:
         self.max_acc = np.sqrt(np.sum(scan_acceleration_radians**2, axis=0)).max()
 
         if self.max_vel > MAX_VELOCITY_WARN:
-            warnings.warn(
+            logger.warn(
                 (
                     f"The maximum velocity of the boresight ({np.degrees(self.max_vel):.01f} deg/s) is "
                     "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
@@ -152,7 +153,7 @@ class Plan:
             )
 
         if self.max_acc > MAX_ACCELERATION_WARN:
-            warnings.warn(
+            logger.warn(
                 (
                     f"The maximum acceleration of the boresight ({np.degrees(self.max_acc):.01f} deg/s^2) is "
                     "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
