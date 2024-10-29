@@ -287,15 +287,13 @@
                    <span class="n">height</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
                    <span class="n">resolution</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span>
                    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tukey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
-                        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                        <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;f_lower&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span>
+                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tukey&quot;</span><span class="p">,</span> <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
                         <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
-                                    <span class="p">},</span>
-                    <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
+                        <span class="p">},</span>
+                   <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
                         <span class="s2">&quot;median_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                                    <span class="p">},</span>
+                        <span class="p">},</span>
                    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">,</span>
                    <span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod</span><span class="p">],</span>
                    <span class="p">)</span>

@@ -1,0 +1,195 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "ecfabf00-c7e8-47ca-a802-51ca2e0a098d",
+   "metadata": {},
+   "source": [
+    "# Custom map simulations\n",
+    "\n",
+    "In this tutorial we will build a simulation from scratch."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "64349f61-7d1d-426e-ae12-aaed2cc4508a",
+   "metadata": {},
+   "source": [
+    "We start by defining a `Band` that will determine our array's sensitivity to different spectra. We then generate an array by specifying a field of view, which will be populated by evenly-spaced beams of the given band."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "20f15325-80a9-4190-82e3-77df7f49dbeb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import maria\n",
+    "from maria.instrument import Band\n",
+    "\n",
+    "f090 = Band(center=90, # in GHz\n",
+    "            width=20,\n",
+    "            sensitivity=3e-5,\n",
+    "            gain_error=5e-2) # in K sqrt(s)\n",
+    "\n",
+    "f150 = Band(center=150,\n",
+    "            width=30,\n",
+    "            sensitivity=5e-5,\n",
+    "            knee=1e0,\n",
+    "            gain_error=5e-2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9d05cd52-383f-442e-8b0c-27d005924b95",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "array = {\"field_of_view\": 0.5, \"primary_size\": 20, \"bands\": [f090, f150]}\n",
+    "\n",
+    "instrument = maria.get_instrument(array=array)\n",
+    "\n",
+    "instrument.plot()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b9887908-2532-4128-87a3-b3c7fa67e4b8",
+   "metadata": {},
+   "source": [
+    "As something to observe, we can download a map and construct a `map`. We also define a plan to do a daisy scan centered on the center of the map."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ac27acb9-2934-4762-9cd7-1895be418873",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from maria.io import fetch\n",
+    "\n",
+    "map_filename = fetch(\"maps/big_cluster.fits\")\n",
+    "\n",
+    "input_map = maria.map.read_fits(filename=map_filename, \n",
+    "                                index=1,\n",
+    "                                width=1, \n",
+    "                                center=(150, 10), \n",
+    "                                units=\"Jy/pixel\")\n",
+    "\n",
+    "input_map.to(units=\"K_RJ\").plot()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8517b99a-e4b3-4a3b-9ce7-07f2f84629de",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plan = maria.Plan(scan_pattern=\"daisy\",\n",
+    "                  scan_options={\"radius\": 0.5, \"speed\": 0.1}, # in degrees\n",
+    "                  duration=660, # in seconds\n",
+    "                  sample_rate=50, # in Hz\n",
+    "                  scan_center=(150, 10),\n",
+    "                  frame=\"ra_dec\")\n",
+    "\n",
+    "plan.plot()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6712b371-6939-461b-ab3d-675dcaf568de",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sim = maria.Simulation(instrument, \n",
+    "                       plan=plan,\n",
+    "                       site=\"llano_de_chajnantor\", \n",
+    "                       map=input_map,\n",
+    "                       atmosphere=\"2d\",\n",
+    "                      )"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "77740574-028b-4021-bc11-1b96ab7b0e6b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tod = sim.run()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "fe98558d-fa8e-48b9-bf51-1c96c2c8c59d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from maria.mappers import BinMapper\n",
+    "\n",
+    "mapper = BinMapper(center=(150, 10), \n",
+    "                   frame=\"ra_dec\", \n",
+    "                   width=1e0, \n",
+    "                   height=1e0,\n",
+    "                   resolution=5e-3,\n",
+    "                   tod_preprocessing={\n",
+    "                        \"window\": {\"name\": \"tukey\", \"kwargs\": {\"alpha\": 0.1}},\n",
+    "                        \"despline\": {\"knot_spacing\": 5},\n",
+    "                        \"remove_modes\": {\"modes_to_remove\": [0]},\n",
+    "                        \"filter\": {\"f_lower\": 0.08},\n",
+    "                    },\n",
+    "                    map_postprocessing={\n",
+    "                        \"gaussian_filter\": {\"sigma\": 1},\n",
+    "                        \"median_filter\": {\"size\": 1},\n",
+    "                    },\n",
+    "                  )\n",
+    "\n",
+    "mapper.add_tods(tod)\n",
+    "\n",
+    "output_map = mapper.run()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4badaee9-831b-4099-99c1-0acdb063be82",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "output_map.plot()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.5"
+  },
+  "vscode": {
+   "interpreter": {
+    "hash": "b0fa6594d8f4cbf19f97940f81e996739fb7646882a419484c72d19e05852a7e"
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
