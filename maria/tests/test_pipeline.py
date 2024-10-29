@@ -6,7 +6,7 @@ import pytest
 import maria
 from maria.instrument import Band
 from maria.io import fetch
-from maria.map.mappers import BinMapper
+from maria.mappers import BinMapper
 
 here, this_filename = os.path.split(__file__)
 
@@ -54,8 +54,9 @@ def test_map_sim():
         resolution=np.radians(4.0 / 3600.0),
         degrees=False,
         tod_preprocessing={
-            "remove_modes": {"n": 1},
-            "filter": {"f": 0.08},
+            "window": {"name": "tukey"},
+            "remove_modes": {"modes_to_remove": (0,)},
+            "filter": {"f_lower": 0.08},
             "despline": {"knot_spacing": 10},
         },
         map_postprocessing={

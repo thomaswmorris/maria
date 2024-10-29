@@ -126,7 +126,7 @@ def stare(time):
     return np.zeros(time.shape), np.zeros(time.shape)
 
 
-def double_circle(time, speed=None, radius=1.0, ratio=np.pi):
+def double_circle(time, speed=None, radius=1.0, ratio=2.1):
     speed = speed or radius / 10
     phase = time * speed / np.maximum(radius, 1e-6)  # do not divide by zero
 
