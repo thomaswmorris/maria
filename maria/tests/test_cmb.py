@@ -6,5 +6,6 @@ import maria
 from maria.cmb import generate_cmb
 
 
-def test_generate_cmb():
-    generate_cmb(nside=1024)
+@pytest.mark.parametrize("nside", [256, 512, 1024, 2048, 4096])
+def test_generate_cmb(nside):
+    generate_cmb(nside=nside)
