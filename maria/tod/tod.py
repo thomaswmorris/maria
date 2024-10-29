@@ -4,16 +4,16 @@ import logging
 
 import dask.array as da
 import h5py
-import matplotlib as mpl  # noqa
 import numpy as np
 import pandas as pd
 import scipy as sp
 from astropy.io import fits
 
-from maria import utils
-
 from ..coords import Coordinates
 from ..plotting import tod_plot, twinkle_plot
+
+# from .processing import process_tod
+
 
 logger = logging.getLogger("maria")
 
@@ -121,12 +121,20 @@ class TOD:
         return sum([self.get_field(field) for field in self.fields])
 
     @property
+    def duration(self) -> float:
+        return np.ptp(self.time)
+
+    @property
     def dt(self) -> float:
         return float(np.gradient(self.time, axis=-1).mean())
 
     @property
-    def fs(self) -> float:
+    def sample_rate(self) -> float:
         return float(1 / self.dt)
+
+    @property
+    def fs(self) -> float:
+        return self.sample_rate
 
     @property
     def nd(self) -> int:
@@ -195,65 +203,8 @@ class TOD:
                 units=self.units,
             )
 
-    def process(self, **kwargs):
-        D = self.signal.compute()
-        W = np.ones(D.shape)
-
-        if "window" in kwargs:
-            if "tukey" in kwargs["window"]:
-                W *= sp.signal.windows.tukey(
-                    D.shape[-1], alpha=kwargs["window"]["tukey"].get("alpha", 0.1)
-                )
-                D = W * sp.signal.detrend(D, axis=-1)
-
-        if "filter" in kwargs:
-            if "window" not in kwargs:
-                logger.warning("Filtering without windowing is not recommended.")
-
-            if "f_upper" in kwargs["filter"]:
-                D = utils.signal.lowpass(
-                    D,
-                    fc=kwargs["filter"]["f_upper"],
-                    fs=self.fs,
-                    order=kwargs["filter"].get("order", 1),
-                    method="bessel",
-                )
-
-            if "f_lower" in kwargs["filter"]:
-                D = utils.signal.highpass(
-                    D,
-                    fc=kwargs["filter"]["f_lower"],
-                    fs=self.fs,
-                    order=kwargs["filter"].get("order", 1),
-                    method="bessel",
-                )
-
-        if "remove_modes" in kwargs:
-            n_modes_to_remove = kwargs["remove_modes"]["n"]
-
-            U, V = utils.signal.decompose(
-                D, downsample_rate=np.maximum(int(self.fs), 1), mode="uv"
-            )
-            D = U[:, n_modes_to_remove:] @ V[n_modes_to_remove:]
-
-        if "despline" in kwargs:
-            B = utils.signal.get_bspline_basis(
-                self.time,
-                spacing=kwargs["despline"]["knot_spacing"],
-                order=kwargs["despline"].get("spline_order", 3),
-            )
-
-            A = np.linalg.inv(B @ B.T) @ B @ D.T
-            D -= A.T @ B
-
-        return TOD(
-            data={"total": {"data": D}},
-            weight=W,
-            coords=self.coords,
-            units=self.units,
-            dets=self.dets,
-            dtype=np.float32,
-        )
+    # def process(self, **kwargs):
+    #     process_tod(self, **kwargs)
 
     @property
     def time(self):
