@@ -46,9 +46,9 @@ class AtmosphericSpectrum:
         self._transmission = np.exp(-self._opacity)
         del self._opacity
 
-    def emission(self, nu, zenith_pwv=None, base_temperature=None, elevation=45):
-        if zenith_pwv is None:
-            zenith_pwv = np.median(self._side_zenith_pwv)
+    def emission(self, nu, pwv=None, base_temperature=None, elevation=45):
+        if pwv is None:
+            pwv = np.median(self._side_zenith_pwv)
         if base_temperature is None:
             base_temperature = np.median(self._side_base_temperature)
 
@@ -60,11 +60,11 @@ class AtmosphericSpectrum:
                 self._side_nu,
             ),
             values=self._emission,
-        )((zenith_pwv, base_temperature, elevation, nu))
+        )((pwv, base_temperature, elevation, nu))
 
-    def transmission(self, nu, zenith_pwv=None, base_temperature=None, elevation=45):
-        if zenith_pwv is None:
-            zenith_pwv = np.median(self._side_zenith_pwv)
+    def transmission(self, nu, pwv=None, base_temperature=None, elevation=45):
+        if pwv is None:
+            pwv = np.median(self._side_zenith_pwv)
         if base_temperature is None:
             base_temperature = np.median(self._side_base_temperature)
 
@@ -76,4 +76,4 @@ class AtmosphericSpectrum:
                 self._side_nu,
             ),
             values=self._transmission,
-        )((zenith_pwv, base_temperature, elevation, nu))
+        )((pwv, base_temperature, elevation, nu))

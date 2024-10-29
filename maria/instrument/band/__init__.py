@@ -188,9 +188,7 @@ class Band:
     def set_sensitivity(
         self, value, kind="rayleigh-jeans", region="chajnantor", pwv=0, elevation=90
     ):
-        transmission = self.transmission(
-            region=region, zenith_pwv=pwv, elevation=elevation
-        )
+        transmission = self.transmission(region=region, pwv=pwv, elevation=elevation)
 
         if kind.lower() == "rayleigh-jeans":
             self.NEP = 1e12 * self.dP_dTRJ * value / transmission
@@ -201,14 +199,12 @@ class Band:
         self._sensitivity = value
         self._sensitivity_kind = kind
 
-    def transmission(self, region="chajnantor", zenith_pwv=1, elevation=90) -> float:
+    def transmission(self, region="chajnantor", pwv=1, elevation=90) -> float:
         if not hasattr(self, "spectrum"):
             self.spectrum = AtmosphericSpectrum(region=region)
         elif self.spectrum.region != region:
             self.spectrum = AtmosphericSpectrum(region=region)
-        return self.spectrum.transmission(
-            nu=self.center, zenith_pwv=zenith_pwv, elevation=elevation
-        )
+        return self.spectrum.transmission(nu=self.center, pwv=pwv, elevation=elevation)
 
     @classmethod
     def from_config(cls, name, config):
