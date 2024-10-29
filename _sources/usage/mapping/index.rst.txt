@@ -14,15 +14,13 @@ We can map a ``TOD`` (or several of them) with a ``Mapper``. The simplest possib
                        height=1e0,
                        resolution=5e-3,
                        tod_preprocessing={
-                            "window": {"tukey": {"alpha": 0.1}},
-                            "remove_modes": {"n": 1},
-                            "filter": {"f_lower": 0.01},
+                            "window": {"name": "tukey", "kwargs": {"alpha": 0.1}},
                             "despline": {"knot_spacing": 5},
-                                        },
-                        map_postprocessing={
+                            },
+                       map_postprocessing={
                             "gaussian_filter": {"sigma": 1},
                             "median_filter": {"size": 1},
-                                        },
+                            },
                        units="K_RJ",
                        tods=[tod],
                        )

@@ -316,8 +316,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-24 16:57:23.015 INFO: created cache at /tmp/maria-data/maps
-2024-10-24 16:57:23.959 INFO: downloaded data (4.0 MB) to /tmp/maria-data/maps/cluster.fits
+2024-10-29 21:10:24.564 INFO: created cache at /tmp/maria-data/maps
+2024-10-29 21:10:25.658 INFO: downloaded data (4.0 MB) to /tmp/maria-data/maps/cluster.fits
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -405,16 +405,16 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-24 16:57:38.636 INFO: Initialized base in 13870 ms.
-2024-10-24 16:57:38.647 INFO: created cache at /tmp/maria-data/atmosphere/spectra/am
-2024-10-24 16:57:38.897 INFO: downloaded data (11.4 MB) to /tmp/maria-data/atmosphere/spectra/am/chajnantor.h5
-2024-10-24 16:57:39.298 INFO: created cache at /tmp/maria-data/atmosphere/weather/era5
-2024-10-24 16:57:39.941 INFO: downloaded data (4.0 MB) to /tmp/maria-data/atmosphere/weather/era5/chajnantor.h5
-Building atmosphere: 100%|██████████| 6/6 [00:06&lt;00:00,  1.02s/it]
-2024-10-24 16:57:47.317 INFO: Initialized atmosphere in 8670 ms.
-Generating CMB:   0%|          | 0/1 [00:00&lt;?, ?it/s]2024-10-24 16:57:47.318 INFO: created cache at /tmp/maria-data/cmb/spectra
-2024-10-24 16:57:47.843 INFO: downloaded data (0.3 MB) to /tmp/maria-data/cmb/spectra/planck.csv
-Generating CMB: 100%|██████████| 1/1 [00:06&lt;00:00,  6.03s/it]
+2024-10-29 21:10:36.670 INFO: Initialized base in 10153 ms.
+2024-10-29 21:10:36.680 INFO: created cache at /tmp/maria-data/atmosphere/spectra/am
+2024-10-29 21:10:37.019 INFO: downloaded data (11.4 MB) to /tmp/maria-data/atmosphere/spectra/am/chajnantor.h5
+2024-10-29 21:10:37.429 INFO: created cache at /tmp/maria-data/atmosphere/weather/era5
+2024-10-29 21:10:38.152 INFO: downloaded data (4.0 MB) to /tmp/maria-data/atmosphere/weather/era5/chajnantor.h5
+Building atmosphere: 100%|██████████| 6/6 [00:06&lt;00:00,  1.05s/it]
+2024-10-29 21:10:45.705 INFO: Initialized atmosphere in 9025 ms.
+Generating CMB:   0%|          | 0/1 [00:00&lt;?, ?it/s]2024-10-29 21:10:45.708 INFO: created cache at /tmp/maria-data/cmb/spectra
+2024-10-29 21:10:46.038 INFO: downloaded data (0.3 MB) to /tmp/maria-data/cmb/spectra/planck.csv
+Generating CMB: 100%|██████████| 1/1 [00:05&lt;00:00,  5.85s/it]
 </pre></div></div>
 </div>
 </section>
@@ -435,13 +435,13 @@ Generating CMB: 100%|██████████| 1/1 [00:06&lt;00:00,  6.03s
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 447.43it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:00&lt;00:00,  7.31it/s]
-Computing atmospheric emission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  4.91it/s]
-Computing atmospheric transmission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  5.35it/s]
-Sampling CMB (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00, 12.69it/s]
-Sampling map (m2/f093): 100%|██████████| 1/1 [00:03&lt;00:00,  3.20s/it]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.68it/s]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 466.86it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:00&lt;00:00,  7.25it/s]
+Computing atmospheric emission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  4.63it/s]
+Computing atmospheric transmission (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00,  5.08it/s]
+Sampling CMB (m2/f093): 100%|██████████| 1/1 [00:00&lt;00:00, 12.45it/s]
+Sampling map (m2/f093): 100%|██████████| 1/1 [00:03&lt;00:00,  3.27s/it]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.63it/s]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -490,7 +490,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
                    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
@@ -498,8 +498,8 @@ is designed to effectively eliminate correlated atmospheric noise among differen
                    <span class="n">height</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
                    <span class="n">resolution</span><span class="o">=</span><span class="mf">2e-4</span><span class="p">,</span>
                    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                        <span class="c1"># &quot;highpass&quot;: {&quot;f&quot;: 0.01},</span>
+                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;hamming&quot;</span><span class="p">},</span>
+                        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;modes_to_remove&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
                         <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
                     <span class="p">},</span>
                     <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
@@ -518,7 +518,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (m2/f093): 100%|██████████| 1/1 [00:06&lt;00:00,  6.52s/it]
+Running mapper (m2/f093): 100%|██████████| 1/1 [00:06&lt;00:00,  6.79s/it]
 </pre></div></div>
 </div>
 </section>

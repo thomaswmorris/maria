@@ -344,7 +344,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-24 16:58:15.990 INFO: downloaded data (4.2 MB) to /tmp/maria-data/maps/big_cluster.fits
+2024-10-29 21:11:14.952 INFO: downloaded data (4.2 MB) to /tmp/maria-data/maps/big_cluster.fits
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -360,7 +360,7 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Plan</span><span class="p">(</span><span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
                   <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="c1"># in degrees</span>
-                  <span class="n">duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="c1"># in seconds</span>
+                  <span class="n">duration</span><span class="o">=</span><span class="mi">660</span><span class="p">,</span> <span class="c1"># in seconds</span>
                   <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="c1"># in Hz</span>
                   <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
                   <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">)</span>
@@ -394,9 +394,9 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-10-24 16:58:23.499 INFO: Initialized base in 6923 ms.
-Building atmosphere: 100%|██████████| 6/6 [00:39&lt;00:00,  6.51s/it]
-2024-10-24 16:59:05.527 INFO: Initialized atmosphere in 42004 ms.
+2024-10-29 21:11:23.091 INFO: Initialized base in 7540 ms.
+Building atmosphere: 100%|██████████| 6/6 [00:43&lt;00:00,  7.21s/it]
+2024-10-29 21:12:09.525 INFO: Initialized atmosphere in 46405 ms.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -412,19 +412,19 @@ Building atmosphere: 100%|██████████| 6/6 [00:39&lt;00:00,  
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 87.05it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:07&lt;00:00,  1.30s/it]
-Computing atmospheric emission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.07s/it]
-Computing atmospheric transmission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.08s/it]
-Sampling map (f150): 100%|██████████| 2/2 [00:28&lt;00:00, 14.08s/it]
-Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.77s/it]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 81.28it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:08&lt;00:00,  1.47s/it]
+Computing atmospheric emission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.28s/it]
+Computing atmospheric transmission (f150): 100%|██████████| 2/2 [00:02&lt;00:00,  1.24s/it]
+Sampling map (f150): 100%|██████████| 2/2 [00:32&lt;00:00, 16.45s/it]
+Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.98s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.map.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
                    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
@@ -432,8 +432,10 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.7
                    <span class="n">height</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
                    <span class="n">resolution</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span>
                    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tukey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
+                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tukey&quot;</span><span class="p">,</span> <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
                         <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+                        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;modes_to_remove&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
+                        <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;f_lower&quot;</span><span class="p">:</span> <span class="mf">0.08</span><span class="p">},</span>
                     <span class="p">},</span>
                     <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
@@ -452,38 +454,12 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.7
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (f090): 100%|██████████| 1/1 [00:19&lt;00:00, 19.63s/it]
-Running mapper (f150): 100%|██████████| 1/1 [00:19&lt;00:00, 19.26s/it]
+Running mapper (f090): 100%|██████████| 1/1 [00:23&lt;00:00, 23.33s/it]
+Running mapper (f150): 100%|██████████| 1/1 [00:22&lt;00:00, 22.79s/it]
 </pre></div></div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptod</span> <span class="o">=</span> <span class="n">tod</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
-                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tukey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
-                        <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
-                    <span class="p">})</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_11_0.png" src="../_images/tutorials_custom-map-simulations_11_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -494,15 +470,7 @@ Running mapper (f150): 100%|██████████| 1/1 [00:19&lt;00:00,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_12_0.png" src="../_images/tutorials_custom-map-simulations_12_0.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
+<img alt="../_images/tutorials_custom-map-simulations_10_0.png" src="../_images/tutorials_custom-map-simulations_10_0.png" />
 </div>
 </div>
 </section>
