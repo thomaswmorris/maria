@@ -36,7 +36,7 @@ def test_tod_preprocessing_with_config():
     pp_config = {
         "window": {"name": "tukey", "kwargs": {"alpha": 0.25}},
         "filter": {"f_lower": 0.5},
-        "remove_modes": {"modes_to_remove": (0, 1)},
+        "remove_modes": {"modes_to_remove": [0]},
         "despline": {"knot_spacing": 0.5},
     }
 
@@ -49,3 +49,15 @@ def test_tod_preprocessing_with_kwargs():
     tod = sim.run()
 
     tod.process(window="tukey")
+
+
+def test_tod_preprocessing_errors():
+    sim = Simulation()
+
+    tod = sim.run()
+
+    try:
+        tod.process(f_lower="a")
+        assert False
+    except TypeError:
+        pass

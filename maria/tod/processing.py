@@ -8,19 +8,19 @@ from .tod import TOD
 
 logger = logging.getLogger("maria")
 
-PROCESS_KWARGS = {
+OPERATION_KWARGS = {
     "window": {
         "name": {"dtype": str, "aliases": ["window"]},
         "kwargs": {"dtype": dict, "aliases": ["window_kwargs"]},
     },
     "filter": {
-        "f_lower": {"dtype": float, "aliases": ["filter_f_lower"]},
-        "f_upper": {"dtype": float, "aliases": ["filter_f_upper"]},
+        "f_lower": {"dtype": float, "aliases": ["f_lower"]},
+        "f_upper": {"dtype": float, "aliases": ["f_upper"]},
         "order": {"dtype": int, "aliases": ["filter_order"]},
         "method": {"dtype": str, "aliases": ["filter_method"]},
     },
     "remove_modes": {
-        "modes_to_remove": {"dtype": list, "aliases": []},
+        "modes_to_remove": {"dtype": list, "aliases": ["modes_to_remove"]},
     },
     "despline": {
         "knot_spacing": {"dtype": float, "aliases": ["despline_knot_spacing"]},
@@ -29,16 +29,16 @@ PROCESS_KWARGS = {
 }
 
 
-def process_process_kwargs(**kwargs):  # lol
+def process_operation_kwargs(**kwargs):  # lol
     config = {}
 
-    for subprocess, subprocess_params in PROCESS_KWARGS.items():
+    for subprocess, subprocess_params in OPERATION_KWARGS.items():
         subconfig = {}
 
         for key, param in subprocess_params.items():
             for kwarg in list(kwargs.keys()):
                 if kwarg in param["aliases"]:
-                    subconfig[key] = param["dtype"](kwargs.pop(kwarg))
+                    subconfig[key] = kwargs.pop(kwarg)
                     continue
 
         if subconfig:
@@ -50,8 +50,36 @@ def process_process_kwargs(**kwargs):  # lol
     return config
 
 
+def validate_process_config(config):
+    for operation, operation_params in config.items():
+        if operation not in OPERATION_KWARGS:
+            raise ValueError(
+                f"Invalid operation '{operation}'. Valid operations are {list(OPERATION_KWARGS.keys())}"
+            )
+
+        for key, value in operation_params.items():
+            if key not in OPERATION_KWARGS[operation]:
+                raise ValueError(
+                    f"Invalid param '{key}' for operation '{operation}'. "
+                    f"Valid parameters for this operation are {list(OPERATION_KWARGS[operation].keys())}"
+                )
+
+            dtype = OPERATION_KWARGS[operation][key]["dtype"]
+
+            if not isinstance(value, dtype):
+                try:
+                    config[operation][key] = dtype(value)
+                except Exception:
+                    param = {key: value}
+                    raise TypeError(
+                        f"Could not convert param {param} for operation '{operation}' to requisite type '{dtype.__name__}'."
+                    )
+
+    return config
+
+
 def process_tod(tod, config=None, **kwargs):
-    config = config or process_process_kwargs(**kwargs)
+    config = validate_process_config(config or process_operation_kwargs(**kwargs))
 
     D = tod.signal.compute()
     W = np.ones(D.shape)
