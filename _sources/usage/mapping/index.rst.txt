@@ -6,7 +6,7 @@ We can map a ``TOD`` (or several of them) with a ``Mapper``. The simplest possib
 
 .. code-block:: python
 
-    from maria.map.mappers import BinMapper
+    from maria.mappers import BinMapper
 
     mapper = BinMapper(center=(150, 10),
                        frame="ra_dec",
