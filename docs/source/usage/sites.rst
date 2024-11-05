@@ -7,8 +7,9 @@ The observing site is represented by a ``Site``. For example:
 .. code-block:: python
 
     cerro_toco = maria.get_site("cerro_toco")
+    cerro_toco.plot()
 
-To see the list of supported sites, run
+To see the list of all supported sites, run
 
 .. code-block:: python
 
