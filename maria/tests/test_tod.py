@@ -1,9 +1,12 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 from maria import Simulation
 from maria.coords import Coordinates, dx_dy_to_phi_theta
 from maria.noise import generate_noise_with_knee
 from maria.tod.tod import TOD
+
+plt.close("all")
 
 
 def test_tod_functions():
