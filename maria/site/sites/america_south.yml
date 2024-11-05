@@ -1,0 +1,33 @@
+cerro_chajnantor:
+  description: Cerro Chajnantor
+  instruments:
+  - CCAT
+  - TAO
+  region: chajnantor
+  latitude: -22.9862
+  longitude: -67.7422
+  altitude: 5600
+  documentation: https://act.princeton.edu/
+
+cerro_toco:
+  description: Cerro Toco
+  instruments:
+  - ACT
+  - POLARBEAR
+  - SO
+  region: chajnantor
+  latitude: -22.9586
+  longitude: -67.7878
+  altitude: 5190
+  documentation: https://act.princeton.edu/
+
+llano_de_chajnantor:
+  description: Llano de Chajnantor
+  instruments:
+  - ALMA
+  - APEX
+  region: chajnantor
+  latitude: -23.0294
+  longitude: -67.7548
+  altitude: 5064
+  documentation: https://www.almaobservatory.org/en/home/

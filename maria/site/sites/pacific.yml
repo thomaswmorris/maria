@@ -1,0 +1,10 @@
+
+mauna_kea:
+  description: Mauna Kea Observatory
+  instruments:
+  - JCMT
+  region: mauna_kea
+  latitude: 19.8228
+  longitude: -155.4770
+  altitude: 4092
+  documentation: https://www.maunakeaobservatories.org/

@@ -1,0 +1,21 @@
+meerkat:
+  description: Meerkat National Park
+  instruments:
+  - HERA
+  - HIRAX
+  - MeerKAT
+  region: meerkat
+  latitude: -30.7132
+  longitude: 21.4431
+  altitude: 1075.0
+  documentation: https://www.protectedplanet.net/555703705?locale=en
+
+teide:
+  description: Teide Observatory
+  instruments:
+  - QUIJOTE
+  region: teide
+  latitude: 28.3007
+  longitude: -16.5110
+  altitude: 2390
+  documentation: https://www.iac.es/en/observatorios-de-canarias/teide-observatory
