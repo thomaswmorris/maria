@@ -1,0 +1,20 @@
+qitai:
+  description: Qitai Radio Telescope
+  instruments:
+  - QRT
+  region: qitai
+  latitude: 43.6011
+  longitude: 89.6825
+  altitude: 1800
+  documentation: https://en.wikipedia.org/wiki/Qitai_Radio_Telescope
+
+
+alicpt:
+  description: Tibet
+  instruments:
+  - AliCPT
+  region: ngari
+  latitude: 32.311
+  longitude: 80.031
+  altitude: 5176
+  documentation: https://arxiv.org/abs/2205.14804

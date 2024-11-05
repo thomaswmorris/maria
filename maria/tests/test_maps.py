@@ -1,7 +1,10 @@
+import matplotlib.pyplot as plt
 import pytest
 
 import maria
 from maria.io import fetch
+
+plt.close("all")
 
 
 @pytest.mark.parametrize(

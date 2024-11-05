@@ -1,0 +1,10 @@
+amundsen_scott:
+  description: Amundsen–Scott South Pole Station
+  instruments:
+  - BICEP
+  - SPT
+  region: south_pole
+  latitude: 0.000
+  longitude: -90.000
+  altitude: 2835
+  documentation: https://www.nsf.gov/geo/opp/support/southp.jsp
