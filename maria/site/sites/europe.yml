@@ -1,0 +1,39 @@
+effelsberg:
+  description: Effelsberg
+  instruments:
+  - ERT
+  region: effelsberg
+  latitude: 50.5247
+  longitude: 6.8828
+  altitude: 319
+  documentation: https://www.mpifr-bonn.mpg.de/en/effelsberg
+
+pic_de_bure:
+  description: Pic de Bure
+  instruments:
+  - NOEMA
+  region: pic_de_bure
+  latitude: 44.6339
+  longitude: 5.9079
+  altitude: 2552
+  documentation: https://iram-institute.org/observatories/noema/
+
+pico_veleta:
+  description: Pico Veleta
+  instruments:
+  - IRAM
+  region: pico_veleta
+  latitude: 37.0662
+  longitude: -3.39272
+  altitude: 2850
+  documentation: https://iram-institute.org/observatories/30-meter-telescope/
+
+srt:
+  description: Sardinia Radio Telescope
+  instruments:
+  - MISTRAL
+  region: san_basilio
+  latitude: 39.4928
+  longitude: 9.2450
+  altitude: 600
+  documentation: https://en.wikipedia.org/wiki/Sardinia_Radio_Telescope

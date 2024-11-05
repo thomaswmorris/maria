@@ -1,0 +1,45 @@
+green_bank:
+  description: Green Bank Observatory
+  instruments:
+  - MUSTANG-2
+  region: green_bank
+  latitude: 38.4331
+  longitude: -79.8398
+  altitude: 825
+  documentation: https://greenbankobservatory.org
+
+hoagie_haven:
+  description: Hoagie Haven
+  region: princeton
+  latitude: 40.3522
+  longitude: -74.6519
+  altitude: 62
+  documentation: http://hoagiehaven.com/
+
+pituffik:
+  description: Pituffik Space Base
+  instruments:
+  - Greenland Telescope
+  region: thule
+  latitude: 76.531111
+  longitude: -68.703056
+  altitude: 76
+  documentation: https://www.petersonschriever.spaceforce.mil/Pituffik-SB-Greenland/
+
+sierra_negra:
+  description: Sierra Negra
+  instruments:
+  - LMT
+  region: sierra_negra
+  latitude: 18.9858
+  longitude: -97.3147
+  altitude: 4640
+  documentation: http://lmtgtm.org/
+
+summit_station:
+  description: Summit Station
+  region: summit_camp
+  latitude: 72.5789
+  longitude: -38.4596
+  altitude: 3216
+  documentation: https://geo-summit.org/
