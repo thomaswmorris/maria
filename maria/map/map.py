@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import os
-from typing import Tuple
 
 import astropy as ap
 import matplotlib as mpl
@@ -10,8 +11,9 @@ from astropy.io import fits
 from matplotlib.colors import ListedColormap
 
 from ..coords import frames
-# from ..plotting import plot_map
 from ..units import MAP_UNITS, Angle, KbrightToJyPix
+
+# from ..plotting import plot_map
 
 # from astropy.wcs import WCS
 
@@ -20,7 +22,8 @@ here, this_filename = os.path.split(__file__)
 
 # from https://gist.github.com/zonca/6515744
 cmb_cmap = ListedColormap(
-    np.loadtxt(f"{here}/Planck_Parchment_RGB.txt") / 255.0, name="cmb"
+    np.loadtxt(f"{here}/Planck_Parchment_RGB.txt") / 255.0,
+    name="cmb",
 )
 cmb_cmap.set_bad("white")
 
@@ -40,7 +43,7 @@ class Map:
         weight: float = None,
         width: float = None,
         resolution: float = None,
-        center: Tuple[float, float] = (0.0, 0.0),
+        center: tuple[float, float] = (0.0, 0.0),
         frame: str = "ra_dec",
         degrees: bool = True,
         units: str = "K_RJ",
@@ -56,12 +59,12 @@ class Map:
 
         if len(self.nu) != self.data.shape[0]:
             raise ValueError(
-                f"nu has length {len(self.nu)} but map has shape (t, nu, x, y) = {self.data.shape}."
+                f"nu has length {len(self.nu)} but map has shape (t, nu, x, y) = {self.data.shape}.",
             )
 
         if len(self.t) != self.data.shape[1]:
             raise ValueError(
-                f"time has length {len(self.t)} but map has shape (t, nu, x, y) = {self.data.shape}."
+                f"time has length {len(self.t)} but map has shape (t, nu, x, y) = {self.data.shape}.",
             )
 
         # if time is not None or data.ndim == 4:
@@ -94,7 +97,7 @@ class Map:
         if len(self.nu) != self.n_nu:
             raise ValueError(
                 f"Number of supplied nuuencies ({len(self.nu)}) does not match the "
-                f"nu dimension of the supplied map ({self.n_nu})."
+                f"nu dimension of the supplied map ({self.n_nu}).",
             )
 
         # if self.units == "Jy/pixel":
@@ -120,10 +123,10 @@ class Map:
         center_degrees = np.degrees(self.center)
 
         parts.append(
-            f"shape[nu, t, y, x]=({self.n_nu}, {self.n_t}, {self.n_y}, {self.n_x})"
+            f"shape[nu, t, y, x]=({self.n_nu}, {self.n_t}, {self.n_y}, {self.n_x})",
         )
         parts.append(
-            f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
+            f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)",
         )
         parts.append(f"width={Angle(self.width).__repr__()}")
 
@@ -184,11 +187,13 @@ class Map:
 
             elif units == "K_RJ":
                 data[i] = self.data[i] / KbrightToJyPix(
-                    nu * 1e9, np.degrees(self.resolution)
+                    nu * 1e9,
+                    np.degrees(self.resolution),
                 )
             elif units == "Jy/pixel":
                 data[i] = self.data[i] * KbrightToJyPix(
-                    nu * 1e9, np.degrees(self.resolution)
+                    nu * 1e9,
+                    np.degrees(self.resolution),
                 )
             else:
                 raise ValueError(f"Units '{units}' not implemented.")
@@ -318,7 +323,10 @@ class Map:
         w = m.weight.ravel()
         subset = np.random.choice(d.size, size=10000)
         vmin, vmax = np.quantile(
-            d[subset], weights=w[subset], q=[rel_vmin, rel_vmax], method="inverted_cdf"
+            d[subset],
+            weights=w[subset],
+            q=[rel_vmin, rel_vmax],
+            method="inverted_cdf",
         )
 
         for i_t in t_index:
@@ -375,10 +383,15 @@ class Map:
                     ax.set_ylabel(rf"$\Delta\,\theta_y$ [{y.units_short}.]")
 
         dummy_map = mpl.cm.ScalarMappable(
-            mpl.colors.Normalize(vmin=vmin, vmax=vmax), cmap=cmap
+            mpl.colors.Normalize(vmin=vmin, vmax=vmax),
+            cmap=cmap,
         )
 
         cbar = fig.colorbar(
-            dummy_map, ax=axes, shrink=0.75, aspect=16, location="bottom"
+            dummy_map,
+            ax=axes,
+            shrink=0.75,
+            aspect=16,
+            location="bottom",
         )
         cbar.set_label(f'{MAP_UNITS[m.units]["long_name"]} [{m.units}]')

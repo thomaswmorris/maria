@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from datetime import datetime
 
@@ -91,7 +93,7 @@ class Weather:
         self.utc_datetime = datetime.fromtimestamp(self.t.min()).astimezone(pytz.utc)
         self.utc_time = self.utc_datetime.ctime()
         self.local_time = self.utc_datetime.astimezone(
-            pytz.timezone(self.time_zone)
+            pytz.timezone(self.time_zone),
         ).ctime()
 
         self.utc_day_hour = get_utc_day_hour(self.t)
@@ -112,7 +114,9 @@ class Weather:
             day_hour_edge_index = f["day_hour_edge_index"][:]
 
             YEAR_DAY_EDGE_INDEX, DAY_HOUR_EDGE_INDEX = np.meshgrid(
-                year_day_edge_index, day_hour_edge_index, indexing="ij"
+                year_day_edge_index,
+                day_hour_edge_index,
+                indexing="ij",
             )
 
             for attr in f["data"].keys():
@@ -132,7 +136,7 @@ class Weather:
                 setattr(self, attr, y)
 
         wind_speed_correction_factor = self.wind_speed / np.sqrt(
-            self.wind_east**2 + self.wind_north**2
+            self.wind_east**2 + self.wind_north**2,
         )
         self.wind_north *= wind_speed_correction_factor
         self.wind_east *= wind_speed_correction_factor
@@ -162,7 +166,9 @@ class Weather:
         if "pwv" in self.override.keys():
             return self.override["pwv"]
         altitude_samples = np.linspace(
-            self.base_altitude, self.geopotential.max() / g, 1024
+            self.base_altitude,
+            self.geopotential.max() / g,
+            1024,
         )
         return np.trapezoid(
             np.interp(altitude_samples, self.geopotential / g, self.absolute_humidity),
@@ -173,6 +179,6 @@ class Weather:
         res = {}
         for field in [*self.fields, "absolute_humidity"]:
             res[field] = sp.interpolate.interp1d(self.altitude, getattr(self, field))(
-                altitude
+                altitude,
             )
         return res

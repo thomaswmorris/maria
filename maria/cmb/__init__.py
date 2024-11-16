@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 import healpy as hp
@@ -49,7 +51,11 @@ class CMB:
         m = self.maps[field]
         vmin, vmax = 1e6 * np.quantile(m[~np.isnan(m)], q=[0.001, 0.999])
         hp.visufunc.mollview(
-            1e6 * m, min=vmin, max=vmax, cmap="cmb", unit=r"uK$_{CMB}$"
+            1e6 * m,
+            min=vmin,
+            max=vmax,
+            cmap="cmb",
+            unit=r"uK$_{CMB}$",
         )
 
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 import matplotlib as mpl
@@ -68,12 +70,14 @@ class Detectors:
     def _subset(self, mask):
         df = self.df.loc[mask]
         return Detectors(
-            df=df, bands=[b for b in self.bands if b.name in self.df.band_name.values]
+            df=df,
+            bands=[b for b in self.bands if b.name in self.df.band_name.values],
         )
 
     def one_detector_from_each_band(self):
         first_det_mask = np.isin(
-            np.arange(self.n), np.unique(self.band_name, return_index=True)[1]
+            np.arange(self.n),
+            np.unique(self.band_name, return_index=True)[1],
         )
         return self._subset(mask=first_det_mask)
 

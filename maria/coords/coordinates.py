@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import logging
 import time as ttime
@@ -15,7 +17,7 @@ from astropy.time import Time
 from scipy.interpolate import interp1d
 
 from ..utils import repr_lat_lon
-from .transforms import (  # noqa
+from .transforms import (
     dx_dy_to_phi_theta,
     get_center_phi_theta,
     phi_theta_to_dx_dy,
@@ -58,7 +60,10 @@ frames = {
 
 
 DEFAULT_EARTH_LOCATION = EarthLocation.from_geodetic(
-    0.0, 90.0, height=0.0, ellipsoid=None
+    0.0,
+    90.0,
+    height=0.0,
+    ellipsoid=None,
 )  # noqa
 DEFAULT_TIMESTAMP = datetime.now().timestamp()
 
@@ -115,7 +120,7 @@ class Coordinates:
         self.compute_transforms()
         duration_ms = 1e3 * (ttime.monotonic() - ref_time)
         logger.debug(
-            f"Initialized coordinates with shape {self.shape} in {int(duration_ms)} ms."
+            f"Initialized coordinates with shape {self.shape} in {int(duration_ms)} ms.",
         )  # noqa
 
     def compute_transforms(self):
@@ -131,8 +136,9 @@ class Coordinates:
         time_samples_max = np.max(self.time) + 1e0
         n_time_samples = int(
             np.maximum(
-                2, (time_samples_max - time_samples_min) / time_samples_min_res_seconds
-            )
+                2,
+                (time_samples_max - time_samples_min) / time_samples_min_res_seconds,
+            ),
         )
         self.fid_times = np.linspace(time_samples_min, time_samples_max, n_time_samples)
 
@@ -149,7 +155,8 @@ class Coordinates:
         fid_offsets = np.radians([[-1.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
         psi = np.linspace(0, 2 * np.pi, 12 + 1)[:-1]
         fid_offsets = np.concatenate(
-            [r * np.c_[np.cos(psi), np.sin(psi)] for r in [1, 10, 30]], axis=0
+            [r * np.c_[np.cos(psi), np.sin(psi)] for r in [1, 10, 30]],
+            axis=0,
         )
 
         self.fid_phi, self.fid_theta = dx_dy_to_phi_theta(
@@ -169,7 +176,7 @@ class Coordinates:
                 ),
                 frame=frames[self.frame]["astropy_name"],
                 location=self.earth_location,
-            )
+            ),
         }
 
         self.transforms = {}
@@ -182,14 +189,17 @@ class Coordinates:
                 continue
 
             self.fid_skycoords[frame] = getattr(
-                self.fid_skycoords[self.frame], config["astropy_name"]
+                self.fid_skycoords[self.frame],
+                config["astropy_name"],
             )
 
             frame_fid_phi = getattr(
-                self.fid_skycoords[frame], frames[frame]["astropy_phi"]
+                self.fid_skycoords[frame],
+                frames[frame]["astropy_phi"],
             ).rad
             frame_fid_theta = getattr(
-                self.fid_skycoords[frame], frames[frame]["astropy_theta"]
+                self.fid_skycoords[frame],
+                frames[frame]["astropy_theta"],
             ).rad
 
             self.fid_points[frame] = phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
@@ -211,7 +221,7 @@ class Coordinates:
             )(self.time)
 
             frame_phi, frame_theta = xyz_to_phi_theta(
-                (np.expand_dims(self.compute_points(), -2) @ transform_stack).squeeze()
+                (np.expand_dims(self.compute_points(), -2) @ transform_stack).squeeze(),
             )
 
             setattr(self, frames[frame]["phi"], frame_phi)
@@ -261,9 +271,9 @@ class Coordinates:
         boresight = self.boresight
         for attr in ["az", "el", "ra", "dec"]:
             for stat in ["min", "mean", "max"]:
-                summary.loc[
-                    attr, stat
-                ] = f"{float(np.degrees(getattr(getattr(boresight, attr), stat)().compute())):.03f}°"
+                summary.loc[attr, stat] = (
+                    f"{float(np.degrees(getattr(getattr(boresight, attr), stat)().compute())):.03f}°"
+                )
 
         return summary
 
@@ -292,7 +302,8 @@ class Coordinates:
     def center(self, frame=None):
         frame = frame or self.frame
         return get_center_phi_theta(
-            getattr(self, frames[frame]["phi"]), getattr(self, frames[frame]["theta"])
+            getattr(self, frames[frame]["phi"]),
+            getattr(self, frames[frame]["theta"]),
         )
 
     def broadcast(self, offsets, frame, axis=0):
@@ -313,7 +324,7 @@ class Coordinates:
             i = tuple(
                 [
                     i,
-                ]
+                ],
             )  # noqa
         *_, time_slice = i
         return Coordinates(

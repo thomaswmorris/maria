@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import pathlib
@@ -58,7 +60,7 @@ def test_file(path) -> bool:
         elif ext in ["csv"]:
             pd.read_csv(path)
         elif ext in ["txt", "dat"]:
-            with open(path, "r") as f:
+            with open(path) as f:
                 f.read()
         elif ext in ["fits"]:
             ap.io.fits.open(path)

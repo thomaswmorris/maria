@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -14,4 +16,4 @@ def test_weather_from_cache_refresh(region_name):
 def test_weather_from_cache(region_name):
     weather = Weather(region=region_name)
 
-    print(f"{weather.pwv = }")
+    print(f"{weather.pwv =}")

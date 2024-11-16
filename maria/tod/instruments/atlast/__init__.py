@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from astropy.io import fits
 
@@ -8,7 +10,10 @@ from ...coords import Coordinates
 
 
 def load_atlast_tod(
-    fname: str, hdu: int = 1, band_center: int = 93, band_width: int = 52
+    fname: str,
+    hdu: int = 1,
+    band_center: int = 93,
+    band_width: int = 52,
 ):
     f = fits.open(fname)
     raw = f[hdu].data
@@ -41,8 +46,8 @@ def load_atlast_tod(
                 "n_dets": n_dets,
                 "band_center": band_center,
                 "band_width": band_width,
-            }
-        }
+            },
+        },
     )
 
     return TOD(coords=coords, dets=dets, data=data, units={"data": "K"})

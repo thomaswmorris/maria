@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 
@@ -14,7 +16,8 @@ class ReadOutBLIPs:
 
     def _get_levels(self):
         df = pd.read_csv(
-            "./maria/noise/results_of_instrument_simulation.csv", index_col=0
+            "./maria/noise/results_of_instrument_simulation.csv",
+            index_col=0,
         )
         frq_index = np.argmin(np.abs(self.f_c - df["fmin"]))
 
@@ -43,7 +46,7 @@ class InitNoise(ReadOutBLIPs):
         *args,
         **kwargs,
     ):
-        super(InitNoise, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.f_c = f_c
         self.b_w = b_w

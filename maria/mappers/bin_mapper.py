@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import os
-from typing import Sequence, Tuple
+from collections.abc import Sequence
 
 import numpy as np
 import scipy as sp
@@ -16,7 +18,7 @@ here, this_filename = os.path.split(__file__)
 class BinMapper(BaseMapper):
     def __init__(
         self,
-        center: Tuple[float, float] = (0, 0),
+        center: tuple[float, float] = (0, 0),
         width: float = 1,
         height: float = 1,
         resolution: float = 0.01,
@@ -55,7 +57,9 @@ class BinMapper(BaseMapper):
         }
 
         tods_pbar = tqdm(
-            self.tods, desc=f"Running mapper ({band})", disable=not self.verbose
+            self.tods,
+            desc=f"Running mapper ({band})",
+            disable=not self.verbose,
         )  # noqa
 
         for tod in tods_pbar:

@@ -1,4 +1,6 @@
 # for a given cross-section, extrude points orthogonally using a callback to compute covariance
+from __future__ import annotations
+
 import logging
 import time as ttime
 from typing import Callable
@@ -132,10 +134,11 @@ def construct_extrusion_layers(
 
     cross_section_x = np.concatenate(layers.x.values)
     cross_section_z = np.concatenate(
-        [entry.z * np.ones(entry.n) for index, entry in layers.iterrows()]
+        [entry.z * np.ones(entry.n) for index, entry in layers.iterrows()],
     )
     cross_section_points = np.concatenate(
-        [cross_section_x[..., None], cross_section_z[..., None]], axis=-1
+        [cross_section_x[..., None], cross_section_z[..., None]],
+        axis=-1,
     )
 
     extrusion_points = np.arange(
@@ -183,30 +186,37 @@ class ProcessExtrusion:
         for i, extrusion_index in enumerate(extrusion_indices):
             n_ribbon_samples = np.minimum(
                 np.maximum(
-                    int(self.n_cross_section * (2) ** -(i)), self.MIN_SAMPLES_PER_LAYER
+                    int(self.n_cross_section * (2) ** -(i)),
+                    self.MIN_SAMPLES_PER_LAYER,
                 ),
                 self.n_cross_section,
             )
             # cross_section_indices = sorted(np.random.choice(a=self.n_cross_section, size=n_ribbon_samples, replace=False))
             cross_section_indices = np.unique(
-                np.linspace(0, self.n_cross_section - 1, n_ribbon_samples).astype(int)
+                np.linspace(0, self.n_cross_section - 1, n_ribbon_samples).astype(int),
             )
             self.cross_section_sample_index.extend(cross_section_indices)
             self.extrusion_sample_index.extend(
-                np.repeat(extrusion_index, len(cross_section_indices))
+                np.repeat(extrusion_index, len(cross_section_indices)),
             )
 
         self.cross_section_sample_index = np.array(self.cross_section_sample_index)
         self.extrusion_sample_index = np.array(self.extrusion_sample_index)
 
         E_sample = points[
-            self.extrusion_sample_index, self.cross_section_sample_index, 0
+            self.extrusion_sample_index,
+            self.cross_section_sample_index,
+            0,
         ]
         X_sample = points[
-            self.extrusion_sample_index, self.cross_section_sample_index, 1
+            self.extrusion_sample_index,
+            self.cross_section_sample_index,
+            1,
         ]
         Y_sample = points[
-            self.extrusion_sample_index, self.cross_section_sample_index, 2
+            self.extrusion_sample_index,
+            self.cross_section_sample_index,
+            2,
         ]
 
         self.sample_points = np.c_[E_sample, X_sample, Y_sample]
@@ -217,7 +227,9 @@ class ProcessExtrusion:
         self.Y_live_edge = points[0, :, 2]
 
         self.live_edge_points = np.c_[
-            self.E_live_edge, self.X_live_edge, self.Y_live_edge
+            self.E_live_edge,
+            self.X_live_edge,
+            self.Y_live_edge,
         ]
         self.n_live_edge = len(self.live_edge_points)
 
@@ -225,8 +237,7 @@ class ProcessExtrusion:
 
         if self.n_sample > n_side_warn:
             logger.warning(
-                f"a large covariance matrix (n_side={self.n_sample}) will be generated; "
-                f"inverting these matrices is very expensive."
+                f"A large covariance matrix (n_side={self.n_sample}) will be generated; inverting these matrices is very expensive.",  # noqa
             )
 
         self.points = da.from_array(points)
@@ -239,14 +250,14 @@ class ProcessExtrusion:
         COV_E_E[i, j] = self.callback(
             np.sqrt(
                 np.square(self.live_edge_points[j] - self.live_edge_points[i]).sum(
-                    axis=1
-                )
+                    axis=1,
+                ),
             ),
             **self.callback_kwargs,
         )
         COV_E_E[j, i] = COV_E_E[i, j]
         logger.debug(
-            f"computed edge-edge covariance {COV_E_E.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms."
+            f"computed edge-edge covariance {COV_E_E.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         # this one is explicit
@@ -254,13 +265,13 @@ class ProcessExtrusion:
         COV_E_S = self.callback(
             np.sqrt(
                 np.square(
-                    self.sample_points[None] - self.live_edge_points[:, None]
-                ).sum(axis=2)
+                    self.sample_points[None] - self.live_edge_points[:, None],
+                ).sum(axis=2),
             ),
             **self.callback_kwargs,
         )
         logger.debug(
-            f"computed edge-sample covariance {COV_E_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms."
+            f"computed edge-sample covariance {COV_E_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         start_time = ttime.monotonic()
@@ -269,20 +280,20 @@ class ProcessExtrusion:
         COV_S_S = np.eye(self.n_sample) + self.jitter
         COV_S_S[i, j] = self.callback(
             np.sqrt(
-                np.square(self.sample_points[j] - self.sample_points[i]).sum(axis=1)
+                np.square(self.sample_points[j] - self.sample_points[i]).sum(axis=1),
             ),
             **self.callback_kwargs,
         )
         COV_S_S[j, i] = COV_S_S[i, j]
         logger.debug(
-            f"computed sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms."
+            f"computed sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         # this is typically the bottleneck
         start_time = ttime.monotonic()
         inv_COV_S_S = fast_psd_inverse(COV_S_S)
         logger.debug(
-            f"inverted sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms."
+            f"inverted sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         self.COV_S_S = COV_S_S
@@ -292,7 +303,7 @@ class ProcessExtrusion:
 
         if (self.A.sum(axis=-1) > 1.0).any():
             raise ValueError(
-                f"propagation operator is unstable (A_max = {self.A.sum(axis=-1).max()})."
+                f"propagation operator is unstable (A_max = {self.A.sum(axis=-1).max()}).",
             )
 
         start_time = ttime.monotonic()
@@ -300,7 +311,7 @@ class ProcessExtrusion:
 
         duration_ms = 1e3 * (ttime.monotonic() - start_time)
         logger.debug(
-            f"computed Cholesky decomposition of posterior covariance {COV_E_E.shape} in {duration_ms:.0f} ms."
+            f"computed Cholesky decomposition of posterior covariance {COV_E_E.shape} in {duration_ms:.0f} ms.",
         )
 
         self.values = np.zeros((self.n_extrusion, self.n_cross_section))
@@ -316,7 +327,7 @@ class ProcessExtrusion:
 
         n_steps = 2 * self.n_extrusion
         BUFFER = np.random.standard_normal(
-            (self.n_extrusion + n_steps, self.n_cross_section)
+            (self.n_extrusion + n_steps, self.n_cross_section),
         )
 
         iterator = np.arange(n_steps)[::-1]

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -54,14 +56,14 @@ def validate_process_config(config):
     for operation, operation_params in config.items():
         if operation not in OPERATION_KWARGS:
             raise ValueError(
-                f"Invalid operation '{operation}'. Valid operations are {list(OPERATION_KWARGS.keys())}"
+                f"Invalid operation '{operation}'. Valid operations are {list(OPERATION_KWARGS.keys())}",
             )
 
         for key, value in operation_params.items():
             if key not in OPERATION_KWARGS[operation]:
                 raise ValueError(
                     f"Invalid param '{key}' for operation '{operation}'. "
-                    f"Valid parameters for this operation are {list(OPERATION_KWARGS[operation].keys())}"
+                    f"Valid parameters for this operation are {list(OPERATION_KWARGS[operation].keys())}",
                 )
 
             dtype = OPERATION_KWARGS[operation][key]["dtype"]
@@ -72,7 +74,7 @@ def validate_process_config(config):
                 except Exception:
                     param = {key: value}
                     raise TypeError(
-                        f"Could not convert param {param} for operation '{operation}' to requisite type '{dtype.__name__}'."
+                        f"Could not convert param {param} for operation '{operation}' to requisite type '{dtype.__name__}'.",
                     )
 
     return config
@@ -113,7 +115,9 @@ def process_tod(tod, config=None, **kwargs):
 
     if "remove_modes" in config:
         U, V = utils.signal.decompose(
-            D, downsample_rate=np.maximum(int(tod.sample_rate), 1), mode="uv"
+            D,
+            downsample_rate=np.maximum(int(tod.sample_rate), 1),
+            mode="uv",
         )
         U[:, config["remove_modes"]["modes_to_remove"]] = 0
         D = U @ V

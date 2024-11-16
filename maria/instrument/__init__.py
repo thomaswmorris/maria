@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import glob
 import os
-from typing import Union
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -214,7 +215,7 @@ class Instrument:
 
     def __init__(
         self,
-        arrays: Union[ArrayList, list],
+        arrays: ArrayList | list,
         description: str = "An instrument.",
         documentation: str = "",
         vel_limit: float = 1e2,  # in deg/s
@@ -338,7 +339,7 @@ class Instrument:
                         alpha=0.5,
                         offsets=getattr(offsets, offsets.units)[mask],
                         transOffset=ax.transData,
-                    )
+                    ),
                 )
 
                 legend_handles.append(
@@ -346,7 +347,7 @@ class Instrument:
                         label=f"{band.name}, (n={mask.sum()}, "
                         f"res={getattr(fwhms, fwhms.units)[band_mask].mean():.01f} {fwhms.units})",
                         color=c,
-                    )
+                    ),
                 )
 
                 ax.scatter(
@@ -388,5 +389,5 @@ class InvalidInstrumentError(Exception):
     def __init__(self, invalid_instrument):
         super().__init__(
             f"The instrument '{invalid_instrument}' is not supported. "
-            f"Supported instruments are:\n\n{instrument_data.__repr__()}"
+            f"Supported instruments are:\n\n{instrument_data.__repr__()}",
         )

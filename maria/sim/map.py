@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 
@@ -27,7 +29,7 @@ class MapMixin:
         dx, dy = self.coords.offsets(frame=self.map.frame, center=self.map.center)
 
         self.data["map"] = da.from_array(
-            1e-16 * np.random.standard_normal(size=dx.shape)
+            1e-16 * np.random.standard_normal(size=dx.shape),
         )
 
         pbar = tqdm(self.instrument.bands, disable=not self.verbose)
@@ -60,7 +62,8 @@ class MapMixin:
             )
 
             nu_map_filter = beam.construct_beam_filter(
-                fwhm=nu_fwhm, res=self.map.resolution
+                fwhm=nu_fwhm,
+                res=self.map.resolution,
             )
 
             filtered_power_map = beam.separably_filter_2d(power_map, nu_map_filter)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import glob
 import os
@@ -87,7 +89,7 @@ def load(
 
                 if not __tod.data.shape[0] > min_dets:
                     raise NotEnoughDetsError(
-                        f"Not enough detectors! (n={__tod.data.shape[0]})"
+                        f"Not enough detectors! (n={__tod.data.shape[0]})",
                     )
 
                 # add to our existing TODs
@@ -126,7 +128,8 @@ class TOD:
         if source_type == "moby":
             if source.cuts is None:
                 self.cuts = signal.make_cuts(
-                    sp.signal.detrend(source.data), downsample_rate=4
+                    sp.signal.detrend(source.data),
+                    downsample_rate=4,
                 )
                 self.cuts_type = "auto"
             else:
@@ -134,25 +137,32 @@ class TOD:
                 self.cuts_type = "act"
 
             self.data = signal.apply_cuts(
-                source.data, source.cuts, tol=4, method="splice"
+                source.data,
+                source.cuts,
+                tol=4,
+                method="splice",
             )
             self.data = signal.downsample(
-                self.data, rate=downsample_rate, method=downsample_method
+                self.data,
+                rate=downsample_rate,
+                method=downsample_method,
             )
 
             self.metadata = pd.DataFrame(index=np.arange(len(source.det_uid)))
             for key in source.info.array_data.keys():
                 self.metadata.loc[:, key] = np.array(
-                    source.info.array_data[key][source.det_uid]
+                    source.info.array_data[key][source.det_uid],
                 )
 
             self.metadata.loc[:, "cals"] = source.calibration.cal.values
             self.metadata.loc[:, "cals"] *= 1e12 / source.info.mce_filter.gain()
             self.metadata.loc[:, "sky_x"] = source.offsets.loc[
-                source.det_uid, "x0"
+                source.det_uid,
+                "x0",
             ].values
             self.metadata.loc[:, "sky_y"] = source.offsets.loc[
-                source.det_uid, "y0"
+                source.det_uid,
+                "y0",
             ].values
             self.metadata.loc[:, "flatfield"] = source.flatfield.ff.values
 
@@ -163,10 +173,14 @@ class TOD:
                 source.thermometer,
             ].T
             self.hk = signal.downsample(
-                self.hk, rate=downsample_rate, method="triangle"
+                self.hk,
+                rate=downsample_rate,
+                method="triangle",
             )
             self.hk = signal.apply_cuts(
-                self.hk, signal.make_cuts(self.hk, downsample_rate=4), method="splice"
+                self.hk,
+                signal.make_cuts(self.hk, downsample_rate=4),
+                method="splice",
             )
             self.time, self.azim, self.elev, self.thrm = self.hk
             self.thrm = self.thrm[None]
@@ -185,7 +199,9 @@ class TOD:
                 return
 
             pa, nom_freq = re.sub(
-                r".*ar([0-9]):f([0-9])", r"PA\1 \2", source.tod_id
+                r".*ar([0-9]):f([0-9])",
+                r"PA\1 \2",
+                source.tod_id,
             ).split()
             band = f"{pa}_f{nom_freq}"
             self.metadata.insert(0, "pa", pa)
@@ -210,7 +226,7 @@ class TOD:
                 continue
 
             inds = np.where(
-                np.sqrt(np.square(_center - centers).sum(axis=1)) < max_dist
+                np.sqrt(np.square(_center - centers).sum(axis=1)) < max_dist,
             )[0]
             det_group_indices.append(inds)
             group_label[inds] = n_groups
@@ -223,7 +239,7 @@ class TOD:
         f, ps = sp.signal.periodogram(self.azim, fs=self.fs, window="hamming")
         i_f = ps.argmax()
         self.period = np.sum(ps[i_f - f_w : i_f + f_w]) / np.sum(
-            f[i_f - f_w : i_f + f_w] * ps[i_f - f_w : i_f + f_w]
+            f[i_f - f_w : i_f + f_w] * ps[i_f - f_w : i_f + f_w],
         )
         self.phase = np.pi * (
             sp.signal.sawtooth(2 * np.pi * self.time / self.period, width=1) + 1
@@ -232,7 +248,8 @@ class TOD:
         self.phase_mids = np.linspace(0, 2 * np.pi, 360 + 1)
         self.dphase = np.gradient(self.phase_mids).mean()
         self.phase_bins = np.append(
-            self.phase_mids[0] - self.dphase / 2, self.phase_mids + self.dphase / 2
+            self.phase_mids[0] - self.dphase / 2,
+            self.phase_mids + self.dphase / 2,
         )
 
     def post_process(self, mode="minimal"):
@@ -241,7 +258,7 @@ class TOD:
 
             y = signal.downsample(
                 sp.signal.detrend(
-                    (self.data / self.data.std(axis=1)[:, None]).mean(axis=0)
+                    (self.data / self.data.std(axis=1)[:, None]).mean(axis=0),
                 ),
                 rate=16,
                 method="triangle",
@@ -266,7 +283,7 @@ class TOD:
         if mode == "calibrate":
             self.power = sp.signal.detrend(
                 self.data
-                * (self.metadata.flatfield.values * self.metadata.cals.values)[:, None]
+                * (self.metadata.flatfield.values * self.metadata.cals.values)[:, None],
             )
             self.power = signal.highpass(self.power, c=1e-3, fs=self.fs, order=1)
 
@@ -304,7 +321,7 @@ class TOD:
                 pt[::downsample_rate],
                 self.data[:, ::downsample_rate].mean(axis=0),
                 deg=deg,
-            )
+            ),
         )(pt)[None, :]
 
     def get_good_dets(
@@ -321,7 +338,7 @@ class TOD:
         DATA = getattr(self, field)
 
         keep = np.ones(DATA.shape[0]).astype(
-            bool
+            bool,
         )  # mask of detectors to keep, initially all true
 
         for band in np.unique(self.metadata.band):  # for all unique passbands ...
@@ -338,11 +355,12 @@ class TOD:
             u, s, v = la.svd(normed_data, full_matrices=False)  # take the SVD
 
             first_mode = np.outer(
-                u[:, 0], s[0] * v[0]
+                u[:, 0],
+                s[0] * v[0],
             )  # the dominant mode from the SVD
 
             rel_residuals = (normed_data - first_mode).std(
-                axis=1
+                axis=1,
             )  # RMS of normalized residuals after removing the first mode
 
             gains = (
@@ -364,12 +382,13 @@ class TOD:
                 rel_residuals < rel_residual_bounds[1]
             )
             g &= rel_residuals < 25 * np.percentile(
-                rel_residuals, q=50
+                rel_residuals,
+                q=50,
             )  # cut if it's a lot worse than its band colleagues
 
             if verbose:
                 print(
-                    f"{band} : ({(~g).sum():>3} / {len(g)}) are bad ({1e2*(~g).sum()/len(g):>4.01f}%)"
+                    f"{band} : ({(~g).sum():>3} / {len(g)}) are bad ({1e2*(~g).sum()/len(g):>4.01f}%)",
                 )
 
             keep[m] = g
@@ -393,7 +412,7 @@ class TOD:
 
             if not self.data.shape[0] > 12:
                 raise NotEnoughDetsError(
-                    f"Not enough detectors! (n={self.data.shape[0]} < 12)"
+                    f"Not enough detectors! (n={self.data.shape[0]} < 12)",
                 )
 
         if not samples is None:
@@ -424,7 +443,7 @@ class TOD:
     def append(tod1, tod2, fields=["data"], dimension=None, bins=None):
         if dimension == "time":
             new_det_uid = sorted(
-                list(set(tod1.metadata.det_uid) & set(tod2.metadata.det_uid))
+                list(set(tod1.metadata.det_uid) & set(tod2.metadata.det_uid)),
             )
 
             tod1_det_list = list(tod1.metadata.det_uid)
@@ -449,14 +468,17 @@ class TOD:
                         tod1,
                         attr,
                         np.concatenate(
-                            [getattr(tod1, attr), getattr(tod2, attr)], axis=-1
+                            [getattr(tod1, attr), getattr(tod2, attr)],
+                            axis=-1,
                         ),
                     )
 
             # ensures unique time samples
             linear = lambda x, a, b: a * x + b
             pars, cpars = sp.optimize.curve_fit(
-                linear, np.arange(len(tod1.time)), tod1.time
+                linear,
+                np.arange(len(tod1.time)),
+                tod1.time,
             )
             tod1.time = linear(np.arange(len(tod1.time)), *pars)
 
@@ -469,10 +491,10 @@ class TOD:
             master_time = np.arange(t_min, t_max, 1 / np.minimum(tod1.fs, tod2.fs))
 
             tod1_t_index = np.round(
-                np.interp(master_time, tod1.time, np.arange(tod1.nt))
+                np.interp(master_time, tod1.time, np.arange(tod1.nt)),
             ).astype(int)
             tod2_t_index = np.round(
-                np.interp(master_time, tod2.time, np.arange(tod2.nt))
+                np.interp(master_time, tod2.time, np.arange(tod2.nt)),
             ).astype(int)
 
             tod1.metadata = tod1.metadata.append(tod2.metadata)
@@ -480,7 +502,9 @@ class TOD:
 
             for attr in ["azim", "elev"]:
                 setattr(
-                    tod1, attr, np.interp(master_time, tod1.time, getattr(tod1, attr))
+                    tod1,
+                    attr,
+                    np.interp(master_time, tod1.time, getattr(tod1, attr)),
                 )
 
             for attr in [*fields, "thrm"]:
@@ -491,7 +515,7 @@ class TOD:
                         [
                             getattr(tod1, attr)[:, tod1_t_index],
                             getattr(tod2, attr)[:, tod2_t_index],
-                        ]
+                        ],
                     ),
                 )
 
@@ -526,7 +550,7 @@ class TOD:
                 pa_power_template = self.power[pam].mean(axis=0)
 
             power_gains = (pa_power_template * self.power[pam]).sum(axis=1) / np.square(
-                pa_power_template
+                pa_power_template,
             ).sum()
 
             pa_noise_template = (
@@ -534,7 +558,7 @@ class TOD:
             ).mean(axis=0)
             pa_noise_template /= pa_noise_template.std()
             pa_noise_gains = (pa_noise_template * self.power[pam]).sum(
-                axis=1
+                axis=1,
             ) / np.square(pa_noise_template).sum()
             noise_data[pam] = np.outer(pa_noise_gains, pa_noise_template)
 
@@ -570,7 +594,7 @@ class TOD:
             from sklearn.cluster import KMeans
 
             points = np.vstack(
-                [self.metadata.sky_x.values[m], self.metadata.sky_y.values[m]]
+                [self.metadata.sky_x.values[m], self.metadata.sky_y.values[m]],
             ).T
             kmeans = KMeans(n_clusters=n, random_state=0).fit(points)
 
@@ -580,17 +604,22 @@ class TOD:
 
             if method == "grid":
                 nx, ny = int(np.ptp(self.x[m]) / min_spacing), int(
-                    np.ptp(self.y[m]) / min_spacing
+                    np.ptp(self.y[m]) / min_spacing,
                 )
 
                 x_bins = np.linspace(
-                    self.x[m].min() - 1e-6, self.x[m].max() + 1e-6, nx + 1
+                    self.x[m].min() - 1e-6,
+                    self.x[m].max() + 1e-6,
+                    nx + 1,
                 )
                 y_bins = np.linspace(
-                    self.y[m].min() - 1e-6, self.y[m].max() + 1e-6, ny + 1
+                    self.y[m].min() - 1e-6,
+                    self.y[m].max() + 1e-6,
+                    ny + 1,
                 )
                 x_id, y_id = np.digitize(self.x[m], bins=x_bins), np.digitize(
-                    self.y[m], bins=y_bins
+                    self.y[m],
+                    bins=y_bins,
                 )
                 print(nx, ny, x_bins.min(), x_bins.max())
                 self.c_id = nx * x_id + y_id
@@ -599,16 +628,16 @@ class TOD:
                 [
                     self.metadata.sky_x.values[m][self.c_id == i].mean(axis=0)
                     for i in np.sort(np.unique(self.c_id))
-                ]
+                ],
             )
             cy = np.array(
                 [
                     self.metadata.sky_y.values[m][self.c_id == i].mean(axis=0)
                     for i in np.sort(np.unique(self.c_id))
-                ]
+                ],
             )
             self.c_n = np.array(
-                [np.sum(self.c_id == i) for i in np.sort(np.unique(self.c_id))]
+                [np.sum(self.c_id == i) for i in np.sort(np.unique(self.c_id))],
             )
 
             masked_data = getattr(self, field)[m]
@@ -634,7 +663,7 @@ class TOD:
 
             for attr in ["pa", "ba", "band"]:
                 getattr(self, f"c_{attr}").extend(
-                    np.repeat(self.metadata[attr].values[m][0], len(cx))
+                    np.repeat(self.metadata[attr].values[m][0], len(cx)),
                 )
 
         for attr in ["c_x", "c_y", "c_pa", "c_ba", "c_band"]:
@@ -677,10 +706,14 @@ class TOD:
 
         modes["meta"]["time"] = master_time
         modes["meta"]["azim"] = sp.interpolate.interp1d(
-            self.time, self.azim, kind="quadratic"
+            self.time,
+            self.azim,
+            kind="quadratic",
         )(master_time)
         modes["meta"]["elev"] = sp.interpolate.interp1d(
-            self.time, self.elev, kind="quadratic"
+            self.time,
+            self.elev,
+            kind="quadratic",
         )(master_time)
 
         for field, discriminator in zip(fields, discriminators):
@@ -761,7 +794,7 @@ class TOD:
                     ]
 
                 rs_corr = sp.interpolate.interp1d(di_sampler, corr, kind="cubic")(
-                    us_di_sampler
+                    us_di_sampler,
                 )
                 self.pair_lag[split, i, j] = (rs_corr.argmax() - nr_us) * max_di / nr_us
 
@@ -783,7 +816,7 @@ class TOD:
                 "fit_ang_v_x",
                 "fit_ang_v_y",
                 "co_r_2",
-            ]
+            ],
         )
 
         mv = np.radians(10)
@@ -805,7 +838,8 @@ class TOD:
                     continue
 
                 abs_norm_pair_lag_bounds = np.percentile(
-                    np.abs(self.norm_pair_lag[split][USE]), q=[5, 95]
+                    np.abs(self.norm_pair_lag[split][USE]),
+                    q=[5, 95],
                 )
 
                 USE &= abs_norm_pair_lag_bounds[0] < np.abs(self.norm_pair_lag[split])
@@ -824,7 +858,7 @@ class TOD:
                     TSS = np.square(self.norm_pair_lag[split][USE]).sum()
                     RSS = np.square(
                         self.norm_pair_lag[split][USE]
-                        - norm_lag_flat(self.c_da[USE], fit_avx, fit_avy)
+                        - norm_lag_flat(self.c_da[USE], fit_avx, fit_avy),
                     ).sum()
                     co_r_2 = RSS / TSS
 

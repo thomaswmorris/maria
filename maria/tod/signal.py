@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import scipy as sp
 
@@ -54,7 +56,8 @@ def downsample(DATA, rate, axis=-1, method="triangle"):
 
         _DATA = np.swapaxes(DATA, 0, axis)
         kernel = np.expand_dims(
-            get_kernel(n=rate, kind=method), axis=tuple(np.arange(1, len(DATA.shape)))
+            get_kernel(n=rate, kind=method),
+            axis=tuple(np.arange(1, len(DATA.shape))),
         )
         n_kern = len(kernel)
         starts = np.arange(0, len(_DATA) - n_kern, rate)
@@ -85,7 +88,7 @@ def get_phase_template(DATA, phase, n_phase_bins, discriminator=None):
 
         template_degree = 2
         poly = PolynomialFeatures(degree=template_degree).fit_transform(
-            np.linspace(-1, 1, nt)[:, None]
+            np.linspace(-1, 1, nt)[:, None],
         )
 
         P = np.zeros((nt, n_phase_bins))
@@ -98,7 +101,8 @@ def get_phase_template(DATA, phase, n_phase_bins, discriminator=None):
 
         P = sp.ndimage.gaussian_filter1d(P, sigma=1, axis=1, mode="wrap")
         PP = np.concatenate(
-            [P * poly[:, i][:, None] for i in range(template_degree + 1)], axis=1
+            [P * poly[:, i][:, None] for i in range(template_degree + 1)],
+            axis=1,
         )
         PD = np.matmul(np.linalg.inv(np.matmul(PP.T, PP)), np.matmul(PP.T, D_mean))
         template = np.matmul(PP, PD)
@@ -135,7 +139,7 @@ def make_cuts(D, n_filt=3, downsample_rate=4, max_cuts=256):
                 (
                     downsample_rate * np.min(sub_index) - 1,
                     downsample_rate * np.max(sub_index) + 1,
-                )
+                ),
             )
 
         if len(cuts[-1]) > max_cuts:
@@ -182,7 +186,8 @@ def decompose(DATA, mode="us", downsample_rate=1):
         return u, s
     if mode == "uv":
         return np.matmul(u, np.diag(s)), np.matmul(
-            np.linalg.pinv(np.matmul(u, np.diag(s))), DATA
+            np.linalg.pinv(np.matmul(u, np.diag(s))),
+            DATA,
         )
     if mode == "usv":
         return u, s, np.matmul(np.linalg.pinv(np.matmul(u, np.diag(s))), DATA)
@@ -198,11 +203,15 @@ def bandpass(data, lc, hc, fs, order):
 
 def lowpass(data, c, fs, order):
     return sp.signal.filtfilt(
-        *sp.signal.butter(order, 2 * c / fs, btype="lowpass"), data, axis=-1
+        *sp.signal.butter(order, 2 * c / fs, btype="lowpass"),
+        data,
+        axis=-1,
     )
 
 
 def highpass(data, c, fs, order):
     return sp.signal.filtfilt(
-        *sp.signal.butter(order, 2 * c / fs, btype="highpass"), data, axis=-1
+        *sp.signal.butter(order, 2 * c / fs, btype="highpass"),
+        data,
+        axis=-1,
     )

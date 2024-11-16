@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import glob
 import os
-from collections.abc import Mapping
-from typing import Sequence, Union
+from collections.abc import Mapping, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -128,7 +129,7 @@ class Band:
 
         if not auto ^ manual:
             raise ValueError(
-                "You must pass either both 'center' and 'width' or both 'nu' and 'tau'."
+                "You must pass either both 'center' and 'width' or both 'nu' and 'tau'.",
             )
 
         if auto:
@@ -147,7 +148,7 @@ class Band:
                 or (self.nu.shape != self.tau.shape)
             ):
                 raise ValueError(
-                    f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape})."
+                    f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape}).",
                 )
 
         self._name = name
@@ -165,7 +166,7 @@ class Band:
 
         elif (NEP is not None) and (sensitivity is not None):
             raise RuntimeError(
-                "When defining a band, you must specify exactly one of 'NEP' or 'sensitivity'."
+                "When defining a band, you must specify exactly one of 'NEP' or 'sensitivity'.",
             )  # noqa
 
         elif NEP is not None:
@@ -173,7 +174,8 @@ class Band:
 
         elif sensitivity is not None:
             self.set_sensitivity(
-                sensitivity, kind=sensitivity_kind
+                sensitivity,
+                kind=sensitivity_kind,
             )  # this sets the NEP automatically
 
     @property
@@ -195,7 +197,7 @@ class Band:
             [
                 sp.interpolate.interp1d(self.tau[[i, i + 1]], self.nu[[i, i + 1]])(0.5)
                 for i in crossovers
-            ]
+            ],
         )
 
     @property
@@ -251,7 +253,12 @@ class Band:
         self.set_sensitivity(value)
 
     def set_sensitivity(
-        self, value, kind="rayleigh-jeans", region="chajnantor", pwv=0, elevation=90
+        self,
+        value,
+        kind="rayleigh-jeans",
+        region="chajnantor",
+        pwv=0,
+        elevation=90,
     ):
         transmission = self.transmission(region=region, pwv=pwv, elevation=elevation)
 
@@ -288,7 +295,10 @@ class Band:
 
     def passband(self, nu):
         return self.efficiency * sp.interpolate.interp1d(
-            self.nu, self.tau, bounds_error=False, fill_value=0
+            self.nu,
+            self.tau,
+            bounds_error=False,
+            fill_value=0,
         )(nu)
 
     @property
@@ -363,7 +373,7 @@ class Band:
 
 
 class BandList(Sequence):
-    def __init__(self, bands: Union[Mapping, list]):
+    def __init__(self, bands: Mapping | list):
         self.bands = []
 
         if isinstance(bands, BandList):
@@ -439,7 +449,7 @@ class BandList(Sequence):
             return self.bands[self.names.index(index)]
         else:
             raise ValueError(
-                f"Invalid index {index}. A bandList must be indexed by either an integer or a string."
+                f"Invalid index {index}. A bandList must be indexed by either an integer or a string.",
             )
 
     def __len__(self):

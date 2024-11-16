@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import scipy as sp
 
@@ -55,11 +57,15 @@ def approximate_normalized_matern(r, nu=1 / 3, r0=1e0, n_test_points=1024):
     with np.errstate(divide="ignore"):
         sf = np.exp(
             np.interp(
-                np.log(r_eff_nonzero), np.log(r_eff_samples), np.log(1 - cov_samples)
-            )
+                np.log(r_eff_nonzero),
+                np.log(r_eff_samples),
+                np.log(1 - cov_samples),
+            ),
         )
         cov = np.exp(
-            np.interp(np.log(r_eff_nonzero), np.log(r_eff_samples), np.log(cov_samples))
+            np.interp(
+                np.log(r_eff_nonzero), np.log(r_eff_samples), np.log(cov_samples)
+            ),
         )
 
     # we combine the log interpolations so that both extremes have really good precision

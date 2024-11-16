@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -77,13 +79,16 @@ def grid(time, radius=1, speed=None, n=17, turnaround_time=5):  # noqa
     )(time)
 
     return sp.ndimage.gaussian_filter1d(
-        offsets, sigma=turnaround_time / timestep, axis=-1
+        offsets,
+        sigma=turnaround_time / timestep,
+        axis=-1,
     )
 
 
 def smooth_sawtooth(phase, width=0.5, smoothness=0.5):
     smooth_phase = sp.ndimage.gaussian_filter1d(
-        phase, sigma=smoothness * np.gradient(phase).mean()
+        phase,
+        sigma=smoothness * np.gradient(phase).mean(),
     )
     smooth_sawtooth = sp.signal.sawtooth(smooth_phase, width=width)
     return 2 * (smooth_sawtooth - smooth_sawtooth.min()) / smooth_sawtooth.ptp() - 1
@@ -112,13 +117,19 @@ def raster(time, radius=1, height=None, speed=0.5, n=16, turnaround_time=0.5):
     offsets = sp.interpolate.interp1d(ts, np.c_[xs, ys].T)(time)
 
     return sp.ndimage.gaussian_filter1d(
-        offsets, sigma=turnaround_time * sample_rate, axis=-1
+        offsets,
+        sigma=turnaround_time * sample_rate,
+        axis=-1,
     )
 
 
 def back_and_forth(time, speed=1, radius=5, turnaround_time=0.5):  # noqa
     return raster(
-        time, speed=speed, radius=radius, height=0, turnaround_time=turnaround_time
+        time,
+        speed=speed,
+        radius=radius,
+        height=0,
+        turnaround_time=turnaround_time,
     )
 
 
@@ -136,7 +147,12 @@ def double_circle(time, speed=None, radius=1.0, ratio=2.1):
 
 
 def get_constant_speed_offsets(
-    pattern, duration, sample_rate, speed, eps=1e-6, **scan_options
+    pattern,
+    duration,
+    sample_rate,
+    speed,
+    eps=1e-6,
+    **scan_options,
 ):
     """This should be cythonized maybe."""
 

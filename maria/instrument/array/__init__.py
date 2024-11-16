@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import logging
 import os
@@ -70,7 +72,7 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
     if packing == "square":
         s = int(np.ceil(np.sqrt(bigger_n)))
         side = np.arange(-s, s + 1, dtype=float)
-        x, y = [foo.ravel() for foo in np.meshgrid(side, side)]
+        x, y = (foo.ravel() for foo in np.meshgrid(side, side))
 
     elif packing == "hex":
         s = int(np.ceil((np.sqrt(12 * bigger_n - 3) + 3) / 6))
@@ -88,7 +90,7 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
 
     else:
         raise ValueError(
-            "Supported offset packings are ['square', 'hex', or 'sunflower']."
+            "Supported offset packings are ['square', 'hex', or 'sunflower'].",
         )
 
     n_sides = {"square": 4, "hex": 6, "circle": 256}[shape]
@@ -112,7 +114,11 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
 
 
 def generate_2d_offsets_from_diameter(
-    diameter, packing="hex", shape="circle", tol=1e-2, max_iterations=32
+    diameter,
+    packing="hex",
+    shape="circle",
+    tol=1e-2,
+    max_iterations=32,
 ):
     n = np.square(diameter)
     span = 0
@@ -201,16 +207,21 @@ class Array:
             if n is not None:
                 if field_of_view is not None:
                     offsets = np.radians(field_of_view) * generate_2d_offsets(
-                        n=n, packing=array_packing, shape=array_shape, normalize=True
+                        n=n,
+                        packing=array_packing,
+                        shape=array_shape,
+                        normalize=True,
                     )
                 else:
                     if len(resolutions) > 1:
                         logger.warning(
                             "Subarray has more than one band. "
-                            f"Generating detector spacing based on the lowest frequency ({np.min(band_centers):.01f}) GHz."
+                            f"Generating detector spacing based on the lowest frequency ({np.min(band_centers):.01f}) GHz.",
                         )
                     offsets = detector_spacing * generate_2d_offsets(
-                        n=n, packing=array_packing, shape=array_shape
+                        n=n,
+                        packing=array_packing,
+                        shape=array_shape,
                     )
             df.loc[:, "sky_x"] = np.radians(array_offset[0]) + offsets[:, 0]
             df.loc[:, "sky_y"] = np.radians(array_offset[1]) + offsets[:, 1]
@@ -242,7 +253,9 @@ class Array:
 
         else:
             df.loc[:, "pol_angle"] = np.random.uniform(
-                low=0, high=2 * np.pi, size=len(offsets)
+                low=0,
+                high=2 * np.pi,
+                size=len(offsets),
             )
             df.loc[:, "pol_label"] = "A"
 
@@ -272,7 +285,7 @@ class Array:
         dets = Detectors(df=df, bands=bands)
 
         logger.debug(
-            f"generated array '{name}' with {len(dets)} detectors in {int(1e3 * (ttime.monotonic() - start_time))} ms"
+            f"generated array '{name}' with {len(dets)} detectors in {int(1e3 * (ttime.monotonic() - start_time))} ms",
         )
 
         return cls(name=name, dets=dets)
@@ -389,7 +402,8 @@ class ArrayList:
 
     def combine(self):
         self.dets = Detectors(
-            df=pd.concat([a.dets.df for a in self.arrays]), bands=self.bands
+            df=pd.concat([a.dets.df for a in self.arrays]),
+            bands=self.bands,
         )
 
     @property
@@ -408,13 +422,13 @@ class ArrayList:
         for array in self.arrays:
             df.loc[array.name, "n"] = array.dets.n
             df.loc[array.name, "center"] = tuple(
-                np.degrees(array.dets.offsets.mean(axis=0)).round(2)
+                np.degrees(array.dets.offsets.mean(axis=0)).round(2),
             )
             df.loc[array.name, "baseline"] = tuple(
-                array.dets.baselines.mean(axis=0).round(2)
+                array.dets.baselines.mean(axis=0).round(2),
             )
             df.loc[array.name, "bands"] = ", ".join(
-                list(array.dets.bands.summary.loc[:, "name"])
+                list(array.dets.bands.summary.loc[:, "name"]),
             )
 
         return df

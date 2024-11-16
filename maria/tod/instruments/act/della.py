@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import os
 import pickle
@@ -45,7 +47,7 @@ def get_scode(t):
 
 def get_tod_filepath(tod_id):
     filepaths = glob.glob(
-        f"{tod_filepath_base}/season*/merlin/{tod_id[:5]}/{tod_id[:-5]}.zip"
+        f"{tod_filepath_base}/season*/merlin/{tod_id[:5]}/{tod_id[:-5]}.zip",
     )
     return filepaths[0] if len(filepaths) > 0 else None
 
@@ -63,7 +65,9 @@ def get_calibration(tod_id, det_uid, scheme="iv"):
     if scheme == "iv":
         tod_info = m2.scripting.get_tod_info({"filename": get_tod_filepath(tod_id)})
         cals = m2.scripting.get_calibration(
-            [{"type": "iv", "source": "data"}], tod_info=tod_info, det_uid=det_uid
+            [{"type": "iv", "source": "data"}],
+            tod_info=tod_info,
+            det_uid=det_uid,
         ).get_property("cal")[1]
         cals *= tod_info.array_data["optical_sign"][det_uid]
         return pd.DataFrame(cals, index=det_uid, columns=["cal"])
@@ -72,7 +76,7 @@ def get_calibration(tod_id, det_uid, scheme="iv"):
         import ast
 
         tod_filepath = glob.glob(
-            f"/projects/ACT/managed/actpol_data/season*/merlin/{tod_id[:5]}/{tod_id[:-5]}.zip"
+            f"/projects/ACT/managed/actpol_data/season*/merlin/{tod_id[:5]}/{tod_id[:-5]}.zip",
         )[0]
         tod_info = m2.scripting.get_tod_info({"filename": tod_filepath})
         pattern = f"/projects/ACT/yilung/depot/release_20211025/Calibration/{pa.lower()}_f{nom_freq}_*/{tod_id[:5]}/{tod_id[:-5]}.cal"
@@ -82,7 +86,7 @@ def get_calibration(tod_id, det_uid, scheme="iv"):
             return None
 
         d = {}
-        with open(fps[0], "r") as f:
+        with open(fps[0]) as f:
             c = f.read()
         for l in c.split("\n"):
             if len(l) > 0:
@@ -129,7 +133,8 @@ def get_flatfield(tod_id, det_uid, scheme):
 
     if scheme == "atm":
         return pd.read_csv(
-            f"/home/tm12/act/products/atmosphere/flatfields/ff_{band}.csv", index_col=0
+            f"/home/tm12/act/products/atmosphere/flatfields/ff_{band}.csv",
+            index_col=0,
         )  # .reindex(det_uid)
 
     if scheme == "dummy":

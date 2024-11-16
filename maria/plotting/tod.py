@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from itertools import cycle
 
 import matplotlib as mpl
@@ -22,7 +24,11 @@ def tod_plot(
     fontsize: float = 8,
 ):
     fig, axes = plt.subplots(
-        ncols=2, nrows=len(tod.fields), sharex="col", figsize=(8, 4), dpi=160
+        ncols=2,
+        nrows=len(tod.fields),
+        sharex="col",
+        figsize=(8, 4),
+        dpi=160,
     )
     axes = np.atleast_2d(axes)
     gs = axes[0, 0].get_gridspec()
@@ -62,7 +68,10 @@ def tod_plot(
             f_mids = np.sqrt(f_bins[1:] * f_bins[:-1])
 
             binned_ps = sp.stats.binned_statistic(
-                f, ps.mean(axis=0), bins=f_bins, statistic="mean"
+                f,
+                ps.mean(axis=0),
+                bins=f_bins,
+                statistic="mean",
             )[0]
 
             use = binned_ps > 0
@@ -127,7 +136,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
 
     offsets = Angle(np.c_[tod.dets.sky_x, tod.dets.sky_y])
     fwhms = Angle(
-        compute_angular_fwhm(fwhm_0=tod.dets.primary_size, nu=tod.dets.band_center)
+        compute_angular_fwhm(fwhm_0=tod.dets.primary_size, nu=tod.dets.band_center),
     )
 
     bands = sorted(np.unique(tod.dets.band_name))
@@ -182,7 +191,12 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
         ax.set_ylabel(r"$\Delta \theta_y$ [deg.]")
 
         boresight_info = ax.text(
-            0.01, 0.99, "", ha="left", va="top", transform=ax.transAxes
+            0.01,
+            0.99,
+            "",
+            ha="left",
+            va="top",
+            transform=ax.transAxes,
         )
 
         cbar = fig.colorbar(ec, ax=ax, shrink=0.8, location="bottom")
@@ -222,7 +236,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
             #     norm_start, norm_end = len(t) - 2 * buffer - 1, len(t) - 1
 
             norm = mpl.colors.Normalize(
-                *np.quantile(subplot["data"][:, norm_start:norm_end], q=[0.01, 0.99])
+                *np.quantile(subplot["data"][:, norm_start:norm_end], q=[0.01, 0.99]),
             )
 
             subplot["ec"].set_array(subplot["data"][:, frame])

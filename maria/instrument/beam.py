@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import scipy as sp  # noqa F401
 
@@ -66,7 +68,9 @@ def separably_filter_2d(data, F, tol=1e-2, return_filter=False):
     for m in range(len(F)):
         effective_filter += s[m] * u[:, m : m + 1] @ v[m : m + 1]
         filtered_image += s[m] * sp.ndimage.convolve1d(
-            sp.ndimage.convolve1d(data, u[:, m], axis=-2), v[m], axis=-1
+            sp.ndimage.convolve1d(data, u[:, m], axis=-2),
+            v[m],
+            axis=-1,
         )
 
         if np.abs(F - effective_filter).mean() < tol:

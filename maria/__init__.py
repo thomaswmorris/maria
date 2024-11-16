@@ -1,6 +1,7 @@
 # AVE MARIA, gratia plena, Dominus tecum.
 # Benedicta tu in mulieribus, et benedictus fructus ventris tui, Iesus.
 # Sancta Maria, Mater Dei, ora pro nobis peccatoribus, nunc, et in hora mortis nostrae.
+from __future__ import annotations
 
 import logging
 
