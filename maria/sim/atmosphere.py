@@ -12,7 +12,7 @@ here, this_filename = os.path.split(__file__)
 
 class AtmosphereMixin:
     def _simulate_atmosphere(self):
-        # this produces self.atmosphere.zenith_scaled_pwv, which we use to compute emission and transmission
+        # this produces self.atmosphere.zenith_scaled_pwv, which we use to compute emission and opacity
         self.atmosphere.simulate_pwv()
 
     def _compute_atmospheric_emission(self):
@@ -68,8 +68,8 @@ class AtmosphereMixin:
             )(self.coords.time)
         )
 
-    def _compute_atmospheric_transmission(self):
-        self.atmosphere.transmission = da.zeros_like(self.atmosphere.zenith_scaled_pwv)
+    def _compute_atmospheric_opacity(self):
+        self.atmosphere.opacity = da.zeros_like(self.atmosphere.zenith_scaled_pwv)
 
         # to make a new progress bar
         bands = (
@@ -82,38 +82,43 @@ class AtmosphereMixin:
             band_index = self.instrument.dets.mask(band_name=band.name)
 
             if self.verbose:
-                bands.set_description(
-                    f"Computing atmospheric transmission ({band.name})"
+                bands.set_description(f"Computing atmospheric opacity ({band.name})")
+
+            _nu = self.atmosphere.spectrum._side_nu
+            _tau = band.passband(_nu)
+
+            band_opacity_grid = -np.log(
+                np.trapezoid(
+                    np.exp(-self.atmosphere.spectrum._opacity) * _tau,
+                    x=1e9 * _nu,
+                    axis=-1,
                 )
-
-            rel_T_RJ_spectrum = (
-                band.passband(self.atmosphere.spectrum._side_nu)
-                * self.atmosphere.spectrum._side_nu**2
+                / np.trapezoid(band.passband(_nu), x=1e9 * _nu, axis=-1)
             )
 
-            self.det_transmission_grid = np.trapezoid(
-                rel_T_RJ_spectrum * self.atmosphere.spectrum._transmission,
-                1e9 * self.atmosphere.spectrum._side_nu,
-                axis=-1,
-            ) / np.trapezoid(
-                rel_T_RJ_spectrum,
-                1e9 * self.atmosphere.spectrum._side_nu,
-                axis=-1,
-            )
+            # self.det_opacity_grid = np.trapezoid(
+            #     rel_T_RJ_spectrum * self.atmosphere.spectrum._opacity,
+            #     1e9 * self.atmosphere.spectrum._side_nu,
+            #     axis=-1,
+            # ) / np.trapezoid(
+            #     rel_T_RJ_spectrum,
+            #     1e9 * self.atmosphere.spectrum._side_nu,
+            #     axis=-1,
+            # )
 
-            band_transmission_interpolator = sp.interpolate.RegularGridInterpolator(
+            band_opacity_interpolator = sp.interpolate.RegularGridInterpolator(
                 (
                     self.atmosphere.spectrum._side_zenith_pwv,
                     self.atmosphere.spectrum._side_base_temperature,
                     self.atmosphere.spectrum._side_elevation,
                 ),
-                self.det_transmission_grid,
+                band_opacity_grid,
             )
 
             # what's happening here? the atmosphere blocks some of the light from space.
             # we want to calibrate to the stuff in space, so we make the atmosphere *hotter*
 
-            self.atmosphere.transmission[band_index] = band_transmission_interpolator(
+            self.atmosphere.opacity[band_index] = band_opacity_interpolator(
                 (
                     self.atmosphere.zenith_scaled_pwv[band_index],
                     self.atmosphere.weather.temperature[0],
@@ -121,13 +126,15 @@ class AtmosphereMixin:
                 )
             )
 
-        self.atmospheric_transmission = da.from_array(
-            sp.interpolate.interp1d(
-                self.atmosphere.coords.time,
-                self.atmosphere.transmission,
-                bounds_error=False,
-                fill_value="extrapolate",
-            )(self.coords.time)
+        self.atmospheric_transmission = np.exp(
+            -da.from_array(
+                sp.interpolate.interp1d(
+                    self.atmosphere.coords.time,
+                    self.atmosphere.opacity,
+                    bounds_error=False,
+                    fill_value="extrapolate",
+                )(self.coords.time)
+            )
         )
 
         # if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸

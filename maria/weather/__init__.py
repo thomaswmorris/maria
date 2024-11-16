@@ -67,7 +67,7 @@ class Weather:
 
         self.region = region
         self.t = t
-        self.altitude = altitude
+        self.base_altitude = altitude
         self.time_zone = time_zone
         self.quantiles = quantiles
         self.override = override
@@ -82,11 +82,11 @@ class Weather:
             refresh=refresh_cache,
         )
 
-        if self.altitude is None:
-            self.altitude = supported_regions_table.loc[self.region, "altitude"]
+        if self.base_altitude is None:
+            self.base_altitude = supported_regions_table.loc[self.region, "altitude"]
 
         self.t = np.round(self.t, 0)
-        self.altitude = np.round(self.altitude, 0)
+        self.base_altitude = np.round(self.base_altitude, 0)
         self.time_zone = supported_regions_table.loc[self.region, "timezone"]
         self.utc_datetime = datetime.fromtimestamp(self.t.min()).astimezone(pytz.utc)
         self.utc_time = self.utc_datetime.ctime()
@@ -161,10 +161,12 @@ class Weather:
     def pwv(self):
         if "pwv" in self.override.keys():
             return self.override["pwv"]
-        altitude_samples = np.linspace(self.altitude * g, self.geopotential.max(), 1024)
+        altitude_samples = np.linspace(
+            self.base_altitude, self.geopotential.max() / g, 1024
+        )
         return np.trapezoid(
-            np.interp(altitude_samples, self.geopotential, self.absolute_humidity),
-            self.altitude,
+            np.interp(altitude_samples, self.geopotential / g, self.absolute_humidity),
+            x=altitude_samples,
         )
 
     def __call__(self, altitude):

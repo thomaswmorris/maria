@@ -1,11 +1,39 @@
 import os
 
+import h5py
 import numpy as np
 from astropy.io import fits
 
 from .map import Map
 
 here, this_filename = os.path.split(__file__)
+
+
+def load(filename: str, **kwargs) -> Map:
+    format = filename.split(".")[-1]
+    if format == "fits":
+        return read_fits(filename, **kwargs)
+    if format == "h5":
+        return read_hdf(filename, **kwargs)
+    else:
+        raise NotImplementedError(f"Unsupported filetype '.{format}'.")
+
+
+def read_hdf(filename: str, **kwargs) -> Map:
+    with h5py.File(filename, "r") as f:
+        data = f["data"][:]
+
+        metadata = {}
+        for field in ["nu", "t", "width", "center", "frame", "units"]:
+            value = f[field][()]
+            metadata[field] = value if not isinstance(value, bytes) else value.decode()
+
+        if "weight" in f.keys():
+            metadata["weight"] = f["weight"][:]
+
+    metadata.update(kwargs)
+
+    return Map(data=data, degrees=False, **metadata)
 
 
 def read_fits(

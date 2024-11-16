@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import time
 import time as ttime
 from collections.abc import Mapping
 from datetime import datetime
@@ -48,30 +49,6 @@ def read_yaml(path: str):
     return res if res is not None else {}
 
 
-def cache_is_ok(path: str, max_age: float = 30 * 86400, verbose: bool = False):
-    """
-    Check if we need to reload the cache.
-    """
-    if not os.path.exists(path):
-        if verbose:
-            logger.info(f"Cached file at {path} does not exist.")
-        return False
-
-    cache_age = ttime.time() - os.path.getmtime(path)
-
-    if cache_age > max_age:
-        if verbose:
-            logger.info(f"Cached file at {path} is too old.")
-        return False
-
-    if not test_file(path):
-        if verbose:
-            logger.info(f"Could not open cached file at {path}.")
-        return False
-
-    return True
-
-
 def test_file(path) -> bool:
     ext = path.split(".")[-1]
     try:
@@ -91,57 +68,92 @@ def test_file(path) -> bool:
     return True
 
 
-def fetch(
-    source_path: str,
-    cache_path: str = None,
-    url_base: str = "https://github.com/thomaswmorris/maria-data/raw/master",
-    **kwargs,
-):
+def cache_status(path: str, max_age: float = 30 * 86400, refresh: bool = False):
     """
-    Fetch a file from the repo.
+    Check if we need to reload the cache.
     """
-    cache_path = cache_path or f"/tmp/maria-data/{source_path}"
-    url = f"{url_base}/{source_path}"
-    return fetch_from_url(url, cache_path=cache_path, **kwargs)
+    if refresh:
+        logger.debug(f"Forcing refresh of {path}.")
+        return "force_refresh"
+
+    if not os.path.exists(path):
+        logger.debug(f"Cached file at {path} does not exist.")
+        return "missing"
+
+    if not test_file(path):
+        logger.debug(f"Could not open cached file at {path}.")
+        return "corrupted"
+
+    cache_age = ttime.time() - os.path.getmtime(path)
+
+    if cache_age > max_age:
+        logger.debug(f"Cached file at {path} is too old.")
+        return "old"
+
+    return "ok"
 
 
-def fetch_from_url(
+def download_from_url(
     source_url: str,
     cache_path: str = None,
-    max_age: float = 7 * 86400,
-    refresh: bool = False,
     chunk_size: int = 8192,
     verbose: bool = False,
 ):
     """
     Download the cache if needed.
     """
-
     cache_dir = os.path.dirname(cache_path)
 
     # make the cache directory if it doesn't exist
     if not os.path.exists(cache_dir):
-        logger.info(f"created cache at {cache_dir}")
-        os.makedirs(cache_dir, exist_ok=True)
+        logger.info(f"Downloading {source_url} to {cache_dir} …")
 
-    if (not cache_is_ok(cache_path, max_age=max_age, verbose=verbose)) or refresh:
-        with requests.get(source_url, stream=True) as r:
-            r.raise_for_status()
-            with open(cache_path, "wb") as f:
-                chunks = tqdm(
-                    r.iter_content(chunk_size=chunk_size),
-                    desc=f"Updating cache from {source_url}",
-                    disable=not verbose,
-                )
-                for chunk in chunks:
-                    f.write(chunk)
+    os.makedirs(cache_dir, exist_ok=True)
 
-        cache_size = os.path.getsize(cache_path)
-        logger.info(f"downloaded data ({1e-6 * cache_size:.01f} MB) to {cache_path}")
+    with requests.get(source_url, stream=True) as r:
+        r.raise_for_status()
+        with open(cache_path, "wb") as f:
+            chunks = tqdm(
+                r.iter_content(chunk_size=chunk_size),
+                desc=f"Updating cache from {source_url}",
+                disable=not verbose,
+            )
+            for chunk in chunks:
+                f.write(chunk)
 
-        if not test_file(cache_path):
-            raise RuntimeError("Could not open cached file.")
+    cache_size = os.path.getsize(cache_path)
+    logger.info(f"Downloaded {1e-6 * cache_size:.01f} MB to {cache_path}.")
 
+    if not test_file(cache_path):
+        raise RuntimeError("Could not open cached file.")
+
+    return cache_path
+
+
+def fetch(
+    source_path: str,
+    cache_path: str = None,
+    max_age: float = 7 * 86400,
+    refresh: bool = False,
+    url_base: str = "https://github.com/thomaswmorris/maria-data/raw/master",
+    **download_kwargs,
+):
+    """
+    Fetch a file from the repo.
+    """
+    cache_path = cache_path or f"/tmp/maria-data/{source_path}"
+    url = f"{url_base}/{source_path}"
+
+    status = cache_status(cache_path, max_age=max_age, refresh=refresh)
+
+    if status != "ok":
+        try:
+            download_from_url(url, cache_path=cache_path, **download_kwargs)
+        except Exception:
+            if status == "old":
+                logger.info(f"Could not download {url}, reverting to old cache.")
+            else:
+                raise RuntimeError(f"Could not download {url}.")
     return cache_path
 
 

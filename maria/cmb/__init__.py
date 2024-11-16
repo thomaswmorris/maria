@@ -4,7 +4,7 @@ import healpy as hp
 import numpy as np
 import pandas as pd
 
-from ..io import fetch, fetch_from_url
+from ..io import download_from_url, fetch
 
 # shut up healpy I don't care about the resolution
 logging.getLogger("healpy").setLevel(logging.WARNING)
@@ -80,7 +80,7 @@ def generate_cmb(nside=1024, seed=123456, **kwargs):
 
 
 def get_cmb(**kwargs):
-    fetch_from_url(
+    download_from_url(
         source_url=CMB_MAP_SOURCE_URL,
         cache_path=CMB_MAP_CACHE_PATH,
         max_age=CMB_MAP_CACHE_MAX_AGE,

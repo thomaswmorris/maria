@@ -1,70 +1,57 @@
 import numpy as np
 
+UNITS = {
+    "radians": {"short_name": "rad", "factor": 1.0, "symbol": "rad"},
+    "degrees": {"short_name": "deg", "factor": 180 / np.pi, "symbol": "°"},
+    "arcminutes": {"short_name": "arcmin", "factor": 60 * 180 / np.pi, "symbol": "’"},
+    "arcseconds": {"short_name": "arcsec", "factor": 3600 * 180 / np.pi, "symbol": "”"},
+}
+
 
 class Angle:
     def __init__(self, a, units="radians"):
-        if units == "radians":
-            self.a = a
-        elif units == "degrees":
-            self.a = (np.pi / 180) * a
-        elif units == "arcmin":
-            self.a = (np.pi / 180 / 60) * a
-        elif units == "arcsec":
-            self.a = (np.pi / 180 / 3600) * a
-        else:
-            raise ValueError(
-                "'units' must be one of ['radians', 'degrees', 'arcmin', 'arcsec']"
-            )
+        self.radians = None
+        for k in UNITS:
+            if units in [k, UNITS[k]["short_name"]]:
+                self.radians = a / UNITS[k]["factor"]
+        if self.radians is None:
+            raise ValueError(f"Invalid units '{units}'.")
 
-        self.is_scalar = len(np.shape(self.a)) == 0
+        self.is_scalar = len(np.shape(self.radians)) == 0
 
         if not self.is_scalar:
-            self.a = np.unwrap(self.a)
+            self.radians = np.unwrap(self.radians)
 
-    @property
-    def radians(self):
-        return self.a
-
-    @property
-    def rad(self):
-        return self.radians
-
-    @property
-    def degrees(self):
-        return (180 / np.pi) * self.a
-
-    @property
-    def deg(self):
-        return self.degrees
-
-    @property
-    def arcmin(self):
-        return (60 * 180 / np.pi) * self.a
-
-    @property
-    def arcsec(self):
-        return (3600 * 180 / np.pi) * self.a
+    def __getattr__(self, attr):
+        for k in UNITS:
+            if attr in [k, UNITS[k]["short_name"]]:
+                return self.radians * UNITS[k]["factor"]
+        raise ValueError(f"Angle object has no attribute named '{attr}'.")
 
     def __float__(self):
         return self.rad
 
     def __repr__(self):
         units = self.units
-        if units == "arcsec":
-            return f"{round(self.arcsec, 2)}”"
-        if units == "arcmin":
-            return f"{round(self.arcmin, 2)}’"
-        if units == "degrees":
-            return f"{round(self.deg, 2)}°"
+        if self.is_scalar:
+            return f"{getattr(self, units)}{UNITS[units]['symbol']}"
+        else:
+            return f"Angle({getattr(self, units)}, units={units})"
 
     @property
     def units(self):
         # peak-to-peak
         max_deg = self.deg if self.is_scalar else self.deg.max()
-
         if max_deg < 0.5 / 60:
-            return "arcsec"
+            return "arcseconds"
         if max_deg < 0.5:
-            return "arcmin"
-
+            return "arcminutes"
         return "degrees"
+
+    @property
+    def units_short(self):
+        return UNITS[self.units]["short_name"]
+
+    @property
+    def values(self):
+        return getattr(self, self.units)

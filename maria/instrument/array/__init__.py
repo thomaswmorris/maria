@@ -76,7 +76,7 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
         s = int(np.ceil((np.sqrt(12 * bigger_n - 3) + 3) / 6))
         side = np.arange(-s, s + 1, dtype=float)
         x, y = np.meshgrid(side, side)
-        y[:, ::2] -= 0.5
+        y[:, 1::2] -= 0.5
         x *= np.sqrt(3) / 2
         x, y = x.ravel(), y.ravel()
 

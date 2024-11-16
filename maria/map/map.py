@@ -3,12 +3,18 @@ from typing import Tuple
 
 import astropy as ap
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
+import scipy as sp
 from astropy.io import fits
 from matplotlib.colors import ListedColormap
 
-from ..plotting import plot_map
+from ..coords import frames
+# from ..plotting import plot_map
 from ..units import MAP_UNITS, Angle, KbrightToJyPix
+
+# from astropy.wcs import WCS
+
 
 here, this_filename = os.path.split(__file__)
 
@@ -29,8 +35,8 @@ class Map:
     def __init__(
         self,
         data: float,
-        nu: float = 100.0,
-        time: float = None,
+        nu: float = None,
+        t: float = None,
         weight: float = None,
         width: float = None,
         resolution: float = None,
@@ -43,18 +49,19 @@ class Map:
             raise ValueError(f"'units' must be one of {list(MAP_UNITS.keys())}.")
 
         self.nu = np.array([np.nan]) if nu is None else np.atleast_1d(nu)
-        self.time = np.array([np.nan]) if time is None else np.atleast_1d(time)
+        self.t = np.array([np.nan]) if t is None else np.atleast_1d(t)
 
         # give it four dimensions
         self.data = data * np.ones((1, 1, 1, 1))
 
-        if len(self.time) != self.data.shape[0]:
+        if len(self.nu) != self.data.shape[0]:
             raise ValueError(
-                f"time has length {len(self.time)} but map has shape (t, nu, x, y) = {data.shape}."
+                f"nu has length {len(self.nu)} but map has shape (t, nu, x, y) = {self.data.shape}."
             )
-        if len(self.nu) != self.data.shape[1]:
+
+        if len(self.t) != self.data.shape[1]:
             raise ValueError(
-                f"nu has length {len(self.nu)} but map has shape (t, nu, x, y) = {data.shape}."
+                f"time has length {len(self.t)} but map has shape (t, nu, x, y) = {self.data.shape}."
             )
 
         # if time is not None or data.ndim == 4:
@@ -66,7 +73,7 @@ class Map:
         # else:
         #     self.time = np.array([ttime.time()])
 
-        self.weight = weight if weight is not None else np.ones(self.data.shape)
+        self._weight = weight
         self.center = tuple(np.radians(center)) if degrees else center
 
         self.frame = frame
@@ -84,10 +91,10 @@ class Map:
                 raise ValueError("'resolution' must be positive.")
             self.resolution = np.radians(resolution) if degrees else resolution
 
-        if len(self.nu) != self.n_f:
+        if len(self.nu) != self.n_nu:
             raise ValueError(
                 f"Number of supplied nuuencies ({len(self.nu)}) does not match the "
-                f"nu dimension of the supplied map ({self.n_f})."
+                f"nu dimension of the supplied map ({self.n_nu})."
             )
 
         # if self.units == "Jy/pixel":
@@ -109,15 +116,24 @@ class Map:
 
     def __repr__(self):
         parts = []
-
+        frame = frames[self.frame]
         center_degrees = np.degrees(self.center)
 
-        parts.append(f"shape={self.data.shape}")
-        parts.append(f"nus={self.nu}")
-        parts.append(f"center=({center_degrees[0]:.02f}, {center_degrees[1]:.02f})")
+        parts.append(
+            f"shape[nu, t, y, x]=({self.n_nu}, {self.n_t}, {self.n_y}, {self.n_x})"
+        )
+        parts.append(
+            f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
+        )
         parts.append(f"width={Angle(self.width).__repr__()}")
 
         return f"Map({', '.join(parts)})"
+
+    @property
+    def weight(self):
+        return (
+            self._weight if self._weight is not None else np.ones(shape=self.data.shape)
+        )
 
     @property
     def width(self):
@@ -128,26 +144,36 @@ class Map:
         return self.resolution * self.n_y
 
     @property
-    def n_f(self):
-        return self.data.shape[-3]
+    def n_nu(self):
+        return self.data.shape[0]
+
+    @property
+    def n_t(self):
+        return self.data.shape[1]
 
     @property
     def n_y(self):
-        return self.data.shape[-2]
+        return self.data.shape[2]
 
     @property
     def n_x(self):
-        return self.data.shape[-1]
+        return self.data.shape[3]
 
     @property
     def x_side(self):
-        x = self.resolution * np.arange(self.n_x)
-        return x - x.mean()
+        return self.width * np.linspace(-0.5, 0.5, self.n_x)
 
     @property
     def y_side(self):
-        y = self.resolution * np.arange(self.n_y)
-        return y - y.mean()
+        return self.height * np.linspace(-0.5, 0.5, self.n_y)
+
+    @property
+    def X(self):
+        return np.meshgrid(self.x_side, self.y_side)[0]
+
+    @property
+    def Y(self):
+        return np.meshgrid(self.x_side, self.y_side)[1]
 
     def to(self, units, inplace=False):
         data = np.zeros(self.data.shape)
@@ -176,6 +202,7 @@ class Map:
                 data=data,
                 weight=self.weight,
                 resolution=self.resolution,
+                t=self.t,
                 nu=self.nu,
                 center=self.center,
                 frame=self.frame,
@@ -222,13 +249,136 @@ class Map:
             overwrite=True,
         )
 
-    @property
-    def x(self):
-        return self.width * np.linspace(-0.5, 0.5, self.n_x)
+    def downsample(self, shape):
+        zoom_factor = np.array(shape) / self.data.shape
 
-    @property
-    def y(self):
-        return self.height * np.linspace(-0.5, 0.5, self.n_y)
+        return Map(
+            data=sp.ndimage.zoom(self.data, zoom=zoom_factor),
+            t=sp.ndimage.zoom(self.t, zoom=zoom_factor[0]),
+            nu=sp.ndimage.zoom(self.nu, zoom=zoom_factor[1]),
+            width=self.width,
+            center=self.center,
+            frame=self.frame,
+            degrees=False,
+        )
 
-    def plot(self, **kwargs):
-        plot_map(self, **kwargs)
+    def plot(
+        m,
+        nu_index=None,
+        t_index=None,
+        cmap="cmb",
+        rel_vmin=0.001,
+        rel_vmax=0.999,
+        units="degrees",
+        subplot_size=3,
+    ):
+        nu_index = (
+            np.atleast_1d(nu_index) if nu_index is not None else np.arange(len(m.nu))
+        )
+        t_index = np.atleast_1d(t_index) if t_index is not None else np.arange(len(m.t))
+
+        n_nu = len(nu_index)
+        n_t = len(t_index)
+
+        plot_width = np.maximum(12, subplot_size * n_nu)
+        plot_height = np.maximum(12, subplot_size * n_t)
+        plot_size = np.min([plot_width, plot_height, 5])
+
+        # if (n_nu > 1) and (n_time > 1):
+        fig, axes = plt.subplots(
+            n_t,
+            n_nu,
+            figsize=(n_nu * plot_size, n_t * plot_size),
+            sharex=True,
+            sharey=True,
+            constrained_layout=True,
+        )
+
+        axes = np.atleast_2d(axes)
+        #     flat = False
+
+        # else:
+        #     n_rows = int(np.sqrt(n_maps))
+        #     n_cols = int(np.ceil(n_maps / n_rows))
+        #     fig, axes = plt.subplots(
+        #         n_rows,
+        #         n_cols,
+        #         figsize=(6, 6),
+        #         sharex=True,
+        #         sharey=True,
+        #         constrained_layout=True,
+        #     )
+
+        #     axes = np.atleast_1d(axes).ravel()
+        #     flat = True
+
+        # axes_generator = iter(axes.ravel())
+
+        d = m.data.ravel()
+        w = m.weight.ravel()
+        subset = np.random.choice(d.size, size=10000)
+        vmin, vmax = np.quantile(
+            d[subset], weights=w[subset], q=[rel_vmin, rel_vmax], method="inverted_cdf"
+        )
+
+        for i_t in t_index:
+            for i_nu in nu_index:
+                # ax = next(axes_generator) if flat else axes[i_nu, i_t]
+                ax = axes[i_nu, i_t]
+
+                nu = m.nu[i_nu]
+
+                header = fits.header.Header()
+
+                header["RESTFRQ"] = nu if nu > 0 else 150
+
+                res_degrees = np.degrees(m.resolution)
+                center_degrees = np.degrees(m.center)
+
+                header["CDELT1"] = res_degrees  # degree
+                header["CDELT2"] = res_degrees  # degree
+
+                header["CRPIX1"] = m.n_x / 2
+                header["CRPIX2"] = m.n_y / 2
+
+                header["CTYPE1"] = "RA---SIN"
+                header["CUNIT1"] = "deg     "
+                header["CTYPE2"] = "DEC--SIN"
+                header["CUNIT2"] = "deg     "
+                header["RADESYS"] = "FK5     "
+
+                header["CRVAL1"] = center_degrees[0]
+                header["CRVAL2"] = center_degrees[1]
+                # wcs_input = WCS(header, naxis=2)  # noqa F401
+
+                # ax = fig.add_subplot(len(time_index), len(nu_index), i_ax, sharex=True)  # , projection=wcs_input)
+
+                # ax.set_title(f"{nu} GHz")
+
+                x = Angle(m.x_side)
+                y = Angle(m.y_side)
+
+                ax.pcolormesh(
+                    x.values,
+                    y.values,
+                    m.data[i_nu, i_t].T[::-1],
+                    cmap=cmap,
+                    # interpolation="none",
+                    # extent=map_extent,
+                    vmin=vmin,
+                    vmax=vmax,
+                )
+
+                if i_t == n_t - 1:
+                    ax.set_xlabel(rf"$\Delta\,\theta_x$ [{x.units_short}.]")
+                if i_nu == 0:
+                    ax.set_ylabel(rf"$\Delta\,\theta_y$ [{y.units_short}.]")
+
+        dummy_map = mpl.cm.ScalarMappable(
+            mpl.colors.Normalize(vmin=vmin, vmax=vmax), cmap=cmap
+        )
+
+        cbar = fig.colorbar(
+            dummy_map, ax=axes, shrink=0.75, aspect=16, location="bottom"
+        )
+        cbar.set_label(f'{MAP_UNITS[m.units]["long_name"]} [{m.units}]')
