@@ -43,8 +43,8 @@ class AtmosphericSpectrum:
                     f[key]["relative"][:] * f[key]["scale"][:] + f[key]["offset"][:],
                 )
 
-        self._transmission = np.exp(-self._opacity)
-        del self._opacity
+        # self._transmission = np.exp(-self._opacity)
+        # del self._opacity
 
     def emission(self, nu, pwv=None, base_temperature=None, elevation=45):
         if pwv is None:
@@ -62,7 +62,7 @@ class AtmosphericSpectrum:
             values=self._emission,
         )((pwv, base_temperature, elevation, nu))
 
-    def transmission(self, nu, pwv=None, base_temperature=None, elevation=45):
+    def opacity(self, nu, pwv=None, base_temperature=None, elevation=45):
         if pwv is None:
             pwv = np.median(self._side_zenith_pwv)
         if base_temperature is None:
@@ -75,5 +75,12 @@ class AtmosphericSpectrum:
                 self._side_elevation,
                 self._side_nu,
             ),
-            values=self._transmission,
+            values=self._opacity,
         )((pwv, base_temperature, elevation, nu))
+
+    def transmission(self, nu, pwv=None, base_temperature=None, elevation=45):
+        return np.exp(
+            -self.opacity(
+                nu, pwv=pwv, base_temperature=base_temperature, elevation=elevation
+            )
+        )

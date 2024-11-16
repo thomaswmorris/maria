@@ -37,24 +37,20 @@ class MapMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
-            nu = np.linspace(band.nu_min, band.nu_max, 64)
+            nu_min = np.nanmin([band.nu.min(), self.map.nu.min()])
+            nu_max = np.nanmax([band.nu.max(), self.map.nu.max()])
+            nus = [nu_min, *(self.map.nu[1:] + self.map.nu[:-1]) / 2, nu_max]
 
-            TRJ = sp.interpolate.interp1d(
-                self.map.nu,
-                self.map.data,
-                axis=1,
-                kind="nearest",
-                bounds_error=False,
-                fill_value="extrapolate",
-            )(nu)
+            # a fast separable approximation to the band integral
+            power_map = 0
+            for nu1, nu2, nu_bin_TRJ in zip(nus[:-1], nus[1:], self.map.data):
+                nu = np.linspace(nu1, nu2, 1024)  # in GHz
+                tau = band.passband(nu)
 
-            power_map = (
-                1e12
-                * k_B
-                * np.trapezoid(
-                    band.passband(nu)[:, None, None] * TRJ, axis=1, x=1e9 * nu
-                )
-            )
+                # in pW
+                power_map += (
+                    1e12 * band.efficiency * k_B * np.trapezoid(tau, x=1e9 * nu)
+                ) * nu_bin_TRJ
 
             # nu is in GHz, f is in Hz
             nu_fwhm = beam.compute_angular_fwhm(
@@ -62,14 +58,16 @@ class MapMixin:
                 z=np.inf,
                 nu=band.center,
             )
+
             nu_map_filter = beam.construct_beam_filter(
                 fwhm=nu_fwhm, res=self.map.resolution
             )
+
             filtered_power_map = beam.separably_filter_2d(power_map, nu_map_filter)
 
-            if len(self.map.time) > 1:
+            if len(self.map.t) > 1:
                 map_power = sp.interpolate.RegularGridInterpolator(
-                    (self.map.time, self.map.x_side, self.map.y_side),
+                    (self.map.t, self.map.x_side, self.map.y_side),
                     filtered_power_map,
                     bounds_error=False,
                     fill_value=0,

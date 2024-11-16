@@ -33,7 +33,7 @@ class Atmosphere:
         weather_source: str = "era5",
         spectrum_source: str = "am",
         pwv_rms_frac: float = 0.03,
-        h_max: float = 5e3,
+        max_height: float = 5e3,
     ):
         if model not in SUPPORTED_MODELS_LIST:
             raise ValueError(
@@ -61,21 +61,21 @@ class Atmosphere:
         self.angular = False
 
         self.model = model
-        self.h_max = h_max
+        self.max_height = max_height
 
         self._initialized = False
 
-    def initialize(self, sim: BaseSimulation, timestep: float = 1e-1, h_max=3e3):
+    def initialize(self, sim: BaseSimulation, timestep: float = 1e-1, max_height=3e3):
         """
         Simulate a realization of PWV.
         """
 
-        self.h_max = h_max
+        self.max_height = max_height
         self.timestep = timestep
         self.sim = sim
 
         self.layers = generate_layers(
-            sim, mode=self.model, angular=self.angular, h_max=self.h_max
+            sim, mode=self.model, angular=self.angular, max_height=self.max_height
         )
 
         self.boresight = sim.boresight.downsample(timestep=timestep)

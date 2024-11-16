@@ -1,8 +1,7 @@
 import logging
 import os
-from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Tuple, Union
+from typing import Mapping, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,33 +53,75 @@ def get_plan(plan_name="one_minute_zenith_stare", **kwargs):
     return Plan(**plan_config)
 
 
-@dataclass
+PLAN_FIELDS = {
+    "start_time": Union[float, str, datetime],
+    "duration": float,
+    "sample_rate": float,
+    "frame": str,
+    "degrees": bool,
+    "scan_center": float,
+    "scan_pattern": float,
+    "scan_options": Mapping,
+}
+
+
+def validate_pointing_kwargs(kwargs):
+    """
+    Make sure that we have all the ingredients to produce the plan data.
+    """
+    if ("end_time" not in kwargs.keys()) and ("duration" not in kwargs.keys()):
+        raise ValueError(
+            """One of 'end_time' or 'duration' must be in the plan kwargs."""
+        )
+
+
 class Plan:
     """
     A dataclass containing time-ordered plan data.
     """
 
-    description: str = ""
-    start_time: Union[str, int] = "2022-02-10T06:00:00"
-    duration: float = 60.0
-    sample_rate: float = 20.0
-    frame: str = "ra_dec"
-    degrees: bool = True
-    scan_center: Tuple[float, float] = (4, 10.5)
-    scan_pattern: str = "daisy_miss_center"
-    scan_options: dict = field(default_factory=dict)
+    def __repr__(self):
+        parts = {}
+        frame = coords.frames[self.frame]
+        center_degrees = np.degrees(self.scan_center_radians)
 
-    @staticmethod
-    def validate_pointing_kwargs(kwargs):
-        """
-        Make sure that we have all the ingredients to produce the plan data.
-        """
-        if ("end_time" not in kwargs.keys()) and ("duration" not in kwargs.keys()):
-            raise ValueError(
-                """One of 'end_time' or 'duration' must be in the plan kwargs."""
-            )
+        parts["start_time"] = self.start_datetime.isoformat()[:19]
+        parts[
+            f"center[{frame['phi']}, {frame['theta']}]"
+        ] = f"{center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
+        parts["pattern"] = self.scan_pattern
+        parts["pattern_kwargs"] = self.scan_options
 
-    def __post_init__(self):
+        part_string = ""
+        for k, v in parts.items():
+            part_string += f"{k}={f'{v}' if isinstance(v, str) else v}"
+
+        return f"Plan({', '.join(parts)})"
+
+    def __init__(
+        self,
+        description: str = "",
+        start_time: Union[str, int] = "2024-02-10T06:00:00",
+        duration: float = 60.0,
+        sample_rate: float = 20.0,
+        frame: str = "ra_dec",
+        degrees: bool = True,
+        jitter: float = 0,
+        scan_center: Tuple[float, float] = (4, 10.5),
+        scan_pattern: str = "daisy",
+        scan_options: dict = {},
+    ):
+        self.description = description
+        self.start_time = start_time
+        self.duration = duration
+        self.sample_rate = sample_rate
+        self.frame = frame
+        self.degrees = degrees
+        self.jitter = jitter
+        self.scan_center = scan_center
+        self.scan_pattern = scan_pattern
+        self.scan_options = scan_options
+
         if not self.sample_rate > 0:
             raise ValueError("Parameter 'sample_rate' must be greater than zero!")
 
@@ -128,11 +169,6 @@ class Plan:
             x_scan_offsets_radians, y_scan_offsets_radians
         ].T
 
-        # add 0.1 arcseconds of jitter
-        self.scan_offsets_radians += np.radians(0.1 / 3600) * np.random.standard_normal(
-            size=self.scan_offsets_radians.shape
-        )
-
         scan_velocity_radians = np.gradient(
             self.scan_offsets_radians, axis=1, edge_order=0
         ) / np.gradient(self.time)
@@ -160,6 +196,11 @@ class Plan:
                 ),
                 stacklevel=2,
             )
+
+        # add 0.1 arcseconds of jitter
+        self.scan_offsets_radians += np.radians(
+            self.jitter
+        ) * np.random.standard_normal(size=self.scan_offsets_radians.shape)
 
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
             *self.scan_offsets_radians, *self.scan_center_radians

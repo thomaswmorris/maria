@@ -1,8 +1,10 @@
 import logging
 import os
 import time as ttime
+from datetime import datetime
 
 import numpy as np
+from pytz import utc
 from tqdm import tqdm
 
 from ..atmosphere import Atmosphere
@@ -76,7 +78,24 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         self.map_kwargs = map_kwargs
         self.noise_kwargs = noise_kwargs
 
+        self.start = datetime.fromtimestamp(self.boresight.time.min()).astimezone(utc)
+        self.end = datetime.fromtimestamp(self.boresight.time.max()).astimezone(utc)
+
         if map:
+            if len(map.t) > 1:
+                map_start = datetime.fromtimestamp(map.t.min()).astimezone(utc)
+                map_end = datetime.fromtimestamp(map.t.max()).astimezone(utc)
+                if map_start > self.start:
+                    logger.warning(
+                        f"Beginning of map ({map_start.isoformat()[:26]}) is after the "
+                        f"beginning of the simulation ({self.start.isoformat()[:26]})."
+                    )
+                if map_end < self.end:
+                    logger.warning(
+                        f"End of map ({map_end.isoformat()[:26]}) is before the "
+                        f"end of the simulation ({self.end.isoformat()[:26]})."
+                    )
+
             self.map = map.to(units="K_RJ")
 
         if atmosphere:
@@ -106,6 +125,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 region=self.site.region,
                 altitude=self.site.altitude,
                 weather_kwargs=weather_kwargs,
+                **atmosphere_kwargs,
             )
 
             # give it the simulation, so that it knows about pointing, site, etc.
@@ -129,7 +149,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if hasattr(self, "atmosphere"):
             self._simulate_atmosphere()
             self._compute_atmospheric_emission()
-            self._compute_atmospheric_transmission()
+            self._compute_atmospheric_opacity()
 
         if hasattr(self, "cmb"):
             self._simulate_cmb_emission()

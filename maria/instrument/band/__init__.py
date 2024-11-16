@@ -6,6 +6,7 @@ from typing import Sequence, Union
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import scipy as sp
 
 from ...functions import planck_spectrum
 from ...io import flatten_config, read_yaml
@@ -85,14 +86,35 @@ def parse_tod_calibration_signature(s):
     raise ValueError("Calibration must have signature 'units1 -> units2'.")
 
 
+def generate_passband(center, width, shape, samples=256):
+    if shape == "flat":
+        nu_min, nu_max = (center - 0.6 * width, center + 0.6 * width)
+    else:
+        nu_min, nu_max = (center - 1.5 * width, center + 1.5 * width)
+
+    nu = np.linspace(nu_min, nu_max, samples)
+
+    if shape == "flat":
+        tau = np.where((nu > center - 0.5 * width) & (nu < center + 0.5 * width), 1, 0)
+    elif shape == "gaussian":
+        tau = np.exp(np.log(0.5) * (2 * (nu - center) / width) ** 2)
+    elif shape == "top_hat":
+        tau = np.exp(np.log(0.5) * (2 * (nu - center) / width) ** 8)
+    else:
+        raise ValueError(f"Invalid shape '{shape}'.")
+    return nu, tau
+
+
 class Band:
     def __init__(
         self,
-        center: float,
-        name: str = None,
+        center: float = None,
         width: float = None,
-        shape: str = "gaussian",
-        efficiency: float = 0.5,
+        nu: float = None,
+        tau: float = None,
+        name: str = None,
+        shape: str = "top_hat",
+        efficiency: float = 1.0,
         sensitivity: float = None,
         sensitivity_kind: str = "rayleigh-jeans",
         gain_error: float = 0,
@@ -101,11 +123,34 @@ class Band:
         knee: float = 1.0,
         time_constant: float = 0.0,
     ):
-        self.center = float(center)
+        auto = center is not None and width is not None
+        manual = nu is not None and tau is not None
 
-        self.name = name or f"f{int(self.center):>03}"
-        self.width = width or 0.1 * self.center
+        if not auto ^ manual:
+            raise ValueError(
+                "You must pass either both 'center' and 'width' or both 'nu' and 'tau'."
+            )
 
+        if auto:
+            self.nu, self.tau = generate_passband(center, width, shape, samples=64)
+
+        if manual:
+            tau_max = np.max(tau)
+            efficiency *= tau_max
+
+            self.nu = np.array(nu)
+            self.tau = np.array(tau) / tau_max
+
+            if (
+                (self.nu.ndim != 1)
+                or (self.tau.ndim != 1)
+                or (self.nu.shape != self.tau.shape)
+            ):
+                raise ValueError(
+                    f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape})."
+                )
+
+        self._name = name
         self.shape = shape
         self.efficiency = efficiency
         self.NEP_per_loading = NEP_per_loading
@@ -130,6 +175,28 @@ class Band:
             self.set_sensitivity(
                 sensitivity, kind=sensitivity_kind
             )  # this sets the NEP automatically
+
+    @property
+    def name(self):
+        return self._name or f"f{int(self.center):>03}"
+
+    @property
+    def center(self):
+        return np.round(np.sum(self.nu * self.tau) / np.sum(self.tau), 2)
+
+    @property
+    def width(self):
+        return np.round(self.fwhm, 2)
+
+    @property
+    def fwhm(self):
+        crossovers = np.where((self.tau[1:] > 0.5) != (self.tau[:-1] > 0.5))[0]
+        return np.ptp(
+            [
+                sp.interpolate.interp1d(self.tau[[i, i + 1]], self.nu[[i, i + 1]])(0.5)
+                for i in crossovers
+            ]
+        )
 
     @property
     def summary(self):
@@ -165,11 +232,9 @@ class Band:
         return f"Band({', '.join(parts)})"
 
     def plot(self):
-        nus = np.linspace(self.nu_min, self.nu_max, 256)
-
         fig, ax = plt.subplots(1, 1)
 
-        ax.plot(nus, self.passband(nus), label=self.name)
+        ax.plot(self.nu, self.tau, label=self.name)
 
         ax.set_xlabel(r"$\nu$ [GHz]")
         ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
@@ -207,58 +272,24 @@ class Band:
         return self.spectrum.transmission(nu=self.center, pwv=pwv, elevation=elevation)
 
     @classmethod
-    def from_config(cls, name, config):
-        if "passband" in config:
-            df = pd.read_csv(f"{here}/{config.pop('passband')}", index_col=0)
+    def from_file(cls, filename, **kwargs):
+        path = (
+            f"{here}/{filename}" if os.path.exists(f"{here}/{filename}") else filename
+        )
 
-            nu, pb = df.nu.values, df.passband.values
+        df = pd.read_csv(path, index_col=0)
 
-            center = np.round(np.sum(pb * nu), 3)
-            width = np.round(np.ptp(nu[pb > 1e-2 * pb.max()]), 3)
+        nu, tau = df.nu.values, df.passband.values
 
-            band = cls(name=name, center=center, width=width, shape="custom", **config)
-            band._nu = nu
-            band._pb = pb
-        else:
-            band = cls(name=name, **config)
-
-        return band
-
-    @property
-    def nu_min(self) -> float:
-        if self.shape == "flat":
-            return self.center - 0.6 * self.width
-        if self.shape == "custom":
-            return self._nu[self._pb > 1e-2 * self._pb.max()].min()
-
-        return self.center - 1.5 * self.width
-
-    @property
-    def nu_max(self) -> float:
-        if self.shape == "flat":
-            return self.center + 0.6 * self.width
-        if self.shape == "custom":
-            return self._nu[self._pb > 1e-2 * self._pb.max()].max()
-
-        return self.center + 1.5 * self.width
+        # dummy values for center and width
+        band = cls(nu=nu, tau=tau, shape="custom", **kwargs)
+        band.nu = nu
+        band.tau = tau
 
     def passband(self, nu):
-        """
-        Passband response as a function of nu (in GHz).
-        """
-        _nu = np.atleast_1d(nu)
-
-        if self.shape == "top_hat":
-            return np.exp(np.log(0.5) * (2 * (_nu - self.center) / self.width) ** 8)
-
-        if self.shape == "gaussian":
-            return np.exp(np.log(0.5) * (2 * (_nu - self.center) / self.width) ** 2)
-
-        if self.shape == "flat":
-            return np.where((_nu > self.nu_min) & (_nu < self.nu_max), 1.0, 0.0)
-
-        elif self.shape == "custom":
-            return np.interp(_nu, self._nu, self._pb)
+        return self.efficiency * sp.interpolate.interp1d(
+            self.nu, self.tau, bounds_error=False, fill_value=0
+        )(nu)
 
     @property
     def dP_dTRJ(self) -> float:
@@ -266,11 +297,12 @@ class Band:
         In watts per kelvin Rayleigh-Jeans, assuming perfect transmission.
         """
 
-        nu = np.linspace(self.nu_min, self.nu_max, 256)
+        # nu = np.linspace(self.nu_min, self.nu_max, 256)
 
         # dI_dTRJ = rayleigh_jeans_spectrum(nu=1e9 * nu, T=1)  # this is the same as the derivative
         # dP_dTRJ = np.trapezoid(dI_dTRJ * self.passband(nu), 1e9 * nu)
-        dP_dTRJ = k_B * np.trapezoid(self.passband(nu), 1e9 * nu)
+
+        dP_dTRJ = k_B * np.trapezoid(self.passband(self.nu), 1e9 * self.nu)
 
         return self.efficiency * dP_dTRJ
 
@@ -283,17 +315,16 @@ class Band:
         eps = 1e-3
         delta_T = np.array([-eps / 2, eps / 2])
 
-        nu = np.linspace(self.nu_min, self.nu_max, 256)
         TRJ = (
-            planck_spectrum(nu=1e9 * nu, T=T_CMB + delta_T[:, None])
+            planck_spectrum(nu=1e9 * self.nu, T=T_CMB + delta_T[:, None])
             * c**2
-            / (2 * k_B * (1e9 * nu) ** 2)
+            / (2 * k_B * (1e9 * self.nu) ** 2)
         )
 
         return (
             self.efficiency
             * k_B
-            * np.diff(np.trapezoid(TRJ * self.passband(nu), 1e9 * nu))[0]
+            * np.diff(np.trapezoid(TRJ * self.passband(self.nu), 1e9 * self.nu))[0]
             / eps
         )
 
@@ -378,11 +409,8 @@ class BandList(Sequence):
 
     def plot(self):
         for band in self.bands:
-            nus = np.linspace(band.nu_min, band.nu_max, 256)
-
             fig, ax = plt.subplots(1, 1)
-
-            ax.plot(nus, band.passband(nus), label=band.name)
+            ax.plot(band.nu, band.tau, label=band.name)
 
         ax.set_xlabel(r"$\nu$ [GHz]")
         ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")

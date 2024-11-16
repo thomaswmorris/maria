@@ -75,8 +75,8 @@ class BaseMapper:
         for band in self.bands:
             self.map_data[band] = self._run(band)
 
-        map_data = np.zeros((len(self.map_data), self.n_y, self.n_x))
-        map_weight = np.zeros((len(self.map_data), self.n_y, self.n_x))
+        map_data = np.zeros((len(self.map_data), 1, self.n_y, self.n_x))
+        map_weight = np.zeros((len(self.map_data), 1, self.n_y, self.n_x))
         map_freqs = []
 
         for i, (band_name, band_map_data) in enumerate(self.map_data.items()):
@@ -97,8 +97,8 @@ class BaseMapper:
                     size=self.map_postprocessing["median_filter"]["size"],
                 )
 
-            map_data[i] = band_map_numer / band_map_denom
-            map_weight[i] = band_map_denom
+            map_data[i, :] = band_map_numer / band_map_denom
+            map_weight[i, :] = band_map_denom
 
         return Map(
             data=map_data,

@@ -17,7 +17,7 @@ logger = logging.getLogger("maria")
 
 
 MIN_RES = {"2d": 5, "3d": 15}
-MIN_RES_PER_BEAM = {"2d": 0.25, "3d": 0.5}
+MIN_RES_PER_BEAM = {"2d": 0.1, "3d": 0.5}
 MIN_RES_PER_FOV = {"2d": 0.05, "3d": 0.1}
 
 
@@ -25,7 +25,7 @@ def generate_layers(
     sim,
     mode: str = "2d",
     angular: bool = True,
-    h_max: float = 2e3,  # in meters
+    max_height: float = 2e3,  # in meters
     min_res: float = None,  # in meters
     min_res_per_beam: float = None,
     min_res_per_fov: float = None,
@@ -42,7 +42,7 @@ def generate_layers(
 
     min_el = sim.boresight.el.min().compute()
 
-    h_samples = np.arange(0, h_max + 1e0, 1e-1)
+    h_samples = np.arange(0, max_height + 1e0, 1e-1)
 
     z_samples = h_samples / np.sin(min_el)
 
@@ -61,13 +61,13 @@ def generate_layers(
         return sp.interpolate.interp1d(h_samples, res_samples)(h)
 
     if mode == "2d":
-        h_boundaries = np.arange(0, h_max + layer_spacing, layer_spacing)
+        h_boundaries = np.arange(0, max_height + layer_spacing, layer_spacing)
         process_index = np.arange(len(h_boundaries) - 1)
     elif mode == "3d":
         h_boundaries = [0]
         while True:
             new_h = h_boundaries[-1] + res_func(h_boundaries[-1])
-            if new_h > h_max:
+            if new_h > max_height:
                 break
             h_boundaries.append(h_boundaries[-1] + res_func(h_boundaries[-1]))
         h_boundaries = np.array(h_boundaries)
