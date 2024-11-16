@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 
 
@@ -17,8 +19,8 @@ def generate_noise_with_knee(t, n: int = 1, NEP: float = 1e0, knee: float = 0):
         weights = np.sqrt(2 * pink_noise_power_spectrum / timestep)
         noise += np.real(
             np.fft.ifft(
-                weights * np.fft.fft(np.random.standard_normal(size=(n, len(t))))
-            )
+                weights * np.fft.fft(np.random.standard_normal(size=(n, len(t)))),
+            ),
         )
 
     # pink noise

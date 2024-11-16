@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -22,10 +24,10 @@ def test_noise_levels():
     max_rel_noise = 1.2
     if scaled_residuals.std() < min_rel_noise:
         raise RuntimeError(
-            f"Noise residuals are too low ({scaled_residuals.std():.03f} < {min_rel_noise})"
+            f"Noise residuals are too low ({scaled_residuals.std():.03f} < {min_rel_noise})",
         )
 
     if scaled_residuals.std() > max_rel_noise:
         raise RuntimeError(
-            f"Noise residuals are too high ({scaled_residuals.std():.03f} > {max_rel_noise})"
+            f"Noise residuals are too high ({scaled_residuals.std():.03f} > {max_rel_noise})",
         )

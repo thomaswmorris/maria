@@ -1,4 +1,6 @@
 # little g (m s^-2)
+from __future__ import annotations
+
 g = 9.806651
 
 # Planck's constant (kg m^2 s)

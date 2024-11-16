@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time as ttime
 
 from .coordinates import Coordinates  # noqa
