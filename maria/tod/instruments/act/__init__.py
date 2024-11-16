@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import importlib
 import os
@@ -71,19 +73,23 @@ def load_moby_tod(
     tod_info = m2.scripting.get_tod_info({"filename": tod_filepath})
 
     det_uid_set = set(
-        tod_info.array_data["det_uid"][tod_info.array_data["nom_freq"] == int(nom_freq)]
+        tod_info.array_data["det_uid"][
+            tod_info.array_data["nom_freq"] == int(nom_freq)
+        ],
     )
 
     cuts = None
     for cut_scheme in cut_schemes:
         cuts = cluster_module.get_cuts(
-            tod_id, det_uid=np.array(sorted(list(det_uid_set))), scheme=cut_scheme
+            tod_id,
+            det_uid=np.array(sorted(list(det_uid_set))),
+            scheme=cut_scheme,
         )
         if cuts is not None:
             res["cut_scheme"] = cut_scheme
             if verbose:
                 print(
-                    f'got cuts with scheme "{cut_scheme}" (n_det = {len(det_uid_set)})'
+                    f'got cuts with scheme "{cut_scheme}" (n_det = {len(det_uid_set)})',
                 )
             break
     if cuts is None:
@@ -92,14 +98,16 @@ def load_moby_tod(
     calibration = None
     for cal_scheme in cal_schemes:
         calibration = cluster_module.get_calibration(
-            tod_id, det_uid=np.array(sorted(list(det_uid_set))), scheme=cal_scheme
+            tod_id,
+            det_uid=np.array(sorted(list(det_uid_set))),
+            scheme=cal_scheme,
         )
         if calibration is not None:
             res["cal_scheme"] = cal_scheme
             det_uid_set &= set(calibration.index.values)
             if verbose:
                 print(
-                    f'got calibration with scheme "{cal_scheme}" (n_det = {len(det_uid_set)})'
+                    f'got calibration with scheme "{cal_scheme}" (n_det = {len(det_uid_set)})',
                 )
             break
     if calibration is None:
@@ -108,21 +116,24 @@ def load_moby_tod(
     flatfield = None
     for flatfield_scheme in flatfield_schemes:
         flatfield = cluster_module.get_flatfield(
-            tod_id, det_uid=np.array(sorted(list(det_uid_set))), scheme=flatfield_scheme
+            tod_id,
+            det_uid=np.array(sorted(list(det_uid_set))),
+            scheme=flatfield_scheme,
         )
         if flatfield is not None:
             res["flatfield_scheme"] = flatfield_scheme
             det_uid_set &= set(flatfield.index.values)
             if verbose:
                 print(
-                    f'got flatfield with scheme "{flatfield_scheme}" (n_det = {len(det_uid_set)})'
+                    f'got flatfield with scheme "{flatfield_scheme}" (n_det = {len(det_uid_set)})',
                 )
             break
     if flatfield is None:
         raise TODError(f"Could not get flatfield with schemes {flatfield_schemes}")
 
     offsets = cluster_module.get_offsets(
-        tod_id, det_uid=np.array(sorted(list(det_uid_set)))
+        tod_id,
+        det_uid=np.array(sorted(list(det_uid_set))),
     )
     det_uid_set &= set(offsets.index.values)
     if verbose:
@@ -145,10 +156,13 @@ def load_moby_tod(
         mtod.thermometer = mtod.get_hk(get_therm_label(tod_id))
     except:
         mtod.thermometer = mtod.get_hk(
-            get_therm_label(tod_id), start=0, count=len(mtod.ctime) - 256
+            get_therm_label(tod_id),
+            start=0,
+            count=len(mtod.ctime) - 256,
         )
         mtod.thermometer = np.append(
-            mtod.thermometer, np.repeat(mtod.thermometer[-1], 256)
+            mtod.thermometer,
+            np.repeat(mtod.thermometer[-1], 256),
         )
 
     if mtod.thermometer[0] is None:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import time as ttime
@@ -88,12 +90,12 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 if map_start > self.start:
                     logger.warning(
                         f"Beginning of map ({map_start.isoformat()[:26]}) is after the "
-                        f"beginning of the simulation ({self.start.isoformat()[:26]})."
+                        f"beginning of the simulation ({self.start.isoformat()[:26]}).",
                     )
                 if map_end < self.end:
                     logger.warning(
                         f"End of map ({map_end.isoformat()[:26]}) is before the "
-                        f"end of the simulation ({self.end.isoformat()[:26]})."
+                        f"end of the simulation ({self.end.isoformat()[:26]}).",
                     )
 
             self.map = map.to(units="K_RJ")
@@ -103,12 +105,12 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             if el_min < np.radians(MIN_ELEVATION_WARN):
                 logger.warning(
                     f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon"
-                    f"(el_min = {np.degrees(el_min):.01f}°)"
+                    f"(el_min = {np.degrees(el_min):.01f}°)",
                 )
             if el_min <= np.radians(MIN_ELEVATION_ERROR):
                 raise PointingError(
                     f"Some detectors come within {MIN_ELEVATION_ERROR} degrees of the horizon"
-                    f"(el_min = {np.degrees(el_min):.01f}°)"
+                    f"(el_min = {np.degrees(el_min):.01f}°)",
                 )
 
             weather_kwargs = (
@@ -169,7 +171,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         gain_error = np.exp(
             self.instrument.dets.gain_error
-            * np.random.standard_normal(size=self.instrument.dets.n)
+            * np.random.standard_normal(size=self.instrument.dets.n),
         )
 
         for field in self.data:
@@ -183,5 +185,5 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         #     getattr(self, attr).__repr__() for attr in ["instrument", "site", "plan"]
         # ]
         return "\n".join(
-            [self.instrument.__repr__(), self.site.__repr__(), self.plan.__repr__()]
+            [self.instrument.__repr__(), self.site.__repr__(), self.plan.__repr__()],
         )

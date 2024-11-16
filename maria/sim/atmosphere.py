@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 import dask.array as da
@@ -56,7 +58,7 @@ class AtmosphereMixin:
                     self.atmosphere.zenith_scaled_pwv[band_index],
                     self.atmosphere.weather.temperature[0],
                     np.degrees(self.atmosphere.coords.el[band_index]),
-                )
+                ),
             )
 
         self.data["atmosphere"] = da.from_array(
@@ -65,7 +67,7 @@ class AtmosphereMixin:
                 self.atmosphere.emission,
                 bounds_error=False,
                 fill_value="extrapolate",
-            )(self.coords.time)
+            )(self.coords.time),
         )
 
     def _compute_atmospheric_opacity(self):
@@ -93,7 +95,7 @@ class AtmosphereMixin:
                     x=1e9 * _nu,
                     axis=-1,
                 )
-                / np.trapezoid(band.passband(_nu), x=1e9 * _nu, axis=-1)
+                / np.trapezoid(band.passband(_nu), x=1e9 * _nu, axis=-1),
             )
 
             # self.det_opacity_grid = np.trapezoid(
@@ -123,7 +125,7 @@ class AtmosphereMixin:
                     self.atmosphere.zenith_scaled_pwv[band_index],
                     self.atmosphere.weather.temperature[0],
                     np.degrees(self.atmosphere.coords.el[band_index]),
-                )
+                ),
             )
 
         self.atmospheric_transmission = np.exp(
@@ -133,8 +135,8 @@ class AtmosphereMixin:
                     self.atmosphere.opacity,
                     bounds_error=False,
                     fill_value="extrapolate",
-                )(self.coords.time)
-            )
+                )(self.coords.time),
+            ),
         )
 
         # if units == "F_RJ":  # Fahrenheit Rayleigh-Jeans 🇺🇸

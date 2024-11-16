@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import os
-from typing import Sequence, Tuple
+from collections.abc import Sequence
 
 import numpy as np
 import scipy as sp
@@ -19,7 +21,7 @@ class BaseMapper:
 
     def __init__(
         self,
-        center: Tuple[float, float] = (0, 0),
+        center: tuple[float, float] = (0, 0),
         width: float = 1,
         height: float = 1,
         resolution: float = 0.01,
@@ -63,7 +65,7 @@ class BaseMapper:
         for tod in np.atleast_1d(tods):
             self.tods.append(tod)
         self.bands = list(
-            np.unique([list(np.unique(tod.dets.band_name)) for tod in self.tods])
+            np.unique([list(np.unique(tod.dets.band_name)) for tod in self.tods]),
         )
 
     def _run(self):

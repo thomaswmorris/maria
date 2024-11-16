@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import logging
 import os
+from collections.abc import Mapping
 from datetime import datetime, timedelta
-from typing import Mapping, Tuple, Union
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,8 +37,8 @@ all_plans = list(plan_data.index.values)
 class UnsupportedPlanError(Exception):
     def __init__(self, invalid_plan):
         super().__init__(
-            f"""The plan '{invalid_plan}' is not a supported plan. """
-            f"""Supported plans are:\n\n{plan_data.to_string()}"""
+            f"The plan '{invalid_plan}' is not a supported plan. "
+            f"Supported plans are: \n\n{plan_data.to_string()}",
         )
 
 
@@ -71,7 +74,7 @@ def validate_pointing_kwargs(kwargs):
     """
     if ("end_time" not in kwargs.keys()) and ("duration" not in kwargs.keys()):
         raise ValueError(
-            """One of 'end_time' or 'duration' must be in the plan kwargs."""
+            """One of 'end_time' or 'duration' must be in the plan kwargs.""",
         )
 
 
@@ -86,9 +89,9 @@ class Plan:
         center_degrees = np.degrees(self.scan_center_radians)
 
         parts["start_time"] = self.start_datetime.isoformat()[:19]
-        parts[
-            f"center[{frame['phi']}, {frame['theta']}]"
-        ] = f"{center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
+        parts[f"center[{frame['phi']}, {frame['theta']}]"] = (
+            f"{center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
+        )
         parts["pattern"] = self.scan_pattern
         parts["pattern_kwargs"] = self.scan_options
 
@@ -101,13 +104,13 @@ class Plan:
     def __init__(
         self,
         description: str = "",
-        start_time: Union[str, int] = "2024-02-10T06:00:00",
+        start_time: str | int = "2024-02-10T06:00:00",
         duration: float = 60.0,
         sample_rate: float = 20.0,
         frame: str = "ra_dec",
         degrees: bool = True,
         jitter: float = 0,
-        scan_center: Tuple[float, float] = (4, 10.5),
+        scan_center: tuple[float, float] = (4, 10.5),
         scan_pattern: str = "daisy",
         scan_options: dict = {},
     ):
@@ -166,14 +169,19 @@ class Plan:
             y_scan_offsets_radians = y_scan_offsets
 
         self.scan_offsets_radians = np.c_[
-            x_scan_offsets_radians, y_scan_offsets_radians
+            x_scan_offsets_radians,
+            y_scan_offsets_radians,
         ].T
 
         scan_velocity_radians = np.gradient(
-            self.scan_offsets_radians, axis=1, edge_order=0
+            self.scan_offsets_radians,
+            axis=1,
+            edge_order=0,
         ) / np.gradient(self.time)
         scan_acceleration_radians = np.gradient(
-            scan_velocity_radians, axis=1, edge_order=0
+            scan_velocity_radians,
+            axis=1,
+            edge_order=0,
         ) / np.gradient(self.time)
 
         self.max_vel = np.sqrt(np.sum(scan_velocity_radians**2, axis=0)).max()
@@ -199,11 +207,12 @@ class Plan:
 
         # add 0.1 arcseconds of jitter
         self.scan_offsets_radians += np.radians(
-            self.jitter
+            self.jitter,
         ) * np.random.standard_normal(size=self.scan_offsets_radians.shape)
 
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
-            *self.scan_offsets_radians, *self.scan_center_radians
+            *self.scan_offsets_radians,
+            *self.scan_center_radians,
         )
         if self.frame == "ra_dec":
             self.ra, self.dec = self.phi, self.theta

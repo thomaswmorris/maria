@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -26,9 +28,9 @@ def test_tod_functions():
 
     tod = TOD(data=dict(noise=dict(data=noise)), coords=coords)
 
-    print(f"{tod.sample_rate = }")
-    print(f"{tod.duration = }")
-    print(f"{tod.boresight = }")
+    print(f"{tod.sample_rate =}")
+    print(f"{tod.duration =}")
+    print(f"{tod.boresight =}")
 
 
 def test_tod_preprocessing_with_config():

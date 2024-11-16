@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 import h5py
@@ -81,6 +83,9 @@ class AtmosphericSpectrum:
     def transmission(self, nu, pwv=None, base_temperature=None, elevation=45):
         return np.exp(
             -self.opacity(
-                nu, pwv=pwv, base_temperature=base_temperature, elevation=elevation
-            )
+                nu,
+                pwv=pwv,
+                base_temperature=base_temperature,
+                elevation=elevation,
+            ),
         )

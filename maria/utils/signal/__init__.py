@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 
 from .filtering import bandpass, highpass, lowpass  # noqa
@@ -66,7 +68,8 @@ def decompose(DATA, mode="us", downsample_rate=1):
         return u, s
     if mode == "uv":
         return np.matmul(u, np.diag(s)), np.matmul(
-            np.linalg.pinv(np.matmul(u, np.diag(s))), DATA
+            np.linalg.pinv(np.matmul(u, np.diag(s))),
+            DATA,
         )
     if mode == "usv":
         return u, s, np.matmul(np.linalg.pinv(np.matmul(u, np.diag(s))), DATA)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dask.array as da
 import numpy as np
 from tqdm import tqdm
@@ -12,7 +14,7 @@ class NoiseMixin:
 
     def _simulate_noise(self):
         self.data["noise"] = da.from_array(
-            np.zeros((self.instrument.n_dets, self.plan.n_time))
+            np.zeros((self.instrument.n_dets, self.plan.n_time)),
         )
 
         bands = tqdm(
@@ -39,4 +41,4 @@ class NoiseSimulation(NoiseMixin, BaseSimulation):
         *args,
         **kwargs,
     ):
-        super(NoiseSimulation, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import json
 import logging
@@ -145,7 +147,11 @@ class TOD:
         return int(self.signal.shape[-1])
 
     def subset(
-        self, det_mask=None, time_mask=None, band: str = None, fields: list = None
+        self,
+        det_mask=None,
+        time_mask=None,
+        band: str = None,
+        fields: list = None,
     ):
         fields = fields or self.fields
 
@@ -263,16 +269,16 @@ class TOD:
             for s, e in self.splits(target_split_time=None):
                 split_time = self.time[e] - self.time[s]  # total time in the split
                 n_splits = int(
-                    np.ceil(split_time / target_split_time)
+                    np.ceil(split_time / target_split_time),
                 )  # number of new splits
                 n_split_samples = int(
-                    target_split_time * fs
+                    target_split_time * fs,
                 )  # number of samples per new split
                 for split_start in np.linspace(s, e - n_split_samples, n_splits).astype(
-                    int
+                    int,
                 ):
                     splits_list.append(
-                        (split_start, np.minimum(split_start + n_split_samples, e))
+                        (split_start, np.minimum(split_start + n_split_samples, e)),
                     )
             return splits_list
 
@@ -296,7 +302,10 @@ class TOD:
             header["SITEELEV"] = (self.alt, "Site elevation (meters)")
 
             col01 = fits.Column(
-                name="DX   ", format="E", array=self.coords.ra.flatten(), unit="radians"
+                name="DX   ",
+                format="E",
+                array=self.coords.ra.flatten(),
+                unit="radians",
             )
             col02 = fits.Column(
                 name="DY   ",
@@ -332,7 +341,9 @@ class TOD:
                 ).flatten(),
             )
             col09 = fits.Column(
-                name="SCAN ", format="I", array=np.zeros_like(self.coords.ra).flatten()
+                name="SCAN ",
+                format="I",
+                array=np.zeros_like(self.coords.ra).flatten(),
             )
             col10 = fits.Column(name="ELEV ", format="E")
 
@@ -383,7 +394,7 @@ def check_nested_keys(keys_found, data, keys):
 
 
 def check_json_file_for_key(keys_found, file_path, *keys_to_check):
-    with open(file_path, "r") as json_file:
+    with open(file_path) as json_file:
         data = json.load(json_file)
         return check_nested_keys(keys_found, data, keys_to_check)
 

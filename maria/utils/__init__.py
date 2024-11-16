@@ -1,4 +1,6 @@
 # this is the junk drawer of functions
+from __future__ import annotations
+
 import time as ttime
 from datetime import datetime
 
@@ -79,7 +81,9 @@ def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
     if lazy:
         X = X[
             np.random.choice(
-                a=len(X), size=np.minimum(len(X), MAX_SAMPLE_SIZE), replace=False
+                a=len(X),
+                size=np.minimum(len(X), MAX_SAMPLE_SIZE),
+                replace=False,
             )
         ]
     hull = sp.spatial.ConvexHull(X[:, dim_mask])
@@ -96,7 +100,7 @@ def get_rotation_matrix(**rotations):
     dims = {"x": 0, "y": 1, "z": 2}
     R = np.eye(3)
     for axis, angle in rotations.items():
-        i, j = [index for dim, index in dims.items() if dim != axis]
+        i, j = (index for dim, index in dims.items() if dim != axis)
         S = np.zeros((3, 3))
         S[i, j] = angle
         R = sp.linalg.expm(S - S.T) @ R
@@ -114,7 +118,7 @@ def get_orthogonal_transform(signature, entries):
 
     if n_axes * (n_axes - 1) / 2 != len(entries):
         raise ValueError(
-            f"Bad shape for entries (for signature {signature} we expect len(entries) = {int(n_axes * (n_axes - 1) / 2)}."
+            f"Bad shape for entries (for signature {signature} we expect len(entries) = {int(n_axes * (n_axes - 1) / 2)}.",
         )
 
     i, j = np.triu_indices(n=n_axes, k=1)

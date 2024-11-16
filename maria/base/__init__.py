@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Union
 
 import numpy as np
 
@@ -19,7 +20,7 @@ logger = logging.getLogger("maria")
 class InvalidSimulationParameterError(Exception):
     def __init__(self, invalid_keys):
         super().__init__(
-            f"The parameters {invalid_keys} are not valid simulation parameters!"
+            f"The parameters {invalid_keys} are not valid simulation parameters!",
         )
 
 
@@ -42,7 +43,7 @@ def parse_sim_kwargs(kwargs, master_kwargs, strict=False):
     if len(invalid_kwargs) > 0:
         if strict:
             raise InvalidSimulationParameterError(
-                invalid_keys=list(invalid_kwargs.keys())
+                invalid_keys=list(invalid_kwargs.keys()),
             )
 
     return parsed_kwargs
@@ -55,9 +56,9 @@ class BaseSimulation:
 
     def __init__(
         self,
-        instrument: Union[Instrument, str],
-        plan: Union[Plan, str],
-        site: Union[Site, str],
+        instrument: Instrument | str,
+        plan: Plan | str,
+        site: Site | str,
         verbose=False,
         dtype=np.float32,
         **kwargs,
@@ -74,7 +75,8 @@ class BaseSimulation:
             self.instrument = instrument
         else:
             self.instrument = get_instrument(
-                name=instrument, **parsed_sim_kwargs["instrument"]
+                name=instrument,
+                **parsed_sim_kwargs["instrument"],
             )
 
         logger.debug("Constructed instrument.")
@@ -92,7 +94,7 @@ class BaseSimulation:
             self.site = get_site(site_name=site, **parsed_sim_kwargs["site"])
         else:
             raise ValueError(
-                "The passed site must be either a Site object or a string."
+                "The passed site must be either a Site object or a string.",
             )
 
         logger.debug("Constructed site.")
@@ -127,7 +129,8 @@ class BaseSimulation:
 
         # this can be expensive sometimes
         self.coords = self.boresight.broadcast(
-            self.instrument.dets.offsets, frame="az_el"
+            self.instrument.dets.offsets,
+            frame="az_el",
         )
 
         logger.debug("Constructed offsets.")

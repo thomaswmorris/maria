@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import scipy as sp
 
@@ -37,7 +39,7 @@ def get_rotation_matrix_3d(angles, axis=0):
     j = [i for i in [0, 1, 2] if not i == axis]
     j0, j1 = np.meshgrid(j, j)
     R[..., j0, j1] = sp.linalg.expm(
-        np.array([[0, -1], [+1, 0]]) * shaped_angles[..., None, None]
+        np.array([[0, -1], [+1, 0]]) * shaped_angles[..., None, None],
     )
     return R.reshape(*np.shape(angles), 3, 3)
 
@@ -57,11 +59,15 @@ def compute_optimal_rotation(points):
     def loss(x, *args):
         R = rotation_matrix_from_skew_entries(x)
         return sum(
-            np.log(np.ptp(R @ args[0], axis=1)) * np.array([-1, *np.ones(d - 1)])
+            np.log(np.ptp(R @ args[0], axis=1)) * np.array([-1, *np.ones(d - 1)]),
         )
 
     res = sp.optimize.minimize(
-        loss, x0=np.zeros(int(d * (d - 1) / 2)), args=points, tol=1e-10, method="SLSQP"
+        loss,
+        x0=np.zeros(int(d * (d - 1) / 2)),
+        args=points,
+        tol=1e-10,
+        method="SLSQP",
     )
 
     if not res.success:

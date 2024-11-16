@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dask.array as da
 import healpy as hp
 import numpy as np
@@ -11,21 +13,26 @@ from ..units.constants import T_CMB
 class CMBMixin:
     def _simulate_cmb_emission(self):
         pixel_index = hp.ang2pix(
-            nside=self.cmb.nside, phi=self.coords.l, theta=np.pi / 2 - self.coords.b
+            nside=self.cmb.nside,
+            phi=self.coords.l,
+            theta=np.pi / 2 - self.coords.b,
         ).compute()  # noqa
         cmb_temperatures = self.cmb.T[pixel_index]
 
         test_nu = np.linspace(1e0, 1e3, 1024)
 
         cmb_temperature_samples_K = T_CMB + np.linspace(
-            self.cmb.T.min(), self.cmb.T.max(), 3
+            self.cmb.T.min(),
+            self.cmb.T.max(),
+            3,
         )  # noqa
         cmb_brightness = planck_spectrum(
-            1e9 * test_nu, cmb_temperature_samples_K[:, None]
+            1e9 * test_nu,
+            cmb_temperature_samples_K[:, None],
         )
 
         self.data["cmb"] = da.zeros_like(
-            np.empty((self.instrument.dets.n, self.plan.n_time))
+            np.empty((self.instrument.dets.n, self.plan.n_time)),
         )
 
         pbar = tqdm(self.instrument.bands, disable=not self.verbose)

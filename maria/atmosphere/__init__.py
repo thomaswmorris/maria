@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 from datetime import datetime
@@ -37,7 +39,7 @@ class Atmosphere:
     ):
         if model not in SUPPORTED_MODELS_LIST:
             raise ValueError(
-                f"Invalid model '{model}'. Supported models are {SUPPORTED_MODELS_LIST}."
+                f"Invalid model '{model}'. Supported models are {SUPPORTED_MODELS_LIST}.",
             )
 
         self.timestamp = timestamp
@@ -75,17 +77,22 @@ class Atmosphere:
         self.sim = sim
 
         self.layers = generate_layers(
-            sim, mode=self.model, angular=self.angular, max_height=self.max_height
+            sim,
+            mode=self.model,
+            angular=self.angular,
+            max_height=self.max_height,
         )
 
         self.boresight = sim.boresight.downsample(timestep=timestep)
         self.coords = self.boresight.broadcast(
-            sim.instrument.dets.offsets, frame="az_el"
+            sim.instrument.dets.offsets,
+            frame="az_el",
         )
 
         # this is a smaller version of the sim coords
         outer_coords = self.boresight.broadcast(
-            sim.instrument.dets.outer().offsets, frame="az_el"
+            sim.instrument.dets.outer().offsets,
+            frame="az_el",
         )
 
         self.processes = {}
@@ -93,7 +100,8 @@ class Atmosphere:
         center = sim.coords.center(frame="az_el")
 
         for process_index in tqdm(
-            sorted(np.unique(self.layers.process_index)), desc="Building atmosphere"
+            sorted(np.unique(self.layers.process_index)),
+            desc="Building atmosphere",
         ):
             in_process = self.layers.process_index == process_index
             process_layers = self.layers.loc[in_process]
@@ -116,10 +124,10 @@ class Atmosphere:
                 vx, vy = vx.compute(), vy.compute()
             else:
                 vx = process_layers.wind_east.values[:, None] * np.ones(
-                    self.boresight.shape[-1]
+                    self.boresight.shape[-1],
                 )
                 vy = process_layers.wind_north.values[:, None] * np.ones(
-                    self.boresight.shape[-1]
+                    self.boresight.shape[-1],
                 )
 
             w = (
@@ -144,7 +152,8 @@ class Atmosphere:
             for i, (layer_index, layer_entry) in enumerate(process_layers.iterrows()):
                 if layer_entry.angular:
                     layer_x, layer_y = outer_coords.offsets(
-                        center=center, frame="az_el"
+                        center=center,
+                        frame="az_el",
                     )
 
                 else:
@@ -161,15 +170,17 @@ class Atmosphere:
                 layer_y += np.cumsum(self.timestep * vy)
 
             process_points_for_hull = np.concatenate(
-                process_points_for_hull_list, axis=0
+                process_points_for_hull_list,
+                axis=0,
             ).reshape(-1, 3)
             process_points_for_hull[..., 2] += 1e-6 * np.random.standard_normal(
-                process_points_for_hull[..., 2].shape
+                process_points_for_hull[..., 2].shape,
             )
             # process_points_for_hull = process_points_for_hull.reshape(-1, 3)
 
             transform = compute_aligning_transform(
-                process_points_for_hull.compute(), signature=(True, True, False)
+                process_points_for_hull.compute(),
+                signature=(True, True, False),
             )
             tp = process_points_for_hull @ transform
             triangulation = sp.spatial.Delaunay(tp[..., 1:])
@@ -181,7 +192,7 @@ class Atmosphere:
             layer_labels = []
 
             for i, (layer_index, layer_entry) in enumerate(
-                self.layers.loc[in_process].iterrows()
+                self.layers.loc[in_process].iterrows(),
             ):
                 res = layer_entry.res
                 wide_lp_x_dense = np.arange(min_ty - 2 * res, max_ty + 2 * res, 1e-1)
@@ -245,7 +256,7 @@ class Atmosphere:
 
         for k, process in tqdm(self.processes.items(), desc="Generating turbulence"):
             process.run(
-                desc=None
+                desc=None,
             )  # desc=f"Generating atmosphere ({process_number + 1}/{len(self.processes)})")
 
         self.zenith_scaled_pwv = da.from_array(np.zeros(pp.shape[:-1]))
@@ -256,12 +267,12 @@ class Atmosphere:
                 translation = np.cumsum(self.timestep * wind_vector[None], axis=-2)
 
                 for i, (layer_index, layer_entry) in enumerate(
-                    process.layers.iterrows()
+                    process.layers.iterrows(),
                 ):
                     layer_mask = process.labels == layer_index
 
                     beam_fwhm = self.sim.instrument.dets.physical_fwhm(
-                        layer_entry.z
+                        layer_entry.z,
                     ).mean()
                     beam_sigma = beam_fwhm / 2.355
                     extrusion_sigma = beam_sigma / process.extrusion_res

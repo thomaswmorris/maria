@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
@@ -43,7 +45,7 @@ class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         super().__init__(
             f"The region '{invalid_region}' is not supported. "
-            f"Supported regions are:\n\n{supported_regions_table.loc[:, REGION_DISPLAY_COLUMNS].to_string()}"
+            f"Supported regions are:\n\n{supported_regions_table.loc[:, REGION_DISPLAY_COLUMNS].to_string()}",
         )
 
 
@@ -51,14 +53,16 @@ class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(
             f"The site '{invalid_site}' is not supported. "
-            f"Supported sites are:\n\n{site_data.loc[:, SITE_DISPLAY_COLUMNS].to_string()}"
+            f"Supported sites are:\n\n{site_data.loc[:, SITE_DISPLAY_COLUMNS].to_string()}",
         )
 
 
 def get_location(site_name):
     site = get_site(site_name)
     return EarthLocation.from_geodetic(
-        lon=site.longitude, lat=site.latitude, height=site.altitude
+        lon=site.longitude,
+        lat=site.latitude,
+        height=site.altitude,
     )
 
 
@@ -117,12 +121,14 @@ class Site:
             self.altitude = float(supported_regions_table.loc[self.region].altitude)
 
         self.earth_location = EarthLocation.from_geodetic(
-            lon=self.longitude, lat=self.latitude, height=self.altitude
+            lon=self.longitude,
+            lat=self.latitude,
+            height=self.altitude,
         )
 
     def plot(self, res=0.025):
         height_map = hp.fitsfunc.read_map(fetch("world_heightmap.fits")).astype(
-            np.uint16
+            np.uint16,
         )
         height_map = 32 * np.where(height_map < 255, height_map, np.nan)
 
@@ -137,10 +143,14 @@ class Site:
         }
 
         zoom_map = hp.gnomview(
-            height_map, xsize=8 / res, **kwargs
+            height_map,
+            xsize=8 / res,
+            **kwargs,
         )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
         wide_map = hp.gnomview(
-            height_map, xsize=90 / res, **kwargs
+            height_map,
+            xsize=90 / res,
+            **kwargs,
         )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
 
         fig, axes = plt.subplots(1, 2, figsize=(8, 5), constrained_layout=True)
@@ -174,7 +184,10 @@ class Site:
             ax.set_facecolor("gray")
             ax.set_rasterized(True)
             cbar = fig.colorbar(
-                ax.get_images()[0], ax=ax, location="bottom", shrink=0.8
+                ax.get_images()[0],
+                ax=ax,
+                location="bottom",
+                shrink=0.8,
             )
             cbar.set_label("height [m]")
 

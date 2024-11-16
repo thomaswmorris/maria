@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 
@@ -35,7 +37,7 @@ MAP_UNITS = {
 prefixes_phrase = "|".join(prefixes.index)
 tod_units_phrase = "|".join(list(TOD_UNITS.keys()))
 tod_units_pattern = re.compile(
-    rf"(?P<prefix>({prefixes_phrase}))?(?P<base>{tod_units_phrase})"
+    rf"(?P<prefix>({prefixes_phrase}))?(?P<base>{tod_units_phrase})",
 )
 
 
@@ -44,7 +46,7 @@ def parse_tod_units(u):
     if match is None:
         raise ValueError(
             f"Invalid units '{u}'. Valid units are a combination of an SI prefix "
-            f"(one of {prefixes.index}) and a base units (one of {TOD_UNITS})."
+            f"(one of {prefixes.index}) and a base units (one of {TOD_UNITS}).",
         )
     return match
 

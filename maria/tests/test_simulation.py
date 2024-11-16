@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 import numpy as np
@@ -20,13 +22,18 @@ test_plan_configs = np.random.choice(a=all_test_plan_configs, size=n_sims)
 
 
 @pytest.mark.parametrize(
-    "instrument,site,plan_config", zip(test_instruments, test_sites, test_plan_configs)
+    "instrument,site,plan_config",
+    zip(test_instruments, test_sites, test_plan_configs),
 )
 def test_complete_sim(instrument, site, plan_config):
     plan = Plan(**plan_config)
 
     sim = Simulation(
-        instrument=instrument, site=site, plan=plan, atmosphere="2d", cmb="generate"
+        instrument=instrument,
+        site=site,
+        plan=plan,
+        atmosphere="2d",
+        cmb="generate",
     )
 
     tod = sim.run()
@@ -40,5 +47,7 @@ def test_complete_sim(instrument, site, plan_config):
     tod.plot()
 
     tod.process(config={"despline": {"knot_spacing": 60}}).twinkle(
-        rate=2, max_frames=10, filename="/tmp/test_twinkle.gif"
+        rate=2,
+        max_frames=10,
+        filename="/tmp/test_twinkle.gif",
     )
