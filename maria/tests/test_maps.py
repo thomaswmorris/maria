@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import pytest
 
@@ -8,7 +10,8 @@ plt.close("all")
 
 
 @pytest.mark.parametrize(
-    "map_name", ["maps/cluster.fits", "maps/big_cluster.fits", "maps/galaxy.fits"]
+    "map_name",
+    ["maps/cluster.fits", "maps/big_cluster.fits", "maps/galaxy.fits"],
 )  # noqa
 def test_fetch_fits_map(map_name):
     map_filename = fetch(map_name)
