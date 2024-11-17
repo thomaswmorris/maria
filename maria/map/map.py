@@ -182,10 +182,15 @@ class Map:
         data = np.zeros(self.data.shape)
 
         for i, nu in enumerate(self.nu):
+
             if units == self.units:
                 data[i] = self.data[i]
+                continue
 
-            elif units == "K_RJ":
+            if np.isnan(self.nu):
+                raise ValueError(f"Cannot convert map with frequency nu={nu}.")
+
+            if units == "K_RJ":
                 data[i] = self.data[i] / KbrightToJyPix(
                     nu * 1e9,
                     np.degrees(self.resolution),
@@ -198,9 +203,9 @@ class Map:
             else:
                 raise ValueError(f"Units '{units}' not implemented.")
 
-            if inplace:
-                self.data = data
-                self.units = units
+        if inplace:
+            self.data = data
+            self.units = units
 
         else:
             return Map(
@@ -268,7 +273,7 @@ class Map:
         )
 
     def plot(
-        m,
+        self,
         nu_index=None,
         t_index=None,
         cmap="cmb",
@@ -278,9 +283,11 @@ class Map:
         subplot_size=3,
     ):
         nu_index = (
-            np.atleast_1d(nu_index) if nu_index is not None else np.arange(len(m.nu))
+            np.atleast_1d(nu_index) if nu_index is not None else np.arange(len(self.nu))
         )
-        t_index = np.atleast_1d(t_index) if t_index is not None else np.arange(len(m.t))
+        t_index = (
+            np.atleast_1d(t_index) if t_index is not None else np.arange(len(self.t))
+        )
 
         n_nu = len(nu_index)
         n_t = len(t_index)
@@ -299,7 +306,7 @@ class Map:
             constrained_layout=True,
         )
 
-        axes = np.atleast_2d(axes)
+        axes = np.atleast_1d(axes).reshape(n_nu, n_t)
         #     flat = False
 
         # else:
@@ -319,10 +326,10 @@ class Map:
 
         # axes_generator = iter(axes.ravel())
 
-        d = m.data.ravel()
-        w = m.weight.ravel()
+        d = self.data.ravel()
+        w = self.weight.ravel()
         subset = np.random.choice(d.size, size=10000)
-        vmin, vmax = np.quantile(
+        vmin, vmax = np.nanquantile(
             d[subset],
             weights=w[subset],
             q=[rel_vmin, rel_vmax],
@@ -334,20 +341,20 @@ class Map:
                 # ax = next(axes_generator) if flat else axes[i_nu, i_t]
                 ax = axes[i_nu, i_t]
 
-                nu = m.nu[i_nu]
+                nu = self.nu[i_nu]
 
                 header = fits.header.Header()
 
                 header["RESTFRQ"] = nu if nu > 0 else 150
 
-                res_degrees = np.degrees(m.resolution)
-                center_degrees = np.degrees(m.center)
+                res_degrees = np.degrees(self.resolution)
+                center_degrees = np.degrees(self.center)
 
                 header["CDELT1"] = res_degrees  # degree
                 header["CDELT2"] = res_degrees  # degree
 
-                header["CRPIX1"] = m.n_x / 2
-                header["CRPIX2"] = m.n_y / 2
+                header["CRPIX1"] = self.n_x / 2
+                header["CRPIX2"] = self.n_y / 2
 
                 header["CTYPE1"] = "RA---SIN"
                 header["CUNIT1"] = "deg     "
@@ -363,13 +370,13 @@ class Map:
 
                 # ax.set_title(f"{nu} GHz")
 
-                x = Angle(m.x_side)
-                y = Angle(m.y_side)
+                x = Angle(self.x_side)
+                y = Angle(self.y_side)
 
                 ax.pcolormesh(
                     x.values,
                     y.values,
-                    m.data[i_nu, i_t].T[::-1],
+                    self.data[i_nu, i_t].T[::-1],
                     cmap=cmap,
                     # interpolation="none",
                     # extent=map_extent,
@@ -394,4 +401,4 @@ class Map:
             aspect=16,
             location="bottom",
         )
-        cbar.set_label(f'{MAP_UNITS[m.units]["long_name"]} [{m.units}]')
+        cbar.set_label(f'{MAP_UNITS[self.units]["long_name"]} [{self.units}]')

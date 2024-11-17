@@ -178,6 +178,7 @@ class Plan:
             axis=1,
             edge_order=0,
         ) / np.gradient(self.time)
+
         scan_acceleration_radians = np.gradient(
             scan_velocity_radians,
             axis=1,
