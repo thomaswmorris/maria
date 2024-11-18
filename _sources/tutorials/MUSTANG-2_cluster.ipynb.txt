@@ -1,39 +1,13 @@
 {
  "cells": [
   {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "# Mock Observations with MUSTANG-2"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "We use Maria to generate synthetic mock observations for bolometric arrays installed on single-dish telescopes. The tool consists of four parts: An input map, an observing plan, an instrument, and a site. All are then combined in a wrapper named Simulation. As explained in the section \"Usage\", we can emulate all kinds of telescopes, like ACT, Toltec, GBT, and AtLAST. \n",
-    "\n",
-    "The simulation tool generates time-ordered domain (TOD) data. By simulating distinct atmospheric layers corresponding to the designated site within the simulation, we allow the mock array to sweep across the input celestial sky while scanning through the evolving atmosphere. As a result, the TODs produced combine elements of the real sky and atmospheric and detector noise."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "This tutorial will guide you through the process of setting up the simulation tool and creating your own mock observations -- In particular for GBT/MUSTANG-2 like observations of a galaxy cluster. "
-   ]
-  },
-  {
    "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## Setting up a MUSTANG-2 Simulation\n",
-    "`maria` offers flexibility for customizing atmospheric simulations. You can configure it to replicate observatories like 'AtLAST' at the APEX site or simulate specific observations, such as MUSTANG-2, under different weather conditions by adjusting the observing time.\n",
+    "## Simulating observations with MUSTANG-2\n",
     "\n",
-    "### Input map\n",
-    "\n",
-    "First we specify the input map, our astronomical signal from which we want to make a mock observation. You can give it a fits file and load the map as outlined below. Don't forgot to put the map at an RA and Dec (in degrees) in the sky. Also, the width or the pixel size (resolution) needs to be specified. "
+    "MUSTANG-2 is a bolometric array on the [Green Bank Telescope](https://en.wikipedia.org/wiki/Green_Bank_Telescope). In this notebook we simulate an observation of a galactic cluster."
    ]
   },
   {
@@ -50,13 +24,16 @@
     "map_filename = maria.io.fetch(\"maps/cluster.fits\")\n",
     "\n",
     "# load in the map from a fits file\n",
-    "input_map = maria.map.read_fits(filename=map_filename, #filename\n",
-    "                                resolution=8.714e-05, #pixel size in degrees\n",
-    "                                index=0, #index for fits file\n",
-    "                                center=(150, 10), # position in the sky\n",
-    "                                units='Jy/pixel' # Units of the input map \n",
-    "                               )\n",
+    "input_map = maria.map.read_fits(\n",
+    "    nu=150,\n",
+    "    filename=map_filename,  # filename\n",
+    "    resolution=8.714e-05,  # pixel size in degrees\n",
+    "    index=0,  # index for fits file\n",
+    "    center=(150, 10),  # position in the sky\n",
+    "    units=\"Jy/pixel\",  # Units of the input map\n",
+    ")\n",
     "\n",
+    "input_map.data *= 1e1\n",
     "input_map.to(units=\"K_RJ\").plot()"
    ]
   },
@@ -74,14 +51,15 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "\n",
-    "#load the map into maria\n",
-    "plan = maria.get_plan(scan_pattern=\"daisy\", # scanning pattern\n",
-    "                      scan_options={\"radius\": 0.05, \"speed\": 0.01}, # in degrees\n",
-    "                      duration=600, # integration time in seconds\n",
-    "                      sample_rate=50, # in Hz\n",
-    "                      scan_center=(150, 10), # position in the sky\n",
-    "                      frame=\"ra_dec\")\n",
+    "# load the map into maria\n",
+    "plan = maria.get_plan(\n",
+    "    scan_pattern=\"daisy\",  # scanning pattern\n",
+    "    scan_options={\"radius\": 0.05, \"speed\": 0.01},  # in degrees\n",
+    "    duration=1200,  # integration time in seconds\n",
+    "    sample_rate=50,  # in Hz\n",
+    "    scan_center=(150, 10),  # position in the sky\n",
+    "    frame=\"ra_dec\",\n",
+    ")\n",
     "\n",
     "plan.plot()"
    ]
@@ -100,7 +78,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "instrument = maria.get_instrument('MUSTANG-2')"
+    "instrument = maria.get_instrument(\"MUSTANG-2\")"
    ]
   },
   {
@@ -133,13 +111,14 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "sim = maria.Simulation(instrument, \n",
-    "                       plan=plan,\n",
-    "                       site=\"llano_de_chajnantor\", \n",
-    "                       map=input_map,\n",
-    "                       atmosphere=\"2d\",\n",
-    "                       cmb=\"generate\",\n",
-    "                      )"
+    "sim = maria.Simulation(\n",
+    "    instrument,\n",
+    "    plan=plan,\n",
+    "    site=\"llano_de_chajnantor\",\n",
+    "    map=input_map,\n",
+    "    atmosphere=\"2d\",\n",
+    "    cmb=\"generate\",\n",
+    ")"
    ]
   },
   {
@@ -209,21 +188,22 @@
    "source": [
     "from maria.mappers import BinMapper\n",
     "\n",
-    "mapper = BinMapper(center=(150, 10), \n",
-    "                   frame=\"ra_dec\", \n",
-    "                   width=0.1, \n",
-    "                   height=0.1,\n",
-    "                   resolution=2e-4,\n",
-    "                   tod_preprocessing={\n",
-    "                        \"window\": {\"name\": \"hamming\"},\n",
-    "                        \"remove_modes\": {\"modes_to_remove\": [0]},\n",
-    "                        \"despline\": {\"knot_spacing\": 10},\n",
-    "                    },\n",
-    "                    map_postprocessing={\n",
-    "                        \"gaussian_filter\": {\"sigma\": 1},\n",
-    "                        \"median_filter\": {\"size\": 1},\n",
-    "                    },\n",
-    "                  )\n",
+    "mapper = BinMapper(\n",
+    "    center=(150, 10),\n",
+    "    frame=\"ra_dec\",\n",
+    "    width=0.1,\n",
+    "    height=0.1,\n",
+    "    resolution=2e-4,\n",
+    "    tod_preprocessing={\n",
+    "        \"window\": {\"name\": \"hamming\"},\n",
+    "        \"remove_modes\": {\"modes_to_remove\": [0]},\n",
+    "        \"despline\": {\"knot_spacing\": 10},\n",
+    "    },\n",
+    "    map_postprocessing={\n",
+    "        \"gaussian_filter\": {\"sigma\": 1},\n",
+    "        \"median_filter\": {\"size\": 1},\n",
+    "    },\n",
+    ")\n",
     "\n",
     "mapper.add_tods(tod)\n",
     "output_map = mapper.run()"
@@ -259,7 +239,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "output_map.to_fits('/tmp/simulated_map.fits')"
+    "output_map.to_fits(\"/tmp/simulated_map.fits\")"
    ]
   }
  ],
@@ -279,7 +259,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.12.5"
+   "version": "3.12.7"
   },
   "vscode": {
    "interpreter": {
