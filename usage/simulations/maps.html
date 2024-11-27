@@ -180,7 +180,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -273,7 +273,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -287,14 +287,35 @@
 <span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/big_cluster.fits&quot;</span><span class="p">)</span>
 
 <span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">read_fits</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
-                                <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="c1"># which index of the HDU to read</span>
+                                <span class="n">nu</span><span class="o">=</span><span class="mf">150.</span><span class="p">,</span> <span class="c1"># in GHz</span>
                                 <span class="n">resolution</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">1024</span><span class="p">,</span>
                                 <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                                <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
                                 <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">)</span>
 
 <span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
+<section id="time-evolving-maps">
+<span id="id1"></span><h2>Time-evolving maps<a class="headerlink" href="#time-evolving-maps" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">maria</span></code> supports maps that evolve in time, which is useful for modeling <em>e.g.</em> solar observations.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">time_evolving_sun_path</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/sun.h5&quot;</span><span class="p">)</span>
+<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">time_evolving_sun_path</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">1.7e9</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+<span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Plan</span><span class="p">(</span><span class="n">start_time</span><span class="o">=</span><span class="mf">1.7e9</span><span class="p">,</span>
+                  <span class="n">duration</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span>
+                  <span class="n">scan_center</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">input_map</span><span class="o">.</span><span class="n">center</span><span class="p">),</span>
+                  <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">})</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">plan</span><span class="o">=</span><span class="n">plan</span><span class="p">,</span> <span class="nb">map</span><span class="o">=</span><span class="n">input_map</span><span class="p">)</span>
+<span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">tod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If the observation overruns the start or end of the map in time, it will lead to some funky discontinuities.</p>
+</div>
+</section>
 </section>
 
         </article>
@@ -340,8 +361,27 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Maps</a><ul>
+<li><a class="reference internal" href="#time-evolving-maps">Time-evolving maps</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
