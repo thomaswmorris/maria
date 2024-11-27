@@ -1,7 +1,7 @@
 # this is a list of pre-defined instruments, which can be accessed with maria.get_instrument()
 
-default:
-  aliases: ["default"]
+1deg:
+  aliases: ["test_1deg"]
   description: A simple test array
   array:
     field_of_view: 1
@@ -10,3 +10,16 @@ default:
       f150:
         center: 150
         width: 30
+        efficiency: 0.5
+
+10deg:
+  aliases: ["test_10deg"]
+  description: A simple test array
+  array:
+    field_of_view: 10
+    primary_size: 5
+    bands:
+      f150:
+        center: 150
+        width: 30
+        efficiency: 0.5
