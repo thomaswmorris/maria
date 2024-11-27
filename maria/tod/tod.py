@@ -14,6 +14,8 @@ from astropy.io import fits
 from ..coords import Coordinates
 from ..plotting import tod_plot, twinkle_plot
 
+from .field import Field
+
 # from .processing import process_tod
 
 
@@ -40,7 +42,7 @@ class TOD:
 
     def __init__(
         self,
-        data,
+        data: dict,
         weight=None,
         coords: Coordinates = None,
         units: str = "K_RJ",
@@ -60,31 +62,16 @@ class TOD:
         self.data = {}
 
         for field, field_data in data.items():
-            self.data[field] = field_data
-            d = field_data["data"]
-
-            if distributed and not isinstance(d, da.Array):
-                self.data[field]["data"] = da.from_array(d)
+            D = field_data.data if isinstance(field_data, Field) else field_data
+            if distributed and not isinstance(D, da.Array):
+                D = da.from_array(D)
+            self.data[field] = Field(D)
 
         # sort them alphabetically
         self.data = {k: self.data[k] for k in sorted(list(self.fields))}
 
         if self.weight is None:
             self.weight = da.ones_like(self.signal)
-
-    def get_field(self, field: str):
-        if field not in self.fields:
-            raise ValueError(f"Field '{field}' not found.")
-
-        d = self.data[field]["data"]
-
-        if "scale" in self.data[field]:
-            d *= self.data[field]["scale"][..., None]
-
-        if "offset" in self.data[field]:
-            d += self.data[field]["offset"][..., None]
-
-        return d
 
     @property
     def boresight(self):
@@ -93,13 +80,14 @@ class TOD:
         return self._boresight
 
     def to(self, units: str):
-        cal = self.dets.cal(f"{self.units} -> {units}")
 
         cal_data = {}
-        for field in self.fields:
-            cal_data[field] = self.data[field].copy()
-            current_scale = cal_data[field].get("scale", 1e0)
-            cal_data[field]["scale"] = current_scale * cal
+        for band in self.dets.bands:
+            cal = band.cal(f"{self.units} -> {units}")
+            for field in self.fields:
+                cal_data[field] = Field(cal(self.data[field].data), dtype=self.dtype)
+                # current_scale = cal_data[field].get("scale", 1e0)
+                # cal_data[field]["scale"] = current_scale * cal
 
         return TOD(
             coords=self.coords,
@@ -120,7 +108,7 @@ class TOD:
 
     @functools.cached_property
     def signal(self) -> da.Array:
-        return sum([self.get_field(field) for field in self.fields])
+        return sum([getattr(self, field) for field in self.fields])
 
     @property
     def duration(self) -> float:
@@ -159,7 +147,6 @@ class TOD:
             det_mask = self.dets.band_name == band
             if not det_mask.sum() > 0:
                 raise ValueError(f"There are no detectors for band '{band}'.")
-            return self.subset(det_mask=det_mask)
 
         if time_mask is not None:
             if len(time_mask) != self.nt:
@@ -175,9 +162,8 @@ class TOD:
 
             return TOD(
                 data={
-                    field: data[det_mask]
-                    for field, data in self.data.items()
-                    if field in fields
+                    field: self.get_field(field)[..., time_mask]
+                    for field in self.fields
                 },
                 coords=subset_coords,
                 dets=self.dets,
@@ -199,10 +185,7 @@ class TOD:
             )
 
             return TOD(
-                data={
-                    field: {k: v[det_mask] for k, v in self.data[field].items()}
-                    for field in self.fields
-                },
+                data={field: self.get_field(field)[det_mask] for field in self.fields},
                 weight=self.weight[det_mask],
                 coords=subset_coords,
                 dets=subset_dets,
@@ -372,13 +355,16 @@ class TOD:
             **kwargs,
         )
 
+    def get_field(self, field):
+        return self.data[field].data
+
     def __getattr__(self, attr):
         if attr in self.fields:
             return self.get_field(attr)
         raise AttributeError(f"No attribute named '{attr}'.")
 
     def __repr__(self):
-        return f"TOD(shape={self.shape}, fields={self.fields})"
+        return f"TOD(shape={self.shape}, fields={self.fields}, units={self.units})"
 
 
 class KeyNotFoundError(Exception):

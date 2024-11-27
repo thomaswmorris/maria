@@ -78,7 +78,7 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
         s = int(np.ceil((np.sqrt(12 * bigger_n - 3) + 3) / 6))
         side = np.arange(-s, s + 1, dtype=float)
         x, y = np.meshgrid(side, side)
-        y[:, 1::2] -= 0.5
+        y[:, (s + 1) % 2 :: 2] -= 0.5
         x *= np.sqrt(3) / 2
         x, y = x.ravel(), y.ravel()
 
@@ -97,7 +97,9 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
 
     r = np.sqrt(x**2 + y**2)
     p = np.arctan2(y, x)
-    ngon_distance = r * np.cos(np.arcsin(np.sin(n_sides / 2 * p)) * 2 / n_sides)
+    ngon_distance = (
+        r * np.cos(np.arcsin(np.sin(n_sides / 2 * p)) * 2 / n_sides) - 1e-2 * p
+    )
 
     subset_index = np.argsort(ngon_distance)[:n]
 

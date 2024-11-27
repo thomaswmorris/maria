@@ -9,7 +9,7 @@ import scipy as sp
 from tqdm import tqdm
 
 from ..instrument import beam
-from ..units.constants import k_B
+from ..constants import k_B
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -45,7 +45,7 @@ class MapMixin:
 
             # a fast separable approximation to the band integral
             power_map = 0
-            for nu1, nu2, nu_bin_TRJ in zip(nus[:-1], nus[1:], self.map.data):
+            for nu1, nu2, nu_bin_TRJ in zip(nus[:-1], nus[1:], self.map.data[0]):
                 nu = np.linspace(nu1, nu2, 1024)  # in GHz
                 tau = band.passband(nu)
 
@@ -53,6 +53,8 @@ class MapMixin:
                 power_map += (
                     1e12 * band.efficiency * k_B * np.trapezoid(tau, x=1e9 * nu)
                 ) * nu_bin_TRJ
+
+            logger.debug(f"Computed power map for band {band.name}.")
 
             # nu is in GHz, f is in Hz
             nu_fwhm = beam.compute_angular_fwhm(
@@ -67,6 +69,8 @@ class MapMixin:
             )
 
             filtered_power_map = beam.separably_filter_2d(power_map, nu_map_filter)
+
+            logger.debug(f"Filtered power map for band {band.name}.")
 
             if len(self.map.t) > 1:
                 map_power = sp.interpolate.RegularGridInterpolator(
@@ -90,3 +94,5 @@ class MapMixin:
                 logger.warning("No power from map!")
 
             self.data["map"][band_mask] += map_power
+
+            logger.debug(f"Computed map power for band {band.name}.")

@@ -10,7 +10,7 @@ import scipy as sp
 
 from ..io import fetch
 from ..site import InvalidRegionError, all_regions, supported_regions_table
-from ..units.constants import g
+from ..constants import g
 from ..utils import get_utc_day_hour, get_utc_year_day
 
 here, this_filename = os.path.split(__file__)

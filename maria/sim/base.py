@@ -144,19 +144,8 @@ class BaseSimulation:
         # Simulate all the junk
         self._run()
 
-        tod_data = {}
-
-        for k, data in self.data.items():
-            # scaling floats doesn't make them more accurate, unless they're huge or tiny
-            offset = data.mean(axis=-1)
-            # scale = data.std(axis=-1)[..., None]
-            tod_data[k] = {
-                "data": (data - offset[..., None]).astype(self.dtype),
-                "offset": offset,
-            }
-
         tod = TOD(
-            data=tod_data,
+            data=self.data,
             dets=self.instrument.dets,
             coords=self.coords,
             units="pW",

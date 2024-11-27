@@ -40,6 +40,9 @@ REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude"]
 supported_regions_table = pd.read_csv(f"{here}/regions.csv", index_col=0)
 all_regions = list(supported_regions_table.index.values)
 
+height_map = hp.fitsfunc.read_map(fetch("world_heightmap.fits")).astype(np.uint16)
+height_map = 32 * np.where(height_map < 255, height_map, np.nan)
+
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
@@ -127,10 +130,6 @@ class Site:
         )
 
     def plot(self, res=0.025):
-        height_map = hp.fitsfunc.read_map(fetch("world_heightmap.fits")).astype(
-            np.uint16,
-        )
-        height_map = 32 * np.where(height_map < 255, height_map, np.nan)
 
         kwargs = {
             "rot": (self.longitude, self.latitude),

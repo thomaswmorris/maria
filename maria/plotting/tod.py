@@ -11,8 +11,10 @@ from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from maria.instrument.beam import compute_angular_fwhm
-from maria.units import TOD_UNITS, Angle, parse_tod_units
+from maria.units import Angle, parse_units
 from maria.utils.signal import detrend as detrend_signal
+
+from ..units import QUANTITIES, prefixes
 
 
 def tod_plot(
@@ -84,7 +86,7 @@ def tod_plot(
             )
             tod_ax.plot(
                 tod.time,
-                signal[0],
+                signal.mean(axis=0),
                 lw=lw,
                 color=color,
             )
@@ -185,8 +187,6 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
             color="k",
         )
 
-        # ax.axis('equal')
-
         ax.set_xlabel(r"$\Delta \theta_x$ [deg.]")
         ax.set_ylabel(r"$\Delta \theta_y$ [deg.]")
 
@@ -201,9 +201,12 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
 
         cbar = fig.colorbar(ec, ax=ax, shrink=0.8, location="bottom")
 
-        base_units = parse_tod_units("pW")["base"]
-
-        cbar.set_label(f'{TOD_UNITS[base_units]["long_name"]} [{tod.units}]')
+        u = parse_units(tod.units)
+        quantity = QUANTITIES.loc[u["quantity"]]
+        units = (
+            prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else ""
+        ) + quantity.base_unit_latex
+        cbar.set_label(f"{quantity.long_name} $[{units}]$")
 
         subplots[band] = {
             "ax": ax,

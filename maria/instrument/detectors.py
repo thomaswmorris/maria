@@ -141,13 +141,6 @@ class Detectors:
             PB[self.band_name == band.name] = band.passband(_nu)
         return PB
 
-    def cal(self, signature: str) -> float:
-        """ """
-        c = np.zeros(self.n)
-        for band in self.bands:
-            c[self.mask(band_name=band.name)] = band.cal(signature)
-        return c
-
     def __getattr__(self, attr):
         if attr in self.df.columns:
             return self.df.loc[:, attr].values.astype(DET_COLUMN_TYPES[attr])

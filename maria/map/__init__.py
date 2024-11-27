@@ -6,9 +6,21 @@ import h5py
 import numpy as np
 from astropy.io import fits
 
-from .map import Map
+from .base import Map
+from .projected import ProjectedMap  # noqa
+
+from matplotlib.colors import ListedColormap
+import matplotlib as mpl
 
 here, this_filename = os.path.split(__file__)
+
+# from https://gist.github.com/zonca/6515744
+cmb_cmap = ListedColormap(
+    np.loadtxt(f"{here}/../plotting/Planck_Parchment_RGB.txt") / 255.0,
+    name="cmb",
+)
+cmb_cmap.set_bad("white")
+mpl.colormaps.register(cmb_cmap)
 
 
 def load(filename: str, **kwargs) -> Map:
@@ -26,16 +38,19 @@ def read_hdf(filename: str, **kwargs) -> Map:
         data = f["data"][:]
 
         metadata = {}
-        for field in ["nu", "t", "width", "center", "frame", "units"]:
-            value = f[field][()]
-            metadata[field] = value if not isinstance(value, bytes) else value.decode()
+        for field in ["stokes", "nu", "t", "width", "center", "frame", "units"]:
+            if field in f.keys():
+                value = f[field][()]
+                metadata[field] = (
+                    value if not isinstance(value, bytes) else value.decode()
+                )
 
         if "weight" in f.keys():
             metadata["weight"] = f["weight"][:]
 
     metadata.update(kwargs)
 
-    return Map(data=data, degrees=False, **metadata)
+    return ProjectedMap(data=data, degrees=False, **metadata)
 
 
 def read_fits(
@@ -58,4 +73,4 @@ def read_fits(
     if map_data.ndim < 2:
         raise ValueError("Map should have at least 2 dimensions.")
 
-    return Map(data=map_data, **map_kwargs)
+    return ProjectedMap(data=map_data, **map_kwargs)
