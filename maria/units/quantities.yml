@@ -1,0 +1,69 @@
+- quantity: rayleigh_jeans_temperature
+  long_name: Rayleigh-Jeans temperature
+  symbol: T_RJ
+  symbol_latex: T_{RJ}
+  default_prefix: .nan
+  default_prefix_latex: .nan
+  base_unit: K_RJ
+  base_unit_latex: \text{K}_\text{RJ}
+  SI: K
+
+- quantity: brightness_temperature
+  long_name: Brightness temperature
+  symbol: T_b
+  symbol_latex: T_b
+  default_prefix: .nan
+  default_prefix_latex: .nan
+  base_unit: K
+  base_unit_latex: \text{K}
+  SI: .nan
+
+- quantity: cmb_temperature_anisotropy
+  long_name: CMB temperature anisotropy
+  symbol: T_CMB
+  symbol_latex: T_{CMB}
+  default_prefix: u
+  default_prefix_latex: \mu
+  base_unit: K_CMB
+  base_unit_latex: \text{K}_\text{CMB}
+  SI: K
+
+- quantity: radiant_flux
+  long_name: Power
+  symbol: P
+  symbol_latex: P
+  default_prefix: p
+  default_prefix_latex: p
+  base_unit: W
+  base_unit_latex: \text{W}
+  SI: J s^-1
+
+- quantity: spectral_radiance
+  long_name: Spectral Radiance
+  symbol: I_nu
+  symbol_latex: \text{I}_\nu
+  default_prefix: .nan
+  default_prefix_latex: .nan
+  base_unit: W s^-1 m^-2 sr^-1
+  base_unit_latex: .nan
+  SI: J s^-1 m^-2 sr^-1 Hz^-1
+
+- quantity: spectral_flux_density
+  long_name: Spectral flux density
+  symbol: E_e,nu
+  symbol_latex: E_{e,\nu}
+  default_prefix: .nan
+  default_prefix_latex: .nan
+  base_unit: Jy
+  base_unit_latex: \text{Jy}
+  SI: J s^-1 m^-2 Hz^-1
+
+- quantity: spectral_flux_density_per_pixel
+  long_name: Spectral flux density per pixel
+  symbol: I_nu
+  symbol_latex: I_\nu
+  default_prefix: .nan
+  default_prefix_latex: .nan
+  base_unit: Jy/pixel
+  base_unit_latex: \text{Jy/pixel}
+  SI: J s^-1 m^-2 Hz^-1

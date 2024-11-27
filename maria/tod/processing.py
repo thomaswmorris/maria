@@ -133,7 +133,7 @@ def process_tod(tod, config=None, **kwargs):
         D -= A.T @ B
 
     ptod = TOD(
-        data={"total": {"data": D}},
+        data={"total": D},
         weight=W,
         coords=tod.coords,
         units=tod.units,

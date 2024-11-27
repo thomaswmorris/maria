@@ -6,12 +6,13 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..functions import planck_spectrum
-from ..units.constants import T_CMB
+from ..functions import planck_spectrum, inverse_rayleigh_jeans_spectrum
+from ..constants import T_CMB, k_B
 
 
 class CMBMixin:
     def _simulate_cmb_emission(self):
+
         pixel_index = hp.ang2pix(
             nside=self.cmb.nside,
             phi=self.coords.l,
@@ -19,7 +20,7 @@ class CMBMixin:
         ).compute()  # noqa
         cmb_temperatures = self.cmb.T[pixel_index]
 
-        test_nu = np.linspace(1e0, 1e3, 1024)
+        test_nu = np.linspace(1e0, 5e2, 256)
 
         cmb_temperature_samples_K = T_CMB + np.linspace(
             self.cmb.T.min(),
@@ -27,8 +28,8 @@ class CMBMixin:
             3,
         )  # noqa
         cmb_brightness = planck_spectrum(
-            1e9 * test_nu,
             cmb_temperature_samples_K[:, None],
+            1e9 * test_nu,
         )
 
         self.data["cmb"] = da.zeros_like(
@@ -42,16 +43,14 @@ class CMBMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
-            band_cmb_power_samples_W = (
+            T_RJ = inverse_rayleigh_jeans_spectrum(cmb_brightness, nu=1e9 * test_nu)
+            band_cmb_power_samples_pW = (
                 1e12
-                * band.efficiency
-                * np.trapezoid(y=cmb_brightness * band.passband(test_nu), x=test_nu)
+                * k_B
+                * np.trapezoid(y=T_RJ * band.passband(test_nu), x=1e9 * test_nu)
             )
-
-            # dP_dTCMB = self.instrument.dets.dP_dTCMB[:, None]
-            # self.data["cmb"][band_mask] =  * cmb_temperatures[band_mask]
 
             self.data["cmb"][band_mask] = sp.interpolate.interp1d(
                 cmb_temperature_samples_K,
-                band_cmb_power_samples_W,
+                band_cmb_power_samples_pW,
             )(T_CMB + cmb_temperatures[band_mask])

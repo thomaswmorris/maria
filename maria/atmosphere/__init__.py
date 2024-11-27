@@ -9,7 +9,6 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..base import BaseSimulation
 from ..functions import approximate_normalized_matern
 from ..spectrum import AtmosphericSpectrum
 from ..utils import compute_aligning_transform
@@ -67,7 +66,7 @@ class Atmosphere:
 
         self._initialized = False
 
-    def initialize(self, sim: BaseSimulation, timestep: float = 1e-1, max_height=3e3):
+    def initialize(self, sim, timestep: float = 1e-1, max_height=3e3):
         """
         Simulate a realization of PWV.
         """

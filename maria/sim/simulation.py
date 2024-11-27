@@ -9,8 +9,9 @@ import numpy as np
 from pytz import utc
 from tqdm import tqdm
 
+from .base import BaseSimulation
+
 from ..atmosphere import Atmosphere
-from ..base import BaseSimulation
 from ..cmb import CMB, generate_cmb, get_cmb
 from ..errors import PointingError
 from ..instrument import Instrument
@@ -40,7 +41,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
     def __init__(
         self,
-        instrument: tuple[Instrument, str] = "default",
+        instrument: tuple[Instrument, str] = "test/1deg",
         plan: tuple[Plan, str] = "one_minute_zenith_stare",
         site: tuple[Site, str] = "hoagie_haven",
         atmosphere: tuple[Atmosphere, str] = None,

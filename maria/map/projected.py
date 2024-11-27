@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 import os
+import h5py
 
 import astropy as ap
 import matplotlib as mpl
@@ -8,39 +7,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 from astropy.io import fits
-from matplotlib.colors import ListedColormap
 
 from ..coords import frames
-from ..units import MAP_UNITS, Angle, KbrightToJyPix
+from ..units import Angle
 
-# from ..plotting import plot_map
 
-# from astropy.wcs import WCS
+from .base import Map
+from ..units import prefixes, QUANTITIES, parse_units
 
 
 here, this_filename = os.path.split(__file__)
 
-# from https://gist.github.com/zonca/6515744
-cmb_cmap = ListedColormap(
-    np.loadtxt(f"{here}/Planck_Parchment_RGB.txt") / 255.0,
-    name="cmb",
-)
-cmb_cmap.set_bad("white")
 
-mpl.colormaps.register(cmb_cmap)
-
-
-class Map:
+class ProjectedMap(Map):
     """
-    A map, with shape (n_time, n_nu, n_x, n_y).
+    A rectangular map projected on the sphere. It has shape (stokes, nu, t, y, x).
     """
 
     def __init__(
         self,
         data: float,
+        weight: float = None,
+        stokes: float = None,
         nu: float = None,
         t: float = None,
-        weight: float = None,
         width: float = None,
         resolution: float = None,
         center: tuple[float, float] = (0.0, 0.0),
@@ -48,38 +38,20 @@ class Map:
         degrees: bool = True,
         units: str = "K_RJ",
     ):
-        if units not in MAP_UNITS:
-            raise ValueError(f"'units' must be one of {list(MAP_UNITS.keys())}.")
 
-        self.nu = np.array([np.nan]) if nu is None else np.atleast_1d(nu)
-        self.t = np.array([np.nan]) if t is None else np.atleast_1d(t)
+        # give it five dimensions
+        data = data * np.ones((1, 1, 1, 1, 1))
 
-        # give it four dimensions
-        self.data = data * np.ones((1, 1, 1, 1))
+        super().__init__(
+            data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units
+        )
 
-        if len(self.nu) != self.data.shape[0]:
-            raise ValueError(
-                f"nu has length {len(self.nu)} but map has shape (t, nu, x, y) = {self.data.shape}.",
-            )
-
-        if len(self.t) != self.data.shape[1]:
-            raise ValueError(
-                f"time has length {len(self.t)} but map has shape (t, nu, x, y) = {self.data.shape}.",
-            )
-
-        # if time is not None or data.ndim == 4:
-        #     if self.data.ndim != 4:
-        #         raise ValueError("Map data must be 4-dimensional (time, nuuency, x, y).")
-        #     if self.data.shape[0] != len(time):
-        #         raise ValueError(f"Time has shape {time.shape} but map has shape {data.shape}.")
-        #     self.time = time
-        # else:
-        #     self.time = np.array([ttime.time()])
-
-        self._weight = weight
         self.center = tuple(np.radians(center)) if degrees else center
 
         self.frame = frame
+
+        parse_units(units)
+
         self.units = units
 
         if not (width is None) ^ (resolution is None):
@@ -123,14 +95,14 @@ class Map:
         center_degrees = np.degrees(self.center)
 
         parts.append(
-            f"shape[nu, t, y, x]=({self.n_nu}, {self.n_t}, {self.n_y}, {self.n_x})",
+            f"shape[stokes, nu, t, y, x]=({self.n_stokes}, {self.n_nu}, {self.n_t}, {self.n_y}, {self.n_x})",
         )
         parts.append(
             f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)",
         )
         parts.append(f"width={Angle(self.width).__repr__()}")
 
-        return f"Map({', '.join(parts)})"
+        return f"ProjectedMap({', '.join(parts)})"
 
     @property
     def weight(self):
@@ -147,20 +119,12 @@ class Map:
         return self.resolution * self.n_y
 
     @property
-    def n_nu(self):
-        return self.data.shape[0]
-
-    @property
-    def n_t(self):
-        return self.data.shape[1]
-
-    @property
     def n_y(self):
-        return self.data.shape[2]
+        return self.data.shape[-2]
 
     @property
     def n_x(self):
-        return self.data.shape[3]
+        return self.data.shape[-1]
 
     @property
     def x_side(self):
@@ -177,48 +141,6 @@ class Map:
     @property
     def Y(self):
         return np.meshgrid(self.x_side, self.y_side)[1]
-
-    def to(self, units, inplace=False):
-        data = np.zeros(self.data.shape)
-
-        for i, nu in enumerate(self.nu):
-
-            if units == self.units:
-                data[i] = self.data[i]
-                continue
-
-            if np.isnan(self.nu):
-                raise ValueError(f"Cannot convert map with frequency nu={nu}.")
-
-            if units == "K_RJ":
-                data[i] = self.data[i] / KbrightToJyPix(
-                    nu * 1e9,
-                    np.degrees(self.resolution),
-                )
-            elif units == "Jy/pixel":
-                data[i] = self.data[i] * KbrightToJyPix(
-                    nu * 1e9,
-                    np.degrees(self.resolution),
-                )
-            else:
-                raise ValueError(f"Units '{units}' not implemented.")
-
-        if inplace:
-            self.data = data
-            self.units = units
-
-        else:
-            return Map(
-                data=data,
-                weight=self.weight,
-                resolution=self.resolution,
-                t=self.t,
-                nu=self.nu,
-                center=self.center,
-                frame=self.frame,
-                degrees=False,
-                units=units,
-            )
 
     def to_fits(self, filepath):
         self.header = ap.io.fits.header.Header()
@@ -262,7 +184,7 @@ class Map:
     def downsample(self, shape):
         zoom_factor = np.array(shape) / self.data.shape
 
-        return Map(
+        return ProjectedMap(
             data=sp.ndimage.zoom(self.data, zoom=zoom_factor),
             t=sp.ndimage.zoom(self.t, zoom=zoom_factor[0]),
             nu=sp.ndimage.zoom(self.nu, zoom=zoom_factor[1]),
@@ -272,16 +194,31 @@ class Map:
             degrees=False,
         )
 
+    def to_hdf(self, filename):
+
+        with h5py.File(filename, "w") as f:
+
+            f.create_dataset("data", dtype=float, data=self.data)
+
+            if self._weight is not None:
+                f.create_dataset("weight", dtype=float, data=self._weight)
+
+            for field in ["nu", "t", "resolution", "center", "frame", "units"]:
+                f.create_dataset(field, data=getattr(self, field))
+
     def plot(
         self,
         nu_index=None,
         t_index=None,
+        stokes="I",
         cmap="cmb",
         rel_vmin=0.001,
         rel_vmax=0.999,
-        units="degrees",
         subplot_size=3,
     ):
+
+        stokes_index = self.stokes.index(stokes)
+
         nu_index = (
             np.atleast_1d(nu_index) if nu_index is not None else np.arange(len(self.nu))
         )
@@ -376,7 +313,7 @@ class Map:
                 ax.pcolormesh(
                     x.values,
                     y.values,
-                    self.data[i_nu, i_t].T[::-1],
+                    self.data[stokes_index, i_nu, i_t].T[::-1],
                     cmap=cmap,
                     # interpolation="none",
                     # extent=map_extent,
@@ -401,4 +338,10 @@ class Map:
             aspect=16,
             location="bottom",
         )
-        cbar.set_label(f'{MAP_UNITS[self.units]["long_name"]} [{self.units}]')
+
+        u = parse_units(self.units)
+        quantity = QUANTITIES.loc[u["quantity"]]
+        units = (
+            prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else ""
+        ) + quantity.base_unit_latex
+        cbar.set_label(f"{quantity.long_name} $[{units}]$")

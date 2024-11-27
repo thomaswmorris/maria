@@ -4,7 +4,6 @@ import dask.array as da
 import numpy as np
 from tqdm import tqdm
 
-from ..base import BaseSimulation
 from ..noise import generate_noise_with_knee
 
 
@@ -33,12 +32,3 @@ class NoiseMixin:
                 knee=band.knee,
                 dask=True,
             )
-
-
-class NoiseSimulation(NoiseMixin, BaseSimulation):
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ):
-        super().__init__(*args, **kwargs)

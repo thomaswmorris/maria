@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pytest
 
 import maria
+import numpy as np
 from maria.io import fetch
 
 plt.close("all")
@@ -34,9 +35,17 @@ def test_fetch_hdf_map(map_name):
 
 
 def test_time_ordered_map_sim():
-    map_filename = fetch("maps/sun.h5")
-    m = maria.map.load(filename=map_filename)
-    plan = maria.Plan(start_time=0)
-    sim = maria.Simulation(plan=plan, map=m)
+
+    time_evolving_sun_path = fetch("maps/sun.h5")
+    input_map = maria.map.load(
+        filename=time_evolving_sun_path, t=1.7e9 + np.linspace(0, 180, 16)
+    )
+    plan = maria.Plan(
+        start_time=1.7e9,
+        duration=180,
+        scan_center=np.degrees(input_map.center),
+        scan_options={"radius": 0.25},
+    )
+    sim = maria.Simulation(plan=plan, map=input_map)
     tod = sim.run()
-    tod.plot()
+    tod.to("K_RJ").plot()

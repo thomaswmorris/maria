@@ -7,7 +7,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..units.constants import k_B
+from ..constants import k_B
 
 here, this_filename = os.path.split(__file__)
 

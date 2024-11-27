@@ -1,17 +1,5 @@
-from __future__ import annotations
-
 import numpy as np
 import scipy as sp
-
-from maria.units.constants import c, h, k_B
-
-
-def rayleigh_jeans_spectrum(nu: float, T: float):
-    return 2 * k_B * nu**2 * T / c**2
-
-
-def planck_spectrum(nu: float, T: float):
-    return 2 * h * nu**3 / (c**2 * np.expm1(h * nu / (k_B * T)))
 
 
 def sigmoid(x):
@@ -24,14 +12,14 @@ def inverse_sigmoid(y):
 
 def matern(r, r0, nu):
     """
-    Matern covariance
+    Matérn covariance
     """
     return normalized_matern(r / r0, nu)
 
 
 def normalized_matern(r, nu):
     """
-    Matern covariance
+    Normalized Matérn covariance
     """
     return (
         2 ** (1 - nu)

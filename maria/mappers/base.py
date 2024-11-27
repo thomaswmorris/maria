@@ -6,7 +6,7 @@ from collections.abc import Sequence
 import numpy as np
 import scipy as sp
 
-from ..map import Map
+from ..map import ProjectedMap
 from ..tod import TOD
 
 # np.seterr(invalid="ignore")
@@ -102,7 +102,7 @@ class BaseMapper:
             map_data[i, :] = band_map_numer / band_map_denom
             map_weight[i, :] = band_map_denom
 
-        return Map(
+        return ProjectedMap(
             data=map_data,
             weight=map_weight,
             nu=map_freqs,

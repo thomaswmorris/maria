@@ -1,54 +1,21 @@
 from __future__ import annotations
 
 import os
-import re
 
 import astropy.constants as const
 import numpy as np
-import pandas as pd
 from astropy import units as u
 
 from .angle import Angle  # noqa
-from .constants import T_CMB, c, g, k_B  # noqa
+from .quantities import parse_units, QUANTITIES, prefixes  # noqa
+from .calibration import Calibration  # noqa
+from ..constants import T_CMB, c, g, k_B  # noqa
 
 # Kelvin CMB to Jy/pixel
 # ----------------------------------------------------------------------
 symbols = {"radians": "rad"}
 
 here, this_filename = os.path.split(__file__)
-
-
-prefixes = pd.read_csv(f"{here}/prefixes.csv", index_col=0)
-
-
-TOD_UNITS = {
-    "W": {"long_name": "Power"},
-    "K_RJ": {"long_name": "Rayleigh-Jeans Temperature"},
-    "K_CMB": {"long_name": "CMB Temperature"},
-}
-
-MAP_UNITS = {
-    "K_RJ": {"long_name": "Rayleigh-Jeans Temperature"},
-    "K_CMB": {"long_name": "CMB Temperature"},
-    "Jy/pixel": {"long_name": "Jy per pixel"},
-}
-
-
-prefixes_phrase = "|".join(prefixes.index)
-tod_units_phrase = "|".join(list(TOD_UNITS.keys()))
-tod_units_pattern = re.compile(
-    rf"(?P<prefix>({prefixes_phrase}))?(?P<base>{tod_units_phrase})",
-)
-
-
-def parse_tod_units(u):
-    match = tod_units_pattern.search(u)
-    if match is None:
-        raise ValueError(
-            f"Invalid units '{u}'. Valid units are a combination of an SI prefix "
-            f"(one of {prefixes.index}) and a base units (one of {TOD_UNITS}).",
-        )
-    return match
 
 
 def getJynorm():

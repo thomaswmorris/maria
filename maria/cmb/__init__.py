@@ -89,7 +89,6 @@ def get_cmb(**kwargs):
     download_from_url(
         source_url=CMB_MAP_SOURCE_URL,
         cache_path=CMB_MAP_CACHE_PATH,
-        max_age=CMB_MAP_CACHE_MAX_AGE,
     )
 
     field_dtypes = {

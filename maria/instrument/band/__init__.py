@@ -12,8 +12,8 @@ import scipy as sp
 from ...functions import planck_spectrum
 from ...io import flatten_config, read_yaml
 from ...spectrum import AtmosphericSpectrum
-from ...units import parse_tod_units, prefixes
-from ...units.constants import T_CMB, c, k_B
+from ...units import Calibration
+from ...constants import T_CMB, c, k_B
 
 here, this_filename = os.path.split(__file__)
 
@@ -67,24 +67,6 @@ def parse_bands(bands):
         raise TypeError("'bands' must be either a list or a mapping.")
 
     return band_list
-
-
-def parse_tod_calibration_signature(s):
-    res = {}
-    for sep in ["->"]:
-        if s.count(sep) == 1:
-            if sep is not None:
-                items = [u.strip() for u in s.split(sep)]
-                if len(items) == 2:
-                    for io, u in zip(["in", "out"], items):
-                        match = parse_tod_units(u)
-                        prefix = match["prefix"]
-                        res[f"{io}_factor"] = (
-                            prefixes.loc[prefix].factor if prefix else 1e0
-                        )
-                        res[f"{io}_units"] = match["base"]
-        return res
-    raise ValueError("Calibration must have signature 'units1 -> units2'.")
 
 
 def generate_passband(center, width, shape, samples=256):
@@ -304,17 +286,11 @@ class Band:
     @property
     def dP_dTRJ(self) -> float:
         """
-        In watts per kelvin Rayleigh-Jeans, assuming perfect transmission.
+        In watts per Kelvin Rayleigh-Jeans
         """
-
-        # nu = np.linspace(self.nu_min, self.nu_max, 256)
-
-        # dI_dTRJ = rayleigh_jeans_spectrum(nu=1e9 * nu, T=1)  # this is the same as the derivative
-        # dP_dTRJ = np.trapezoid(dI_dTRJ * self.passband(nu), 1e9 * nu)
-
-        dP_dTRJ = k_B * np.trapezoid(self.passband(self.nu), 1e9 * self.nu)
-
-        return self.efficiency * dP_dTRJ
+        T_0 = 1e0
+        eps = 1e-3
+        return (self.cal("K_RJ -> W")(T_0 + eps) - self.cal("K_RJ -> W")(T_0)) / eps
 
     @property
     def dP_dTCMB(self) -> float:
@@ -338,38 +314,17 @@ class Band:
             / eps
         )
 
-    def cal(self, signature: str) -> float:
-        """
-        Remember that:
-        d(out units) / d(in units) = (d(out units) / d(pW)) / (d(in units) / d(pW))
-        """
-
-        res = parse_tod_calibration_signature(signature)
-
-        if res["in_units"] == "K_RJ":
-            d_in_d_W = 1 / self.dP_dTRJ
-        elif res["in_units"] == "K_CMB":
-            d_in_d_W = 1 / self.dP_dTCMB
-        else:
-            d_in_d_W = 1
-
-        if res["out_units"] == "K_RJ":
-            d_out_d_W = 1 / self.dP_dTRJ
-        elif res["out_units"] == "K_CMB":
-            d_out_d_W = 1 / self.dP_dTCMB
-        else:
-            d_out_d_W = 1
-
-        overall_factor = res["in_factor"] / res["out_factor"]
-
-        return overall_factor * d_out_d_W / d_in_d_W
-
     @property
     def wavelength(self):
         """
         Return the wavelength of the center, in meters.
         """
         return c / (1e9 * self.center)
+
+    def cal(self, signature: str) -> float:
+        return Calibration(
+            signature, passband={"nu": 1e9 * self.nu, "tau": self.efficiency * self.tau}
+        )
 
 
 class BandList(Sequence):
