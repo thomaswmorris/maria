@@ -1,6 +1,6 @@
 stare:
   description: A stare.
-  duration: 60
+  duration: 30
   scan_pattern: stare
   frame: az_el
   scan_center: [130, 45]
@@ -11,7 +11,7 @@ stare:
 back_and_forth:
   description: A back-and-forth scan.
   start_time: '2022-07-01T08:00:00'
-  duration: 60
+  duration: 30
   scan_pattern: back_and_forth
   scan_center: [45, 45]
   frame: az_el
