@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as sp
+from .radiometry import *  # noqa
 
 
 def sigmoid(x):
