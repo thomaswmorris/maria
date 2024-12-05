@@ -114,13 +114,10 @@ def process_tod(tod, config=None, **kwargs):
             )
 
     if "remove_modes" in config:
-        U, V = utils.signal.decompose(
-            D,
-            downsample_rate=np.maximum(int(tod.sample_rate), 1),
-            mode="uv",
-        )
-        U[:, config["remove_modes"]["modes_to_remove"]] = 0
-        D = U @ V
+
+        modes_to_remove = config["remove_modes"]["modes_to_remove"]
+        A, B = utils.signal.decompose(D, k=np.max(modes_to_remove) + 1)
+        D -= A[:, modes_to_remove] @ B[modes_to_remove]
 
     if "despline" in config:
         B = utils.signal.get_bspline_basis(

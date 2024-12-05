@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import numpy as np
+import scipy as sp
 
-from .filtering import bandpass, highpass, lowpass  # noqa
+from .filters import bandpass, highpass, lowpass  # noqa
 
 
 def get_kernel(n, kind="triangle"):
@@ -55,24 +56,25 @@ def downsample(DATA, rate, axis=-1, method=None):
         )
 
 
-def decompose(DATA, mode="us", downsample_rate=1):
-    downsampled_data = downsample(DATA, rate=downsample_rate, method="triangle")
-    rms = downsampled_data.std(axis=-1)
-    u, s, v = np.linalg.svd(downsampled_data / rms[:, None], full_matrices=False)
-    uv_norm = v.std(axis=-1) * np.sign(u.mean(axis=0))
-    s_norm = np.sqrt(np.square(s).sum())
-    u *= s_norm * rms[:, None] * uv_norm[None, :]
-    s /= s_norm
+def decompose(data, k: int = None):
 
-    if mode == "us":
-        return u, s
-    if mode == "uv":
-        return np.matmul(u, np.diag(s)), np.matmul(
-            np.linalg.pinv(np.matmul(u, np.diag(s))),
-            DATA,
-        )
-    if mode == "usv":
-        return u, s, np.matmul(np.linalg.pinv(np.matmul(u, np.diag(s))), DATA)
+    k = k or len(data)
+
+    if data.ndim != 2:
+        raise ValueError("'data' must be a 2D array.")
+
+    if k < len(data):
+        u, s, vh = sp.sparse.linalg.svds(data, k=k, which="LM")
+    else:
+        u, s, vh = sp.linalg.svd(data, full_matrices=False)
+
+    norm = np.sign(u.mean(axis=0)) * vh.std(axis=-1)
+    a = u @ np.diag(s * norm)
+    b = np.diag(1 / norm) @ vh
+
+    mode_sort = np.argsort(-s)
+
+    return a[:, mode_sort], b[mode_sort]
 
 
 def get_bspline_basis(x, spacing=60, order=3, **kwargs):
