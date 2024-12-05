@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import logging
 import os
+
 from collections.abc import Mapping
 from datetime import datetime, timedelta
 from typing import Union
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytz
+
 
 from .. import coords
 from ..io import datetime_handler, read_yaml
@@ -26,11 +29,16 @@ MAX_ACCELERATION_WARN = 10  # in deg/s
 MIN_ELEVATION_WARN = 20  # in deg
 MIN_ELEVATION_ERROR = 10  # in deg
 
-plan_configs = read_yaml(f"{here}/plans.yml")
+here, this_filename = os.path.split(__file__)
+
+PLAN_CONFIGS = {}
+for plans_path in Path(f"{here}/plans").glob("*.yml"):
+    PLAN_CONFIGS.update(read_yaml(plans_path))
+
 plan_params = set()
-for key, config in plan_configs.items():
+for key, config in PLAN_CONFIGS.items():
     plan_params |= set(config.keys())
-plan_data = pd.DataFrame(plan_configs).T
+plan_data = pd.DataFrame(PLAN_CONFIGS).T
 all_plans = list(plan_data.index.values)
 
 
@@ -43,9 +51,9 @@ class UnsupportedPlanError(Exception):
 
 
 def get_plan_config(plan_name="one_minute_zenith_stare", **kwargs):
-    if plan_name not in plan_configs.keys():
+    if plan_name not in PLAN_CONFIGS.keys():
         raise UnsupportedPlanError(plan_name)
-    plan_config = plan_configs[plan_name].copy()
+    plan_config = PLAN_CONFIGS[plan_name].copy()
     for k, v in kwargs.items():
         plan_config[k] = v
     return plan_config
@@ -130,7 +138,7 @@ class Plan:
 
         self.scan_center = tuple(np.array(self.scan_center))
 
-        # for k, v in plan_configs[self.scan_pattern]["scan_options"].items():
+        # for k, v in PLAN_CONFIGS[self.scan_pattern]["scan_options"].items():
         #     if k not in self.scan_options.keys():
         #         self.scan_options[k] = v
 
