@@ -16,13 +16,14 @@ class NoiseMixin:
             np.zeros((self.instrument.n_dets, self.plan.n_time)),
         )
 
-        bands = tqdm(
+        bands_pbar = tqdm(
             self.instrument.dets.bands,
             desc="Generating noise",
-            disable=not self.verbose,
+            disable=self.disable_progress_bars,
         )
+        for band in bands_pbar:
+            bands_pbar.set_postfix({"band": band.name})
 
-        for band in bands:
             band_mask = self.instrument.dets.band_name == band.name
 
             self.data["noise"][band_mask] = generate_noise_with_knee(
