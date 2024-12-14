@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import arrow
 import logging
 import os
 
@@ -59,7 +60,7 @@ class BaseSimulation:
         instrument: Instrument | str,
         plan: Plan | str,
         site: Site | str,
-        verbose=False,
+        progress_bars: bool = True,
         dtype=np.float32,
         **kwargs,
     ):
@@ -67,8 +68,7 @@ class BaseSimulation:
             return
 
         self.dtype = dtype
-        self.verbose = verbose
-
+        self.disable_progress_bars = not progress_bars
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
         if isinstance(instrument, Instrument):
@@ -149,6 +149,7 @@ class BaseSimulation:
             dets=self.instrument.dets,
             coords=self.coords,
             units="pW",
+            metadata={"sim_time": arrow.now()},
         )
 
         return tod

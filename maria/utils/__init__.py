@@ -1,40 +1,28 @@
 # this is the junk drawer of functions
 from __future__ import annotations
 
-import time as ttime
-from datetime import datetime
-
+import arrow
 import numpy as np
-import pytz
 import scipy as sp
-from scipy import spatial  # noqa
 
-from . import linalg, signal  # noqa
+from scipy import spatial  # noqa
 
 
 def get_utc_day_hour(t):
-    dt = datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc)
-    return dt.hour + dt.minute / 60 + dt.second / 3600
+    a = arrow.get(t).to("utc")
+    return a.hour + a.minute / 60 + a.second / 3600
 
 
 def get_utc_year_day(t):
-    tt = datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc).timetuple()
-    return tt.tm_yday + get_utc_day_hour(t) / 24 - 1
+    return int(arrow.get(t).to("utc").format("DDD")) + get_utc_day_hour(t) / 24 - 1
 
 
 def get_utc_year(t):
-    return datetime.fromtimestamp(t, tz=pytz.utc).replace(tzinfo=pytz.utc).year
+    return arrow.get(t).to("utc").year
 
 
-def now():
-    return ttime.time()
-
-
-# def time():
-#     global reference_time
-#     duration = ttime.monotonic() - ref_time
-#     logger.info(f"Initialized atmosphere in {int(1e3 * duration)} ms.")
-#     ref_time = ttime.monotonic()
+# def now():
+#     return ttime.time()
 
 
 def repr_dms(x):

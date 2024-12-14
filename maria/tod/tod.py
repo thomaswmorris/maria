@@ -1,22 +1,24 @@
 from __future__ import annotations
 
+import arrow
+import copy
 import functools
 import json
+import h5py
 import logging
 
-import dask.array as da
-import h5py
 import numpy as np
-import pandas as pd
 import scipy as sp
+
+from dask import array as da
 from astropy.io import fits
 
 from ..coords import Coordinates
+from ..instrument import Detectors
 from ..plotting import tod_plot, twinkle_plot
+from ..io import DEFAULT_TIME_FORMAT
 
 from .field import Field
-
-# from .processing import process_tod
 
 
 logger = logging.getLogger("maria")
@@ -27,37 +29,24 @@ class TOD:
     Time-ordered data. This has per-detector pointing and data.
     """
 
-    def copy(self):
-        """
-        Copy yourself.
-        """
-        return TOD(
-            coords=self.coords,
-            data=self.data,
-            units=self.units,
-            dets=self.dets,
-            abscal=self.abscal,
-            dtype=self.dtype,
-        )
-
     def __init__(
         self,
         data: dict,
-        weight=None,
+        weight: float = None,
         coords: Coordinates = None,
         units: str = "K_RJ",
-        dets: pd.DataFrame = None,
-        abscal: float = 1.0,
+        dets: Detectors = None,
         distributed: bool = True,
-        dtype=np.float32,
+        dtype: type = np.float32,
+        metadata: dict = {},
     ):
         self.weight = weight
         self.coords = coords
         self.dets = dets
         self.header = fits.header.Header()
-        self.abscal = abscal
         self.units = units
         self.dtype = dtype
+        self.metadata = metadata
 
         self.data = {}
 
@@ -65,6 +54,10 @@ class TOD:
             D = field_data.data if isinstance(field_data, Field) else field_data
             if distributed and not isinstance(D, da.Array):
                 D = da.from_array(D)
+
+            if D.ndim != 2:
+                raise ValueError("Only two-dimensional TODs are currently supported.")
+
             self.data[field] = Field(D)
 
         # sort them alphabetically
@@ -80,23 +73,25 @@ class TOD:
         return self._boresight
 
     def to(self, units: str):
+        """
+        Convert to a different set of units.
+        """
 
-        cal_data = {}
+        content = self.content
         for band in self.dets.bands:
             cal = band.cal(f"{self.units} -> {units}")
+
+            self.dets.band_name == band.name
+
             for field in self.fields:
-                cal_data[field] = Field(cal(self.data[field].data), dtype=self.dtype)
+                content["data"][field] = Field(
+                    cal(self.data[field].data.compute()), dtype=self.dtype
+                )
                 # current_scale = cal_data[field].get("scale", 1e0)
                 # cal_data[field]["scale"] = current_scale * cal
+        content["units"] = units
 
-        return TOD(
-            coords=self.coords,
-            data=cal_data,
-            units=units,
-            dets=self.dets,
-            abscal=self.abscal,
-            dtype=self.dtype,
-        )
+        return TOD(**content)
 
     @property
     def shape(self):
@@ -134,13 +129,24 @@ class TOD:
     def nt(self) -> int:
         return int(self.signal.shape[-1])
 
+    @property
+    def start(self):
+        return arrow.get(self.time.max())
+
+    @property
+    def end(self):
+        return arrow.get(self.time.max())
+
     def subset(
         self,
-        det_mask=None,
-        time_mask=None,
+        det_mask: bool | int = None,
+        time_mask: bool | int = None,
         band: str = None,
         fields: list = None,
     ):
+
+        det_mask = det_mask or np.arange(self.nd)
+        time_mask = time_mask or np.arange(self.nt)
         fields = fields or self.fields
 
         if band is not None:
@@ -152,48 +158,24 @@ class TOD:
             if len(time_mask) != self.nt:
                 raise ValueError("The detector mask must have shape (n_dets,).")
 
-            subset_coords = Coordinates(
-                time=self.coords.time[time_mask],
-                phi=self.coords.az[:, time_mask],
-                theta=self.coords.el[:, time_mask],
-                earth_location=self.earth_location,
-                frame="az_el",
-            )
-
-            return TOD(
-                data={
-                    field: self.get_field(field)[..., time_mask]
-                    for field in self.fields
-                },
-                coords=subset_coords,
-                dets=self.dets,
-                units=self.units,
-            )
-
         if det_mask is not None:
             if not (len(det_mask) == self.nd):
                 raise ValueError("The detector mask must have shape (n_dets,).")
 
-            subset_dets = self.dets._subset(det_mask) if self.dets is not None else None
+        content = self.content
+        content.update(
+            {
+                "data": {
+                    field: self.get_field(field)[det_mask][..., time_mask]
+                    for field in fields
+                },
+                "weight": self.weight[det_mask][..., time_mask],
+                "coords": self.coords[det_mask][..., time_mask],
+                "dets": self.dets._subset(det_mask),
+            }
+        )
 
-            subset_coords = Coordinates(
-                time=self.time,
-                phi=self.coords.az[det_mask],
-                theta=self.coords.el[det_mask],
-                earth_location=self.earth_location,
-                frame="az_el",
-            )
-
-            return TOD(
-                data={field: self.get_field(field)[det_mask] for field in self.fields},
-                weight=self.weight[det_mask],
-                coords=subset_coords,
-                dets=subset_dets,
-                units=self.units,
-            )
-
-    # def process(self, **kwargs):
-    #     process_tod(self, **kwargs)
+        return TOD(**content)
 
     @property
     def time(self):
@@ -364,12 +346,30 @@ class TOD:
         raise AttributeError(f"No attribute named '{attr}'.")
 
     def __repr__(self):
-        return f"TOD(shape={self.shape}, fields={self.fields}, units={self.units})"
+        parts = []
+        parts.append(f"shape={self.shape}")
+        parts.append(f"fields={repr(self.fields)}")
+        parts.append(f"units={repr(self.units)}")
+        parts.append(f"start={self.start.format(DEFAULT_TIME_FORMAT)}")
+        parts.append(f"duration={self.duration:.01f}s")
+        parts.append(f"sample_rate={self.sample_rate:.01f}Hz")
+        return f"TOD({', '.join(parts)})"
 
+    @property
+    def content(self):
+        res = {"data": {}}
+        for field in self.fields:
+            res["data"][field] = copy.deepcopy(self.data[field])
+        for key in ["coords", "units", "dets", "dtype", "metadata"]:
+            if hasattr(self, key):
+                res[key] = getattr(self, key)
+        return res
 
-class KeyNotFoundError(Exception):
-    def __init__(self, invalid_keys):
-        super().__init__(f"The key '{invalid_keys}' is not in the database.")
+    def copy(self):
+        """
+        Copy yourself.
+        """
+        return TOD(**self.content)
 
 
 def check_nested_keys(keys_found, data, keys):
@@ -392,4 +392,4 @@ def test_multiple_json_files(files_to_test, *keys_to_find):
         check_json_file_for_key(keys_found, file_path, *keys_to_find)
 
     if np.sum(keys_found) != len(keys_found):
-        raise KeyNotFoundError(np.array(keys_to_find)[~keys_found])
+        raise KeyError(np.array(keys_to_find)[~keys_found])

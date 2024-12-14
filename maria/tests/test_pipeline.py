@@ -14,6 +14,7 @@ here, this_filename = os.path.split(__file__)
 
 
 def test_map_sim():
+
     map_filename = fetch("maps/cluster.fits", refresh=True)
 
     f090 = Band(center=90, width=20, sensitivity=5e-5)
@@ -53,10 +54,10 @@ def test_map_sim():
     mapper = BinMapper(
         center=(150.01, 10.01),
         frame="ra_dec",
-        width=np.radians(10.0 / 60.0),
-        height=np.radians(10.0 / 60.0),
-        resolution=np.radians(4.0 / 3600.0),
-        degrees=False,
+        width=0.1,
+        height=0.1,
+        resolution=0.001,
+        degrees=True,
         tod_preprocessing={
             "window": {"name": "tukey"},
             "remove_modes": {"modes_to_remove": (0,)},

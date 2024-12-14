@@ -32,10 +32,13 @@ class MapMixin:
             1e-16 * np.random.standard_normal(size=dx.shape),
         )
 
-        pbar = tqdm(self.instrument.bands, disable=not self.verbose)
-
-        for band in pbar:
-            pbar.set_description(f"Sampling map ({band.name})")
+        bands_pbar = tqdm(
+            self.instrument.dets.bands,
+            desc="Sampling map",
+            disable=self.disable_progress_bars,
+        )
+        for band in bands_pbar:
+            bands_pbar.set_postfix({"band": band.name})
 
             band_mask = self.instrument.dets.band_name == band.name
 

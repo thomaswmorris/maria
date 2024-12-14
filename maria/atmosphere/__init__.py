@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime
+import arrow
 
 import dask.array as da
 import numpy as np
@@ -26,7 +26,7 @@ class Atmosphere:
     def __init__(
         self,
         model: str = "2d",
-        timestamp: float = datetime.now().timestamp(),
+        timestamp: float = arrow.now().timestamp(),
         region: str = "princeton",
         altitude: float = None,
         weather_quantiles: dict = {},
@@ -49,7 +49,7 @@ class Atmosphere:
         )
 
         self.weather = Weather(
-            t=timestamp,
+            time=timestamp,
             region=region,
             altitude=altitude,
             quantiles=weather_quantiles,

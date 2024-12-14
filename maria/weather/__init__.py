@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
-
+import arrow
 import h5py
+
 import numpy as np
-import pytz
 import scipy as sp
 
-from ..io import fetch
+from ..io import fetch, DEFAULT_TIME_FORMAT
 from ..site import InvalidRegionError, all_regions, supported_regions_table
 from ..constants import g
 from ..utils import get_utc_day_hour, get_utc_year_day
@@ -56,9 +55,8 @@ class Weather:
     def __init__(
         self,
         region: str = "chajnantor",
-        t: float = None,
+        time: arrow.Arrow = None,
         altitude: float = None,
-        time_zone: str = pytz.utc,
         quantiles: dict = {},
         override: dict = {},
         source: str = "era5",
@@ -68,15 +66,13 @@ class Weather:
             raise InvalidRegionError(self.region)
 
         self.region = region
-        self.t = t
         self.base_altitude = altitude
-        self.time_zone = time_zone
         self.quantiles = quantiles
         self.override = override
         self.source = source
 
-        if self.t is None:
-            self.t = datetime.now().timestamp()
+        time = time or arrow.now().to("utc")
+        self.time = arrow.get(time)
 
         self.cache_path = fetch(
             f"atmosphere/weather/{source}/{self.region}.h5",
@@ -87,17 +83,12 @@ class Weather:
         if self.base_altitude is None:
             self.base_altitude = supported_regions_table.loc[self.region, "altitude"]
 
-        self.t = np.round(self.t, 0)
         self.base_altitude = np.round(self.base_altitude, 0)
         self.time_zone = supported_regions_table.loc[self.region, "timezone"]
-        self.utc_datetime = datetime.fromtimestamp(self.t.min()).astimezone(pytz.utc)
-        self.utc_time = self.utc_datetime.ctime()
-        self.local_time = self.utc_datetime.astimezone(
-            pytz.timezone(self.time_zone),
-        ).ctime()
+        self.local_time = self.time.to(self.time_zone)
 
-        self.utc_day_hour = get_utc_day_hour(self.t)
-        self.utc_year_day = get_utc_year_day(self.t)
+        self.utc_day_hour = get_utc_day_hour(self.time.timestamp())
+        self.utc_year_day = get_utc_year_day(self.time.timestamp())
 
         self.region_quantiles = {}
 
@@ -182,3 +173,6 @@ class Weather:
                 altitude,
             )
         return res
+
+    def __repr__(self):
+        return f"Weather(region={repr(self.region)}, time={self.local_time.format(DEFAULT_TIME_FORMAT)})"

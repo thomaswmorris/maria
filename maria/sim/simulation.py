@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import arrow
 import logging
 import os
-import time as ttime
-from datetime import datetime
 
+import time as ttime
 import numpy as np
-from pytz import utc
+
 from tqdm import tqdm
 
 from .base import BaseSimulation
@@ -81,13 +81,13 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         self.map_kwargs = map_kwargs
         self.noise_kwargs = noise_kwargs
 
-        self.start = datetime.fromtimestamp(self.boresight.time.min()).astimezone(utc)
-        self.end = datetime.fromtimestamp(self.boresight.time.max()).astimezone(utc)
+        self.start = arrow.get(self.boresight.time.min()).to("utc")
+        self.end = arrow.get(self.boresight.time.max()).to("utc")
 
         if map:
             if len(map.t) > 1:
-                map_start = datetime.fromtimestamp(map.t.min()).astimezone(utc)
-                map_end = datetime.fromtimestamp(map.t.max()).astimezone(utc)
+                map_start = arrow.get(map.t.min()).to("utc")
+                map_end = arrow.get(map.t.max()).to("utc")
                 if map_start > self.start:
                     logger.warning(
                         f"Beginning of map ({map_start.isoformat()[:26]}) is after the "
@@ -141,8 +141,10 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         if cmb:
             if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
-                for _ in tqdm(range(1), desc="Generating CMB"):
-                    self.cmb = generate_cmb(verbose=self.verbose, **cmb_kwargs)
+                for _ in tqdm(
+                    range(1), desc="Generating CMB", disable=self.disable_progress_bars
+                ):
+                    self.cmb = generate_cmb(**cmb_kwargs)
             elif cmb in ["real", "planck"]:
                 self.cmb = get_cmb(**cmb_kwargs)
             else:
