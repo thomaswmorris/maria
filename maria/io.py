@@ -3,20 +3,20 @@ from __future__ import annotations
 import logging
 import os
 import pathlib
-import time
 import time as ttime
 from collections.abc import Mapping
-from datetime import datetime
+
 
 import astropy as ap
 import h5py
 import pandas as pd
-import pytz
 import requests
 import yaml
 from tqdm import tqdm
 
 logger = logging.getLogger("maria")
+
+DEFAULT_TIME_FORMAT = "YYYY-MM-DD HH:mm:ss.SSS ZZ"
 
 
 def flatten_config(m: dict, prefix: str = ""):
@@ -98,8 +98,7 @@ def cache_status(path: str, max_age: float = 30 * 86400, refresh: bool = False):
 def download_from_url(
     source_url: str,
     cache_path: str = None,
-    chunk_size: int = 8192,
-    verbose: bool = False,
+    chunk_size: int = 2**12,
 ):
     """
     Download the cache if needed.
@@ -114,17 +113,13 @@ def download_from_url(
 
     with requests.get(source_url, stream=True) as r:
         r.raise_for_status()
-        with open(cache_path, "wb") as f:
-            chunks = tqdm(
-                r.iter_content(chunk_size=chunk_size),
-                desc=f"Updating cache from {source_url}",
-                disable=not verbose,
-            )
-            for chunk in chunks:
-                f.write(chunk)
-
-    cache_size = os.path.getsize(cache_path)
-    logger.info(f"Downloaded {1e-6 * cache_size:.01f} MB to {cache_path}.")
+        total_size_bytes = int(r.headers.get("content-length", 0))
+        logger.info(f"Caching data from {source_url}")
+        with tqdm(total=total_size_bytes, unit="B", unit_scale=True) as pbar:
+            with open(cache_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size):
+                    f.write(chunk)
+                    pbar.update(len(chunk))
 
     if not test_file(cache_path):
         raise RuntimeError("Could not open cached file.")
@@ -157,13 +152,3 @@ def fetch(
             else:
                 raise RuntimeError(f"Could not download {url}.")
     return cache_path
-
-
-def datetime_handler(time):
-    """
-    Accepts any time format you can think of, spits out datetime object
-    """
-    if isinstance(time, (int, float)):
-        return datetime.fromtimestamp(time).astimezone(pytz.utc)
-    if isinstance(time, str):
-        return datetime.fromisoformat(time).replace(tzinfo=pytz.utc)

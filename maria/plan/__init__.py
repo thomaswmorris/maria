@@ -1,21 +1,21 @@
 from __future__ import annotations
 
+import arrow
 import logging
 import os
 
 from collections.abc import Mapping
-from datetime import datetime, timedelta
 from typing import Union
 from pathlib import Path
+from arrow import Arrow
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pytz
 
 
 from .. import coords
-from ..io import datetime_handler, read_yaml
+from ..io import read_yaml
 from .patterns import get_pattern_generator, patterns
 
 here, this_filename = os.path.split(__file__)
@@ -65,7 +65,7 @@ def get_plan(plan_name="one_minute_zenith_stare", **kwargs):
 
 
 PLAN_FIELDS = {
-    "start_time": Union[float, str, datetime],
+    "start_time": Union[float, str, Arrow],
     "duration": float,
     "sample_rate": float,
     "frame": str,
@@ -96,7 +96,7 @@ class Plan:
         frame = coords.frames[self.frame]
         center_degrees = np.degrees(self.scan_center_radians)
 
-        parts["start_time"] = self.start_datetime.isoformat()[:19]
+        parts["start_time"] = self.start_time.format()
         parts[f"center[{frame['phi']}, {frame['theta']}]"] = (
             f"{center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
         )
@@ -143,12 +143,12 @@ class Plan:
         #         self.scan_options[k] = v
 
         if not hasattr(self, "start_time"):
-            self.start_time = datetime.now().timestamp()
-        self.start_datetime = datetime_handler(self.start_time)
-        self.end_datetime = self.start_datetime + timedelta(seconds=self.duration)
+            self.start_time = arrow.now().timestamp()
+        self.start_time = arrow.get(self.start_time)
+        self.end_time = self.start_time.shift(seconds=self.duration)
 
-        self.time_min = self.start_datetime.timestamp()
-        self.time_max = self.end_datetime.timestamp()
+        self.time_min = self.start_time.timestamp()
+        self.time_max = self.end_time.timestamp()
         self.dt = 1 / self.sample_rate
 
         self.time = np.arange(self.time_min, self.time_max, self.dt)
@@ -229,10 +229,6 @@ class Plan:
             self.az, self.el = self.phi, self.theta
         else:
             raise ValueError("Not a valid pointing frame!")
-
-        self.utc_time = (
-            datetime.fromtimestamp(self.time_min).astimezone(pytz.utc).ctime()
-        )
 
     def plot(self):
         fig = plt.figure()

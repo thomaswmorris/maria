@@ -36,10 +36,15 @@ class CMBMixin:
             np.empty((self.instrument.dets.n, self.plan.n_time)),
         )
 
-        pbar = tqdm(self.instrument.bands, disable=not self.verbose)
+        bands_pbar = tqdm(
+            self.instrument.bands,
+            desc="Sampling CMB",
+            disable=self.disable_progress_bars,
+        )
 
-        for band in pbar:
-            pbar.set_description(f"Sampling CMB ({band.name})")
+        for band in bands_pbar:
+
+            bands_pbar.set_postfix({"band": band.name})
 
             band_mask = self.instrument.dets.band_name == band.name
 

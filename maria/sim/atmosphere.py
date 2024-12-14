@@ -20,17 +20,15 @@ class AtmosphereMixin:
     def _compute_atmospheric_emission(self):
         self.atmosphere.emission = da.zeros_like(self.atmosphere.zenith_scaled_pwv)
 
-        bands = (
-            tqdm(self.instrument.dets.bands)
-            if self.verbose
-            else self.instrument.dets.bands
+        bands_pbar = tqdm(
+            self.instrument.dets.bands,
+            desc="Computing atmospheric emission",
+            disable=self.disable_progress_bars,
         )
+        for band in bands_pbar:
+            bands_pbar.set_postfix({"band": band.name})
 
-        for band in bands:
             band_index = self.instrument.dets.mask(band_name=band.name)
-
-            if self.verbose:
-                bands.set_description(f"Computing atmospheric emission ({band.name})")
 
             # in picowatts. the 1e9 is for GHz -> Hz
             det_power_grid = (
@@ -73,18 +71,15 @@ class AtmosphereMixin:
     def _compute_atmospheric_opacity(self):
         self.atmosphere.opacity = da.zeros_like(self.atmosphere.zenith_scaled_pwv)
 
-        # to make a new progress bar
-        bands = (
-            tqdm(self.instrument.dets.bands)
-            if self.verbose
-            else self.instrument.dets.bands
+        bands_pbar = tqdm(
+            self.instrument.dets.bands,
+            desc="Computing atmospheric opacity",
+            disable=self.disable_progress_bars,
         )
+        for band in bands_pbar:
+            bands_pbar.set_postfix({"band": band.name})
 
-        for band in bands:
             band_index = self.instrument.dets.mask(band_name=band.name)
-
-            if self.verbose:
-                bands.set_description(f"Computing atmospheric opacity ({band.name})")
 
             _nu = self.atmosphere.spectrum._side_nu
             _tau = band.passband(_nu)

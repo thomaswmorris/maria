@@ -7,7 +7,6 @@ import pickle
 import re
 import sys
 import time as ttime
-from datetime import datetime
 
 import astropy as ap
 import matplotlib as mpl

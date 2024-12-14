@@ -8,15 +8,14 @@ dynamic = ["version"]
 description = "A simulator for ground-based millimeter- and submillimeter-wave telescopes."
 readme = { file = "README.rst", content-type = "text/x-rst" }
 dependencies = [
+  "arrow",
   "astropy",
-  "cmocean",
   "dask",
   "h5py",
   "healpy",
   "matplotlib",
   "numpy",
   "pandas",
-  "pytz",
   "reproject",
   "requests",
   "scipy",

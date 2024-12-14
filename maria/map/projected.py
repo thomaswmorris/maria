@@ -208,6 +208,7 @@ class ProjectedMap(Map):
 
     def plot(
         self,
+        filepath=None,
         nu_index=None,
         t_index=None,
         stokes="I",
@@ -345,3 +346,6 @@ class ProjectedMap(Map):
             prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else ""
         ) + quantity.base_unit_latex
         cbar.set_label(f"{quantity.long_name} $[{units}]$")
+
+        if filepath is not None:
+            plt.savefig(filepath=filepath, dpi=256)

@@ -3,19 +3,21 @@ from __future__ import annotations
 import functools
 import logging
 import time as ttime
-from datetime import datetime
 
+import arrow
 import dask
+
 import dask.array as da
 import numpy as np
 import pandas as pd
-import pytz
 import scipy as sp
+
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from scipy.interpolate import interp1d
 
+from ..io import DEFAULT_TIME_FORMAT
 from ..utils import repr_lat_lon
 from .transforms import (
     dx_dy_to_phi_theta,
@@ -65,7 +67,7 @@ DEFAULT_EARTH_LOCATION = EarthLocation.from_geodetic(
     height=0.0,
     ellipsoid=None,
 )  # noqa
-DEFAULT_TIMESTAMP = datetime.now().timestamp()
+DEFAULT_TIMESTAMP = arrow.now().timestamp()
 
 
 class Coordinates:
@@ -86,21 +88,14 @@ class Coordinates:
         frame: str = "az_el",
         dtype=np.float64,
     ):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.r = r
-        self.phi = phi
-        self.theta = theta
-        self.time = time
         self.earth_location = earth_location
         self.frame = frame
         self.dtype = dtype
 
         # DO NOT BROADCAST TIME. IT STAYS ONE-DIMENSIONAL.
         for attr, value in zip(
-            ["x", "y", "z", "r", "phi", "theta", "broadcasted_time"],
-            np.broadcast_arrays(x, y, z, r, phi, theta, time)[:-1],
+            ["x", "y", "z", "r", "phi", "theta", "time"],
+            np.broadcast_arrays(x, y, z, r, phi, theta, time),
         ):
             if not isinstance(value, dask.array.Array):
                 value = da.from_array(value)
@@ -108,8 +103,6 @@ class Coordinates:
 
         setattr(self, frames[self.frame]["phi"], self._phi)
         setattr(self, frames[self.frame]["theta"], self._theta)
-
-        self.shape = self._phi.shape
 
         if hasattr(time, "__len__"):
             for axis in range(len(self.time.shape) - 1):
@@ -228,6 +221,33 @@ class Coordinates:
             setattr(self, frames[frame]["theta"], frame_theta)
 
     @property
+    def shape(self):
+        return self._phi.shape
+
+    @property
+    def ndim(self):
+        return self._phi.ndim
+
+    def __getattr__(self, attr):
+
+        if attr == "time":
+            return self._time[tuple(0 for _ in range(self.ndim - 1))].compute()
+
+        if attr in ["x", "y", "z", "r", "phi", "theta"]:
+            return getattr(self, f"_{attr}")
+
+        raise ValueError(f"Coordinates object has no attribute '{attr}'.")
+
+    def __getitem__(self, key):
+        return Coordinates(
+            time=self._time[key],
+            phi=self._phi[key],
+            theta=self._theta[key],
+            earth_location=self.earth_location,
+            frame=self.frame,
+        )
+
+    @property
     def timestep(self):
         if len(self.time):
             return np.mean(np.gradient(self.time))
@@ -277,15 +297,19 @@ class Coordinates:
 
         return summary
 
+    @property
+    def xyz(self):
+        return np.concatenate(
+            [self.x[..., None], self.y[..., None], self.z[..., None]], axis=-1
+        )
+
     def project(self, z, frame="az_el"):
-        # if not ((h is None) ^ (z is None)):
-        #     raise ValueError("You must specify exactly one of 'h' or 'z'.")
 
         phi = getattr(self, frames[frame]["phi"])
         theta = getattr(self, frames[frame]["theta"])
 
         tan_theta = np.tan(theta)[..., None]
-        p = (z - self.z) * np.concatenate(
+        p = (z - self.z)[..., None] * np.concatenate(
             [
                 np.cos(phi)[..., None] / tan_theta,
                 np.sin(phi)[..., None] / tan_theta,
@@ -294,7 +318,7 @@ class Coordinates:
             axis=-1,
         )
 
-        return p + np.c_[self.x, self.y, self.z][None]
+        return p + self.xyz
 
     def compute_points(self):
         return phi_theta_to_xyz(self._phi, self._theta)
@@ -314,25 +338,6 @@ class Coordinates:
             theta=theta.compute(),
             earth_location=self.earth_location,
             frame=frame,
-        )
-
-    def __getitem__(self, i):
-        """
-        TODO: error handling for slicing
-        """
-        if not isinstance(i, tuple):
-            i = tuple(
-                [
-                    i,
-                ],
-            )  # noqa
-        *_, time_slice = i
-        return Coordinates(
-            time=self.time[time_slice],
-            phi=self._phi[i],
-            theta=self._theta[i],
-            earth_location=self.earth_location,
-            frame=self.frame,
         )
 
     def offsets(self, frame, center="auto", units="radians"):
@@ -360,9 +365,7 @@ class Coordinates:
         lat = self.earth_location.lat.deg
 
         date_string = (
-            datetime.fromtimestamp(np.mean(self.time))
-            .astimezone(pytz.utc)
-            .strftime("%Y %h %-d %H:%M:%S")
+            arrow.get(np.mean(self.time)).to("utc").format(DEFAULT_TIME_FORMAT)
         )
 
         return f"Coordinates(shape={self.shape}, earth_location=({repr_lat_lon(lat, lon)}), time='{date_string} UTC')"
