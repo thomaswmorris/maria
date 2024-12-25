@@ -11,9 +11,8 @@ import pandas as pd
 from scipy.spatial import ConvexHull
 from scipy.spatial.distance import cdist
 
-from ...io import flatten_config, read_yaml
 from ...units import Angle
-from ...utils import compute_diameter
+from ...utils import compute_diameter, flatten_config, read_yaml
 from ..band import BandList
 from ..beam import compute_angular_fwhm
 from ..detectors import Detectors

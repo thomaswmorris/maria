@@ -10,8 +10,8 @@ import pandas as pd
 from astropy.coordinates import EarthLocation
 from matplotlib import pyplot as plt
 
-from ..io import fetch, read_yaml
-from ..utils import repr_lat_lon
+from ..io import fetch
+from ..utils import repr_lat_lon, read_yaml
 
 here, this_filename = os.path.split(__file__)
 
@@ -40,8 +40,11 @@ REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude"]
 supported_regions_table = pd.read_csv(f"{here}/regions.csv", index_col=0)
 all_regions = list(supported_regions_table.index.values)
 
-height_map = hp.fitsfunc.read_map(fetch("world_heightmap.fits")).astype(np.uint16)
-height_map = 32 * np.where(height_map < 255, height_map, np.nan)
+
+def get_height_map():
+    height_map = hp.fitsfunc.read_map(fetch("world_heightmap.fits")).astype(np.uint16)
+    height_map = 32 * np.where(height_map < 255, height_map, np.nan)
+    return height_map
 
 
 class InvalidRegionError(Exception):
@@ -130,6 +133,8 @@ class Site:
         )
 
     def plot(self, res=0.025):
+
+        height_map = get_height_map()
 
         kwargs = {
             "rot": (self.longitude, self.latitude),

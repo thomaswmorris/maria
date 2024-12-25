@@ -10,7 +10,7 @@ import pandas as pd
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from ..io import flatten_config, read_yaml
+from ..utils import flatten_config, read_yaml
 from ..units import Angle
 from .array import Array, ArrayList
 from .band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa

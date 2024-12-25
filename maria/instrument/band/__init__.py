@@ -10,7 +10,7 @@ import pandas as pd
 import scipy as sp
 
 from ...functions import planck_spectrum
-from ...io import flatten_config, read_yaml
+from ...utils import flatten_config, read_yaml
 from ...spectrum import AtmosphericSpectrum
 from ...units import Calibration
 from ...constants import T_CMB, c, k_B

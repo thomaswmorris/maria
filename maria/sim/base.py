@@ -8,7 +8,7 @@ import numpy as np
 
 from ..coords import Coordinates
 from ..instrument import Instrument, get_instrument
-from ..io import read_yaml
+from ..utils import read_yaml
 from ..plan import Plan, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
