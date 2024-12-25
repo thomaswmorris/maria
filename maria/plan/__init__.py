@@ -15,7 +15,7 @@ import pandas as pd
 
 
 from .. import coords
-from ..io import read_yaml
+from ..utils import read_yaml
 from .patterns import get_pattern_generator, patterns
 
 here, this_filename = os.path.split(__file__)

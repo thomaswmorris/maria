@@ -1,40 +1,18 @@
 # this is the junk drawer of functions
 from __future__ import annotations
 
-import arrow
 import numpy as np
 import scipy as sp
 
-from scipy import spatial  # noqa
-
-
-def get_utc_day_hour(t):
-    a = arrow.get(t).to("utc")
-    return a.hour + a.minute / 60 + a.second / 3600
-
-
-def get_utc_year_day(t):
-    return int(arrow.get(t).to("utc").format("DDD")) + get_utc_day_hour(t) / 24 - 1
-
-
-def get_utc_year(t):
-    return arrow.get(t).to("utc").year
+from .io import *  # noqa
+from .linalg import *  # noqa
+from .signal import *  # noqa
+from .time import *  # noqa
+from .coords import *  # noqa
 
 
 # def now():
 #     return ttime.time()
-
-
-def repr_dms(x):
-    mnt, sec = divmod(abs(x) * 3600, 60)
-    deg, mnt = divmod(mnt, 60)
-    return f"{int(deg)}°{int(mnt)}'{int(sec)}\""
-
-
-def repr_lat_lon(lat, lon):
-    lat_repr = repr_dms(lat) + ("N" if lat > 0 else "S")
-    lon_repr = repr_dms(lon) + ("E" if lon > 0 else "W")
-    return f"{lat_repr}, {lon_repr}"
 
 
 def generate_power_law_noise(n: tuple = (256, 256), cutoff=1e0, beta=None):
