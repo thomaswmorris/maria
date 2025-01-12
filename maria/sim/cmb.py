@@ -3,7 +3,6 @@ from __future__ import annotations
 import dask.array as da
 import healpy as hp
 import numpy as np
-import scipy as sp
 from tqdm import tqdm
 
 from ..functions import planck_spectrum, inverse_rayleigh_jeans_spectrum
@@ -13,27 +12,25 @@ from ..constants import T_CMB, k_B
 class CMBMixin:
     def _simulate_cmb_emission(self):
 
-        pixel_index = hp.ang2pix(
-            nside=self.cmb.nside,
-            phi=self.coords.l,
-            theta=np.pi / 2 - self.coords.b,
-        ).compute()  # noqa
-        cmb_temperatures = self.cmb.T[pixel_index]
+        cmb_anisotropies_uK = T_CMB + self.cmb.data[:, 0, 0]
+
+        T_lo = cmb_anisotropies_uK.min().compute()
+        T_hi = cmb_anisotropies_uK.max().compute()
+
+        test_cmb_anisotropies_uK = np.array([T_lo, T_hi])  # noqa
 
         test_nu = np.linspace(1e0, 5e2, 256)
-
-        cmb_temperature_samples_K = T_CMB + np.linspace(
-            self.cmb.T.min(),
-            self.cmb.T.max(),
-            3,
-        )  # noqa
         cmb_brightness = planck_spectrum(
-            cmb_temperature_samples_K[:, None],
+            T_CMB + 1e-6 * test_cmb_anisotropies_uK[:, None],
             1e9 * test_nu,
         )
 
-        self.data["cmb"] = da.zeros_like(
-            np.empty((self.instrument.dets.n, self.plan.n_time)),
+        cmb_rj_spectrum = inverse_rayleigh_jeans_spectrum(
+            cmb_brightness, nu=1e9 * test_nu
+        )
+
+        self.data["cmb"] = da.zeros(
+            shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype
         )
 
         bands_pbar = tqdm(
@@ -48,14 +45,21 @@ class CMBMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
-            T_RJ = inverse_rayleigh_jeans_spectrum(cmb_brightness, nu=1e9 * test_nu)
-            band_cmb_power_samples_pW = (
+            flat_band_pixel_index = hp.ang2pix(
+                nside=self.cmb.nside,
+                phi=self.coords.l[band_mask],
+                theta=np.pi / 2 - self.coords.b[band_mask],
+            ).ravel()  # noqa
+            P_lo, P_hi = (
                 1e12
                 * k_B
-                * np.trapezoid(y=T_RJ * band.passband(test_nu), x=1e9 * test_nu)
-            )
-
-            self.data["cmb"][band_mask] = sp.interpolate.interp1d(
-                cmb_temperature_samples_K,
-                band_cmb_power_samples_pW,
-            )(T_CMB + cmb_temperatures[band_mask])
+                * np.trapezoid(
+                    y=cmb_rj_spectrum * band.passband(test_nu), x=1e9 * test_nu
+                )
+            )  # noqa
+            band_cmb_power_map = (cmb_anisotropies_uK - T_lo) * (P_hi - P_lo) / (
+                T_hi - T_lo
+            ) + P_lo
+            self.data["cmb"][band_mask] = band_cmb_power_map[:, flat_band_pixel_index][
+                0
+            ].reshape(band_mask.sum(), -1)

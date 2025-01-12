@@ -12,7 +12,7 @@ from tqdm import tqdm
 from .base import BaseSimulation
 
 from ..atmosphere import Atmosphere
-from ..cmb import CMB, generate_cmb, get_cmb
+from ..cmb import CMB, generate_cmb, get_cmb, DEFAULT_CMB_KWARGS
 from ..errors import PointingError
 from ..instrument import Instrument
 from ..map import Map
@@ -77,12 +77,67 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         self.noise = noise
 
         self.atmosphere_kwargs = atmosphere_kwargs
-        self.cmb_kwargs = cmb_kwargs
+
+        self.cmb_kwargs = DEFAULT_CMB_KWARGS.copy()
+        self.cmb_kwargs.update(cmb_kwargs)
+
         self.map_kwargs = map_kwargs
         self.noise_kwargs = noise_kwargs
 
         self.start = arrow.get(self.boresight.time.min()).to("utc")
         self.end = arrow.get(self.boresight.time.max()).to("utc")
+
+        if atmosphere:
+            el_min = np.atleast_1d(self.coords.el).min().compute()
+            if el_min < np.radians(MIN_ELEVATION_WARN):
+                logger.warning(
+                    f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon"
+                    f"(el_min = {np.degrees(el_min):.01f}°)",
+                )
+            if el_min <= np.radians(MIN_ELEVATION_ERROR):
+                raise PointingError(
+                    f"Some detectors come within {MIN_ELEVATION_ERROR} degrees of the horizon"
+                    f"(el_min = {np.degrees(el_min):.01f}°)",
+                )
+
+            self.weather_kwargs = (
+                self.atmosphere_kwargs.pop("weather")
+                if "weather" in self.atmosphere_kwargs
+                else {}
+            )
+
+            ref_time = ttime.monotonic()
+
+            self.atmosphere = Atmosphere(
+                model=atmosphere,
+                timestamp=self.plan.time.mean(),
+                region=self.site.region,
+                altitude=self.site.altitude,
+                weather_kwargs=self.weather_kwargs,
+                **self.atmosphere_kwargs,
+            )
+
+            # give it the simulation, so that it knows about pointing, site, etc.
+            # kind of cursed
+            self.atmosphere.initialize(self)
+
+            duration = ttime.monotonic() - ref_time
+            logger.info(f"Initialized atmosphere in {int(1e3 * duration)} ms.")
+            ref_time = ttime.monotonic()
+
+        if cmb:
+
+            if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
+                for _ in tqdm(
+                    range(1),
+                    desc=f"Generating CMB (nside={self.cmb_kwargs['nside']})",
+                    disable=self.disable_progress_bars,
+                ):
+                    self.cmb = generate_cmb(**self.cmb_kwargs)
+            elif cmb in ["real", "planck"]:
+                self.cmb = get_cmb(**self.cmb_kwargs)
+            else:
+                raise ValueError(f"Invalid value for cmb: '{cmb}'.")
 
         if map:
             if len(map.t) > 1:
@@ -100,55 +155,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                     )
 
             self.map = map.to(units="K_RJ")
-
-        if atmosphere:
-            el_min = np.atleast_1d(self.coords.el).min().compute()
-            if el_min < np.radians(MIN_ELEVATION_WARN):
-                logger.warning(
-                    f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon"
-                    f"(el_min = {np.degrees(el_min):.01f}°)",
-                )
-            if el_min <= np.radians(MIN_ELEVATION_ERROR):
-                raise PointingError(
-                    f"Some detectors come within {MIN_ELEVATION_ERROR} degrees of the horizon"
-                    f"(el_min = {np.degrees(el_min):.01f}°)",
-                )
-
-            weather_kwargs = (
-                atmosphere_kwargs.pop("weather")
-                if "weather" in atmosphere_kwargs
-                else {}
-            )
-
-            ref_time = ttime.monotonic()
-
-            self.atmosphere = Atmosphere(
-                model=atmosphere,
-                timestamp=self.plan.time.mean(),
-                region=self.site.region,
-                altitude=self.site.altitude,
-                weather_kwargs=weather_kwargs,
-                **atmosphere_kwargs,
-            )
-
-            # give it the simulation, so that it knows about pointing, site, etc.
-            # kind of cursed
-            self.atmosphere.initialize(self)
-
-            duration = ttime.monotonic() - ref_time
-            logger.info(f"Initialized atmosphere in {int(1e3 * duration)} ms.")
-            ref_time = ttime.monotonic()
-
-        if cmb:
-            if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
-                for _ in tqdm(
-                    range(1), desc="Generating CMB", disable=self.disable_progress_bars
-                ):
-                    self.cmb = generate_cmb(**cmb_kwargs)
-            elif cmb in ["real", "planck"]:
-                self.cmb = get_cmb(**cmb_kwargs)
-            else:
-                raise ValueError(f"Invalid value for cmb: '{cmb}'.")
 
     def _run(self):
         if hasattr(self, "atmosphere"):

@@ -68,7 +68,7 @@ class ProjectedMap(Map):
 
         if len(self.nu) != self.n_nu:
             raise ValueError(
-                f"Number of supplied nuuencies ({len(self.nu)}) does not match the "
+                f"Number of supplied frequencies ({len(self.nu)}) does not match the "
                 f"nu dimension of the supplied map ({self.n_nu}).",
             )
 
@@ -105,10 +105,19 @@ class ProjectedMap(Map):
         return f"ProjectedMap({', '.join(parts)})"
 
     @property
-    def weight(self):
-        return (
-            self._weight if self._weight is not None else np.ones(shape=self.data.shape)
-        )
+    def package(self):
+        package_keys = [
+            "data",
+            "weight",
+            "stokes",
+            "nu",
+            "t",
+            "resolution",
+            "center",
+            "frame",
+            "units",
+        ]
+        return {"degrees": False, **{k: getattr(self, k) for k in package_keys}}
 
     @property
     def width(self):
@@ -181,6 +190,33 @@ class ProjectedMap(Map):
             overwrite=True,
         )
 
+    def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False):
+
+        if not (sigma is None) ^ (fwhm is None):
+            raise ValueError("You must supply exactly one of 'sigma' or 'fwhm'.")
+
+        sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
+        sigma_pixels = sigma / self.resolution
+        data = sp.ndimage.gaussian_filter(
+            self.data, sigma=(0, 0, 0, sigma_pixels, sigma_pixels)
+        )
+
+        if inplace:
+            self.data = data
+
+        else:
+            return type(self)(
+                data=data,
+                weight=self.weight,
+                resolution=self.resolution,
+                t=self.t,
+                nu=self.nu,
+                center=self.center,
+                frame=self.frame,
+                degrees=False,
+                units=self.units,
+            )
+
     def downsample(self, shape):
         zoom_factor = np.array(shape) / self.data.shape
 
@@ -208,7 +244,6 @@ class ProjectedMap(Map):
 
     def plot(
         self,
-        filepath=None,
         nu_index=None,
         t_index=None,
         stokes="I",
@@ -216,6 +251,7 @@ class ProjectedMap(Map):
         rel_vmin=0.001,
         rel_vmax=0.999,
         subplot_size=3,
+        filepath=None,
     ):
 
         stokes_index = self.stokes.index(stokes)
@@ -268,8 +304,8 @@ class ProjectedMap(Map):
         w = self.weight.ravel()
         subset = np.random.choice(d.size, size=10000)
         vmin, vmax = np.nanquantile(
-            d[subset],
-            weights=w[subset],
+            d[subset].compute(),
+            weights=w[subset].compute(),
             q=[rel_vmin, rel_vmax],
             method="inverted_cdf",
         )

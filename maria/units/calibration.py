@@ -68,7 +68,11 @@ def spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature(
     return inverse_rayleigh_jeans_spectrum(I_nu=I_nu, nu=nu)
 
 
-def cmb_temperature_anisotropy_to_radiant_flux_slope(passband: dict, eps: float = 1e-3):
+def cmb_temperature_anisotropy_to_radiant_flux_slope(
+    passband: dict,
+    eps: float = 1e-3,
+    **kwargs,
+):
     test_T_b = T_CMB + np.array([[-eps / 2], [+eps / 2]])
     T_RJ = inverse_rayleigh_jeans_spectrum(
         planck_spectrum(T_b=test_T_b, nu=passband["nu"]), nu=passband["nu"]
@@ -78,7 +82,9 @@ def cmb_temperature_anisotropy_to_radiant_flux_slope(passband: dict, eps: float 
 
 
 def cmb_temperature_anisotropy_to_rayleigh_jeans_temperature(
-    delta_T: float, passband: dict
+    delta_T: float,
+    passband: dict,
+    **kwargs,
 ):
     dP_dTCMB = cmb_temperature_anisotropy_to_radiant_flux_slope(passband=passband)
     return radiant_flux_to_rayleigh_jeans_temperature(
@@ -87,7 +93,9 @@ def cmb_temperature_anisotropy_to_rayleigh_jeans_temperature(
 
 
 def rayleigh_jeans_temperature_to_cmb_temperature_anisotropy(
-    T_RJ: float, passband: dict
+    T_RJ: float,
+    passband: dict,
+    **kwargs,
 ):
     dP_dTCMB = cmb_temperature_anisotropy_to_radiant_flux_slope(passband=passband)
     return (
@@ -147,11 +155,16 @@ class Calibration:
         self.signature = signature
         self.kwargs = kwargs
 
-        for key, value in kwargs.items():
+        for key in kwargs:
             if key not in ["nu", "res", "passband"]:
                 raise ValueError(f"Invalid kwarg '{key}'.")
 
     def __call__(self, x) -> float:
+
+        if self.config.loc["quantity", "in"] == self.config.loc["quantity", "out"]:
+            factor = self.config.loc["factor", "in"] / self.config.loc["factor", "out"]
+            return factor * x
+
         return (
             self.K_RJ_to_out(
                 self.in_to_K_RJ(x * self.in_factor, **self.kwargs), **self.kwargs

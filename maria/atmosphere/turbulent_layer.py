@@ -295,7 +295,7 @@ class TurbulentLayer:
             dtype=np.float32,
         )
 
-        self.shaped_values = da.from_array(self.shaped_values)
+        self.shaped_values = da.asarray(self.shaped_values)
 
         self.atmosphere_detector_points = (
             self.detector_offsets[:, None] + self.boresight_angular_position[None]

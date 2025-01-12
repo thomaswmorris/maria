@@ -67,9 +67,9 @@ def get_rotation_matrix(**rotations):
     R = np.eye(3)
     for axis, angle in rotations.items():
         i, j = (index for dim, index in dims.items() if dim != axis)
-        S = np.zeros((3, 3))
-        S[i, j] = angle
-        R = sp.linalg.expm(S - S.T) @ R
+        S = np.zeros((*np.shape(angle), 3, 3))
+        S[..., i, j] = angle
+        R = sp.linalg.expm(S - np.swapaxes(S, -2, -1)) @ R
     return R
 
 
