@@ -5,7 +5,6 @@ import logging
 import time as ttime
 
 import arrow
-import dask
 
 import dask.array as da
 import numpy as np
@@ -97,9 +96,9 @@ class Coordinates:
             ["x", "y", "z", "r", "phi", "theta", "time"],
             np.broadcast_arrays(x, y, z, r, phi, theta, time),
         ):
-            if not isinstance(value, dask.array.Array):
-                value = da.from_array(value)
-            setattr(self, f"_{attr}", value)
+            # if not isinstance(value, dask.array.Array):
+            #     value = da.asarray(value)
+            setattr(self, f"_{attr}", da.asarray(value))
 
         setattr(self, frames[self.frame]["phi"], self._phi)
         setattr(self, frames[self.frame]["theta"], self._theta)

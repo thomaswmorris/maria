@@ -258,7 +258,7 @@ class Atmosphere:
                 desc=None,
             )  # desc=f"Generating atmosphere ({process_number + 1}/{len(self.processes)})")
 
-        self.zenith_scaled_pwv = da.from_array(np.zeros(pp.shape[:-1]))
+        self.zenith_scaled_pwv = da.zeros(shape=pp.shape[:-1])
 
         with tqdm(total=len(self.layers), desc="Sampling turbulence") as pbar:
             for k, process in self.processes.items():

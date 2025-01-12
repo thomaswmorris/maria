@@ -53,7 +53,7 @@ class TOD:
         for field, field_data in data.items():
             D = field_data.data if isinstance(field_data, Field) else field_data
             if distributed and not isinstance(D, da.Array):
-                D = da.from_array(D)
+                D = da.asarray(D)
 
             if D.ndim != 2:
                 raise ValueError("Only two-dimensional TODs are currently supported.")

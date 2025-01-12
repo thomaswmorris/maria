@@ -240,7 +240,7 @@ class ProcessExtrusion:
                 f"A large covariance matrix (n_side={self.n_sample}) will be generated; inverting these matrices is very expensive.",  # noqa
             )
 
-        self.points = da.from_array(points)
+        self.points = da.asarray(points)
 
     def compute_covariance_matrices(self):
         # edge-edge upper {i,j}
@@ -341,4 +341,4 @@ class ProcessExtrusion:
             ] + self.B @ np.random.standard_normal(size=self.n_live_edge)
             BUFFER[buffer_index] = new_values
 
-        self.values = da.from_array(BUFFER[: self.n_extrusion])
+        self.values = da.asarray(BUFFER[: self.n_extrusion])

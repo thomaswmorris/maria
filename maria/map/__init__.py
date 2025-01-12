@@ -8,6 +8,7 @@ from astropy.io import fits
 
 from .base import Map
 from .projected import ProjectedMap  # noqa
+from .healpix import HEALPixMap  # noqa
 
 from matplotlib.colors import ListedColormap
 import matplotlib as mpl
