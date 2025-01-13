@@ -4,8 +4,10 @@ import logging
 
 import numpy as np
 import scipy as sp
+import time as ttime
 
 from .. import utils
+from ..utils import human_time, remove_slope
 from .tod import TOD
 
 logger = logging.getLogger("maria")
@@ -24,8 +26,8 @@ OPERATION_KWARGS = {
     "remove_modes": {
         "modes_to_remove": {"dtype": list, "aliases": ["modes_to_remove"]},
     },
-    "despline": {
-        "knot_spacing": {"dtype": float, "aliases": ["despline_knot_spacing"]},
+    "remove_spline": {
+        "knot_spacing": {"dtype": float, "aliases": ["remove_spline_knot_spacing"]},
         "order": {"dtype": int, "aliases": ["depline_order"]},
     },
 }
@@ -34,17 +36,22 @@ OPERATION_KWARGS = {
 def process_operation_kwargs(**kwargs):  # lol
     config = {}
 
-    for subprocess, subprocess_params in OPERATION_KWARGS.items():
-        subconfig = {}
+    for operation, operation_params in OPERATION_KWARGS.items():
 
-        for key, param in subprocess_params.items():
+        if operation not in OPERATION_KWARGS:
+            raise ValueError(
+                f'Invalid operation "{operation}". Valid operations are {OPERATION_KWARGS.keys()}.'
+            )
+
+        subconfig = {}
+        for key, param in operation_params.items():
             for kwarg in list(kwargs.keys()):
                 if kwarg in param["aliases"]:
                     subconfig[key] = kwargs.pop(kwarg)
                     continue
 
         if subconfig:
-            config[subprocess] = subconfig
+            config[operation] = subconfig
 
     if len(kwargs) > 0:
         raise ValueError(f"Invalid kwargs for TOD processing: {kwargs}.")
@@ -87,11 +94,20 @@ def process_tod(tod, config=None, **kwargs):
     W = np.ones(D.shape)
 
     if "window" in config:
+        window_start_s = ttime.monotonic()
         window_function = getattr(sp.signal.windows, config["window"]["name"])
         W *= window_function(D.shape[-1], **config["window"].get("kwargs", {}))
-        D = W * sp.signal.detrend(D, axis=-1)
+        D *= W
+        logger.debug(
+            f'Completed tod operation "window" in {human_time(ttime.monotonic() - window_start_s)}.'
+        )
 
     if "filter" in config:
+
+        filter_start_s = ttime.monotonic()
+
+        D = remove_slope(D)
+
         if "window" not in config:
             logger.warning("Filtering without windowing is not recommended.")
 
@@ -113,21 +129,38 @@ def process_tod(tod, config=None, **kwargs):
                 method="bessel",
             )
 
+        logger.debug(
+            f'Completed tod operation "filter" in {human_time(ttime.monotonic() - filter_start_s)}.'
+        )
+
     if "remove_modes" in config:
+
+        remove_modes_start_s = ttime.monotonic()
 
         modes_to_remove = config["remove_modes"]["modes_to_remove"]
         A, B = utils.signal.decompose(D, k=np.max(modes_to_remove) + 1)
         D -= A[:, modes_to_remove] @ B[modes_to_remove]
 
-    if "despline" in config:
+        logger.debug(
+            f'Completed tod operation "remove_modes" in {human_time(ttime.monotonic() - remove_modes_start_s)}.'
+        )
+
+    if "remove_spline" in config:
+
+        remove_spline_start_s = ttime.monotonic()
+
         B = utils.signal.get_bspline_basis(
             tod.time,
-            spacing=config["despline"]["knot_spacing"],
-            order=config["despline"].get("order", 3),
+            spacing=config["remove_spline"]["knot_spacing"],
+            order=config["remove_spline"].get("order", 3),
         )
 
         A = np.linalg.inv(B @ B.T) @ B @ D.T
         D -= A.T @ B
+
+        logger.debug(
+            f'Completed tod operation "remove_spline" in {human_time(ttime.monotonic() - remove_spline_start_s)}.'
+        )
 
     ptod = TOD(
         data={"total": D},
@@ -136,6 +169,7 @@ def process_tod(tod, config=None, **kwargs):
         units=tod.units,
         dets=tod.dets,
         dtype=np.float32,
+        metadata=tod.metadata,
     )
 
     ptod.processing_config = config

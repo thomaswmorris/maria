@@ -77,15 +77,34 @@ def generate_layers(
 
     h_centers = (h_boundaries[1:] + h_boundaries[:-1]) / 2
 
-    w = sim.atmosphere.weather(altitude=sim.site.altitude + h_centers)
+    weather = sim.atmosphere.weather
 
-    layers = pd.DataFrame(w)
+    weather_values = weather(altitude=sim.site.altitude + h_centers)
+
+    layers = pd.DataFrame(weather_values)
     layers.insert(0, "process_index", process_index)
     layers.insert(1, "h", h_centers)
     layers.insert(2, "dh", np.diff(h_boundaries))
     layers.insert(3, "res", res_func(layers.h))
     layers.insert(4, "z", h_centers / np.sin(min_el))
     layers.insert(5, "angular", angular)
+
+    h_boundaries = [0, *(layers.h.values[:-1] + layers.h.values[1:]) / 2, 1e5]
+
+    for layer_index, (h1, h2) in enumerate(zip(h_boundaries[:-1], h_boundaries[1:])):
+
+        dummy_h = sim.site.altitude + np.linspace(h1, h2, 1024)
+        h = weather.altitude
+        w = weather.absolute_humidity
+        total_water = np.trapezoid(np.interp(dummy_h, h, w), x=dummy_h)
+        layers.loc[layer_index, "total_water"] = total_water
+
+    def boundary_layer_profile(h, h_0: float = 1e3, alpha: float = 1 / 7):
+        return np.exp(-h / h_0) * h**alpha
+
+    rel_var = boundary_layer_profile(layers.h.values) ** 2
+    pwv_var = (weather.pwv * sim.atmosphere.pwv_rms_frac) ** 2 * rel_var / sum(rel_var)
+    layers.loc[:, "pwv_rms"] = np.sqrt(pwv_var)
 
     if angular:
         layers.res /= layers.z

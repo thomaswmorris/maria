@@ -23,6 +23,8 @@ from .cmb import CMBMixin
 from .map import MapMixin
 from .noise import NoiseMixin
 
+from ..utils import human_time
+
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
@@ -52,27 +54,25 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         cmb_kwargs: dict = {},
         map_kwargs: dict = {},
         noise_kwargs: dict = {},
-        verbose: bool = True,
+        progress_bars: bool = True,
+        keep_mean_signal: bool = False,
     ):
         # self.parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params, strict=True)
 
-        ref_time = ttime.monotonic()
+        sim_init_start_s = ttime.monotonic()
 
         super().__init__(
-            instrument,
-            plan,
-            site,
-            verbose=verbose,
-            # **self.parsed_sim_kwargs["instrument"],
-            # **self.parsed_sim_kwargs["plan"],
-            # **self
-            # .parsed_sim_kwargs["site"],
+            instrument=instrument,
+            plan=plan,
+            site=site,
+            progress_bars=progress_bars,
+            keep_mean_signal=keep_mean_signal,
         )
 
-        duration = ttime.monotonic() - ref_time
-        ref_time = ttime.monotonic()
-
-        logger.info(f"Initialized base in {int(1e3 * duration)} ms.")
+        logger.debug(
+            f"Initialized generic simulation in {human_time(ttime.monotonic() - sim_init_start_s)}."
+        )
+        base_init_s = ttime.monotonic()
 
         self.noise = noise
 
@@ -84,8 +84,8 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         self.map_kwargs = map_kwargs
         self.noise_kwargs = noise_kwargs
 
-        self.start = arrow.get(self.boresight.time.min()).to("utc")
-        self.end = arrow.get(self.boresight.time.max()).to("utc")
+        self.start = arrow.get(self.boresight.t.min()).to("utc")
+        self.end = arrow.get(self.boresight.t.max()).to("utc")
 
         if atmosphere:
             el_min = np.atleast_1d(self.coords.el).min().compute()
@@ -106,8 +106,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 else {}
             )
 
-            ref_time = ttime.monotonic()
-
             self.atmosphere = Atmosphere(
                 model=atmosphere,
                 timestamp=self.plan.time.mean(),
@@ -117,16 +115,15 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 **self.atmosphere_kwargs,
             )
 
-            # give it the simulation, so that it knows about pointing, site, etc.
-            # kind of cursed
+            # give it the simulation, so that it knows about pointing, site, etc. (kind of cursed)
             self.atmosphere.initialize(self)
 
-            duration = ttime.monotonic() - ref_time
-            logger.info(f"Initialized atmosphere in {int(1e3 * duration)} ms.")
-            ref_time = ttime.monotonic()
+        logger.debug(
+            f"Initialized atmosphere simulation in {human_time(ttime.monotonic() - base_init_s)}."
+        )
+        atmosphere_init_s = ttime.monotonic()
 
         if cmb:
-
             if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
                 for _ in tqdm(
                     range(1),
@@ -138,6 +135,11 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 self.cmb = get_cmb(**self.cmb_kwargs)
             else:
                 raise ValueError(f"Invalid value for cmb: '{cmb}'.")
+
+        logger.debug(
+            f"Initialized CMB simulation in {human_time(ttime.monotonic() - atmosphere_init_s)}."
+        )
+        cmb_init_s = ttime.monotonic()
 
         if map:
             if len(map.t) > 1:
@@ -155,6 +157,23 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                     )
 
             self.map = map.to(units="K_RJ")
+
+        logger.debug(
+            f"Initialized map simulation in {human_time(ttime.monotonic() - cmb_init_s)}."
+        )
+        map_init_s = ttime.monotonic()
+
+        if noise:
+            pass
+
+        logger.debug(
+            f"Initialized noise simulation in {human_time(ttime.monotonic() - map_init_s)}."
+        )
+        # noise_init_s = ttime.monotonic()
+
+        logger.debug(
+            f"Initialized simulation in {human_time(ttime.monotonic() - sim_init_start_s)}."
+        )
 
     def _run(self):
         if hasattr(self, "atmosphere"):

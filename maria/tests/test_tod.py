@@ -22,7 +22,7 @@ def test_tod_functions():
 
     AZIM, ELEV = dx_dy_to_phi_theta(*offsets.T[..., None], azim, elev)
 
-    coords = Coordinates(phi=AZIM, theta=ELEV, time=time, frame="az_el")
+    coords = Coordinates(phi=AZIM, theta=ELEV, t=time, frame="az_el")
 
     noise = generate_noise_with_knee(t=time, n=n, NEP=0.01, knee=0.5)
 
@@ -42,7 +42,7 @@ def test_tod_preprocessing_with_config():
         "window": {"name": "tukey", "kwargs": {"alpha": 0.25}},
         "filter": {"f_lower": 0.5},
         "remove_modes": {"modes_to_remove": [0]},
-        "despline": {"knot_spacing": 0.5},
+        "remove_spline": {"knot_spacing": 0.5},
     }
 
     tod.process(config=pp_config)

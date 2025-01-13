@@ -28,7 +28,7 @@ class Angle:
         for k in UNITS:
             if attr in [k, UNITS[k]["short_name"]]:
                 return self.radians * UNITS[k]["factor"]
-        raise ValueError(f"Angle object has no attribute named '{attr}'.")
+        raise AttributeError(f"Angle object has no attribute named '{attr}'.")
 
     def __float__(self):
         return self.rad

@@ -111,7 +111,7 @@ class Map:
 
         else:
             package = self.package.copy()
-            package.update({"data": data})
+            package.update({"data": data, "units": units})
             return type(self)(**package)
 
     def sample_nu(self, nu):
@@ -133,7 +133,10 @@ class Map:
 
     def power(self, band: Band):
 
-        if self.units_config["quantity"] in ["rayleigh_jeans_temperature"]:
+        if self.units_config["quantity"] in [
+            "rayleigh_jeans_temperature",
+            "spectral_flux_density_per_pixel",
+        ]:
 
             nu_boundaries = [
                 band.nu.min(),

@@ -251,8 +251,8 @@ class Plan:
         pointing_units = "deg." if self.degrees else "rad."
 
         label = (
-            f"""{coords.frames[self.frame]['phi_name']} = {center_phi} {pointing_units}"""
-            f"""{coords.frames[self.frame]['theta_name']} = {center_theta} {pointing_units}"""
+            f"""{coords.frames[self.frame]['phi_short_name']} = {center_phi} {pointing_units}"""
+            f"""{coords.frames[self.frame]['theta_short_name']} = {center_theta} {pointing_units}"""
         )
 
         ax.plot(dx, dy, lw=5e-1)

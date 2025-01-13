@@ -13,6 +13,7 @@ from matplotlib.patches import Patch
 from maria.instrument.beam import compute_angular_fwhm
 from maria.units import Angle, parse_units
 from maria.utils.signal import detrend as detrend_signal
+from maria.utils.signal import remove_slope
 
 from ..units import QUANTITIES, prefixes
 
@@ -45,7 +46,7 @@ def tod_plot(
     colors = cycle(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
     for i, field in enumerate(tod.fields):
-        data = tod.get_field(field)
+        data = tod.data[field]
 
         tod_ax = axes[i, 0]
 
@@ -60,11 +61,12 @@ def tod_plot(
                     np.random.choice(np.arange(len(signal)), max_dets, replace=False)
                 ]
 
-            detrended_signal = detrend_signal(signal, order=1)
             if detrend:
-                signal = detrended_signal
+                signal = detrend_signal(signal, order=1)
 
-            f, ps = sp.signal.periodogram(detrended_signal, fs=tod.fs, window="tukey")
+            f, ps = sp.signal.periodogram(
+                remove_slope(signal.compute()), fs=tod.fs, window="tukey"
+            )
 
             f_bins = np.geomspace(f[1], f[-1], n_freq_bins)
             f_mids = np.sqrt(f_bins[1:] * f_bins[:-1])

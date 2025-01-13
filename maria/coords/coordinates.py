@@ -15,9 +15,10 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from scipy.interpolate import interp1d
+from copy import deepcopy
 
 from ..io import DEFAULT_TIME_FORMAT
-from ..utils import repr_lat_lon
+from ..utils import repr_lat_lon, human_time
 from .transforms import (
     dx_dy_to_phi_theta,
     get_center_phi_theta,
@@ -36,8 +37,10 @@ frames = {
         "astropy_theta": "alt",
         "phi": "az",
         "theta": "el",
-        "phi_name": "azimuth",
-        "theta_name": "elevation",
+        "phi_short_name": "Az.",
+        "theta_short_name": "El.",
+        "phi_long_name": "Azimuth",
+        "theta_long_name": "Elevation",
     },
     "ra_dec": {
         "astropy_name": "icrs",
@@ -45,8 +48,10 @@ frames = {
         "astropy_theta": "dec",
         "phi": "ra",
         "theta": "dec",
-        "phi_name": "Right Ascension",
-        "theta_name": "Declination",
+        "phi_short_name": "RA.",
+        "theta_short_name": "Dec.",
+        "phi_long_name": "Right Ascension",
+        "theta_long_name": "Declination",
     },
     "galactic": {
         "astropy_name": "galactic",
@@ -54,8 +59,10 @@ frames = {
         "astropy_theta": "b",
         "phi": "l",
         "theta": "b",
-        "phi_name": "L",
-        "theta_name": "B",
+        "phi_short_name": "Gal. Lon.",
+        "theta_short_name": "Gal. Lat.",
+        "phi_long_name": "Galactic Longitude",
+        "theta_long_name": "Galactic Latitude",
     },
 }
 
@@ -82,7 +89,7 @@ class Coordinates:
         r: float = 0.0,
         phi: float = 0.0,
         theta: float = 0.0,
-        time: float = DEFAULT_TIMESTAMP,
+        t: float = DEFAULT_TIMESTAMP,
         earth_location: EarthLocation = DEFAULT_EARTH_LOCATION,
         frame: str = "az_el",
         dtype=np.float64,
@@ -93,8 +100,8 @@ class Coordinates:
 
         # DO NOT BROADCAST TIME. IT STAYS ONE-DIMENSIONAL.
         for attr, value in zip(
-            ["x", "y", "z", "r", "phi", "theta", "time"],
-            np.broadcast_arrays(x, y, z, r, phi, theta, time),
+            ["x", "y", "z", "r", "phi", "theta", "t"],
+            np.broadcast_arrays(x, y, z, r, phi, theta, t),
         ):
             # if not isinstance(value, dask.array.Array):
             #     value = da.asarray(value)
@@ -103,44 +110,44 @@ class Coordinates:
         setattr(self, frames[self.frame]["phi"], self._phi)
         setattr(self, frames[self.frame]["theta"], self._theta)
 
-        if hasattr(time, "__len__"):
-            for axis in range(len(self.time.shape) - 1):
-                if (np.ptp(self.time, axis=axis) > 0).any():
+        if hasattr(t, "__len__"):
+            for axis in range(len(self.t.shape) - 1):
+                if (np.ptp(self.t, axis=axis) > 0).any():
                     raise ValueError("Only the last axis can vary in time.")
 
         ref_time = ttime.monotonic()
         self.compute_transforms()
-        duration_ms = 1e3 * (ttime.monotonic() - ref_time)
+        duration_s = ttime.monotonic() - ref_time
         logger.debug(
-            f"Initialized coordinates with shape {self.shape} in {int(duration_ms)} ms.",
+            f"Initialized coordinates with shape {self.shape} in {human_time(duration_s)}.",
         )  # noqa
 
     def compute_transforms(self):
-        self.shaped_time = np.atleast_1d(self.time)
-        keep_dims = (-1,) if hasattr(self.time, "__len__") else ()
-        time_ordered_center_phi_theta = np.c_[
+        self.shaped_t = np.atleast_1d(self.t)
+        keep_dims = (-1,) if hasattr(self.t, "__len__") else ()
+        t_ordered_center_phi_theta = np.c_[
             get_center_phi_theta(self._phi, self._theta, keep_dims=keep_dims)
         ]
 
-        # (nt) time samples on which to explicitly compute the transformation from astropy
-        time_samples_min_res_seconds = 10
-        time_samples_min = np.min(self.time) - 1e0
-        time_samples_max = np.max(self.time) + 1e0
-        n_time_samples = int(
+        # (nt) t samples on which to explicitly compute the transformation from astropy
+        t_samples_min_res_seconds = 10
+        t_samples_min = np.min(self.t) - 1e0
+        t_samples_max = np.max(self.t) + 1e0
+        n_t_samples = int(
             np.maximum(
                 2,
-                (time_samples_max - time_samples_min) / time_samples_min_res_seconds,
+                (t_samples_max - t_samples_min) / t_samples_min_res_seconds,
             ),
         )
-        self.fid_times = np.linspace(time_samples_min, time_samples_max, n_time_samples)
+        self.fid_t = np.linspace(t_samples_min, t_samples_max, n_t_samples)
 
         sample_indices = interp1d(
-            self.shaped_time,
-            np.arange(len(self.shaped_time)),
+            self.shaped_t,
+            np.arange(len(self.shaped_t)),
             bounds_error=False,
             kind="nearest",
             fill_value="extrapolate",
-        )(self.fid_times).astype(int)
+        )(self.fid_t).astype(int)
 
         # three fiducial offsets from the boresight to train a transformation matrix
         # shape: (n_fid, 2)
@@ -154,8 +161,8 @@ class Coordinates:
         self.fid_phi, self.fid_theta = dx_dy_to_phi_theta(
             fid_offsets[..., 0],
             fid_offsets[..., 1],
-            time_ordered_center_phi_theta[:, 0][sample_indices][..., None],
-            time_ordered_center_phi_theta[:, 1][sample_indices][..., None],
+            t_ordered_center_phi_theta[:, 0][sample_indices][..., None],
+            t_ordered_center_phi_theta[:, 1][sample_indices][..., None],
         )
 
         self.fid_skycoords = {
@@ -163,7 +170,7 @@ class Coordinates:
                 self.fid_phi * u.rad,
                 self.fid_theta * u.rad,
                 obstime=Time(
-                    self.fid_times[:, None],
+                    self.fid_t[:, None],
                     format="unix",
                 ),
                 frame=frames[self.frame]["astropy_name"],
@@ -204,13 +211,13 @@ class Coordinates:
             )
 
             transform_stack = interp1d(
-                self.fid_times,
+                self.fid_t,
                 self.transforms[frame],
                 kind="linear",
                 bounds_error=False,
                 fill_value="extrapolate",
                 axis=0,
-            )(self.time)
+            )(self.t)
 
             frame_phi, frame_theta = xyz_to_phi_theta(
                 (np.expand_dims(self.compute_points(), -2) @ transform_stack).squeeze(),
@@ -229,27 +236,31 @@ class Coordinates:
 
     def __getattr__(self, attr):
 
-        if attr == "time":
-            return self._time[tuple(0 for _ in range(self.ndim - 1))].compute()
+        if attr == "t":
+            return self._t[tuple(0 for _ in range(self.ndim - 1))].compute()
 
         if attr in ["x", "y", "z", "r", "phi", "theta"]:
             return getattr(self, f"_{attr}")
 
-        raise ValueError(f"Coordinates object has no attribute '{attr}'.")
+        raise AttributeError(f"Coordinates object has no attribute '{attr}'.")
 
     def __getitem__(self, key):
-        return Coordinates(
-            time=self._time[key],
-            phi=self._phi[key],
-            theta=self._theta[key],
-            earth_location=self.earth_location,
-            frame=self.frame,
+
+        clone = deepcopy(self)
+
+        attrs = ["_x", "_y", "_z", "_r", "_phi", "_theta", "_t"]
+        attrs.extend(
+            [frames[frame][angle] for frame in frames for angle in ["phi", "theta"]]
         )
+        for attr in attrs:
+            setattr(clone, attr, getattr(clone, attr)[key])
+
+        return clone
 
     @property
     def timestep(self):
-        if len(self.time):
-            return np.mean(np.gradient(self.time))
+        if len(self.t):
+            return np.mean(np.gradient(self.t))
         return None
 
     def downsample(self, timestep: float = None, factor: int = None):
@@ -258,12 +269,12 @@ class Coordinates:
 
         timestep = timestep or factor * self.timestep
 
-        ds_time = np.arange(self.time.min(), self.time.max(), timestep)
-        ds_phi = sp.interpolate.interp1d(self.time, self._phi, axis=-1)(ds_time)
-        ds_theta = sp.interpolate.interp1d(self.time, self._theta, axis=-1)(ds_time)
+        ds_t = np.arange(self.t.min(), self.t.max(), timestep)
+        ds_phi = sp.interpolate.interp1d(self.t, self._phi, axis=-1)(ds_t)
+        ds_theta = sp.interpolate.interp1d(self.t, self._theta, axis=-1)(ds_t)
 
         return Coordinates(
-            time=ds_time,
+            t=ds_t,
             phi=ds_phi,
             theta=ds_theta,
             earth_location=self.earth_location,
@@ -275,7 +286,7 @@ class Coordinates:
         cphi, ctheta = get_center_phi_theta(self._phi, self.theta, keep_dims=(-1,))
 
         return Coordinates(
-            time=self.time,
+            t=self.t,
             phi=cphi,
             theta=ctheta,
             earth_location=self.earth_location,
@@ -332,7 +343,7 @@ class Coordinates:
     def broadcast(self, offsets, frame, axis=0):
         phi, theta = dx_dy_to_phi_theta(*offsets.T[..., None], self.az, self.el)
         return Coordinates(
-            time=self.time,
+            t=self.t,
             phi=phi.compute(),
             theta=theta.compute(),
             earth_location=self.earth_location,
@@ -363,8 +374,6 @@ class Coordinates:
         lon = self.earth_location.lon.deg
         lat = self.earth_location.lat.deg
 
-        date_string = (
-            arrow.get(np.mean(self.time)).to("utc").format(DEFAULT_TIME_FORMAT)
-        )
+        date_string = arrow.get(np.mean(self.t)).to("utc").format(DEFAULT_TIME_FORMAT)
 
         return f"Coordinates(shape={self.shape}, earth_location=({repr_lat_lon(lat, lon)}), time='{date_string} UTC')"

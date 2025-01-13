@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from .quantities import parse_units, QUANTITIES
+from ..spectrum import AtmosphericSpectrum
 from ..constants import k_B, T_CMB
 from ..functions.radiometry import (
     rayleigh_jeans_spectrum,
@@ -11,6 +12,7 @@ from ..functions.radiometry import (
     planck_spectrum,
     inverse_planck_spectrum,
 )  # noqa
+
 
 here, this_filename = os.path.split(__file__)
 
@@ -29,20 +31,46 @@ def brightness_temperature_to_rayleigh_jeans_temperature(T_b, nu, **kwargs):
     return inverse_rayleigh_jeans_spectrum(I_nu=I_nu, nu=nu)
 
 
-def rayleigh_jeans_temperature_to_radiant_flux(T_RJ, passband, **kwargs):
+def rayleigh_jeans_temperature_to_radiant_flux(
+    T_RJ, passband, spectrum_kwargs={}, **kwargs
+):
     """
     nu: frequency, in Hz
     passband: response to a Rayleigh-Jeans source
     """
-    return T_RJ * k_B * np.trapezoid(y=passband["tau"], x=passband["nu"])
+
+    if spectrum_kwargs:
+        spectrum = AtmosphericSpectrum(region=spectrum_kwargs["region"])
+        tau = spectrum.opacity(
+            pwv=spectrum_kwargs["pwv"],
+            nu=spectrum_kwargs["nu"],
+            elevation=spectrum_kwargs["elevation"],
+        )
+    else:
+        tau = 0
+
+    return T_RJ * k_B * np.exp(-tau) * np.trapezoid(y=passband["tau"], x=passband["nu"])
 
 
-def radiant_flux_to_rayleigh_jeans_temperature(P, passband, **kwargs):
+def radiant_flux_to_rayleigh_jeans_temperature(
+    P, passband, spectrum_kwargs={}, **kwargs
+):
     """
     nu: frequency, in Hz
     passband: response to a Rayleigh-Jeans source
     """
-    return P / (k_B * np.trapezoid(y=passband["tau"], x=passband["nu"]))
+
+    if spectrum_kwargs:
+        spectrum = AtmosphericSpectrum(region=spectrum_kwargs["region"])
+        tau = spectrum.opacity(
+            pwv=spectrum_kwargs["pwv"],
+            nu=spectrum_kwargs["nu"],
+            elevation=spectrum_kwargs["elevation"],
+        )
+    else:
+        tau = 0
+
+    return P / (np.exp(-tau) * k_B * np.trapezoid(y=passband["tau"], x=passband["nu"]))
 
 
 def rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel(
@@ -156,7 +184,7 @@ class Calibration:
         self.kwargs = kwargs
 
         for key in kwargs:
-            if key not in ["nu", "res", "passband"]:
+            if key not in ["nu", "res", "passband", "spectrum_kwargs"]:
                 raise ValueError(f"Invalid kwarg '{key}'.")
 
     def __call__(self, x) -> float:

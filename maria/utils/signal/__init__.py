@@ -107,3 +107,7 @@ def detrend(D, order=3):
     A = D @ X.T @ np.linalg.inv(X @ X.T).T
 
     return D - A @ X
+
+
+def remove_slope(D):
+    return D - np.linspace(D[..., 0], D[..., -1], D.shape[-1]).T

@@ -37,14 +37,14 @@ def test_complete_sim(instrument, site):
     tod = sim.run()
 
     for field in ["atmosphere", "cmb"]:
-        if np.isnan(tod.get_field(field)).any():
+        if np.isnan(tod.data[field]).any():
             raise ValueError(f"There are NaNs in the '{field}' field.")
 
     tod = tod.to("K_RJ")
 
     tod.plot()
 
-    tod.process(config={"despline": {"knot_spacing": 60}}).twinkle(
+    tod.process(config={"remove_spline": {"knot_spacing": 60}}).twinkle(
         rate=2,
         max_frames=10,
         filename="/tmp/test_twinkle.gif",

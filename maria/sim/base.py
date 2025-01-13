@@ -102,7 +102,7 @@ class BaseSimulation:
         self.data = {}
 
         self.boresight = Coordinates(
-            time=self.plan.time,
+            t=self.plan.time,
             phi=self.plan.phi,
             theta=self.plan.theta,
             earth_location=self.site.earth_location,
@@ -144,12 +144,21 @@ class BaseSimulation:
         # Simulate all the junk
         self._run()
 
+        metadata = {
+            "sim_time": arrow.now(),
+            "altitude": float(self.site.altitude),
+            "region": self.site.region,
+        }
+
+        if hasattr(self, "atmosphere"):
+            metadata["pwv"] = float(np.round(self.atmosphere.weather.pwv, 3))
+
         tod = TOD(
             data=self.data,
             dets=self.instrument.dets,
             coords=self.coords,
             units="pW",
-            metadata={"sim_time": arrow.now()},
+            metadata=metadata,
         )
 
         return tod

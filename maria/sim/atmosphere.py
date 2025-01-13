@@ -61,11 +61,11 @@ class AtmosphereMixin:
 
         self.data["atmosphere"] = da.from_array(
             sp.interpolate.interp1d(
-                self.atmosphere.coords.time,
+                self.atmosphere.coords.t,
                 self.atmosphere.emission,
                 bounds_error=False,
                 fill_value="extrapolate",
-            )(self.coords.time),
+            )(self.coords.t),
         )
 
     def _compute_atmospheric_opacity(self):
@@ -126,10 +126,10 @@ class AtmosphereMixin:
         self.atmospheric_transmission = np.exp(
             -da.from_array(
                 sp.interpolate.interp1d(
-                    self.atmosphere.coords.time,
+                    self.atmosphere.coords.t,
                     self.atmosphere.opacity,
                     bounds_error=False,
                     fill_value="extrapolate",
-                )(self.coords.time),
+                )(self.coords.t),
             ),
         )
