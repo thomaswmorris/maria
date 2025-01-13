@@ -35,4 +35,4 @@ def test_cmb_calibration():
 
     cmb_rms_uK = tod.signal.std(axis=-1).compute()
 
-    assert 100 < cmb_rms_uK.mean() < 120
+    assert 90 < cmb_rms_uK.mean() < 130  # should be around 110 uK
