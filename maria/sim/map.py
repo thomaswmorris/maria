@@ -58,7 +58,7 @@ class MapMixin:
                     bounds_error=False,
                     fill_value=0,
                     method="linear",
-                )((self.boresight.time, dx[band_mask], dy[band_mask]))
+                )((self.boresight.t, dx[band_mask], dy[band_mask]))
 
             else:
                 map_power = sp.interpolate.RegularGridInterpolator(

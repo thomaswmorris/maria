@@ -290,6 +290,7 @@ class Band:
         """
         T_0 = 1e0
         eps = 1e-3
+
         return (self.cal("K_RJ -> W")(T_0 + eps) - self.cal("K_RJ -> W")(T_0)) / eps
 
     @property
@@ -321,9 +322,11 @@ class Band:
         """
         return c / (1e9 * self.center)
 
-    def cal(self, signature: str) -> float:
+    def cal(self, signature: str, **kwargs) -> float:
         return Calibration(
-            signature, passband={"nu": 1e9 * self.nu, "tau": self.efficiency * self.tau}
+            signature,
+            passband={"nu": 1e9 * self.nu, "tau": self.efficiency * self.tau},
+            **kwargs,
         )
 
 
@@ -332,7 +335,7 @@ class BandList(Sequence):
         self.bands = []
 
         if isinstance(bands, BandList):
-            self.bands = bands
+            self.bands = bands.bands
 
         elif isinstance(bands, Mapping):
             for band_name, band_config in bands.items():
@@ -393,7 +396,7 @@ class BandList(Sequence):
             return self.__getitem__(attr)
         if all([hasattr(band, attr) for band in self.bands]):
             return [getattr(band, attr) for band in self.bands]
-        raise AttributeError(f"BandList object has no attribute named '{attr}'.")
+        # raise AttributeError(f"BandList object has no attribute named '{attr}'.")
 
     def __getitem__(self, index):
         if type(index) is int:

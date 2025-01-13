@@ -7,11 +7,13 @@ import arrow
 import dask.array as da
 import numpy as np
 import scipy as sp
+import time as ttime
+
 from tqdm import tqdm
 
 from ..functions import approximate_normalized_matern
 from ..spectrum import AtmosphericSpectrum
-from ..utils import compute_aligning_transform
+from ..utils import compute_aligning_transform, human_time
 from ..weather import Weather
 from .extrusion import ProcessExtrusion, generate_layers
 
@@ -100,8 +102,11 @@ class Atmosphere:
 
         for process_index in tqdm(
             sorted(np.unique(self.layers.process_index)),
-            desc="Building atmosphere",
+            desc="Constructing atmosphere",
         ):
+
+            process_init_s = ttime.monotonic()
+
             in_process = self.layers.process_index == process_index
             process_layers = self.layers.loc[in_process]
 
@@ -177,12 +182,21 @@ class Atmosphere:
             )
             # process_points_for_hull = process_points_for_hull.reshape(-1, 3)
 
+            process_init_s = ttime.monotonic()
+
+            # assert False
+
             transform = compute_aligning_transform(
                 process_points_for_hull.compute(),
                 signature=(True, True, False),
             )
             tp = process_points_for_hull @ transform
             triangulation = sp.spatial.Delaunay(tp[..., 1:])
+
+            logger.debug(
+                f"Computed process bounds in {human_time(ttime.monotonic() - process_init_s)}."
+            )
+            # proc_s = ttime.monotonic()
 
             min_tx, min_ty, min_tz = tp.min(axis=0)
             max_tx, max_ty, max_tz = tp.max(axis=0)
@@ -258,7 +272,7 @@ class Atmosphere:
                 desc=None,
             )  # desc=f"Generating atmosphere ({process_number + 1}/{len(self.processes)})")
 
-        self.zenith_scaled_pwv = da.zeros(shape=pp.shape[:-1])
+        self.zenith_scaled_pwv = self.weather.pwv * da.ones(shape=pp.shape[:-1])
 
         with tqdm(total=len(self.layers), desc="Sampling turbulence") as pbar:
             for k, process in self.processes.items():
@@ -293,10 +307,6 @@ class Atmosphere:
                         smoothed_layer_pwv,
                     )(transformed_lpp[..., :2])
 
-                    self.zenith_scaled_pwv += (
-                        layer_entry.dh
-                        * layer_entry.absolute_humidity
-                        * (1.0 + self.pwv_rms_frac * y)
-                    )
+                    self.zenith_scaled_pwv += layer_entry.pwv_rms * y
 
                     pbar.update(1)

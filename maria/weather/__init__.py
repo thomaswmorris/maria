@@ -136,6 +136,15 @@ class Weather:
 
         self.is_scalar = False
 
+        # handle the overrided parameters
+        if "pwv" in self.override.keys():
+            force_absolute_humidity = (
+                self.override["pwv"] / self.pwv * self.absolute_humidity
+            )
+            self.humidity = absolute_to_relative_humidity(
+                self.temperature, force_absolute_humidity
+            )
+
     @property
     def absolute_humidity(self):
         return relative_to_absolute_humidity(self.temperature, self.humidity)
@@ -154,8 +163,6 @@ class Weather:
 
     @property
     def pwv(self):
-        if "pwv" in self.override.keys():
-            return self.override["pwv"]
         altitude_samples = np.linspace(
             self.base_altitude,
             self.geopotential.max() / g,
@@ -175,4 +182,8 @@ class Weather:
         return res
 
     def __repr__(self):
-        return f"Weather(region={repr(self.region)}, time={self.local_time.format(DEFAULT_TIME_FORMAT)})"
+        parts = []
+        parts.append(f"region={repr(self.region)}")
+        parts.append(f"time={self.local_time.format(DEFAULT_TIME_FORMAT)}")
+        parts.append(f"pwv={self.pwv:.03f}")
+        return f"Weather({', '.join(parts)})"

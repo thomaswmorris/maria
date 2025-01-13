@@ -106,14 +106,14 @@ def compute_aligning_transform(points, signature, axes=None):
             ch = sp.spatial.ConvexHull(tp[..., 1:])
             return np.log(ch.volume)
         else:
-            return np.ptp(tp[..., 1:])
+            return np.log(np.ptp(tp[..., 1:]))
 
     n_axes = sum(signature)
     res = sp.optimize.minimize(
         loss,
         x0=np.zeros(int(n_axes * (n_axes - 1) / 2)),
         args=points.reshape(-1, n_dim),
-        tol=1e-10,
+        tol=1e-3,
         method="SLSQP",
     )
 

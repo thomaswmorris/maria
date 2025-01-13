@@ -18,8 +18,6 @@ from ..instrument import Detectors
 from ..plotting import tod_plot, twinkle_plot
 from ..io import DEFAULT_TIME_FORMAT
 
-from .field import Field
-
 
 logger = logging.getLogger("maria")
 
@@ -36,10 +34,10 @@ class TOD:
         coords: Coordinates = None,
         units: str = "K_RJ",
         dets: Detectors = None,
-        distributed: bool = True,
         dtype: type = np.float32,
         metadata: dict = {},
     ):
+
         self.weight = weight
         self.coords = coords
         self.dets = dets
@@ -51,14 +49,11 @@ class TOD:
         self.data = {}
 
         for field, field_data in data.items():
-            D = field_data.data if isinstance(field_data, Field) else field_data
-            if distributed and not isinstance(D, da.Array):
-                D = da.asarray(D)
 
-            if D.ndim != 2:
+            if field_data.ndim != 2:
                 raise ValueError("Only two-dimensional TODs are currently supported.")
 
-            self.data[field] = Field(D)
+            self.data[field] = da.asarray(field_data)
 
         # sort them alphabetically
         self.data = {k: self.data[k] for k in sorted(list(self.fields))}
@@ -77,19 +72,42 @@ class TOD:
         Convert to a different set of units.
         """
 
+        # make sure that all detectors have a band that the TOD knows about
+        for band_name in np.unique(self.dets.band_name):
+            if band_name not in self.dets.bands.name:
+                raise ValueError(
+                    f"No band defined for detector with band '{band_name}'."
+                )
+
         content = self.content
         for band in self.dets.bands:
-            cal = band.cal(f"{self.units} -> {units}")
 
-            self.dets.band_name == band.name
+            band_mask = self.dets.band_name == band.name
+
+            if band_mask.sum() == 0:
+                continue
+
+            # this is to handle transmission
+            spectrum_kwargs = (
+                {
+                    "nu": band.center,
+                    "region": self.metadata["region"],
+                    "pwv": self.metadata["pwv"],
+                    "elevation": np.degrees(self.el),
+                }
+                if "pwv" in self.metadata
+                else {}
+            )
+
+            cal = band.cal(f"{self.units} -> {units}", spectrum_kwargs=spectrum_kwargs)
 
             for field in self.fields:
-                content["data"][field] = Field(
-                    cal(self.data[field].data.compute()), dtype=self.dtype
-                )
-                # current_scale = cal_data[field].get("scale", 1e0)
-                # cal_data[field]["scale"] = current_scale * cal
+
+                content["data"][field][band_mask] = cal(self.data[field][band_mask])
+
         content["units"] = units
+
+        logger.debug(f'Converted {self} to units "{units}".')
 
         return TOD(**content)
 
@@ -166,7 +184,7 @@ class TOD:
         content.update(
             {
                 "data": {
-                    field: self.get_field(field)[det_mask][..., time_mask]
+                    field: self.data[field][det_mask][..., time_mask]
                     for field in fields
                 },
                 "weight": self.weight[det_mask][..., time_mask],
@@ -179,7 +197,7 @@ class TOD:
 
     @property
     def time(self):
-        return self.coords.time
+        return self.coords.t
 
     @property
     def earth_location(self):
@@ -337,12 +355,9 @@ class TOD:
             **kwargs,
         )
 
-    def get_field(self, field):
-        return self.data[field].data
-
     def __getattr__(self, attr):
         if attr in self.fields:
-            return self.get_field(attr)
+            return self.data[attr]
         raise AttributeError(f"No attribute named '{attr}'.")
 
     def __repr__(self):
