@@ -6,16 +6,13 @@ import astropy.constants as const
 import numpy as np
 from astropy import units as u
 
+from .si import prefixes  # noqa
 from .angle import Angle  # noqa
-from .quantities import parse_units, QUANTITIES, prefixes  # noqa
-from .calibration import Calibration  # noqa
+from .quantities import parse_units, QUANTITIES  # noqa
 from ..constants import T_CMB, c, g, k_B  # noqa
 
-# Kelvin CMB to Jy/pixel
-# ----------------------------------------------------------------------
-symbols = {"radians": "rad"}
-
 here, this_filename = os.path.split(__file__)
+symbols = {"radians": "rad"}
 
 
 def getJynorm():

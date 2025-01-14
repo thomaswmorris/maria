@@ -15,6 +15,7 @@ from ..atmosphere import Atmosphere
 from ..cmb import CMB, generate_cmb, get_cmb, DEFAULT_CMB_KWARGS
 from ..errors import PointingError
 from ..instrument import Instrument
+from ..io import humanize_time
 from ..map import Map
 from ..plan import Plan
 from ..site import Site
@@ -23,7 +24,6 @@ from .cmb import CMBMixin
 from .map import MapMixin
 from .noise import NoiseMixin
 
-from ..utils import human_time
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -70,7 +70,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         )
 
         logger.debug(
-            f"Initialized generic simulation in {human_time(ttime.monotonic() - sim_init_start_s)}."
+            f"Initialized generic simulation in {humanize_time(ttime.monotonic() - sim_init_start_s)}."
         )
         base_init_s = ttime.monotonic()
 
@@ -119,7 +119,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             self.atmosphere.initialize(self)
 
         logger.debug(
-            f"Initialized atmosphere simulation in {human_time(ttime.monotonic() - base_init_s)}."
+            f"Initialized atmosphere simulation in {humanize_time(ttime.monotonic() - base_init_s)}."
         )
         atmosphere_init_s = ttime.monotonic()
 
@@ -137,7 +137,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 raise ValueError(f"Invalid value for cmb: '{cmb}'.")
 
         logger.debug(
-            f"Initialized CMB simulation in {human_time(ttime.monotonic() - atmosphere_init_s)}."
+            f"Initialized CMB simulation in {humanize_time(ttime.monotonic() - atmosphere_init_s)}."
         )
         cmb_init_s = ttime.monotonic()
 
@@ -159,7 +159,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             self.map = map.to(units="K_RJ")
 
         logger.debug(
-            f"Initialized map simulation in {human_time(ttime.monotonic() - cmb_init_s)}."
+            f"Initialized map simulation in {humanize_time(ttime.monotonic() - cmb_init_s)}."
         )
         map_init_s = ttime.monotonic()
 
@@ -167,12 +167,12 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             pass
 
         logger.debug(
-            f"Initialized noise simulation in {human_time(ttime.monotonic() - map_init_s)}."
+            f"Initialized noise simulation in {humanize_time(ttime.monotonic() - map_init_s)}."
         )
         # noise_init_s = ttime.monotonic()
 
         logger.debug(
-            f"Initialized simulation in {human_time(ttime.monotonic() - sim_init_start_s)}."
+            f"Initialized simulation in {humanize_time(ttime.monotonic() - sim_init_start_s)}."
         )
 
     def _run(self):

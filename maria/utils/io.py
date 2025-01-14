@@ -9,27 +9,9 @@ import astropy as ap
 import h5py
 import pandas as pd
 import yaml
-import time as ttime
+
 
 logger = logging.getLogger("maria")
-
-
-def human_time(seconds):
-    if seconds > 1e0:
-        return f"{seconds:.01f}s"
-    if seconds > 1e-3:
-        return f"{1e3 * seconds:.01f}ms"
-    if seconds > 1e-6:
-        return f"{1e6 * seconds:.01f}us"
-    return f"{1e9 * seconds:.01f}ns"
-
-
-def log_duration(ref_time, logger, message, info=False):
-    string = f"{message} in {human_time(ttime.monotonic() - ref_time)}."
-    if info:
-        logger.info(string)
-    else:
-        logger.debug(string)
 
 
 def flatten_config(m: dict, prefix: str = ""):

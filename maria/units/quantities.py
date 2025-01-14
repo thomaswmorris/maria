@@ -3,10 +3,9 @@ import re
 import yaml
 import pandas as pd
 
+from .si import prefixes
 
 here, this_filename = os.path.split(__file__)
-
-prefixes = pd.read_csv(f"{here}/prefixes.csv", index_col=0)
 
 with open(f"{here}/quantities.yml", "r") as f:
     QUANTITIES = (
@@ -16,7 +15,7 @@ with open(f"{here}/quantities.yml", "r") as f:
 prefixes_phrase = "|".join(prefixes.index)
 base_units_phrase = "|".join(QUANTITIES.base_unit.values)
 units_pattern = re.compile(
-    rf"^(?P<prefix>({prefixes_phrase}))?(?P<base_unit>{base_units_phrase})$"
+    rf"^(?P<prefix>({prefixes_phrase}))(?P<base_unit>{base_units_phrase})$"
 )  # noqa
 
 
@@ -32,5 +31,7 @@ def parse_units(u):
         units[attr] = QUANTITIES.set_index("base_unit", drop=False).loc[
             units["base_unit"], attr
         ]
-    units["factor"] = prefixes.loc[units["prefix"]].factor if units["prefix"] else 1e0
+    units["factor"] = prefixes.loc[
+        units["prefix"]
+    ].factor  # if units["prefix"] else 1e0
     return units

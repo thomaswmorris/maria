@@ -10,12 +10,13 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from maria.instrument.beam import compute_angular_fwhm
-from maria.units import Angle, parse_units
-from maria.utils.signal import detrend as detrend_signal
-from maria.utils.signal import remove_slope
+from ..instrument.beam import compute_angular_fwhm
+from ..units import Angle, parse_units
+from ..utils.signal import detrend as detrend_signal
+from ..utils.signal import remove_slope
 
-from ..units import QUANTITIES, prefixes
+from ..units import QUANTITIES
+from ..units import prefixes
 
 
 def tod_plot(
