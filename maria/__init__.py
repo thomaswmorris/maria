@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import logging
 
-from . import utils  # noqa
 from ._version import __version__, __version_tuple__  # noqa
 from .instrument import Band, Instrument, all_instruments, get_instrument  # noqa
 from .map import ProjectedMap  # noqa
