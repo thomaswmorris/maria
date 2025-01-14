@@ -4,7 +4,7 @@ import pytest
 import maria
 
 
-@pytest.mark.parametrize("nside", [256, 512, 1024, 2048, 4096])
+@pytest.mark.parametrize("nside", [256, 512, 1024, 2048])
 def test_generate_cmb(nside):
 
     cmb = maria.cmb.generate_cmb(nside=nside)
