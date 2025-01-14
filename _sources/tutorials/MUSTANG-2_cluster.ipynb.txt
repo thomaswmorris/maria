@@ -34,7 +34,7 @@
     ")\n",
     "\n",
     "input_map.data *= 1e1\n",
-    "input_map.to(units=\"K_RJ\").plot()"
+    "input_map.to(units=\"uK_RJ\").plot()"
    ]
   },
   {
@@ -114,7 +114,7 @@
     "sim = maria.Simulation(\n",
     "    instrument,\n",
     "    plan=plan,\n",
-    "    site=\"llano_de_chajnantor\",\n",
+    "    site=\"green_bank\",\n",
     "    map=input_map,\n",
     "    atmosphere=\"2d\",\n",
     "    cmb=\"generate\",\n",
@@ -136,15 +136,6 @@
    "outputs": [],
    "source": [
     "tod = sim.run()"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "tod.fields"
    ]
   },
   {
@@ -197,12 +188,13 @@
     "    tod_preprocessing={\n",
     "        \"window\": {\"name\": \"hamming\"},\n",
     "        \"remove_modes\": {\"modes_to_remove\": [0]},\n",
-    "        \"despline\": {\"knot_spacing\": 10},\n",
+    "        \"remove_spline\": {\"knot_spacing\": 10},\n",
     "    },\n",
     "    map_postprocessing={\n",
     "        \"gaussian_filter\": {\"sigma\": 1},\n",
     "        \"median_filter\": {\"size\": 1},\n",
     "    },\n",
+    "    units=\"uK_RJ\",\n",
     ")\n",
     "\n",
     "mapper.add_tods(tod)\n",

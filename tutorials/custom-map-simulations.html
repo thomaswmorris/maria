@@ -7,7 +7,7 @@
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Custom map simulations - maria</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -284,12 +284,12 @@
 <h1>Custom map simulations<a class="headerlink" href="#Custom-map-simulations" title="Link to this heading">¶</a></h1>
 <p>In this tutorial we will build a simulation from scratch.</p>
 <p>We start by defining a <code class="docutils literal notranslate"><span class="pre">Band</span></code> that will determine our array’s sensitivity to different spectra. We then generate an array by specifying a field of view, which will be populated by evenly-spaced beams of the given band.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">maria</span>
-<span class="kn">from</span> <span class="nn">maria.instrument</span> <span class="kn">import</span> <span class="n">Band</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">maria.instrument</span><span class="w"> </span><span class="kn">import</span> <span class="n">Band</span>
 
 <span class="n">f090</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span>
     <span class="n">center</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>  <span class="c1"># in GHz</span>
@@ -303,11 +303,19 @@
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/chajnantor.h5: 100%|██████████| 11.4M/11.4M [00:00&lt;00:00, 198MB/s]
+</pre></div></div>
+</div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f090</span><span class="p">,</span> <span class="n">f150</span><span class="p">]}</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f090</span><span class="p">,</span> <span class="n">f150</span><span class="p">]}</span>
 
 <span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="n">array</span><span class="p">)</span>
 
@@ -327,16 +335,21 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.io</span> <span class="kn">import</span> <span class="n">fetch</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch</span>
 
 <span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/big_cluster.fits&quot;</span><span class="p">)</span>
 
 <span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">read_fits</span><span class="p">(</span>
-    <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span>
+    <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
+    <span class="n">nu</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">1e1</span>
-<span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;mK_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -345,7 +358,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_cluster.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 172MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_cluster.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 158MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -361,7 +374,7 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_clus
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Plan</span><span class="p">(</span>
     <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
-    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span>  <span class="c1"># in degrees</span>
+    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">},</span>  <span class="c1"># in degrees</span>
     <span class="n">duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>  <span class="c1"># in seconds</span>
     <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>  <span class="c1"># in Hz</span>
     <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
@@ -398,9 +411,8 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_clus
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2024-12-25 23:55:40.850 INFO: Initialized base in 7663 ms.
-Building atmosphere: 100%|██████████| 6/6 [00:26&lt;00:00,  4.37s/it]
-2024-12-25 23:56:10.073 INFO: Initialized atmosphere in 29185 ms.
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 4.05M/4.05M [00:00&lt;00:00, 193MB/s]
+Constructing atmosphere: 100%|██████████| 6/6 [00:13&lt;00:00,  2.33s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -416,35 +428,36 @@ Building atmosphere: 100%|██████████| 6/6 [00:26&lt;00:00,  
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 89.12it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:08&lt;00:00,  1.35s/it]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:02&lt;00:00,  1.19s/it, band=f150]
-Computing atmospheric opacity: 100%|██████████| 2/2 [00:02&lt;00:00,  1.23s/it, band=f150]
-Sampling map: 100%|██████████| 2/2 [00:28&lt;00:00, 14.44s/it, band=f150]
-Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.79s/it, band=f150]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 406.90it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:07&lt;00:00,  1.33s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:02&lt;00:00,  1.26s/it, band=f150]
+Computing atmospheric opacity: 100%|██████████| 2/2 [00:02&lt;00:00,  1.30s/it, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:29&lt;00:00, 14.61s/it, band=f150]
+Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.80s/it, band=f150]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maria.mappers</span> <span class="kn">import</span> <span class="n">BinMapper</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
     <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
     <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
-    <span class="n">resolution</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="mf">0.25</span> <span class="o">/</span> <span class="mi">200</span><span class="p">,</span>
     <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tukey&quot;</span><span class="p">,</span> <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
-        <span class="s2">&quot;despline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
         <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;modes_to_remove&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
     <span class="p">},</span>
     <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
         <span class="s2">&quot;median_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
     <span class="p">},</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mK_RJ&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">mapper</span><span class="o">.</span><span class="n">add_tods</span><span class="p">(</span><span class="n">tod</span><span class="p">)</span>
@@ -458,8 +471,8 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.7
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Running mapper (f090): 100%|██████████| 1/1 [00:23&lt;00:00, 23.34s/it]
-Running mapper (f150): 100%|██████████| 1/1 [00:23&lt;00:00, 23.17s/it]
+2025-01-14 20:59:55.004 INFO: Ran mapper for band f090 in 39.3 s.
+2025-01-14 21:00:32.056 INFO: Ran mapper for band f150 in 37.1 s.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
