@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from maria import Simulation
-from maria.units import Calibration
+from maria.calibration import Calibration
 
 
 def test_brightness_temperature_to_spectral_flux_density_per_pixel():
@@ -13,7 +13,7 @@ def test_brightness_temperature_to_spectral_flux_density_per_pixel():
     )
 
 
-def test_decalibration():
+def test_involution():
 
     sim = Simulation(
         instrument="MUSTANG-2",
