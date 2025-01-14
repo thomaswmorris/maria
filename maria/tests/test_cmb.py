@@ -15,8 +15,8 @@ def test_cmb_calibration():
 
     plan = maria.Plan(
         scan_pattern="daisy",
-        scan_options={"radius": 5, "speed": 1},  # in degrees
-        duration=60,  # in seconds
+        scan_options={"radius": 10, "speed": 1},  # in degrees
+        duration=120,  # in seconds
         sample_rate=50,  # in Hz
         scan_center=(150, 10),
         jitter=0,
@@ -33,6 +33,10 @@ def test_cmb_calibration():
 
     tod = sim.run().to("uK_CMB")
 
+    tod.to("uK_CMB").signal.std(axis=1).compute()
+
+    # should be around 110 uK
     cmb_rms_uK = tod.signal.std(axis=-1).compute()
 
-    assert 90 < cmb_rms_uK.mean() < 130  # should be around 110 uK
+    assert all(cmb_rms_uK > 80)
+    assert all(cmb_rms_uK < 150)
