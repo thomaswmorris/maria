@@ -15,7 +15,7 @@ We can map a ``TOD`` (or several of them) with a ``Mapper``. The simplest possib
                        resolution=5e-3,
                        tod_preprocessing={
                             "window": {"name": "tukey", "kwargs": {"alpha": 0.1}},
-                            "despline": {"knot_spacing": 5},
+                            "remove_spline": {"knot_spacing": 5},
                             },
                        map_postprocessing={
                             "gaussian_filter": {"sigma": 1},
