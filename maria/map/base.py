@@ -12,7 +12,8 @@ from typing import Iterable
 
 from ..instrument import Band
 from ..constants import k_B
-from ..units import Angle, Calibration, parse_units  # noqa
+from ..calibration import Calibration
+from ..units import parse_units
 
 # from ..plotting import plot_map
 

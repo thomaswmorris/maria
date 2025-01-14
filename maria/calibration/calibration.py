@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from .quantities import parse_units, QUANTITIES
+from ..units import parse_units, QUANTITIES
 from ..spectrum import AtmosphericSpectrum
 from ..constants import k_B, T_CMB
 from ..functions.radiometry import (

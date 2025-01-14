@@ -17,8 +17,8 @@ from astropy.time import Time
 from scipy.interpolate import interp1d
 from copy import deepcopy
 
-from ..io import DEFAULT_TIME_FORMAT
-from ..utils import repr_lat_lon, human_time
+from ..io import humanize_time, DEFAULT_TIME_FORMAT
+from ..utils import repr_lat_lon
 from .transforms import (
     dx_dy_to_phi_theta,
     get_center_phi_theta,
@@ -119,7 +119,7 @@ class Coordinates:
         self.compute_transforms()
         duration_s = ttime.monotonic() - ref_time
         logger.debug(
-            f"Initialized coordinates with shape {self.shape} in {human_time(duration_s)}.",
+            f"Initialized coordinates with shape {self} in {humanize_time(duration_s)}.",
         )  # noqa
 
     def compute_transforms(self):

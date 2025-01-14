@@ -12,7 +12,7 @@ from ..instrument import BandList
 from ..map import ProjectedMap
 from ..tod import TOD
 
-from ..utils import human_time
+from ..io import humanize_time
 
 # np.seterr(invalid="ignore")
 
@@ -93,7 +93,7 @@ class BaseMapper:
             band_start_s = ttime.monotonic()
             self.map_data[band] = self._run(band)
             logger.info(
-                f"Ran mapper for band {band.name} in {human_time(ttime.monotonic() - band_start_s)}."
+                f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}."
             )
 
         map_data = np.zeros((len(self.map_data), 1, self.n_y, self.n_x))
@@ -121,8 +121,12 @@ class BaseMapper:
             map_data[i, :] = band_map_numer / band_map_denom
             map_weight[i, :] = band_map_denom
 
+        map_offsets = np.nansum(map_data * map_weight, axis=(-1, -2)) / map_weight.sum(
+            axis=(-1, -2)
+        )
+
         return ProjectedMap(
-            data=map_data,
+            data=map_data - map_offsets[..., None, None],
             weight=map_weight,
             nu=map_freqs,
             resolution=self.resolution,

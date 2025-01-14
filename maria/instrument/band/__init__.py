@@ -12,7 +12,7 @@ import scipy as sp
 from ...functions import planck_spectrum
 from ...utils import flatten_config, read_yaml
 from ...spectrum import AtmosphericSpectrum
-from ...units import Calibration
+from ...calibration import Calibration
 from ...constants import T_CMB, c, k_B
 
 here, this_filename = os.path.split(__file__)

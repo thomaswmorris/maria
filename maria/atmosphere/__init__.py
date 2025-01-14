@@ -13,7 +13,8 @@ from tqdm import tqdm
 
 from ..functions import approximate_normalized_matern
 from ..spectrum import AtmosphericSpectrum
-from ..utils import compute_aligning_transform, human_time
+from ..utils import compute_aligning_transform
+from ..io import humanize_time
 from ..weather import Weather
 from .extrusion import ProcessExtrusion, generate_layers
 
@@ -22,6 +23,8 @@ here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
 SUPPORTED_MODELS_LIST = ["2d", "3d"]
+
+DEFAULT_ATMOSPHERE_KWARGS = {}
 
 
 class Atmosphere:
@@ -194,7 +197,7 @@ class Atmosphere:
             triangulation = sp.spatial.Delaunay(tp[..., 1:])
 
             logger.debug(
-                f"Computed process bounds in {human_time(ttime.monotonic() - process_init_s)}."
+                f"Computed process bounds in {humanize_time(ttime.monotonic() - process_init_s)}."
             )
             # proc_s = ttime.monotonic()
 

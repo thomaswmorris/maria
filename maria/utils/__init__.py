@@ -1,4 +1,3 @@
-# this is the junk drawer of functions
 from __future__ import annotations
 
 import numpy as np
@@ -9,10 +8,9 @@ from .linalg import *  # noqa
 from .signal import *  # noqa
 from .time import *  # noqa
 from .coords import *  # noqa
+from ..units.si import *  # noqa
 
-
-# def now():
-#     return ttime.time()
+# nothing in here should import from other maria module
 
 
 def generate_power_law_noise(n: tuple = (256, 256), cutoff=1e0, beta=None):

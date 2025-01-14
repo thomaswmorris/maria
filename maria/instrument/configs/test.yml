@@ -4,13 +4,21 @@
   aliases: ["test_1deg"]
   description: A simple test array
   array:
-    field_of_view: 1
+    field_of_view: 0.5
     primary_size: 5
     bands:
+      f090:
+        center: 90
+        width: 30
+        efficiency: 0.6
       f150:
         center: 150
-        width: 30
+        width: 40
         efficiency: 0.5
+      f220:
+        center: 220
+        width: 50
+        efficiency: 0.4
 
 10deg:
   aliases: ["test_10deg"]

@@ -30,6 +30,23 @@ def test_fetch_fits_map(map_name):
     m.plot()
 
 
+@pytest.mark.parametrize(
+    "map_name",
+    ["maps/cluster.fits", "maps/big_cluster.fits", "maps/galaxy.fits"],
+)  # noqa
+def test_map_units_conversion(map_name):
+    map_filename = fetch(map_name)
+    m = maria.map.load(
+        filename=map_filename,
+        nu=90,
+        resolution=1 / 1024,
+        center=(150, 10),
+        units="Jy/pixel",
+    )
+
+    assert np.allclose(m.to("K_RJ").to("Jy/pixel").data, m.data).compute()
+
+
 @pytest.mark.parametrize("map_name", ["maps/sun.h5"])  # noqa
 def test_fetch_hdf_map(map_name):
     map_filename = fetch(map_name)

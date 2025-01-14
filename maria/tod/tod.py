@@ -9,6 +9,7 @@ import logging
 
 import numpy as np
 import scipy as sp
+import time as ttime
 
 from dask import array as da
 from astropy.io import fits
@@ -16,7 +17,7 @@ from astropy.io import fits
 from ..coords import Coordinates
 from ..instrument import Detectors
 from ..plotting import tod_plot, twinkle_plot
-from ..io import DEFAULT_TIME_FORMAT
+from ..io import humanize_time, DEFAULT_TIME_FORMAT
 
 
 logger = logging.getLogger("maria")
@@ -72,6 +73,8 @@ class TOD:
         Convert to a different set of units.
         """
 
+        cal_start_s = ttime.monotonic()
+
         # make sure that all detectors have a band that the TOD knows about
         for band_name in np.unique(self.dets.band_name):
             if band_name not in self.dets.bands.name:
@@ -93,7 +96,7 @@ class TOD:
                     "nu": band.center,
                     "region": self.metadata["region"],
                     "pwv": self.metadata["pwv"],
-                    "elevation": np.degrees(self.el),
+                    "elevation": np.degrees(self.el[band_mask]),
                 }
                 if "pwv" in self.metadata
                 else {}
@@ -107,7 +110,9 @@ class TOD:
 
         content["units"] = units
 
-        logger.debug(f'Converted {self} to units "{units}".')
+        logger.debug(
+            f'Converted {self} to units "{units}" in {humanize_time(ttime.monotonic() - cal_start_s)}.'
+        )
 
         return TOD(**content)
 

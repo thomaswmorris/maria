@@ -7,7 +7,8 @@ import scipy as sp
 import time as ttime
 
 from .. import utils
-from ..utils import human_time, remove_slope
+from ..utils import remove_slope
+from ..io import humanize_time
 from .tod import TOD
 
 logger = logging.getLogger("maria")
@@ -99,7 +100,7 @@ def process_tod(tod, config=None, **kwargs):
         W *= window_function(D.shape[-1], **config["window"].get("kwargs", {}))
         D *= W
         logger.debug(
-            f'Completed tod operation "window" in {human_time(ttime.monotonic() - window_start_s)}.'
+            f'Completed tod operation "window" in {humanize_time(ttime.monotonic() - window_start_s)}.'
         )
 
     if "filter" in config:
@@ -130,7 +131,7 @@ def process_tod(tod, config=None, **kwargs):
             )
 
         logger.debug(
-            f'Completed tod operation "filter" in {human_time(ttime.monotonic() - filter_start_s)}.'
+            f'Completed tod operation "filter" in {humanize_time(ttime.monotonic() - filter_start_s)}.'
         )
 
     if "remove_modes" in config:
@@ -142,7 +143,7 @@ def process_tod(tod, config=None, **kwargs):
         D -= A[:, modes_to_remove] @ B[modes_to_remove]
 
         logger.debug(
-            f'Completed tod operation "remove_modes" in {human_time(ttime.monotonic() - remove_modes_start_s)}.'
+            f'Completed tod operation "remove_modes" in {humanize_time(ttime.monotonic() - remove_modes_start_s)}.'
         )
 
     if "remove_spline" in config:
@@ -159,7 +160,7 @@ def process_tod(tod, config=None, **kwargs):
         D -= A.T @ B
 
         logger.debug(
-            f'Completed tod operation "remove_spline" in {human_time(ttime.monotonic() - remove_spline_start_s)}.'
+            f'Completed tod operation "remove_spline" in {humanize_time(ttime.monotonic() - remove_spline_start_s)}.'
         )
 
     ptod = TOD(

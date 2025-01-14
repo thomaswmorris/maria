@@ -13,7 +13,8 @@ from ..units import Angle
 
 
 from .base import Map
-from ..units import prefixes, QUANTITIES, parse_units
+from ..units import QUANTITIES, parse_units
+from ..units import prefixes
 
 
 here, this_filename = os.path.split(__file__)
