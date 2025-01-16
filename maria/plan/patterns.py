@@ -5,6 +5,27 @@ import pandas as pd
 import scipy as sp
 
 
+def lissajous(
+    time,
+    radius=1.0,
+    speed=None,
+    width=None,
+    height=None,
+    freq_ratio=1.193,
+):  # noqa
+
+    width = width or radius / 2
+    height = height or width
+    speed = speed or width / 10
+
+    freq = speed / np.sqrt((width * freq_ratio) ** 2 + (width) ** 2)
+
+    x = width * np.cos(freq_ratio * freq * time)
+    y = height * np.sin(freq * time)
+
+    return np.stack([x, y])
+
+
 def daisy(
     time,
     radius=1.0,
@@ -13,6 +34,7 @@ def daisy(
     miss_factor=0.15,
     miss_freq=np.sqrt(2),
 ):  # noqa
+
     speed = speed or radius / 5
     phase = time * speed / np.maximum(radius, 1e-6)  # do not divide by zero
 
@@ -35,7 +57,7 @@ def daisy_pattern_miss_center(phase, radius, petals, miss_factor, miss_freq):
 
     z = radius * (inner_z + outer_z)
 
-    return np.real(z), np.imag(z)
+    return np.stack([np.real(z), np.imag(z)])
 
 
 def grid(time, radius=1, speed=None, n=17, turnaround_time=5):  # noqa
@@ -137,12 +159,16 @@ def stare(time):
     return np.zeros(time.shape), np.zeros(time.shape)
 
 
-def double_circle(time, speed=None, radius=1.0, ratio=2.1):
+def double_circle(time, speed=None, radius=1.0, ratio=0.5, freq_ratio=2.1):
+
     speed = speed or radius / 10
     phase = time * speed / np.maximum(radius, 1e-6)  # do not divide by zero
 
-    x_p = radius * (np.sin(phase) + np.sin(phase * (1 + ratio))) / 2
-    y_p = radius * (np.cos(phase) + np.cos(phase * (1 + ratio))) / 2
+    a = 1 / (1 + 1 / ratio)
+    b = a / ratio
+
+    x_p = radius * (a * np.sin(phase) + b * np.sin(phase * freq_ratio))
+    y_p = radius * (a * np.cos(phase) + b * np.cos(phase * freq_ratio))
     return x_p, y_p
 
 
@@ -178,6 +204,7 @@ def get_constant_speed_offsets(
 patterns = {
     "stare": {"aliases": [], "generator": stare},
     "daisy": {"aliases": ["daisy_scan"], "generator": daisy},
+    "lissajous": {"aliases": ["lissajous_box"], "generator": lissajous},
     "raster": {"aliases": [], "generator": raster},
     "back_and_forth": {"aliases": ["back-and-forth"], "generator": back_and_forth},
     "grid": {"aliases": [], "generator": grid},

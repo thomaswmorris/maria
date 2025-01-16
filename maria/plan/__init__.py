@@ -11,10 +11,11 @@ from arrow import Arrow
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy as sp
 import pandas as pd
 
-
 from .. import coords
+from ..units import Angle
 from ..utils import read_yaml
 from .patterns import get_pattern_generator, patterns
 
@@ -92,20 +93,16 @@ class Plan:
     """
 
     def __repr__(self):
-        parts = {}
+        parts = []
         frame = coords.frames[self.frame]
-        center_degrees = np.degrees(self.scan_center_radians)
+        center_degrees = self.scan_center.degrees
 
-        parts["start_time"] = self.start_time.format()
-        parts[f"center[{frame['phi']}, {frame['theta']}]"] = (
-            f"{center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
+        parts.append(f"start_time={self.start_time.format()}")
+        parts.append(
+            f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
         )
-        parts["pattern"] = self.scan_pattern
-        parts["pattern_kwargs"] = self.scan_options
-
-        part_string = ""
-        for k, v in parts.items():
-            part_string += f"{k}={f'{v}' if isinstance(v, str) else v}"
+        parts.append(f"pattern={self.scan_pattern}")
+        parts.append(f"pattern_kwargs={self.scan_options}")
 
         return f"Plan({', '.join(parts)})"
 
@@ -122,6 +119,7 @@ class Plan:
         scan_pattern: str = "daisy",
         scan_options: dict = {},
     ):
+
         self.description = description
         self.start_time = start_time
         self.duration = duration
@@ -129,14 +127,14 @@ class Plan:
         self.frame = frame
         self.degrees = degrees
         self.jitter = jitter
-        self.scan_center = scan_center
+        self.scan_center = Angle(
+            scan_center, units=("degrees" if degrees else "radians")
+        )
         self.scan_pattern = scan_pattern
         self.scan_options = scan_options
 
         if not self.sample_rate > 0:
             raise ValueError("Parameter 'sample_rate' must be greater than zero!")
-
-        self.scan_center = tuple(np.array(self.scan_center))
 
         # for k, v in PLAN_CONFIGS[self.scan_pattern]["scan_options"].items():
         #     if k not in self.scan_options.keys():
@@ -154,74 +152,64 @@ class Plan:
         self.time = np.arange(self.time_min, self.time_max, self.dt)
         self.n_time = len(self.time)
 
-        # convert radius to width / height
-        if "width" in self.scan_options:
-            self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
+        # # convert radius to width / height
+        # if "width" in self.scan_options:
+        #     self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
 
         # this is in pointing_units
-        x_scan_offsets, y_scan_offsets = get_pattern_generator(self.scan_pattern)(
+        scan_offsets = get_pattern_generator(self.scan_pattern)(
             self.time,
             **self.scan_options,
         )
 
-        if self.degrees:
-            self.scan_center_radians = (
-                np.radians(self.scan_center[0]),
-                np.radians(self.scan_center[1]),
-            )
-            x_scan_offsets_radians = np.radians(x_scan_offsets)
-            y_scan_offsets_radians = np.radians(y_scan_offsets)
-        else:
-            self.scan_center_radians = self.scan_center
-            x_scan_offsets_radians = x_scan_offsets
-            y_scan_offsets_radians = y_scan_offsets
+        self.scan_offsets = Angle(
+            scan_offsets, units=("degrees" if degrees else "radians")
+        )
 
-        self.scan_offsets_radians = np.c_[
-            x_scan_offsets_radians,
-            y_scan_offsets_radians,
-        ].T
-
-        scan_velocity_radians = np.gradient(
-            self.scan_offsets_radians,
+        scan_velocity = np.gradient(
+            self.scan_offsets.radians,
             axis=1,
             edge_order=0,
         ) / np.gradient(self.time)
 
-        scan_acceleration_radians = np.gradient(
-            scan_velocity_radians,
+        scan_acceleration = np.gradient(
+            scan_velocity,
             axis=1,
             edge_order=0,
         ) / np.gradient(self.time)
 
-        self.max_vel = np.sqrt(np.sum(scan_velocity_radians**2, axis=0)).max()
-        self.max_acc = np.sqrt(np.sum(scan_acceleration_radians**2, axis=0)).max()
+        self.max_vel_deg = np.degrees(np.sqrt(np.sum(scan_velocity**2, axis=0)).max())
+        self.max_acc_deg = np.degrees(
+            np.sqrt(np.sum(scan_acceleration**2, axis=0)).max()
+        )
 
-        if self.max_vel > MAX_VELOCITY_WARN:
+        if self.max_vel_deg > MAX_VELOCITY_WARN:
             logger.warning(
                 (
-                    f"The maximum velocity of the boresight ({np.degrees(self.max_vel):.01f} deg/s) is "
+                    f"The maximum velocity of the boresight ({self.max_vel_deg:.01f} deg/s) is "
                     "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
                 ),
                 stacklevel=2,
             )
 
-        if self.max_acc > MAX_ACCELERATION_WARN:
+        if self.max_acc_deg > MAX_ACCELERATION_WARN:
             logger.warning(
                 (
-                    f"The maximum acceleration of the boresight ({np.degrees(self.max_acc):.01f} deg/s^2) is "
+                    f"The maximum acceleration of the boresight ({self.max_acc_deg:.01f} deg/s^2) is "
                     "physically unrealistic. If this is undesired, double-check the parameters for your scan strategy."
                 ),
                 stacklevel=2,
             )
 
-        # add 0.1 arcseconds of jitter
-        self.scan_offsets_radians += np.radians(
-            self.jitter,
-        ) * np.random.standard_normal(size=self.scan_offsets_radians.shape)
+        self.scan_offsets.radians += np.radians(
+            self.jitter
+        ) * np.random.standard_normal(
+            size=self.scan_offsets.shape
+        )  # noqa
 
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
-            *self.scan_offsets_radians,
-            *self.scan_center_radians,
+            *self.scan_offsets[:],
+            *self.scan_center,
         )
         if self.frame == "ra_dec":
             self.ra, self.dec = self.phi, self.theta
@@ -231,32 +219,57 @@ class Plan:
             raise ValueError("Not a valid pointing frame!")
 
     def plot(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
 
-        max_scan_offset = np.ptp(self.scan_offsets_radians, axis=1).max()
+        fig, ax = plt.subplots(1, 1, figsize=(4, 4))
 
-        if max_scan_offset < np.radians(0.5 / 60):
-            dx, dy = 3600 * np.degrees(self.scan_offsets_radians)
-            units = "arcsec."
-        elif max_scan_offset < np.radians(0.5):
-            dx, dy = 60 * np.degrees(self.scan_offsets_radians)
-            units = "arcmin."
-        else:
-            dx, dy = np.degrees(self.scan_offsets_radians)
-            units = "deg."
+        frame = coords.frames[self.frame]
+        label = f"{round(self.scan_center.deg[0], 3)}° {frame['phi_short_name']}, {round(self.scan_center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
 
-        center_phi, center_theta = self.scan_center
+        ax.plot(*self.scan_offsets.values, lw=5e-1)
+        ax.scatter(0, 0, c="r", marker="x", label=label)
+        ax.set_xlabel(rf"$\Delta \, \theta_x$ [{self.scan_offsets.units_short}]")
+        ax.set_ylabel(rf"$\Delta \, \theta_y$ [{self.scan_offsets.units_short}]")
+        ax.legend()
 
-        pointing_units = "deg." if self.degrees else "rad."
+    def map_counts(self, instrument=None, x_bins=100, y_bins=100):
 
-        label = (
-            f"""{coords.frames[self.frame]['phi_short_name']} = {center_phi} {pointing_units}"""
-            f"""{coords.frames[self.frame]['theta_short_name']} = {center_theta} {pointing_units}"""
+        array_offsets = (
+            np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
         )
 
-        ax.plot(dx, dy, lw=5e-1)
-        ax.scatter(0, 0, c="r", marker="x", label=label)
-        ax.set_xlabel(rf"$\Delta \, \theta_x$ [{units}]")
-        ax.set_ylabel(rf"$\Delta \, \theta_y$ [{units}]")
-        ax.legend()
+        OFFSETS = self.scan_offsets.radians.T[None] + array_offsets
+
+        xmin, ymin = OFFSETS.min(axis=(0, 1))
+        xmax, ymax = OFFSETS.max(axis=(0, 1))
+
+        if isinstance(x_bins, int):
+            x_bins = np.linspace(xmin, max(xmax, xmin + 1e-6), x_bins + 1)
+        if isinstance(y_bins, int):
+            y_bins = np.linspace(ymin, max(ymax, ymin + 1e-6), y_bins + 1)
+
+        bs = sp.stats.binned_statistic_2d(
+            OFFSETS[..., 1].ravel(),
+            OFFSETS[..., 0].ravel(),
+            0,
+            statistic="count",
+            bins=(y_bins, x_bins),
+        )
+
+        return x_bins, y_bins, bs[0]
+
+    def plot_counts(self, instrument=None, x_bins=100, y_bins=100):
+
+        fig, ax = plt.subplots(1, 1, figsize=(5, 4))
+
+        x, y, counts = self.map_counts(
+            instrument=instrument, x_bins=x_bins, y_bins=y_bins
+        )
+        x = Angle(x)
+        y = Angle(y)
+
+        heatmap = ax.pcolormesh(x.values, y.values, counts, cmap="turbo", vmin=0)
+        ax.set_xlabel(rf"$\Delta \theta_x$ [{x.units_short}]")
+        ax.set_ylabel(rf"$\Delta \theta_y$ [{y.units_short}]")
+
+        cbar = fig.colorbar(heatmap, location="right")
+        cbar.set_label("counts")
