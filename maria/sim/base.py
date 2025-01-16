@@ -5,10 +5,12 @@ import logging
 import os
 
 import numpy as np
+import time as ttime
 
 from ..coords import Coordinates
 from ..instrument import Instrument, get_instrument
 from ..utils import read_yaml
+from ..io import humanize_time
 from ..plan import Plan, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
@@ -64,6 +66,9 @@ class BaseSimulation:
         dtype=np.float32,
         **kwargs,
     ):
+
+        start_init_s = ttime.monotonic()
+
         if hasattr(self, "boresight"):
             return
 
@@ -79,14 +84,20 @@ class BaseSimulation:
                 **parsed_sim_kwargs["instrument"],
             )
 
-        logger.debug("Constructed instrument.")
+        logger.debug(
+            f"Initialized instrument in {humanize_time(ttime.monotonic() - start_init_s)}."
+        )
+        instrument_init_s = ttime.monotonic()
 
         if isinstance(plan, Plan):
             self.plan = plan
         else:
             self.plan = get_plan(plan_name=plan, **parsed_sim_kwargs["plan"])
 
-        logger.debug("Constructed plan.")
+        logger.debug(
+            f"Initialized plan in {humanize_time(ttime.monotonic() - instrument_init_s)}."
+        )
+        plan_init_s = ttime.monotonic()
 
         if isinstance(site, Site):
             self.site = site
@@ -97,9 +108,10 @@ class BaseSimulation:
                 "The passed site must be either a Site object or a string.",
             )
 
-        logger.debug("Constructed site.")
-
-        self.data = {}
+        logger.debug(
+            f"Initialized site in {humanize_time(ttime.monotonic() - plan_init_s)}."
+        )
+        site_init_s = ttime.monotonic()
 
         self.boresight = Coordinates(
             t=self.plan.time,
@@ -109,20 +121,25 @@ class BaseSimulation:
             frame=self.plan.frame,
         )
 
-        logger.debug("Constructed boresight.")
+        logger.debug(
+            f"Initialized boresight in {humanize_time(ttime.monotonic() - site_init_s)}."
+        )
+        boresight_init_s = ttime.monotonic()
 
-        if self.plan.max_vel > np.radians(self.instrument.vel_limit):
+        self.data = {}
+
+        if self.plan.max_vel_deg > self.instrument.vel_limit:
             raise ValueError(
                 (
-                    f"The maximum velocity of the boresight ({np.degrees(self.plan.max_vel):.01f} deg/s) exceeds "
+                    f"The maximum velocity of the boresight ({self.plan.max_vel_deg:.01f} deg/s) exceeds "
                     f"the maximum velocity of the instrument ({self.instrument.vel_limit:.01f} deg/s)."
                 ),
             )
 
-        if self.plan.max_acc > np.radians(self.instrument.acc_limit):
+        if self.plan.max_acc_deg > self.instrument.acc_limit:
             raise ValueError(
                 (
-                    f"The maximum acceleration of the boresight ({np.degrees(self.plan.max_acc):.01f} deg/s^2) exceeds "
+                    f"The maximum acceleration of the boresight ({self.plan.max_acc_deg:.01f} deg/s^2) exceeds "
                     f"the maximum acceleration of the instrument ({self.instrument.acc_limit:.01f} deg/s^2)."
                 ),
             )
@@ -133,7 +150,13 @@ class BaseSimulation:
             frame="az_el",
         )
 
-        logger.debug("Constructed offsets.")
+        logger.debug(
+            f"Initialized coordinates in {humanize_time(ttime.monotonic() - boresight_init_s)}."
+        )
+
+        logger.debug(
+            f"Initialized generic simulation in {humanize_time(ttime.monotonic() - start_init_s)}."
+        )
 
     def _run(self):
         raise NotImplementedError()
@@ -162,3 +185,6 @@ class BaseSimulation:
         )
 
         return tod
+
+    def plot_counts(self, x_bins=100, y_bins=100):
+        self.plan.plot_counts(instrument=self.instrument, x_bins=x_bins, y_bins=y_bins)

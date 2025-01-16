@@ -6,10 +6,11 @@ Simulations in ``maria`` are done with a ``Simulation``, to which we pass an ins
 
     import maria
 
-    sim = maria.Simulation(instrument="ACT", site="cerro_toco", plan="stare")
+    sim = maria.Simulation(instrument="ACT",
+                           site="cerro_toco",
+                           plan="stare")
 
-
-Running a simulation will spit out a ``TOD`` (short for time-ordered data)::
+This ``Simulation`` won't be very interesting, since we haven't given it anything to observe yet (so the signal will just be detector noise). Running a simulation will spit out a ``TOD`` (short for time-ordered data)::
 
     tod = sim.run()
 

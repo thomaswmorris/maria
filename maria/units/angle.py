@@ -15,7 +15,7 @@ class Angle:
         self.radians = None
         for k in UNITS:
             if units in [k, UNITS[k]["short_name"]]:
-                self.radians = a / UNITS[k]["factor"]
+                self.radians = np.array(a) / UNITS[k]["factor"]
         if self.radians is None:
             raise ValueError(f"Invalid units '{units}'.")
 
@@ -30,8 +30,11 @@ class Angle:
                 return self.radians * UNITS[k]["factor"]
         raise AttributeError(f"Angle object has no attribute named '{attr}'.")
 
+    def __getitem__(self, idx):
+        return self.radians[idx]
+
     def __float__(self):
-        return self.rad
+        return self.radians
 
     def __repr__(self):
         units = self.units
@@ -39,6 +42,10 @@ class Angle:
             return f"{getattr(self, units)}{UNITS[units]['symbol']}"
         else:
             return f"Angle({getattr(self, units)}, units={units})"
+
+    @property
+    def shape(self):
+        return self.radians.shape
 
     @property
     def units(self):
