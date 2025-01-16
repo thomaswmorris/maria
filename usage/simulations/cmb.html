@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Maps" href="maps.html" /><link rel="prev" title="Atmosphere" href="atmosphere.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>Simulations - maria</title>
+        <title>The cosmic microwave background - maria</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -215,7 +215,7 @@
 <li class="toctree-l2 current has-children"><a class="reference internal" href="../simulations.html">Simulations</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="index.html">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Simulations</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">The cosmic microwave background</a></li>
 <li class="toctree-l3"><a class="reference internal" href="maps.html">Maps</a></li>
 </ul>
 </li>
@@ -279,13 +279,26 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="simulations">
-<h1>Simulations<a class="headerlink" href="#simulations" title="Link to this heading">¶</a></h1>
-<p>We can generate a realization of the CMB by running</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cmb</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">cmb</span><span class="o">.</span><span class="n">generate_cmb</span><span class="p">(</span><span class="o">**</span><span class="n">cmb_kwargs</span><span class="p">)</span>
+          <section id="the-cosmic-microwave-background">
+<h1>The cosmic microwave background<a class="headerlink" href="#the-cosmic-microwave-background" title="Link to this heading">¶</a></h1>
+<p>To add in the CMB (either as something to observe, or a noise source), we add</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="n">my_instrument</span><span class="p">,</span>
+                       <span class="n">site</span><span class="o">=</span><span class="n">my_site</span><span class="p">,</span>
+                       <span class="n">plan</span><span class="o">=</span><span class="n">my_plan</span><span class="p">,</span>
+                       <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
+                       <span class="n">cmb</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This is done automatically if we pass <cite>cmb=”generate”</cite> when running a simulation.</p>
+<p>This two-dimensional model is a simplified approximation of atmospheric turbulence (see <a class="reference external" href="https://arxiv.org/abs/2111.01319">T. W. Morris et al. (2022)</a>) that lets us more efficiently  simulate atmospheric fluctuations at higher resolutions.
+We can customize the CMB by specifying a set of <code class="docutils literal notranslate"><span class="pre">cmb_kwargs</span></code> to, e.g., increase the resolution of the generated map.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="n">my_instrument</span><span class="p">,</span>
+                       <span class="n">site</span><span class="o">=</span><span class="n">my_site</span><span class="p">,</span>
+                       <span class="n">plan</span><span class="o">=</span><span class="n">my_plan</span><span class="p">,</span>
+                       <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
+                       <span class="n">cmb</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">,</span>
+                       <span class="n">cmb_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;nside&quot;</span><span class="p">:</span> <span class="mi">4096</span><span class="p">})</span>
+</pre></div>
+</div>
 </section>
 
         </article>

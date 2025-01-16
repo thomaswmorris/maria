@@ -21,6 +21,18 @@ A map is represented by a ``Map`` object. We can load some pre-defined ones with
     input_map.to(units="K_RJ").plot()
 
 
+We can then add the map to a simulation as
+
+.. code-block:: python
+
+    sim = maria.Simulation(instrument=my_instrument,
+                           site=my_site,
+                           plan=my_plan,
+                           atmosphere="2d",
+                           cmb="generate,
+                           map=input_map)
+
+
 .. _Time-evolving maps:
 
 ++++++++++++++++++

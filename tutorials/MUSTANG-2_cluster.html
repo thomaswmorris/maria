@@ -216,7 +216,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../usage/simulations.html">Simulations</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/index.html">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../usage/simulations/cmb.html">Simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/simulations/cmb.html">The cosmic microwave background</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/simulations/maps.html">Maps</a></li>
 </ul>
 </li>
@@ -314,7 +314,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 64.0MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 123MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -404,12 +404,12 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/green_bank.h5: 100%|██████████| 2.31M/2.31M [00:00&lt;00:00, 46.6MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 6.06M/6.06M [00:00&lt;00:00, 85.9MB/s]
-Constructing atmosphere: 100%|██████████| 6/6 [00:07&lt;00:00,  1.28s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/green_bank.h5: 100%|██████████| 2.31M/2.31M [00:00&lt;00:00, 127MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 6.06M/6.06M [00:00&lt;00:00, 154MB/s]
+Constructing atmosphere: 100%|██████████| 6/6 [00:08&lt;00:00,  1.37s/it]
 Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/planck.csv: 293kB [00:00, 20.7MB/s]
-Generating CMB (nside=1024): 100%|██████████| 1/1 [00:06&lt;00:00,  6.32s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/planck.csv: 293kB [00:00, 81.5MB/s]
+Generating CMB (nside=1024): 100%|██████████| 1/1 [00:06&lt;00:00,  6.31s/it]
 </pre></div></div>
 </div>
 </section>
@@ -430,13 +430,13 @@ Generating CMB (nside=1024): 100%|██████████| 1/1 [00:06&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 63.35it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.56it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  2.49it/s, band=m2/f093]
-Computing atmospheric opacity: 100%|██████████| 1/1 [00:00&lt;00:00,  2.44it/s, band=m2/f093]
-Sampling CMB: 100%|██████████| 1/1 [00:01&lt;00:00,  1.11s/it, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:05&lt;00:00,  5.54s/it, band=m2/f093]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.35it/s, band=m2/f093]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 60.92it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.43it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  2.42it/s, band=m2/f093]
+Computing atmospheric opacity: 100%|██████████| 1/1 [00:00&lt;00:00,  2.38it/s, band=m2/f093]
+Sampling CMB: 100%|██████████| 1/1 [00:01&lt;00:00,  1.13s/it, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:05&lt;00:00,  5.66s/it, band=m2/f093]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.36it/s, band=m2/f093]
 </pre></div></div>
 </div>
 <section id="Useful-visualizations:">
@@ -498,7 +498,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-01-14 21:15:11.697 INFO: Ran mapper for band m2/f093 in 16.8 s.
+2025-01-16 00:18:20.353 INFO: Ran mapper for band m2/f093 in 16.9 s.
 </pre></div></div>
 </div>
 </section>
