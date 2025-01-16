@@ -9,3 +9,4 @@ Simulations
    simulations/atmosphere.rst
    simulations/cmb.rst
    simulations/maps.rst
+   simulations/total.rst

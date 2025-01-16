@@ -12,3 +12,4 @@ def test_pattern(scan_pattern):
     print(plan)
 
     plan.plot()
+    plan.plot_counts()
