@@ -215,7 +215,7 @@
 <li class="toctree-l2 current has-children"><a class="reference internal" href="../simulations.html">Simulations</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cmb.html">Simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cmb.html">The cosmic microwave background</a></li>
 <li class="toctree-l3"><a class="reference internal" href="maps.html">Maps</a></li>
 </ul>
 </li>
@@ -284,10 +284,12 @@
 <p>Simulations in <code class="docutils literal notranslate"><span class="pre">maria</span></code> are done with a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>, to which we pass an instrument, a site, and an observing plan:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
 
-<span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;ACT&quot;</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="s2">&quot;stare&quot;</span><span class="p">)</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;ACT&quot;</span><span class="p">,</span>
+                       <span class="n">site</span><span class="o">=</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">,</span>
+                       <span class="n">plan</span><span class="o">=</span><span class="s2">&quot;stare&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Running a simulation will spit out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (short for time-ordered data):</p>
+<p>This <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> won’t be very interesting, since we haven’t given it anything to observe yet (so the signal will just be detector noise). Running a simulation will spit out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (short for time-ordered data):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
