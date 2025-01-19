@@ -28,7 +28,7 @@ class MapMixin:
     def _sample_maps(self):
         dx, dy = self.coords.offsets(frame=self.map.frame, center=self.map.center)
 
-        self.data["map"] = da.zeros_like(dx, dtype=self.dtype)
+        self.loading["map"] = da.zeros_like(dx, dtype=self.dtype)
 
         bands_pbar = tqdm(
             self.instrument.dets.bands,
@@ -87,13 +87,13 @@ class MapMixin:
                 if (sample_T_RJ == 0).all():
                     logger.warning("No power from map!")
 
-                self.data["map"][band_mask] += (
+                self.loading["map"][band_mask] += (
                     1e12 * k_B * sample_integral * sample_T_RJ
                 )
 
                 logger.debug(f"Computed map power for band {band.name}.")
 
-            if self.data["map"][band_mask].sum().compute() == 0:
+            if self.loading["map"][band_mask].sum().compute() == 0:
                 logger.warning(f"No power from map for band {band}.")
 
                 # things that are blackbodies that we can see are

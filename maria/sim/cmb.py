@@ -9,7 +9,7 @@ from tqdm import tqdm
 class CMBMixin:
     def _simulate_cmb_emission(self):
 
-        self.data["cmb"] = da.zeros(
+        self.loading["cmb"] = da.zeros(
             shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype
         )
 
@@ -46,7 +46,7 @@ class CMBMixin:
             else:
                 band_cal = band.cal(f"{self.cmb.units} -> pW")
 
-            self.data["cmb"][band_mask] = band_cal(
+            self.loading["cmb"][band_mask] = band_cal(
                 band_cmb_temperature_samples.compute()
             )
 
