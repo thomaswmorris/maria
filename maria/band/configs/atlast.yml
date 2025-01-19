@@ -5,7 +5,7 @@ f027:
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
 
 f039:
@@ -15,7 +15,7 @@ f039:
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
 
 f093:
@@ -25,7 +25,7 @@ f093:
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
 
 f150:
@@ -35,7 +35,7 @@ f150:
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
 
 f225:
@@ -45,7 +45,7 @@ f225:
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
 
 f280:
@@ -55,5 +55,5 @@ f280:
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
