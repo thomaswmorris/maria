@@ -6,11 +6,13 @@ from __future__ import annotations
 import logging
 
 from ._version import __version__, __version_tuple__  # noqa
-from .instrument import Band, Instrument, all_instruments, get_instrument  # noqa
-from .map import ProjectedMap  # noqa
+
+from .instrument import Instrument, all_instruments, get_instrument  # noqa
+from .band import Band, all_bands, get_band  # noqa
 from .plan import Plan, all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
 from .site import Site, all_regions, all_sites, get_site  # noqa
+from .io import fetch  # noqa
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,3 +21,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("maria")
+
+
+def debug():
+    logger.setLevel(logging.DEBUG)

@@ -13,11 +13,11 @@
         efficiency: 0.6
       f150:
         center: 150
-        width: 40
+        width: 30
         efficiency: 0.5
       f220:
         center: 220
-        width: 50
+        width: 30
         efficiency: 0.4
 
 10deg:
