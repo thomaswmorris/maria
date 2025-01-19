@@ -128,8 +128,6 @@ class BaseSimulation:
         )
         boresight_init_s = ttime.monotonic()
 
-        self.data = {}
-
         if self.plan.max_vel_deg > self.instrument.vel_limit:
             raise ValueError(
                 (
@@ -164,7 +162,7 @@ class BaseSimulation:
         raise NotImplementedError()
 
     def run(self):
-        self.data = {}
+        self.loading = {}
 
         # Simulate all the junk
         self._run()
@@ -184,7 +182,7 @@ class BaseSimulation:
             )
 
         tod = TOD(
-            data=self.data,
+            data=self.loading,
             dets=self.instrument.dets,
             coords=self.coords,
             units="pW",

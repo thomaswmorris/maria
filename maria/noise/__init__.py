@@ -21,11 +21,11 @@ def generate_noise_with_knee(
     else:
         noise = np.random.standard_normal(size=(n, len(t))).astype(np.float32)
 
-    noise *= NEP / np.sqrt(timestep)  # scale the noise
+    noise *= 1 / np.sqrt(timestep)  # scale the noise
 
     if knee > 0:
         f = np.fft.fftfreq(len(t), d=timestep)
-        a = knee * NEP**2 / 2
+        a = knee / 2
         with np.errstate(divide="ignore"):
             pink_noise_power_spectrum = np.where(f != 0, a / np.abs(f), 0)
 

@@ -11,7 +11,7 @@ class NoiseMixin:
         self._simulate_noise()
 
     def _simulate_noise(self):
-        self.data["noise"] = da.zeros(
+        self.loading["noise"] = da.zeros(
             shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype
         )
 
@@ -25,10 +25,16 @@ class NoiseMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
-            self.data["noise"][band_mask] = generate_noise_with_knee(
-                self.plan.time,
-                n=band_mask.sum(),
-                NEP=band.NEP,
-                knee=band.knee,
-                dask=True,
+            self.total_NEP = (
+                band.NEP + band.NEP_per_loading * self.total_loading[band_mask]
+            )
+
+            self.loading["noise"][band_mask] = (
+                1e12
+                * self.total_NEP
+                * generate_noise_with_knee(
+                    self.plan.time,
+                    n=band_mask.sum(),
+                    knee=band.knee,
+                )
             )

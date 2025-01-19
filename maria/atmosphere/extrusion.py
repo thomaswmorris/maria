@@ -19,7 +19,7 @@ logger = logging.getLogger("maria")
 
 
 MIN_RES = {"2d": 5, "3d": 15}
-MIN_RES_PER_BEAM = {"2d": 0.2, "3d": 0.5}
+MIN_RES_PER_BEAM = {"2d": 0.1, "3d": 0.5}
 MIN_RES_PER_FOV = {"2d": 0.05, "3d": 0.1}
 
 

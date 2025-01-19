@@ -3,7 +3,7 @@ f043:
   width: 16
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -13,7 +13,7 @@ f078:
   width: 22
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -23,7 +23,7 @@ f100:
   width: 32
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -33,7 +33,7 @@ f144:
   width: 38
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -43,7 +43,7 @@ f187:
   width: 48
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -53,7 +53,7 @@ f243:
   width: 64
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -63,7 +63,7 @@ f324:
   width: 98
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -73,7 +73,7 @@ f447:
   width: 114
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -83,7 +83,7 @@ f661:
   width: 118
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -93,7 +93,7 @@ f869:
   width: 163
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2

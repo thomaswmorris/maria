@@ -189,21 +189,16 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if self.noise:
             self._simulate_noise()
 
-        # if hasattr(self, "atmospheric_transmission"):
-        #     for k in ["cmb", "map"]:
-        #         if k in self.data:
-        #             self.data[k] *= self.atmospheric_transmission
-
         gain_error = np.exp(
             self.instrument.dets.gain_error
             * np.random.standard_normal(size=self.instrument.dets.n),
         )
 
-        for field in self.data:
+        for field in self.loading:
             if field in ["noise"]:
                 continue
 
-            self.data[field] *= gain_error[:, None]
+            self.loading[field] *= gain_error[:, None]
 
     def __repr__(self):
         # object_reprs = [
@@ -212,3 +207,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         return "\n".join(
             [self.instrument.__repr__(), self.site.__repr__(), self.plan.__repr__()],
         )
+
+    @property
+    def total_loading(self):
+        return sum([d for d in self.loading.values()])
