@@ -8,6 +8,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
+from ..constants import k_B
 from ..instrument import beam
 
 here, this_filename = os.path.split(__file__)
@@ -45,33 +46,58 @@ class MapMixin:
                 nu=band.center,
             )
 
-            filtered_band_power_map = (
-                self.map.smooth(fwhm=band_fwhm).power(band).compute()
-            )
+            # ideally we would do this for each nu bin, but that's slow
+            smoothed_map = self.map.smooth(fwhm=band_fwhm)
 
-            logger.debug(f"Computed power map for band {band.name}.")
+            for nu_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
 
-            if len(self.map.t) > 1:
-                map_power = sp.interpolate.RegularGridInterpolator(
-                    (self.map.t, self.map.x_side, self.map.y_side),
-                    filtered_band_power_map,
-                    bounds_error=False,
-                    fill_value=0,
-                    method="linear",
-                )((self.boresight.t, dx[band_mask], dy[band_mask]))
+                spectrum_kwargs = (
+                    {
+                        "spectrum": self.atmosphere.spectrum,
+                        "zenith_pwv": self.zenith_scaled_pwv[band_mask],
+                        "base_temperature": self.atmosphere.weather.temperature[0],
+                        "elevation": np.degrees(self.coords.el[band_mask]),
+                    }
+                    if hasattr(self, "atmosphere")
+                    else {}
+                )
 
-            else:
-                map_power = sp.interpolate.RegularGridInterpolator(
-                    (self.map.x_side, self.map.y_side),
-                    filtered_band_power_map[0],
-                    bounds_error=False,
-                    fill_value=0,
-                    method="linear",
-                )((dx[band_mask], dy[band_mask]))
+                sample_integral = band.compute_nu_integral(
+                    nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs
+                )
 
-            if (map_power == 0).all():
-                logger.warning("No power from map!")
+                if len(self.map.t) > 1:
+                    sample_T_RJ = sp.interpolate.RegularGridInterpolator(
+                        (self.map.t, self.map.y_side, self.map.x_side),
+                        smoothed_map.data[0, nu_index].compute(),
+                        bounds_error=False,
+                        fill_value=0,
+                        method="linear",
+                    )((self.boresight.t, dy[band_mask], dx[band_mask]))
 
-            self.data["map"][band_mask] += map_power
+                else:
+                    sample_T_RJ = sp.interpolate.RegularGridInterpolator(
+                        (self.map.y_side, self.map.x_side),
+                        smoothed_map.data[0, nu_index, 0].compute(),
+                        bounds_error=False,
+                        fill_value=0,
+                        method="linear",
+                    )((dy[band_mask], dx[band_mask]))
 
-            logger.debug(f"Computed map power for band {band.name}.")
+                if (sample_T_RJ == 0).all():
+                    logger.warning("No power from map!")
+
+                self.data["map"][band_mask] += (
+                    1e12 * k_B * sample_integral * sample_T_RJ
+                )
+
+                logger.debug(f"Computed map power for band {band.name}.")
+
+            if self.data["map"][band_mask].sum().compute() == 0:
+                logger.warning(f"No power from map for band {band}.")
+
+                # things that are blackbodies that we can see are
+
+                # filtered_band_power_map = (
+                #     self.map.smooth(fwhm=band_fwhm).power(band).compute()
+                # )

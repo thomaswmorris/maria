@@ -6,6 +6,7 @@ import healpy as hp
 import numpy as np
 import pandas as pd
 
+from ..constants import T_CMB
 from ..map import HEALPixMap
 from ..io import download_from_url, fetch
 
@@ -50,7 +51,7 @@ class CMB:
     def fields(self):
         return list(self.data.keys())
 
-    def plot(self, field=None, units="uK"):
+    def plot(self, field=None, units="uK_CMB"):
         field = field or self.fields[0]
         m = self.data[field]
         vmin, vmax = 1e6 * np.quantile(m[~np.isnan(m)], q=[0.001, 0.999])
@@ -84,9 +85,9 @@ def generate_cmb(nside=2048, seed=123456, **kwargs):
     cmb_data = hp.alm2map(alm, nside=nside, lmax=lmax)
 
     return HEALPixMap(
-        data=1e6 * cmb_data[:, None, None, :],
+        data=1e6 * (T_CMB + cmb_data[:, None, None, :]),
         stokes=["I", "Q", "U"],
-        units="uK_CMB",
+        units="uK_b",
         nu=150,
     )
 

@@ -14,9 +14,9 @@
   symbol_latex: T_b
   default_prefix: .nan
   default_prefix_latex: .nan
-  base_unit: K
-  base_unit_latex: \text{K}
-  SI: .nan
+  base_unit: K_b
+  base_unit_latex: \text{K}_\text{b}
+  SI: K
 
 - quantity: cmb_temperature_anisotropy
   long_name: CMB temperature anisotropy

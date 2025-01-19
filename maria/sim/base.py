@@ -73,7 +73,9 @@ class BaseSimulation:
             return
 
         self.dtype = dtype
-        self.disable_progress_bars = not progress_bars
+        self.disable_progress_bars = (not progress_bars) or (
+            logging.getLevelName(logger.level) == "DEBUG"
+        )
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
         if isinstance(instrument, Instrument):
@@ -168,13 +170,18 @@ class BaseSimulation:
         self._run()
 
         metadata = {
+            "atmosphere": False,
             "sim_time": arrow.now(),
             "altitude": float(self.site.altitude),
             "region": self.site.region,
         }
 
         if hasattr(self, "atmosphere"):
+            metadata["atmosphere"] = True
             metadata["pwv"] = float(np.round(self.atmosphere.weather.pwv, 3))
+            metadata["base_temperature"] = float(
+                np.round(self.atmosphere.weather.temperature[0], 3)
+            )
 
         tod = TOD(
             data=self.data,

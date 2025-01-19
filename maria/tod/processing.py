@@ -14,6 +14,7 @@ from .tod import TOD
 logger = logging.getLogger("maria")
 
 OPERATION_KWARGS = {
+    "remove_slope": {},
     "window": {
         "name": {"dtype": str, "aliases": ["window"]},
         "kwargs": {"dtype": dict, "aliases": ["window_kwargs"]},
@@ -94,7 +95,17 @@ def process_tod(tod, config=None, **kwargs):
     D = tod.signal.compute()
     W = np.ones(D.shape)
 
+    if "remove_slope" in config:
+
+        remove_slope_start_s = ttime.monotonic()
+        D -= np.linspace(D[..., 0], D[..., -1], D.shape[-1]).T
+
+        logger.debug(
+            f'Completed tod operation "remove_slope in {humanize_time(ttime.monotonic() - remove_slope_start_s)}.'
+        )
+
     if "window" in config:
+
         window_start_s = ttime.monotonic()
         window_function = getattr(sp.signal.windows, config["window"]["name"])
         W *= window_function(D.shape[-1], **config["window"].get("kwargs", {}))

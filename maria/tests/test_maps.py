@@ -72,7 +72,7 @@ def test_trivial_recover_original_map():
     map_filename = fetch("maps/big_cluster.fits", refresh=True)
     input_map = maria.map.read_fits(
         filename=map_filename, nu=150, width=0.1, center=(150, 10)
-    ).downsample((1, 1, 1, 100, 100))
+    ).downsample(n_x=100, n_y=100)
 
     plan = maria.Plan(
         scan_pattern="daisy",
@@ -98,7 +98,7 @@ def test_trivial_recover_original_map():
         center=input_map.center,
         frame=input_map.frame,
         width=input_map.width,
-        resolution=input_map.resolution,
+        resolution=input_map.x_res,
         degrees=False,
     )
 

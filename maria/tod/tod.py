@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import arrow
 import copy
-import functools
 import json
 import h5py
 import logging
@@ -18,7 +17,7 @@ from ..coords import Coordinates
 from ..instrument import Detectors
 from ..plotting import tod_plot, twinkle_plot
 from ..io import humanize_time, DEFAULT_TIME_FORMAT
-
+from ..atmosphere import AtmosphericSpectrum
 
 logger = logging.getLogger("maria")
 
@@ -63,10 +62,37 @@ class TOD:
             self.weight = da.ones_like(self.signal)
 
     @property
+    def spectrum(self):
+        if not hasattr(self, "_spectrum"):
+            if "region" in self.metadata:
+                self._spectrum = AtmosphericSpectrum(self.metadata["region"])
+            else:
+                self._spectrum = None
+        return self._spectrum
+
+    @property
     def boresight(self):
         if not hasattr(self, "_boresight"):
             self._boresight = self.coords.boresight()
         return self._boresight
+
+    def calibration_kwargs(self, band=None):
+
+        kwargs = {
+            "elevation": np.degrees(
+                self.el[self.dets.band_name == band.name] if band else self.el
+            )
+        }
+
+        if self.metadata["atmosphere"]:
+            kwargs["spectrum"] = self.spectrum
+            kwargs["zenith_pwv"] = self.metadata["pwv"]
+            kwargs["base_temperature"] = self.metadata["base_temperature"]
+
+        else:
+            kwargs["spectrum"] = None
+
+        return kwargs
 
     def to(self, units: str):
         """
@@ -91,18 +117,8 @@ class TOD:
                 continue
 
             # this is to handle transmission
-            spectrum_kwargs = (
-                {
-                    "nu": band.center,
-                    "region": self.metadata["region"],
-                    "pwv": self.metadata["pwv"],
-                    "elevation": np.degrees(self.el[band_mask]),
-                }
-                if "pwv" in self.metadata
-                else {}
-            )
 
-            cal = band.cal(f"{self.units} -> {units}", spectrum_kwargs=spectrum_kwargs)
+            cal = band.cal(f"{self.units} -> {units}", **self.calibration_kwargs(band))
 
             for field in self.fields:
 
@@ -124,7 +140,7 @@ class TOD:
     def fields(self) -> list:
         return sorted(list(self.data.keys()))
 
-    @functools.cached_property
+    @property
     def signal(self) -> da.Array:
         return sum([getattr(self, field) for field in self.fields])
 
@@ -373,6 +389,7 @@ class TOD:
         parts.append(f"start={self.start.format(DEFAULT_TIME_FORMAT)}")
         parts.append(f"duration={self.duration:.01f}s")
         parts.append(f"sample_rate={self.sample_rate:.01f}Hz")
+        parts.append(f"metadata={self.metadata}")
         return f"TOD({', '.join(parts)})"
 
     @property

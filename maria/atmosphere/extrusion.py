@@ -276,7 +276,7 @@ class ProcessExtrusion:
         )
         COV_E_E[j, i] = COV_E_E[i, j]
         logger.debug(
-            f"computed edge-edge covariance {COV_E_E.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
+            f"Computed edge-edge covariance {COV_E_E.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         # this one is explicit
@@ -290,7 +290,7 @@ class ProcessExtrusion:
             **self.callback_kwargs,
         )
         logger.debug(
-            f"computed edge-sample covariance {COV_E_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
+            f"Computed edge-sample covariance {COV_E_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         start_time = ttime.monotonic()
@@ -305,7 +305,7 @@ class ProcessExtrusion:
         )
         COV_S_S[j, i] = COV_S_S[i, j]
         logger.debug(
-            f"computed sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
+            f"Computed sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         # this is typically the bottleneck
@@ -330,7 +330,7 @@ class ProcessExtrusion:
 
         duration_ms = 1e3 * (ttime.monotonic() - start_time)
         logger.debug(
-            f"computed Cholesky decomposition of posterior covariance {COV_E_E.shape} in {duration_ms:.0f} ms.",
+            f"Computed Cholesky decomposition of posterior covariance {COV_E_E.shape} in {duration_ms:.0f} ms.",
         )
 
         self.values = np.zeros((self.n_extrusion, self.n_cross_section))
