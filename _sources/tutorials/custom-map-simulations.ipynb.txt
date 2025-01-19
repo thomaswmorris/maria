@@ -81,7 +81,7 @@
     "    units=\"Jy/pixel\",\n",
     ")\n",
     "\n",
-    "input_map.data *= 1e1\n",
+    "input_map.data *= 4\n",
     "input_map.to(\"mK_RJ\").plot()"
    ]
   },
@@ -137,6 +137,16 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "tod.plot()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "10",
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "from maria.mappers import BinMapper\n",
     "\n",
     "mapper = BinMapper(\n",
@@ -165,7 +175,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "10",
+   "id": "11",
    "metadata": {},
    "outputs": [],
    "source": [
