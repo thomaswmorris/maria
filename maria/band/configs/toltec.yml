@@ -3,7 +3,7 @@ f150:
   width: 40
   shape: top_hat
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -13,7 +13,7 @@ f220:
   width: 40
   shape: top_hat
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -23,7 +23,7 @@ f270:
   width: 50
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-5 # pW / sqrt(s)
+  NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
