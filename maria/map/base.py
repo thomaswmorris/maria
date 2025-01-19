@@ -1,26 +1,27 @@
-import os
+import arrow
 import h5py
+import os
+import logging
 
 import astropy as ap
 import numpy as np
 import scipy as sp
 
 import dask.array as da
+import time as ttime
 
 from astropy.io import fits
 from typing import Iterable
 
-from ..instrument import Band
-from ..constants import k_B
 from ..calibration import Calibration
 from ..units import parse_units
 
-# from ..plotting import plot_map
-
-# from astropy.wcs import WCS
-
+logger = logging.getLogger("maria")
 
 here, this_filename = os.path.split(__file__)
+
+
+STOKES = ["I", "Q", "U", "V"]
 
 
 class Map:
@@ -44,8 +45,8 @@ class Map:
         self.stokes = (
             [param.upper() for param in stokes] if stokes is not None else ["I"]
         )
-        self.nu = np.atleast_1d(nu) if nu is not None else np.array([np.nan])
-        self.t = np.atleast_1d(t) if t is not None else np.array([np.nan])
+        self.nu = np.atleast_1d(nu) if nu is not None else np.array([150.0])
+        self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
 
         self.units = units
 
@@ -65,6 +66,31 @@ class Map:
             raise ValueError(
                 f"'time' axis has length {len(self.t)} but map has shape (stokes, nu, t, y, x) = {self.data.shape}.",
             )
+
+    @property
+    def nu_bins(self):
+        """
+        This might break in the year 3000.
+        """
+        return np.array([0, *(self.nu[1:] + self.nu[:-1]), 1e6])
+
+    @property
+    def nu_side(self):
+        return (self.nu_bins[:-1] + self.nu_bins[1:]) / 2
+
+    @property
+    def t_bins(self):
+        """
+        This might break in the year 3000.
+        """
+        t_min = arrow.get("0001-01-01").timestamp()
+        t_max = arrow.get("3000-01-01").timestamp()
+
+        return np.array([t_min, *(self.t[1:] + self.t[:-1]), t_max])
+
+    @property
+    def t_side(self):
+        return (self.t_bins[:-1] + self.t_bins[1:]) / 2
 
     @property
     def units_config(self):
@@ -88,6 +114,13 @@ class Map:
     def n_t(self):
         return self.data.shape[2]
 
+    @property
+    def pixel_area(self):
+        if hasattr(self, "resolution"):
+            return self.resolution**2
+        else:
+            return self.x_res * self.y_res
+
     def to(self, units, inplace=False):
 
         if units == self.units:
@@ -99,7 +132,9 @@ class Map:
             for i, nu in enumerate(self.nu):
 
                 cal = Calibration(
-                    f"{self.units} -> {units}", nu=1e9 * nu, res=self.resolution
+                    f"{self.units} -> {units}",
+                    nu=nu,
+                    pixel_area=self.pixel_area,
                 )
                 data[i] = cal(self.data[i])
 
@@ -132,41 +167,10 @@ class Map:
 
         return np.stack(nu_maps, axis=1)
 
-    def power(self, band: Band):
-
-        if self.units_config["quantity"] in [
-            "rayleigh_jeans_temperature",
-            "spectral_flux_density_per_pixel",
-        ]:
-
-            nu_boundaries = [
-                band.nu.min(),
-                *(self.nu[1:] + self.nu[:-1]) / 2,
-                band.nu.max(),
-            ]
-            nu_K_RJ_data = self.to("K_RJ").data[0]
-
-            power_map_pW = 0
-            for nu_index, (nu1, nu2) in enumerate(
-                zip(nu_boundaries[:-1], nu_boundaries[1:])
-            ):
-
-                dummy_nu = np.linspace(nu1, nu2, 1024)
-                tau_integral = band.efficiency * np.trapezoid(
-                    band.passband(dummy_nu), x=1e9 * dummy_nu
-                )
-                power_map_pW += 1e12 * k_B * nu_K_RJ_data[nu_index] * tau_integral
-
-            return power_map_pW
-
-        else:
-            raise ValueError()
-
-        # for nu1, nu2 in zip(band.nu[:-1], band.nu[1:]):
-        #     nu = (nu1 + nu2) / 2
-        #     width_Hz = 1e9 * (nu2 - nu1)
-        #     nu_map = self.sample_nu(nu)[0, 0] # this has shape (t, x, y)
-        #     power_map += 1e12 * k_B * band.efficiency * band.passband(nu) * nu_map * width_Hz
+    @property
+    def nu_bin_bounds(self):
+        nu_boundaries = [0, *(self.nu[:-1] + self.nu[1:]) / 2, np.inf]
+        return [(nu1, nu2) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]
 
     def to_fits(self, filepath):
         self.header = ap.io.fits.header.Header()
@@ -205,19 +209,6 @@ class Map:
             data=self.data,
             header=self.header,
             overwrite=True,
-        )
-
-    def downsample(self, shape):
-        zoom_factor = np.array(shape) / self.data.shape
-
-        return type(self)(
-            data=sp.ndimage.zoom(self.data, zoom=zoom_factor),
-            t=sp.ndimage.zoom(self.t, zoom=zoom_factor[0]),
-            nu=sp.ndimage.zoom(self.nu, zoom=zoom_factor[1]),
-            width=self.width,
-            center=self.center,
-            frame=self.frame,
-            degrees=False,
         )
 
     def to_hdf(self, filename):

@@ -74,29 +74,24 @@ class BinMapper(BaseMapper):
 
             dx, dy = band_tod.coords.offsets(frame=self.frame, center=self.center)
 
-            nu = band_tod.dets.band_center.mean()
-
-            map_sum = sp.stats.binned_statistic_2d(
-                dx.ravel(),
+            band_map_data["sum"] += sp.stats.binned_statistic_2d(
                 dy.ravel(),
+                dx.ravel(),
                 (band_tod.weight * band_tod.signal).ravel(),
-                bins=(self.x_bins, self.y_bins),
+                bins=(self.y_bins, self.x_bins),
                 statistic="sum",
-            )[0]
+            ).statistic
 
-            map_weight = sp.stats.binned_statistic_2d(
-                dx.ravel(),
+            band_map_data["weight"] += sp.stats.binned_statistic_2d(
                 dy.ravel(),
+                dx.ravel(),
                 band_tod.weight.ravel(),
-                bins=(self.x_bins, self.y_bins),
+                bins=(self.y_bins, self.x_bins),
                 statistic="sum",
-            )[0]
+            ).statistic
 
             del band_tod
 
-            band_map_data["sum"] += map_sum
-            band_map_data["weight"] += map_weight
-
-        band_map_data["nom_freq"] = nu
+        band_map_data["nom_freq"] = band.center
 
         return band_map_data

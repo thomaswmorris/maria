@@ -5,29 +5,9 @@ import healpy as hp
 import numpy as np
 from tqdm import tqdm
 
-from ..functions import planck_spectrum, inverse_rayleigh_jeans_spectrum
-from ..constants import T_CMB, k_B
-
 
 class CMBMixin:
     def _simulate_cmb_emission(self):
-
-        cmb_anisotropies_uK = T_CMB + self.cmb.data[:, 0, 0]
-
-        T_lo = cmb_anisotropies_uK.min().compute()
-        T_hi = cmb_anisotropies_uK.max().compute()
-
-        test_cmb_anisotropies_uK = np.array([T_lo, T_hi])  # noqa
-
-        test_nu = np.linspace(1e0, 5e2, 256)
-        cmb_brightness = planck_spectrum(
-            T_CMB + 1e-6 * test_cmb_anisotropies_uK[:, None],
-            1e9 * test_nu,
-        )
-
-        cmb_rj_spectrum = inverse_rayleigh_jeans_spectrum(
-            cmb_brightness, nu=1e9 * test_nu
-        )
 
         self.data["cmb"] = da.zeros(
             shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype
@@ -49,17 +29,37 @@ class CMBMixin:
                 nside=self.cmb.nside,
                 phi=self.coords.l[band_mask],
                 theta=np.pi / 2 - self.coords.b[band_mask],
-            ).ravel()  # noqa
-            P_lo, P_hi = (
-                1e12
-                * k_B
-                * np.trapezoid(
-                    y=cmb_rj_spectrum * band.passband(test_nu), x=1e9 * test_nu
-                )
-            )  # noqa
-            band_cmb_power_map = (cmb_anisotropies_uK - T_lo) * (P_hi - P_lo) / (
-                T_hi - T_lo
-            ) + P_lo
-            self.data["cmb"][band_mask] = band_cmb_power_map[:, flat_band_pixel_index][
-                0
+            ).ravel()
+
+            band_cmb_temperature_samples = self.cmb.data[0, 0, 0][
+                flat_band_pixel_index
             ].reshape(band_mask.sum(), -1)
+
+            if hasattr(self, "atmosphere"):
+                band_cal = band.cal(
+                    signature=f"{self.cmb.units} -> pW",
+                    spectrum=self.atmosphere.spectrum,
+                    zenith_pwv=self.zenith_scaled_pwv[band_mask],
+                    base_temperature=self.atmosphere.weather.temperature[0],
+                    elevation=np.degrees(self.coords.el[band_mask]),
+                )
+            else:
+                band_cal = band.cal(f"{self.cmb.units} -> pW")
+
+            self.data["cmb"][band_mask] = band_cal(
+                band_cmb_temperature_samples.compute()
+            )
+
+            # P_lo, P_hi = (
+            #     1e12
+            #     * k_B
+            #     * np.trapezoid(
+            #         y=cmb_rj_spectrum * band.passband(test_nu), x=1e9 * test_nu
+            #     )
+            # )  # noqa
+            # band_cmb_power_map = (cmb_anisotropies_uK - T_lo) * (P_hi - P_lo) / (
+            #     T_hi - T_lo
+            # ) + P_lo
+            # self.data["cmb"][band_mask] = band_cmb_power_map[:, flat_band_pixel_index][
+            #     0
+            # ].reshape(band_mask.sum(), -1)

@@ -33,10 +33,10 @@ class AtmosphericSpectrum:
         }
 
         with h5py.File(self.cache_path, "r") as f:
-            self._side_nu = f["side_nu_GHz"][:]
-            self._side_elevation = f["side_elevation_deg"][:]
-            self._side_zenith_pwv = f["side_zenith_pwv_mm"][:]
-            self._side_base_temperature = f["side_base_temperature_K"][:]
+            self.side_nu = f["side_nu_GHz"][:]
+            self.side_elevation = f["side_elevation_deg"][:]
+            self.side_zenith_pwv = f["side_zenith_pwv_mm"][:]
+            self.side_base_temperature = f["side_base_temperature_K"][:]
 
             for key, mapping in key_mapping.items():
                 setattr(
@@ -45,28 +45,33 @@ class AtmosphericSpectrum:
                     f[key]["relative"][:] * f[key]["scale"][:] + f[key]["offset"][:],
                 )
 
+        self.nu_res = np.gradient(self.side_nu).mean()
+
+    def __repr__(self):
+        return f"AtmosphericSpectrum(region={self.region}, nu_res={self.nu_res}GHz)"
+
     def _interpolate_quantity(
         self, quantity, nu, pwv=None, base_temperature=None, elevation=45
     ):
         if pwv is None:
-            pwv = np.median(self._side_zenith_pwv)
+            pwv = np.median(self.side_zenith_pwv)
         if base_temperature is None:
-            base_temperature = np.median(self._side_base_temperature)
+            base_temperature = np.median(self.side_base_temperature)
 
-        min_pwv = self._side_zenith_pwv.min()
-        max_pwv = self._side_zenith_pwv.max()
+        min_pwv = self.side_zenith_pwv.min()
+        max_pwv = self.side_zenith_pwv.max()
         if (np.min(pwv) < min_pwv) or (np.max(pwv) > max_pwv):
             raise ValueError(f"PWV (in mm) must be between {min_pwv} and {max_pwv}.")
 
-        min_elevation = self._side_elevation.min()
-        max_elevation = self._side_elevation.max()
+        min_elevation = self.side_elevation.min()
+        max_elevation = self.side_elevation.max()
         if (np.min(elevation) < min_elevation) or (np.max(elevation) > max_elevation):
             raise ValueError(
                 f"Elevation (in degrees) must be between {min_elevation} and {max_elevation}."
             )
 
-        min_base_temp = self._side_base_temperature.min()
-        max_base_temp = self._side_base_temperature.max()
+        min_base_temp = self.side_base_temperature.min()
+        max_base_temp = self.side_base_temperature.max()
         if (np.min(base_temperature) < min_base_temp) or (
             np.max(base_temperature) > max_base_temp
         ):
@@ -76,13 +81,22 @@ class AtmosphericSpectrum:
 
         return sp.interpolate.RegularGridInterpolator(
             points=(
-                self._side_zenith_pwv,
-                self._side_base_temperature,
-                self._side_elevation,
-                self._side_nu,
+                self.side_zenith_pwv,
+                self.side_base_temperature,
+                self.side_elevation,
+                self.side_nu,
             ),
             values=getattr(self, f"_{quantity}"),
         )((pwv, base_temperature, elevation, nu))
+
+    @property
+    def points(self):
+        return (
+            self.side_zenith_pwv,
+            self.side_base_temperature,
+            self.side_elevation,
+            self.side_nu,
+        )
 
     def emission(self, nu, pwv=None, base_temperature=None, elevation=45):
         return self._interpolate_quantity(

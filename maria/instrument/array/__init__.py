@@ -13,7 +13,7 @@ from scipy.spatial.distance import cdist
 
 from ...units import Angle
 from ...utils import compute_diameter, flatten_config, read_yaml
-from ..band import BandList
+from ...band import BandList
 from ..beam import compute_angular_fwhm
 from ..detectors import Detectors
 
@@ -416,7 +416,6 @@ class ArrayList:
                     bands.append(band)
         return BandList(bands)
 
-    @property
     def summary(self):
         df = pd.DataFrame(columns=["n", "center", "baseline", "bands"])
 
@@ -429,16 +428,16 @@ class ArrayList:
                 array.dets.baselines.mean(axis=0).round(2),
             )
             df.loc[array.name, "bands"] = ", ".join(
-                list(array.dets.bands.summary.loc[:, "name"]),
+                list(array.dets.bands.summary().loc[:, "name"]),
             )
 
         return df
 
     def __repr__(self):
-        return self.summary.__repr__()
+        return self.summary().__repr__()
 
     def _repr_html_(self):
-        return self.summary._repr_html_()
+        return self.summary()._repr_html_()
 
     def __iter__(self):  # it has to be called this
         return iter(self.arrays)  # return the list's iterator

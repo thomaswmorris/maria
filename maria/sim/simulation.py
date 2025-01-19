@@ -106,6 +106,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                 region=self.site.region,
                 altitude=self.site.altitude,
                 weather_kwargs=self.weather_kwargs,
+                disable_progress_bars=self.disable_progress_bars,
                 **self.atmosphere_kwargs,
             )
 
@@ -176,7 +177,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if hasattr(self, "atmosphere"):
             self._simulate_atmosphere()
             self._compute_atmospheric_emission()
-            self._compute_atmospheric_opacity()
+            # self._compute_atmospheric_opacity()
 
         if hasattr(self, "cmb"):
             self._simulate_cmb_emission()
@@ -188,11 +189,10 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         if self.noise:
             self._simulate_noise()
 
-        # scale the noise so that there is
-        if hasattr(self, "atmospheric_transmission"):
-            for k in ["cmb", "map"]:
-                if k in self.data:
-                    self.data[k] *= self.atmospheric_transmission
+        # if hasattr(self, "atmospheric_transmission"):
+        #     for k in ["cmb", "map"]:
+        #         if k in self.data:
+        #             self.data[k] *= self.atmospheric_transmission
 
         gain_error = np.exp(
             self.instrument.dets.gain_error

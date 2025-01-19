@@ -119,7 +119,7 @@ class Coordinates:
         self.compute_transforms()
         duration_s = ttime.monotonic() - ref_time
         logger.debug(
-            f"Initialized coordinates with shape {self} in {humanize_time(duration_s)}.",
+            f"Initialized coordinates {self} in {humanize_time(duration_s)}.",
         )  # noqa
 
     def compute_transforms(self):

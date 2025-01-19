@@ -1,0 +1,9 @@
+,units,dtype
+name,none,str
+center,GHz,float
+width,GHz,float
+shape,none,str
+efficiency,none,float
+NEP,W√s,float
+NET_RJ,K√s,float
+NET_CMB,K√s,float

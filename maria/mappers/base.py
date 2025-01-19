@@ -91,7 +91,7 @@ class BaseMapper:
 
         for band in self.bands:
             band_start_s = ttime.monotonic()
-            self.map_data[band] = self._run(band)
+            self.map_data[band.name] = self._run(band)
             logger.info(
                 f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}."
             )

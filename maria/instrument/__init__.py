@@ -13,7 +13,7 @@ from matplotlib.patches import Patch
 from ..utils import flatten_config, read_yaml
 from ..units import Angle
 from .array import Array, ArrayList
-from .band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
+from ..band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
 from .detectors import Detectors  # noqa
 
 here, this_filename = os.path.split(__file__)

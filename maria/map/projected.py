@@ -33,6 +33,7 @@ class ProjectedMap(Map):
         nu: float = None,
         t: float = None,
         width: float = None,
+        height: float = None,
         resolution: float = None,
         center: tuple[float, float] = (0.0, 0.0),
         frame: str = "ra_dec",
@@ -55,17 +56,31 @@ class ProjectedMap(Map):
 
         self.units = units
 
-        if not (width is None) ^ (resolution is None):
-            raise ValueError("You must pass exactly one of 'width' or 'resolution'.")
-        if width is not None:
-            if not width > 0:
-                raise ValueError("'width' must be positive.")
-            width_radians = np.radians(width) if degrees else width
-            self.resolution = width_radians / self.n_x
-        else:
+        if not ((width is not None) or (height is not None)) ^ (resolution is not None):
+            raise ValueError(
+                "You must pass exactly one of ('width' and or 'height') or 'resolution'."
+            )
+
+        if resolution is not None:
             if not resolution > 0:
                 raise ValueError("'resolution' must be positive.")
-            self.resolution = np.radians(resolution) if degrees else resolution
+            self.x_res = np.radians(resolution) if degrees else resolution
+            self.y_res = np.radians(resolution) if degrees else resolution
+        else:
+            if width is not None:
+                if not width > 0:
+                    raise ValueError("'width' must be positive.")
+                width_radians = np.radians(width) if degrees else width
+                self.x_res = width_radians / self.n_x
+                if height is not None:
+                    height_radians = np.radians(height) if degrees else height
+                    self.y_res = height_radians / self.n_y
+                else:
+                    self.y_res = self.x_res
+            else:
+                # here height must not be None
+                height_radians = np.radians(height) if degrees else height
+                self.x_res = self.y_res = height_radians / self.n_y
 
         if len(self.nu) != self.n_nu:
             raise ValueError(
@@ -78,8 +93,8 @@ class ProjectedMap(Map):
 
         self.header = ap.io.fits.header.Header()
 
-        self.header["CDELT1"] = np.degrees(self.resolution)  # degree
-        self.header["CDELT2"] = np.degrees(self.resolution)  # degree
+        self.header["CDELT1"] = np.degrees(self.x_res)  # degree
+        self.header["CDELT2"] = np.degrees(self.y_res)  # degree
         self.header["CTYPE1"] = "RA---SIN"
         self.header["CUNIT1"] = "deg     "
         self.header["CTYPE2"] = "DEC--SIN"
@@ -89,6 +104,23 @@ class ProjectedMap(Map):
         self.header["CRVAL1"] = self.center[0]
         self.header["CRVAL2"] = self.center[1]
         self.header["RADESYS"] = "FK5     "
+
+    def __getattr__(self, attr):
+
+        broadcasted_attrs = ["STOKES", "NU", "T", "Y", "X"]
+        if attr in broadcasted_attrs:
+            broadcasted_attr_values = np.meshgrid(
+                self.stokes, self.nu, self.t, self.y_side, self.x_side
+            )
+            return broadcasted_attr_values[broadcasted_attrs.index(attr)]
+
+        raise AttributeError(f"'ProjectedMap' object has no attribute '{attr}'")
+
+    @property
+    def points(self):
+        return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
+
+    # broadcasted_attrs = ["NU", "T", "Y", "X"]
 
     def __repr__(self):
         parts = []
@@ -102,6 +134,7 @@ class ProjectedMap(Map):
             f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)",
         )
         parts.append(f"width={Angle(self.width).__repr__()}")
+        parts.append(f"height={Angle(self.height).__repr__()}")
 
         return f"ProjectedMap({', '.join(parts)})"
 
@@ -113,7 +146,8 @@ class ProjectedMap(Map):
             "stokes",
             "nu",
             "t",
-            "resolution",
+            "width",
+            "height",
             "center",
             "frame",
             "units",
@@ -122,11 +156,11 @@ class ProjectedMap(Map):
 
     @property
     def width(self):
-        return self.resolution * self.n_x
+        return self.x_res * self.n_x
 
     @property
     def height(self):
-        return self.resolution * self.n_y
+        return self.y_res * self.n_y
 
     @property
     def n_y(self):
@@ -137,28 +171,28 @@ class ProjectedMap(Map):
         return self.data.shape[-1]
 
     @property
+    def x_bins(self):
+        return self.width * np.linspace(-0.5, 0.5, self.n_x + 1)
+
+    @property
+    def y_bins(self):
+        return self.height * np.linspace(-0.5, 0.5, self.n_y + 1)
+
+    @property
     def x_side(self):
-        return self.width * np.linspace(-0.5, 0.5, self.n_x)
+        return (self.x_bins[:-1] + self.x_bins[1:]) / 2
 
     @property
     def y_side(self):
-        return self.height * np.linspace(-0.5, 0.5, self.n_y)
-
-    @property
-    def X(self):
-        return np.meshgrid(self.x_side, self.y_side)[0]
-
-    @property
-    def Y(self):
-        return np.meshgrid(self.x_side, self.y_side)[1]
+        return (self.y_bins[:-1] + self.y_bins[1:]) / 2
 
     def to_fits(self, filepath):
         self.header = ap.io.fits.header.Header()
         self.header["comment"] = "Made Synthetic observations via maria code"
         self.header["comment"] = "Overwrote resolution and size of the output map"
 
-        self.header["CDELT1"] = np.radians(self.resolution)
-        self.header["CDELT2"] = np.radians(self.resolution)
+        self.header["CDELT1"] = np.radians(self.x_res)
+        self.header["CDELT2"] = np.radians(self.y_res)
 
         self.header["CRPIX1"] = self.n_x / 2
         self.header["CRPIX2"] = self.n_y / 2
@@ -197,9 +231,10 @@ class ProjectedMap(Map):
             raise ValueError("You must supply exactly one of 'sigma' or 'fwhm'.")
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
-        sigma_pixels = sigma / self.resolution
+        x_sigma_pixels = sigma / self.x_res
+        y_sigma_pixels = sigma / self.y_res
         data = sp.ndimage.gaussian_filter(
-            self.data, sigma=(0, 0, 0, sigma_pixels, sigma_pixels)
+            self.data, sigma=(0, 0, 0, y_sigma_pixels, x_sigma_pixels)
         )
 
         if inplace:
@@ -209,7 +244,8 @@ class ProjectedMap(Map):
             return type(self)(
                 data=data,
                 weight=self.weight,
-                resolution=self.resolution,
+                width=self.width,
+                height=self.height,
                 t=self.t,
                 nu=self.nu,
                 center=self.center,
@@ -218,18 +254,52 @@ class ProjectedMap(Map):
                 units=self.units,
             )
 
-    def downsample(self, shape):
-        zoom_factor = np.array(shape) / self.data.shape
+    def downsample(self, n_x=None, n_y=None):
+        """
+        TODO: implement t and nu downsampling
+        """
+
+        data = self.to("K_RJ").data
+
+        new_n_nu = self.n_nu
+        new_n_t = self.n_t
+        new_n_y = n_y or self.n_y
+        new_n_x = n_x or self.n_x
+
+        # new_nu_bins = np.linspace(self.nu_bins.min(), self.nu_bins.max(), new_n_nu + 1)
+        # new_t_bins = np.linspace(self.t_bins.min(), self.t_bins.max(), new_n_t + 1)
+        new_y_bins = np.linspace(self.y_bins.min(), self.y_bins.max(), new_n_y + 1)
+        new_x_bins = np.linspace(self.x_bins.min(), self.x_bins.max(), new_n_x + 1)
+        bins_tuple = (new_y_bins, new_x_bins)
+
+        new_data = np.zeros((len(self.stokes), new_n_nu, new_n_t, new_n_y, new_n_x))
+
+        for stokes_index, stokes in enumerate(self.stokes):
+
+            for nu_index, nu in enumerate(self.nu):
+
+                for t_index, t in enumerate(self.nu):
+
+                    bs = sp.stats.binned_statistic_dd(
+                        sample=self.points.reshape(-1, 2),
+                        values=data[stokes_index, nu_index, t_index].reshape(-1),
+                        bins=bins_tuple,
+                        statistic="mean",
+                    )
+
+                    new_data[stokes_index, nu_index, t_index] = bs.statistic
 
         return ProjectedMap(
-            data=sp.ndimage.zoom(self.data, zoom=zoom_factor),
-            t=sp.ndimage.zoom(self.t, zoom=zoom_factor[0]),
-            nu=sp.ndimage.zoom(self.nu, zoom=zoom_factor[1]),
+            data=new_data,
+            t=self.t,
+            nu=self.nu,
             width=self.width,
+            height=self.height,
             center=self.center,
             frame=self.frame,
             degrees=False,
-        )
+            units="K_RJ",
+        ).to(units=self.units)
 
     def to_hdf(self, filename):
 
@@ -240,7 +310,7 @@ class ProjectedMap(Map):
             if self._weight is not None:
                 f.create_dataset("weight", dtype=float, data=self._weight)
 
-            for field in ["nu", "t", "resolution", "center", "frame", "units"]:
+            for field in ["nu", "t", "width", "height", "center", "frame", "units"]:
                 f.create_dataset(field, data=getattr(self, field))
 
     def plot(
@@ -322,11 +392,10 @@ class ProjectedMap(Map):
 
                 header["RESTFRQ"] = nu if nu > 0 else 150
 
-                res_degrees = np.degrees(self.resolution)
                 center_degrees = np.degrees(self.center)
 
-                header["CDELT1"] = res_degrees  # degree
-                header["CDELT2"] = res_degrees  # degree
+                header["CDELT1"] = np.degrees(self.x_res)  # degree
+                header["CDELT2"] = np.degrees(self.y_res)  # degree
 
                 header["CRPIX1"] = self.n_x / 2
                 header["CRPIX2"] = self.n_y / 2
@@ -345,13 +414,13 @@ class ProjectedMap(Map):
 
                 # ax.set_title(f"{nu} GHz")
 
-                x = Angle(self.x_side)
-                y = Angle(self.y_side)
+                x = Angle(self.x_bins)
+                y = Angle(self.y_bins)
 
                 ax.pcolormesh(
                     x.values,
                     y.values,
-                    self.data[stokes_index, i_nu, i_t].T[::-1],
+                    self.data[stokes_index, i_nu, i_t],
                     cmap=cmap,
                     # interpolation="none",
                     # extent=map_extent,

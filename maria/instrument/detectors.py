@@ -9,7 +9,7 @@ import scipy as sp
 
 from ..units import Angle
 from ..utils import compute_diameter
-from .band import BandList
+from ..band import BandList
 from .beam import compute_angular_fwhm
 
 here, this_filename = os.path.split(__file__)

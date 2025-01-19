@@ -4,7 +4,6 @@ import logging
 import os
 import arrow
 
-import dask.array as da
 import numpy as np
 import scipy as sp
 import time as ttime
@@ -12,11 +11,13 @@ import time as ttime
 from tqdm import tqdm
 
 from ..functions import approximate_normalized_matern
-from ..spectrum import AtmosphericSpectrum
+
 from ..utils import compute_aligning_transform
 from ..io import humanize_time
 from ..weather import Weather
+
 from .extrusion import ProcessExtrusion, generate_layers
+from .spectrum import AtmosphericSpectrum
 
 here, this_filename = os.path.split(__file__)
 
@@ -40,6 +41,7 @@ class Atmosphere:
         spectrum_source: str = "am",
         pwv_rms_frac: float = 0.03,
         max_height: float = 5e3,
+        disable_progress_bars: bool = False,
     ):
         if model not in SUPPORTED_MODELS_LIST:
             raise ValueError(
@@ -68,6 +70,8 @@ class Atmosphere:
 
         self.model = model
         self.max_height = max_height
+
+        self.disable_progress_bars = disable_progress_bars
 
         self._initialized = False
 
@@ -106,6 +110,7 @@ class Atmosphere:
         for process_index in tqdm(
             sorted(np.unique(self.layers.process_index)),
             desc="Constructing atmosphere",
+            disable=self.disable_progress_bars,
         ):
 
             process_init_s = ttime.monotonic()
@@ -270,14 +275,22 @@ class Atmosphere:
 
         pp = self.coords.project(z=1)
 
-        for k, process in tqdm(self.processes.items(), desc="Generating turbulence"):
+        for k, process in tqdm(
+            self.processes.items(),
+            desc="Generating turbulence",
+            disable=self.disable_progress_bars,
+        ):
             process.run(
                 desc=None,
             )  # desc=f"Generating atmosphere ({process_number + 1}/{len(self.processes)})")
 
-        self.zenith_scaled_pwv = self.weather.pwv * da.ones(shape=pp.shape[:-1])
+        self.zenith_scaled_pwv = self.weather.pwv * np.ones(shape=pp.shape[:-1])
 
-        with tqdm(total=len(self.layers), desc="Sampling turbulence") as pbar:
+        with tqdm(
+            total=len(self.layers),
+            desc="Sampling turbulence",
+            disable=self.disable_progress_bars,
+        ) as pbar:
             for k, process in self.processes.items():
                 wind_vector = np.c_[process.vx, process.vy, np.zeros(process.vx.shape)]
                 translation = np.cumsum(self.timestep * wind_vector[None], axis=-2)

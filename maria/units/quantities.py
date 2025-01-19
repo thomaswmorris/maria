@@ -27,7 +27,7 @@ def parse_units(u):
             f"(one of {prefixes_phrase}) and a base unit (one of {base_units_phrase}).",
         )
     units = match.groupdict()
-    for attr in ["quantity", "SI", "from", "to"]:
+    for attr in ["quantity", "SI"]:
         units[attr] = QUANTITIES.set_index("base_unit", drop=False).loc[
             units["base_unit"], attr
         ]
