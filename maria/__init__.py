@@ -12,7 +12,7 @@ from .band import Band, all_bands, get_band  # noqa
 from .plan import Plan, all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
 from .site import Site, all_regions, all_sites, get_site  # noqa
-from .io import fetch  # noqa
+from .io import fetch, set_cache_dir  # noqa
 
 logging.basicConfig(
     level=logging.INFO,
