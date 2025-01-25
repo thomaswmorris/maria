@@ -433,6 +433,8 @@ class ProjectedMap(Map):
                 if i_nu == 0:
                     ax.set_ylabel(rf"$\Delta\,\theta_y$ [{y.units_short}.]")
 
+                ax.set_aspect("equal")
+
         dummy_map = mpl.cm.ScalarMappable(
             mpl.colors.Normalize(vmin=vmin, vmax=vmax),
             cmap=cmap,
