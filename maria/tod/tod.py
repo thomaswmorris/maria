@@ -142,7 +142,7 @@ class TOD:
 
     @property
     def signal(self) -> da.Array:
-        return sum([getattr(self, field) for field in self.fields])
+        return sum([self.data[field] for field in self.fields])
 
     @property
     def duration(self) -> float:

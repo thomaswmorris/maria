@@ -335,9 +335,11 @@ class Coordinates:
 
     def center(self, frame=None):
         frame = frame or self.frame
-        return get_center_phi_theta(
-            getattr(self, frames[frame]["phi"]),
-            getattr(self, frames[frame]["theta"]),
+        return np.array(
+            get_center_phi_theta(
+                getattr(self, frames[frame]["phi"]),
+                getattr(self, frames[frame]["theta"]),
+            )
         )
 
     def broadcast(self, offsets, frame, axis=0):

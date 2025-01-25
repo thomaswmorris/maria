@@ -9,6 +9,13 @@ from tqdm import tqdm
 from ..utils.io import test_file
 
 logger = logging.getLogger("maria")
+here, this_filename = os.path.split(__file__)
+
+os.environ["MARIA_CACHE_DIR"] = "/tmp/maria-data"
+
+
+def set_cache_dir(directory):
+    os.environ["MARIA_CACHE_DIR"] = directory
 
 
 def cache_status(path: str, max_age: float = 30 * 86400, refresh: bool = False):
@@ -94,7 +101,7 @@ def fetch(
     """
     Fetch a file from the repo.
     """
-    cache_path = cache_path or f"/tmp/maria-data/{source_path}"
+    cache_path = cache_path or f"{os.environ['MARIA_CACHE_DIR']}/data/{source_path}"
     url = f"{url_base}/{source_path}"
 
     status = cache_status(cache_path, max_age=max_age, refresh=refresh)

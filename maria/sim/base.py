@@ -3,6 +3,7 @@ from __future__ import annotations
 import arrow
 import logging
 import os
+import gc
 
 import numpy as np
 import time as ttime
@@ -188,6 +189,8 @@ class BaseSimulation:
             units="pW",
             metadata=metadata,
         )
+
+        gc.collect()
 
         return tod
 

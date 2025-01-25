@@ -6,6 +6,7 @@ import h5py
 
 import numpy as np
 import scipy as sp
+import pandas as pd
 
 from ..io import fetch, DEFAULT_TIME_FORMAT
 from ..site import InvalidRegionError, all_regions, supported_regions_table
@@ -71,7 +72,7 @@ class Weather:
         self.override = override
         self.source = source
 
-        time = time or arrow.now().to("utc")
+        time = time if time is not None else arrow.now().to("utc")
         self.time = arrow.get(time)
 
         self.cache_path = fetch(
@@ -89,6 +90,8 @@ class Weather:
 
         self.utc_day_hour = get_utc_day_hour(self.time.timestamp())
         self.utc_year_day = get_utc_year_day(self.time.timestamp())
+
+        self.data = {}
 
         self.region_quantiles = {}
 
@@ -124,7 +127,7 @@ class Weather:
                     (year_day_side, day_hour_side, self.quantile_levels),
                     data[YEAR_DAY_EDGE_INDEX, DAY_HOUR_EDGE_INDEX],
                 )((self.utc_year_day, self.utc_day_hour, self.quantiles.get(attr, 0.5)))
-                setattr(self, attr, y)
+                self.data[attr] = y
 
         wind_speed_correction_factor = self.wind_speed / np.sqrt(
             self.wind_east**2 + self.wind_north**2,
@@ -145,6 +148,13 @@ class Weather:
                 self.temperature, force_absolute_humidity
             )
 
+    def __getattr__(self, attr):
+
+        if attr in self.data:
+            return self.data[attr]
+
+        raise AttributeError()
+
     @property
     def absolute_humidity(self):
         return relative_to_absolute_humidity(self.temperature, self.humidity)
@@ -161,17 +171,53 @@ class Weather:
     # def wind_speed(self):
     #     return np.sqrt(self.wind_east**2 + self.wind_north**2 + self.wind_vertical**2)
 
+    def layers(self):
+
+        df = pd.DataFrame(self.data)
+        df.insert(0, "altitude", df.geopotential.values / g)
+        df.insert(1, "pressure", 1e2 * self.pressure_levels)
+
+        df = df.loc[df.altitude > self.base_altitude]
+        df.index = np.arange(len(df))
+
+        absolute_humidity = relative_to_absolute_humidity(df.temperature, df.humidity)
+
+        df.insert(2, "h_bottom", 0.0)
+        df.insert(3, "h_top", 0.0)
+        df.insert(4, "h_thickness", 0.0)
+        df.insert(5, "total_water", 0.0)
+        df.insert(6, "absolute_humidity", absolute_humidity)
+
+        h_values = df.altitude.values
+        h_bins = np.array(
+            [
+                self.base_altitude,
+                *(h_values[:-1] + h_values[1:]) / 2,
+                h_values[-1] + 100,
+            ]
+        )
+
+        for layer_index, (h1, h2) in enumerate(zip(h_bins[:-1], h_bins[1:])):
+
+            h = np.linspace(h1, h2, 256)
+
+            absolute_humidity = sp.interpolate.interp1d(
+                self.altitude,
+                self.absolute_humidity,
+                bounds_error=False,
+                fill_value="extrapolate",
+            )(h)
+
+            df.loc[layer_index, ["h_bottom", "h_top", "h_thickness"]] = h1, h2, h2 - h1
+            df.loc[layer_index, "total_water"] = np.trapezoid(absolute_humidity, x=h)
+
+        df.loc[:, "altitude"] = (h_bins[:-1] + h_bins[1:]) / 2
+
+        return df
+
     @property
     def pwv(self):
-        altitude_samples = np.linspace(
-            self.base_altitude,
-            self.geopotential.max() / g,
-            1024,
-        )
-        return np.trapezoid(
-            np.interp(altitude_samples, self.geopotential / g, self.absolute_humidity),
-            x=altitude_samples,
-        )
+        return self.layers().total_water.sum()
 
     def __call__(self, altitude):
         res = {}
@@ -185,5 +231,6 @@ class Weather:
         parts = []
         parts.append(f"region={repr(self.region)}")
         parts.append(f"time={self.local_time.format(DEFAULT_TIME_FORMAT)}")
-        parts.append(f"pwv={self.pwv:.03f}")
+        parts.append(f"elevation={int(self.base_altitude)}m")
+        parts.append(f"pwv={self.pwv:.03f}mm")
         return f"Weather({', '.join(parts)})"
