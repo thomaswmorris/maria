@@ -17,12 +17,12 @@ import pandas as pd
 from .. import coords
 from ..units import Angle
 from ..utils import read_yaml
-from .patterns import get_pattern_generator, patterns
+from .patterns import scan_patterns, get_scan_pattern_generator
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
-all_patterns = list(patterns.index.values)
+all_patterns = list(scan_patterns.index.values)
 
 MAX_VELOCITY_WARN = 10  # in deg/s
 MAX_ACCELERATION_WARN = 10  # in deg/s
@@ -157,7 +157,7 @@ class Plan:
         #     self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
 
         # this is in pointing_units
-        scan_offsets = get_pattern_generator(self.scan_pattern)(
+        scan_offsets = get_scan_pattern_generator(self.scan_pattern)(
             self.time,
             **self.scan_options,
         )
@@ -229,7 +229,7 @@ class Plan:
         ax.scatter(0, 0, c="r", marker="x", label=label)
         ax.set_xlabel(rf"$\Delta \, \theta_x$ [{self.scan_offsets.units_short}]")
         ax.set_ylabel(rf"$\Delta \, \theta_y$ [{self.scan_offsets.units_short}]")
-        ax.legend()
+        ax.legend(loc="upper right")
 
     def map_counts(self, instrument=None, x_bins=100, y_bins=100):
 
