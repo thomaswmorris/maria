@@ -174,20 +174,36 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         )
 
     def _run(self):
+
         if hasattr(self, "atmosphere"):
+            atmosphere_sim_start_s = ttime.monotonic()
             self._simulate_atmosphere()
             self._compute_atmospheric_emission()
-            # self._compute_atmospheric_opacity()
+            logger.debug(
+                f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}."
+            )
 
         if hasattr(self, "cmb"):
+            cmb_sim_start_s = ttime.monotonic()
             self._simulate_cmb_emission()
+            logger.debug(
+                f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}."
+            )
 
         if hasattr(self, "map"):
+            map_sim_start_s = ttime.monotonic()
             self._sample_maps()
+            logger.debug(
+                f"Ran map simulation in {humanize_time(ttime.monotonic() - map_sim_start_s)}."
+            )
 
         # number of bands are lost here
         if self.noise:
+            noise_sim_start_s = ttime.monotonic()
             self._simulate_noise()
+            logger.debug(
+                f"Ran noise simulation in {humanize_time(ttime.monotonic() - noise_sim_start_s)}."
+            )
 
         gain_error = np.exp(
             self.instrument.dets.gain_error

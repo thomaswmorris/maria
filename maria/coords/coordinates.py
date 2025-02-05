@@ -92,7 +92,7 @@ class Coordinates:
         t: float = DEFAULT_TIMESTAMP,
         earth_location: EarthLocation = DEFAULT_EARTH_LOCATION,
         frame: str = "az_el",
-        dtype=np.float64,
+        dtype: type = np.float64,
     ):
         self.earth_location = earth_location
         self.frame = frame
@@ -115,14 +115,16 @@ class Coordinates:
                 if (np.ptp(self.t, axis=axis) > 0).any():
                     raise ValueError("Only the last axis can vary in time.")
 
-        ref_time = ttime.monotonic()
-        self.compute_transforms()
-        duration_s = ttime.monotonic() - ref_time
-        logger.debug(
-            f"Initialized coordinates {self} in {humanize_time(duration_s)}.",
-        )  # noqa
+        self.initialized = False
+        self.computed_frames = [frame]
 
-    def compute_transforms(self):
+    def initialize(self):
+        """
+        Do all the initial computations needed to convert to some other frame.
+        """
+
+        ref_time = ttime.monotonic()
+
         self.shaped_t = np.atleast_1d(self.t)
         keep_dims = (-1,) if hasattr(self.t, "__len__") else ()
         t_ordered_center_phi_theta = np.c_[
@@ -180,51 +182,73 @@ class Coordinates:
 
         self.transforms = {}
         self.fid_points = {self.frame: phi_theta_to_xyz(self.fid_phi, self.fid_theta)}
-        A = self.fid_points[self.frame]
-        AT = np.swapaxes(self.fid_points[self.frame], -2, -1)
+        self.A = self.fid_points[self.frame]
+        self.AT = np.swapaxes(self.fid_points[self.frame], -2, -1)
 
-        for frame, config in frames.items():
-            if frame in self.fid_skycoords:
-                continue
+        self.initialized = True
 
-            self.fid_skycoords[frame] = getattr(
-                self.fid_skycoords[self.frame],
-                config["astropy_name"],
-            )
+        duration_s = ttime.monotonic() - ref_time
+        logger.debug(
+            f"Initialized {self} in {humanize_time(duration_s)}.",
+        )  # noqa
 
-            frame_fid_phi = getattr(
-                self.fid_skycoords[frame],
-                frames[frame]["astropy_phi"],
-            ).rad
-            frame_fid_theta = getattr(
-                self.fid_skycoords[frame],
-                frames[frame]["astropy_theta"],
-            ).rad
+    def compute_transform(self, frame):
 
-            self.fid_points[frame] = phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
+        ref_time = ttime.monotonic()
 
-            # voodoo!
-            self.transforms[frame] = (
-                np.linalg.inv(AT @ A)
-                @ AT
-                @ phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
-            )
+        if frame not in frames:
+            raise ValueError(f"Cannot compute transform for invalid frame '{frame}'.")
 
-            transform_stack = interp1d(
-                self.fid_t,
-                self.transforms[frame],
-                kind="linear",
-                bounds_error=False,
-                fill_value="extrapolate",
-                axis=0,
-            )(self.t)
+        config = frames[frame]
 
-            frame_phi, frame_theta = xyz_to_phi_theta(
-                (np.expand_dims(self.compute_points(), -2) @ transform_stack).squeeze(),
-            )
+        if not self.initialized:
+            self.initialize()
 
-            setattr(self, frames[frame]["phi"], frame_phi)
-            setattr(self, frames[frame]["theta"], frame_theta)
+        self.fid_skycoords[frame] = getattr(
+            self.fid_skycoords[self.frame],
+            config["astropy_name"],
+        )
+
+        frame_fid_phi = getattr(
+            self.fid_skycoords[frame],
+            frames[frame]["astropy_phi"],
+        ).rad
+        frame_fid_theta = getattr(
+            self.fid_skycoords[frame],
+            frames[frame]["astropy_theta"],
+        ).rad
+
+        self.fid_points[frame] = phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
+
+        # voodoo!
+        self.transforms[frame] = (
+            np.linalg.inv(self.AT @ self.A)
+            @ self.AT
+            @ phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
+        )
+
+        transform_stack = interp1d(
+            self.fid_t,
+            self.transforms[frame],
+            kind="linear",
+            bounds_error=False,
+            fill_value="extrapolate",
+            axis=0,
+        )(self.t)
+
+        frame_phi, frame_theta = xyz_to_phi_theta(
+            (np.expand_dims(self.compute_points(), -2) @ transform_stack).squeeze(),
+        )
+
+        setattr(self, frames[frame]["phi"], frame_phi)
+        setattr(self, frames[frame]["theta"], frame_theta)
+
+        self.computed_frames.append(frame)
+
+        duration_s = ttime.monotonic() - ref_time
+        logger.debug(
+            f"Computed transform to frame '{frame}' for {self} in {humanize_time(duration_s)}.",
+        )  # noqa
 
     @property
     def shape(self):
@@ -242,15 +266,23 @@ class Coordinates:
         if attr in ["x", "y", "z", "r", "phi", "theta"]:
             return getattr(self, f"_{attr}")
 
+        for frame, config in frames.items():
+            if attr in [config["phi"], config["theta"]]:
+                self.compute_transform(frame=frame)
+                return getattr(self, attr)
+
         raise AttributeError(f"Coordinates object has no attribute '{attr}'.")
 
     def __getitem__(self, key):
 
         clone = deepcopy(self)
-
         attrs = ["_x", "_y", "_z", "_r", "_phi", "_theta", "_t"]
         attrs.extend(
-            [frames[frame][angle] for frame in frames for angle in ["phi", "theta"]]
+            [
+                frames[frame][angle]
+                for frame in self.computed_frames
+                for angle in ["phi", "theta"]
+            ]
         )
         for attr in attrs:
             setattr(clone, attr, getattr(clone, attr)[key])

@@ -1,26 +1,26 @@
 ,location,country,notes,latitude,longitude,altitude,timezone,training_start,training_end,training_years
-boolardy,"Boolardy, Western Australia",Australia,"MRO, SKA",-26.697,116.631,395,Australia/Perth,2010-01-01,2024-10-30,14.8
-boston,"Cambridge, Massachusetts",USA,"Harvard University, MIT",42.374,-71.111,8,America/New_York,2015-01-01,2024-10-31,9.8
-chajnantor,"Llano de Chajnantor, Antofagasta",Chile,"ACT, ALMA, APEX, SO, TAO",-23.006,-67.759,5040,America/Santiago,1959-08-17,2024-10-31,64.8
-chiang_mai,"Chiang Mai, Thailand",Thailand,TNRT,18.864,99.217,395,Asia/Bangkok,2022-01-01,2024-10-31,2.2
-effelsberg,"Effelsberg, North Rhine-Westphalia",Germany,ERT,50.524,6.883,319,Europe/Berlin,2015-01-01,2024-10-31,9.8
-green_bank,"Green Bank, West Virginia",USA,Green Bank Observatory,38.433,-79.84,807,America/New_York,2000-01-01,2024-10-31,24.8
-mauna_kea,"Mauna Kea, Hawaii",USA,Mauna Kea Observatory,19.823,-155.475,4205,Pacific/Honolulu,2000-01-01,2024-10-30,24.8
-meerkat,"Meerkat National Park, Northern Cape",South Africa,"HERA, MeerKAT, SKA",-30.713,21.443,1075,Africa/Johannesburg,2010-01-01,2024-10-31,14.8
-metsahovi,"Metsähovi, Kirkkonummi",Finland,Metsähovi Radio Observatory,60.218,24.394,90,Europe/Helsinki,2018-01-01,2024-10-31,6.1
-minamimaki,"Minamimaki, Nagano",Japan,Nobeyama Observatory,35.942,138.476,1350,Asia/Tokyo,2015-01-01,2024-10-31,9.8
-mount_graham,"Mount Graham, Arizona",USA,"LBT, VATT",32.702,-109.89,3178,America/Phoenix,2015-01-08,2024-10-30,9.6
-narrabri,"Narrabri, New South Wales",Australia,ATCA,-30.314,149.562,237,Australia/Sydney,2015-01-01,2024-10-31,9.8
-ngari,"Ngari Prefecture, Tibet",China,AliCPT,32.326,80.026,5176,Asia/Shanghai,2010-01-01,2024-10-31,14.8
-owens_valley,"Owens Valley, California",USA,Owens Valley Radio Observatory,37.232,-118.295,1222,America/Los_Angeles,2010-01-01,2024-10-31,14.8
-pic_de_bure,"Plateau de Bure, Haute-Alpes",France,NOEMA,44.634,5.908,2552,Europe/Paris,2015-01-01,2024-10-31,9.8
-pico_veleta,"Pico Veleta, Granada",Spain,IRAM,37.066,-3.393,2850,Europe/Madrid,2015-01-01,2024-10-31,9.8
-princeton,"Princeton, New Jersey",USA,Princeton University,40.345,-74.651,58,America/New_York,2015-01-01,2024-10-31,9.8
-qitai,"Qitai, Xinjiang",China,QTT,43.601,89.699,1780,Asia/Urumqi,2015-01-01,2024-10-31,9.8
-san_agustin,"Plains of San Agustín, New Mexico",USA,VLA,34.079,-107.618,2120,America/Denver,2010-01-01,2024-10-31,14.8
-san_basilio,"San Basilio, Sardinia",Italy,"SRT, MISTRAL",39.493,9.245,600,Europe/Rome,2010-01-01,2024-10-31,14.8
-sierra_negra,"Sierra Negra, Puebla",Mexico,"HAWC, LMT",18.986,-97.314,4640,America/Mexico_City,2010-01-01,2024-10-31,14.8
-south_pole,South Pole,Antarctica,"BICEP2, DASI, GML, Keck, SPT",-90.0,0.0,2835,Antarctica/South_Pole,1996-06-22,2024-10-31,27.1
-summit_camp,"Summit Station, Greenland",Greenland,Greenland Telescope,72.583,-38.455,3202,America/Nuuk,2005-07-04,2024-10-30,19.3
-teide,"Mount Teide, Tenerife",Spain,Teide Observatory,28.301,-16.511,2390,Atlantic/Canary,2010-01-01,2024-10-31,14.8
-thule,Thule Air Base,Greenland,Thule Air Base,76.535,-68.686,77,America/Thule,2023-03-02,2024-10-31,1.7
+boolardy,"Boolardy, Western Australia",Australia,"MRO, SKA",-26.697,116.631,395,Australia/Perth,2010-01-01,2024-11-15,14.9
+boston,"Cambridge, Massachusetts",USA,"Harvard University, MIT",42.374,-71.111,8,America/New_York,2015-01-01,2024-11-15,9.9
+chajnantor,"Llano de Chajnantor, Antofagasta",Chile,"ACT, ALMA, APEX, SO, TAO",-23.006,-67.759,5040,America/Santiago,1959-08-17,2024-11-15,65.0
+chiang_mai,"Chiang Mai, Thailand",Thailand,TNRT,18.864,99.217,395,Asia/Bangkok,2022-01-01,2024-11-15,2.4
+effelsberg,"Effelsberg, North Rhine-Westphalia",Germany,ERT,50.524,6.883,319,Europe/Berlin,2015-01-01,2024-11-15,9.9
+green_bank,"Green Bank, West Virginia",USA,Green Bank Observatory,38.433,-79.84,807,America/New_York,2000-01-01,2024-11-15,24.9
+mauna_kea,"Mauna Kea, Hawaii",USA,Mauna Kea Observatory,19.823,-155.475,4205,Pacific/Honolulu,2000-01-01,2024-11-15,24.9
+meerkat,"Meerkat National Park, Northern Cape",South Africa,"HERA, MeerKAT, SKA",-30.713,21.443,1075,Africa/Johannesburg,2010-01-01,2024-11-15,14.9
+metsahovi,"Metsähovi, Kirkkonummi",Finland,Metsähovi Radio Observatory,60.218,24.394,90,Europe/Helsinki,2018-01-01,2024-11-14,6.3
+minamimaki,"Minamimaki, Nagano",Japan,Nobeyama Observatory,35.942,138.476,1350,Asia/Tokyo,2015-01-01,2024-11-15,9.9
+mount_graham,"Mount Graham, Arizona",USA,"LBT, VATT",32.702,-109.89,3178,America/Phoenix,2015-01-01,2024-11-15,9.8
+narrabri,"Narrabri, New South Wales",Australia,ATCA,-30.314,149.562,237,Australia/Sydney,2015-01-01,2024-11-15,9.9
+ngari,"Ngari Prefecture, Tibet",China,AliCPT,32.326,80.026,5176,Asia/Shanghai,2010-01-01,2024-11-14,14.9
+owens_valley,"Owens Valley, California",USA,Owens Valley Radio Observatory,37.232,-118.295,1222,America/Los_Angeles,2010-01-01,2024-11-15,14.9
+pic_de_bure,"Plateau de Bure, Haute-Alpes",France,NOEMA,44.634,5.908,2552,Europe/Paris,2015-01-01,2024-11-11,9.9
+pico_veleta,"Pico Veleta, Granada",Spain,IRAM,37.066,-3.393,2850,Europe/Madrid,2015-01-01,2024-11-14,9.9
+princeton,"Princeton, New Jersey",USA,Princeton University,40.345,-74.651,58,America/New_York,2015-01-01,2024-11-15,9.9
+qitai,"Qitai, Xinjiang",China,QTT,43.601,89.699,1780,Asia/Urumqi,2015-01-01,2024-11-15,9.9
+san_agustin,"Plains of San Agustín, New Mexico",USA,VLA,34.079,-107.618,2120,America/Denver,2010-01-01,2024-11-14,14.9
+san_basilio,"San Basilio, Sardinia",Italy,"SRT, MISTRAL",39.493,9.245,600,Europe/Rome,2010-01-01,2024-11-15,14.9
+sierra_negra,"Sierra Negra, Puebla",Mexico,"HAWC, LMT",18.986,-97.314,4640,America/Mexico_City,2010-01-01,2024-11-15,14.9
+south_pole,South Pole,Antarctica,"BICEP2, DASI, GML, Keck, SPT",-90.0,0.0,2835,Antarctica/South_Pole,1996-06-22,2024-11-15,27.3
+summit_camp,"Summit Station, Greenland",Greenland,Greenland Telescope,72.583,-38.455,3202,America/Nuuk,2005-04-15,2024-11-15,19.5
+teide,"Mount Teide, Tenerife",Spain,Teide Observatory,28.301,-16.511,2390,Atlantic/Canary,2010-01-01,2024-11-15,14.9
+thule,Thule Air Base,Greenland,Thule Air Base,76.535,-68.686,77,America/Thule,2022-12-02,2024-11-15,1.9

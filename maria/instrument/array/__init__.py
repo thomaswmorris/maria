@@ -92,7 +92,7 @@ def generate_2d_offsets(n, packing="hex", shape="circle", normalize=False):
             "Supported offset packings are ['square', 'hex', or 'sunflower'].",
         )
 
-    n_sides = {"square": 4, "hex": 6, "circle": 256}[shape]
+    n_sides = {"square": 4, "hex": 6, "circle": 1024}[shape]
 
     r = np.sqrt(x**2 + y**2)
     p = np.arctan2(y, x)
