@@ -57,7 +57,11 @@ def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
     return float(np.sqrt(np.max(np.square(vertices[i] - vertices[j]).sum(axis=-1))))
 
 
-def get_rotation_matrix(**rotations):
+def get_rotation_matrix_2d(a):
+    return sp.linalg.expm(np.array([[0, -a], [a, 0]]))
+
+
+def get_rotation_matrix_3d(**rotations):
     """
     A list of tuples [(dim, angle), ...] where we successively rotate around dim by angle.
     """

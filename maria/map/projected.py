@@ -6,6 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
+import logging
 from astropy.io import fits
 
 from ..coords import frames
@@ -18,6 +19,7 @@ from ..units import prefixes
 
 
 here, this_filename = os.path.split(__file__)
+logger = logging.getLogger("maria")
 
 
 class ProjectedMap(Map):
@@ -153,6 +155,15 @@ class ProjectedMap(Map):
             "units",
         ]
         return {"degrees": False, **{k: getattr(self, k) for k in package_keys}}
+
+    @property
+    def resolution(self):
+        if not np.isclose(self.x_res, self.y_res, rtol=1e-3):
+            RuntimeError(
+                "Cannot return attribute 'resolution'; ProjectedMap has x-resolution"
+                f" {np.degrees(self.x_res):.02f}° and y-resolution {np.degrees(self.x_res):.02f}°."
+            )
+        return self.x_res
 
     @property
     def width(self):

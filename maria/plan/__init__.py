@@ -95,7 +95,7 @@ class Plan:
     def __repr__(self):
         parts = []
         frame = coords.frames[self.frame]
-        center_degrees = self.scan_center.degrees
+        center_degrees = Angle(self.scan_center, units="radians").degrees
 
         parts.append(f"start_time={self.start_time.format()}")
         parts.append(
@@ -129,7 +129,7 @@ class Plan:
         self.jitter = jitter
         self.scan_center = Angle(
             scan_center, units=("degrees" if degrees else "radians")
-        )
+        ).radians
         self.scan_pattern = scan_pattern
         self.scan_options = scan_options
 
@@ -164,10 +164,10 @@ class Plan:
 
         self.scan_offsets = Angle(
             scan_offsets, units=("degrees" if degrees else "radians")
-        )
+        ).radians
 
         scan_velocity = np.gradient(
-            self.scan_offsets.radians,
+            self.scan_offsets,
             axis=1,
             edge_order=0,
         ) / np.gradient(self.time)
@@ -201,14 +201,12 @@ class Plan:
                 stacklevel=2,
             )
 
-        self.scan_offsets.radians += np.radians(
-            self.jitter
-        ) * np.random.standard_normal(
+        self.scan_offsets += np.radians(self.jitter) * np.random.standard_normal(
             size=self.scan_offsets.shape
         )  # noqa
 
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
-            *self.scan_offsets[:],
+            *self.scan_offsets,
             *self.scan_center,
         )
         if self.frame == "ra_dec":
@@ -222,13 +220,16 @@ class Plan:
 
         fig, ax = plt.subplots(1, 1, figsize=(4, 4))
 
-        frame = coords.frames[self.frame]
-        label = f"{round(self.scan_center.deg[0], 3)}° {frame['phi_short_name']}, {round(self.scan_center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
+        center = Angle(self.scan_center, units="radians")
+        offsets = Angle(self.scan_offsets, units="radians")
 
-        ax.plot(*self.scan_offsets.values, lw=5e-1)
+        frame = coords.frames[self.frame]
+        label = f"{round(center.deg[0], 3)}° {frame['phi_short_name']}, {round(center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
+
+        ax.plot(*offsets.values, lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=label)
-        ax.set_xlabel(rf"$\Delta \, \theta_x$ [{self.scan_offsets.units_short}]")
-        ax.set_ylabel(rf"$\Delta \, \theta_y$ [{self.scan_offsets.units_short}]")
+        ax.set_xlabel(rf"$\Delta \, \theta_x$ [{offsets.units_short}]")
+        ax.set_ylabel(rf"$\Delta \, \theta_y$ [{offsets.units_short}]")
         ax.legend(loc="upper right")
 
     def map_counts(self, instrument=None, x_bins=100, y_bins=100):
@@ -237,7 +238,7 @@ class Plan:
             np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
         )
 
-        OFFSETS = self.scan_offsets.radians.T[None] + array_offsets
+        OFFSETS = self.scan_offsets.T[None] + array_offsets
 
         xmin, ymin = OFFSETS.min(axis=(0, 1))
         xmax, ymax = OFFSETS.max(axis=(0, 1))
