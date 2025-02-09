@@ -397,7 +397,7 @@ class TOD:
         res = {"data": {}}
         for field in self.fields:
             res["data"][field] = copy.deepcopy(self.data[field])
-        for key in ["coords", "units", "dets", "dtype", "metadata"]:
+        for key in ["coords", "weight", "units", "dets", "dtype", "metadata"]:
             if hasattr(self, key):
                 res[key] = getattr(self, key)
         return res

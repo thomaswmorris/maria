@@ -77,7 +77,7 @@ class BinMapper(BaseMapper):
             band_map_data["sum"] += sp.stats.binned_statistic_2d(
                 dy.ravel(),
                 dx.ravel(),
-                (band_tod.weight * band_tod.signal).ravel(),
+                band_tod.signal.ravel(),
                 bins=(self.y_bins, self.x_bins),
                 statistic="sum",
             ).statistic
