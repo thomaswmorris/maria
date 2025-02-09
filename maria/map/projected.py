@@ -93,19 +93,33 @@ class ProjectedMap(Map):
         # if self.units == "Jy/pixel":
         # self.to("K_RJ", inplace=True)
 
-        self.header = ap.io.fits.header.Header()
+    @property
+    def header(self):
 
-        self.header["CDELT1"] = np.degrees(self.x_res)  # degree
-        self.header["CDELT2"] = np.degrees(self.y_res)  # degree
-        self.header["CTYPE1"] = "RA---SIN"
-        self.header["CUNIT1"] = "deg     "
-        self.header["CTYPE2"] = "DEC--SIN"
-        self.header["CUNIT2"] = "deg     "
-        self.header["CRPIX1"] = self.data.shape[-1]
-        self.header["CRPIX2"] = self.data.shape[-2]
-        self.header["CRVAL1"] = self.center[0]
-        self.header["CRVAL2"] = self.center[1]
-        self.header["RADESYS"] = "FK5     "
+        header = ap.io.fits.header.Header()
+
+        header["CDELT1"] = np.degrees(self.x_res)  # degrees
+        header["CDELT2"] = np.degrees(self.y_res)  # degrees
+
+        header["CRPIX1"] = self.data.shape[-1] // 2
+        header["CRPIX2"] = self.data.shape[-2] // 2
+
+        header["WIDTH"] = np.degrees(self.width)
+        header["HEIGHT"] = np.degrees(self.height)
+        header["FRAME"] = self.frame
+        header["UNITS"] = self.units
+
+        # specify x center
+        header["CTYPE1"] = frames[self.frame]["phi"].upper()
+        header["CRVAL1"] = np.degrees(self.center[0])
+        header["CUNIT1"] = "deg     "
+
+        # center y center
+        header["CTYPE2"] = frames[self.frame]["theta"].upper()
+        header["CRVAL2"] = np.degrees(self.center[1])
+        header["CUNIT2"] = "deg     "
+
+        return header
 
     def __getattr__(self, attr):
 
@@ -197,45 +211,6 @@ class ProjectedMap(Map):
     def y_side(self):
         return (self.y_bins[:-1] + self.y_bins[1:]) / 2
 
-    def to_fits(self, filepath):
-        self.header = ap.io.fits.header.Header()
-        self.header["comment"] = "Made Synthetic observations via maria code"
-        self.header["comment"] = "Overwrote resolution and size of the output map"
-
-        self.header["CDELT1"] = np.radians(self.x_res)
-        self.header["CDELT2"] = np.radians(self.y_res)
-
-        self.header["CRPIX1"] = self.n_x / 2
-        self.header["CRPIX2"] = self.n_y / 2
-
-        self.header["CRVAL1"] = np.radians(self.center[0])
-        self.header["CRVAL2"] = np.radians(self.center[1])
-
-        self.header["CTYPE1"] = "RA---SIN"
-        self.header["CTYPE2"] = "DEC--SIN"
-        self.header["CUNIT1"] = "deg     "
-        self.header["CUNIT2"] = "deg     "
-        self.header["CTYPE3"] = "nu    "
-        self.header["CUNIT3"] = "Hz      "
-        self.header["CRPIX3"] = 1.000000000000e00
-
-        self.header["comment"] = "Overwrote pointing location of the output map"
-        self.header["comment"] = "Overwrote spectral position of the output map"
-
-        if self.units == "Jy/pixel":
-            self.to("Jy/pixel")
-            self.header["BTYPE"] = "Jy/pixel"
-
-        elif self.units == "K_RJ":
-            self.header["BTYPE"] = "Kelvin RJ"
-
-        fits.writeto(
-            filename=filepath,
-            data=self.data,
-            header=self.header,
-            overwrite=True,
-        )
-
     def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False):
 
         if not (sigma is None) ^ (fwhm is None):
@@ -311,18 +286,6 @@ class ProjectedMap(Map):
             degrees=False,
             units="K_RJ",
         ).to(units=self.units)
-
-    def to_hdf(self, filename):
-
-        with h5py.File(filename, "w") as f:
-
-            f.create_dataset("data", dtype=float, data=self.data)
-
-            if self._weight is not None:
-                f.create_dataset("weight", dtype=float, data=self._weight)
-
-            for field in ["nu", "t", "width", "height", "center", "frame", "units"]:
-                f.create_dataset(field, data=getattr(self, field))
 
     def plot(
         self,
@@ -468,3 +431,28 @@ class ProjectedMap(Map):
 
         if filepath is not None:
             plt.savefig(filepath=filepath, dpi=256)
+
+    def to_fits(self, filepath):
+
+        m = self.to(self.units_config["base_unit"])
+        header = self.header
+        header["UNITS"] = m.units
+
+        fits.writeto(
+            filename=filepath,
+            data=m.data,
+            header=header,
+            overwrite=True,
+        )
+
+    def to_hdf(self, filename):
+
+        with h5py.File(filename, "w") as f:
+
+            f.create_dataset("data", dtype=float, data=self.data)
+
+            if self._weight is not None:
+                f.create_dataset("weight", dtype=float, data=self._weight)
+
+            for field in ["nu", "t", "width", "height", "center", "frame", "units"]:
+                f.create_dataset(field, data=getattr(self, field))

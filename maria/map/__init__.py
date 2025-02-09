@@ -62,16 +62,22 @@ def read_fits(
     if not os.path.exists(filename):
         raise FileNotFoundError(filename)
 
-    hudl = fits.open(filename)
+    hdul = fits.open(filename)
 
-    indices_with_image = np.where([h.data is not None for h in hudl])[0]
+    indices_with_image = np.where([h.data is not None for h in hdul])[0]
     if len(indices_with_image) == 0:
         raise ValueError(f"FITS file '{filename}' has no images.")
 
     index = index or indices_with_image[0]
 
-    map_data = hudl[index].data
+    hdu = hdul[index]
+
+    map_data = hdu.data
     if map_data.ndim < 2:
         raise ValueError("Map should have at least 2 dimensions.")
+
+    for key in hdu.header.keys():
+        if key in ["FRAME", "WIDTH", "HEIGHT", "UNITS"]:
+            map_kwargs[key.lower()] = hdu.header[key]
 
     return ProjectedMap(data=map_data, **map_kwargs)

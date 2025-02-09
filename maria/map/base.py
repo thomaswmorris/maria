@@ -1,16 +1,13 @@
 import arrow
-import h5py
 import os
 import logging
 
-import astropy as ap
 import numpy as np
 import scipy as sp
 
 import dask.array as da
 import time as ttime
 
-from astropy.io import fits
 from typing import Iterable
 
 from ..calibration import Calibration
@@ -171,54 +168,3 @@ class Map:
     def nu_bin_bounds(self):
         nu_boundaries = [0, *(self.nu[:-1] + self.nu[1:]) / 2, np.inf]
         return [(nu1, nu2) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]
-
-    def to_fits(self, filepath):
-        self.header = ap.io.fits.header.Header()
-        self.header["comment"] = "Made Synthetic observations via maria code"
-        self.header["comment"] = "Overwrote resolution and size of the output map"
-
-        self.header["CDELT1"] = np.radians(self.resolution)
-        self.header["CDELT2"] = np.radians(self.resolution)
-
-        self.header["CRPIX1"] = self.n_x / 2
-        self.header["CRPIX2"] = self.n_y / 2
-
-        self.header["CRVAL1"] = np.radians(self.center[0])
-        self.header["CRVAL2"] = np.radians(self.center[1])
-
-        self.header["CTYPE1"] = "RA---SIN"
-        self.header["CTYPE2"] = "DEC--SIN"
-        self.header["CUNIT1"] = "deg     "
-        self.header["CUNIT2"] = "deg     "
-        self.header["CTYPE3"] = "nu    "
-        self.header["CUNIT3"] = "Hz      "
-        self.header["CRPIX3"] = 1.000000000000e00
-
-        self.header["comment"] = "Overwrote pointing location of the output map"
-        self.header["comment"] = "Overwrote spectral position of the output map"
-
-        if self.units == "Jy/pixel":
-            self.to("Jy/pixel")
-            self.header["BTYPE"] = "Jy/pixel"
-
-        elif self.units == "K_RJ":
-            self.header["BTYPE"] = "Kelvin RJ"
-
-        fits.writeto(
-            filename=filepath,
-            data=self.data,
-            header=self.header,
-            overwrite=True,
-        )
-
-    def to_hdf(self, filename):
-
-        with h5py.File(filename, "w") as f:
-
-            f.create_dataset("data", dtype=float, data=self.data)
-
-            if self._weight is not None:
-                f.create_dataset("weight", dtype=float, data=self._weight)
-
-            for field in ["nu", "t", "resolution", "center", "frame", "units"]:
-                f.create_dataset(field, data=getattr(self, field))
