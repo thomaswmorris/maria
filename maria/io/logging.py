@@ -1,5 +1,6 @@
-import time as ttime
 import logging
+import time as ttime
+
 from ..units import prefixes
 
 
