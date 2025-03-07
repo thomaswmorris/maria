@@ -1,7 +1,7 @@
 sat-wafer:
   n: 631
   primary_size: 0.5
-  array_offset: [5.2, 9.0]
+  focal_plane_offset: [5.2, 9.0]
   field_of_view: 10.0
-  array_shape: hex
+  shape: hexagon
   bands: [act/pa5/f150]
