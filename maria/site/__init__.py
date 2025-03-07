@@ -11,7 +11,7 @@ from astropy.coordinates import EarthLocation
 from matplotlib import pyplot as plt
 
 from ..io import fetch
-from ..utils import repr_lat_lon, read_yaml
+from ..utils import read_yaml, repr_lat_lon
 
 here, this_filename = os.path.split(__file__)
 
@@ -21,9 +21,7 @@ for sites_path in Path(f"{here}/sites").glob("*.yml"):
 
 for site in SITE_CONFIGS:
     config = SITE_CONFIGS[site]
-    SITE_CONFIGS[site]["instruments"] = (
-        ", ".join(config["instruments"]) if "instruments" in config else ""
-    )
+    SITE_CONFIGS[site]["instruments"] = ", ".join(config["instruments"]) if "instruments" in config else ""
 
 SITE_DISPLAY_COLUMNS = [
     "description",
@@ -133,7 +131,6 @@ class Site:
         )
 
     def plot(self, res=0.025):
-
         height_map = get_height_map()
 
         kwargs = {

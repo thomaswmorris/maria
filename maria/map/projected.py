@@ -1,22 +1,17 @@
+import logging
 import os
-import h5py
 
 import astropy as ap
+import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
-import logging
 from astropy.io import fits
 
 from ..coords import frames
-from ..units import Angle
-
-
+from ..units import QUANTITIES, Angle, parse_units, prefixes
 from .base import Map
-from ..units import QUANTITIES, parse_units
-from ..units import prefixes
-
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -42,13 +37,10 @@ class ProjectedMap(Map):
         degrees: bool = True,
         units: str = "K_RJ",
     ):
-
         # give it five dimensions
         data = data * np.ones((1, 1, 1, 1, 1))
 
-        super().__init__(
-            data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units
-        )
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units)
 
         self.center = tuple(np.radians(center)) if degrees else center
 
@@ -59,9 +51,7 @@ class ProjectedMap(Map):
         self.units = units
 
         if not ((width is not None) or (height is not None)) ^ (resolution is not None):
-            raise ValueError(
-                "You must pass exactly one of ('width' and or 'height') or 'resolution'."
-            )
+            raise ValueError("You must pass exactly one of ('width' and or 'height') or 'resolution'.")
 
         if resolution is not None:
             if not resolution > 0:
@@ -95,7 +85,6 @@ class ProjectedMap(Map):
 
     @property
     def header(self):
-
         header = ap.io.fits.header.Header()
 
         header["CDELT1"] = np.degrees(self.x_res)  # degrees
@@ -122,12 +111,9 @@ class ProjectedMap(Map):
         return header
 
     def __getattr__(self, attr):
-
         broadcasted_attrs = ["STOKES", "NU", "T", "Y", "X"]
         if attr in broadcasted_attrs:
-            broadcasted_attr_values = np.meshgrid(
-                self.stokes, self.nu, self.t, self.y_side, self.x_side
-            )
+            broadcasted_attr_values = np.meshgrid(self.stokes, self.nu, self.t, self.y_side, self.x_side)
             return broadcasted_attr_values[broadcasted_attrs.index(attr)]
 
         raise AttributeError(f"'ProjectedMap' object has no attribute '{attr}'")
@@ -212,16 +198,13 @@ class ProjectedMap(Map):
         return (self.y_bins[:-1] + self.y_bins[1:]) / 2
 
     def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False):
-
         if not (sigma is None) ^ (fwhm is None):
             raise ValueError("You must supply exactly one of 'sigma' or 'fwhm'.")
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
         x_sigma_pixels = sigma / self.x_res
         y_sigma_pixels = sigma / self.y_res
-        data = sp.ndimage.gaussian_filter(
-            self.data, sigma=(0, 0, 0, y_sigma_pixels, x_sigma_pixels)
-        )
+        data = sp.ndimage.gaussian_filter(self.data, sigma=(0, 0, 0, y_sigma_pixels, x_sigma_pixels))
 
         if inplace:
             self.data = data
@@ -261,11 +244,8 @@ class ProjectedMap(Map):
         new_data = np.zeros((len(self.stokes), new_n_nu, new_n_t, new_n_y, new_n_x))
 
         for stokes_index, stokes in enumerate(self.stokes):
-
             for nu_index, nu in enumerate(self.nu):
-
                 for t_index, t in enumerate(self.nu):
-
                     bs = sp.stats.binned_statistic_dd(
                         sample=self.points.reshape(-1, 2),
                         values=data[stokes_index, nu_index, t_index].reshape(-1),
@@ -298,15 +278,10 @@ class ProjectedMap(Map):
         subplot_size=3,
         filepath=None,
     ):
-
         stokes_index = self.stokes.index(stokes)
 
-        nu_index = (
-            np.atleast_1d(nu_index) if nu_index is not None else np.arange(len(self.nu))
-        )
-        t_index = (
-            np.atleast_1d(t_index) if t_index is not None else np.arange(len(self.t))
-        )
+        nu_index = np.atleast_1d(nu_index) if nu_index is not None else np.arange(len(self.nu))
+        t_index = np.atleast_1d(t_index) if t_index is not None else np.arange(len(self.t))
 
         n_nu = len(nu_index)
         n_t = len(t_index)
@@ -424,16 +399,13 @@ class ProjectedMap(Map):
 
         u = parse_units(self.units)
         quantity = QUANTITIES.loc[u["quantity"]]
-        units = (
-            prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else ""
-        ) + quantity.base_unit_latex
+        units = (prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else "") + quantity.base_unit_latex
         cbar.set_label(f"{quantity.long_name} $[{units}]$")
 
         if filepath is not None:
             plt.savefig(filepath=filepath, dpi=256)
 
     def to_fits(self, filepath):
-
         m = self.to(self.units_config["base_unit"])
         header = self.header
         header["UNITS"] = m.units
@@ -446,9 +418,7 @@ class ProjectedMap(Map):
         )
 
     def to_hdf(self, filename):
-
         with h5py.File(filename, "w") as f:
-
             f.create_dataset("data", dtype=float, data=self.data)
 
             if self._weight is not None:

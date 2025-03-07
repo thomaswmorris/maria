@@ -4,12 +4,10 @@ import logging
 import pathlib
 from collections.abc import Mapping
 
-
 import astropy as ap
 import h5py
 import pandas as pd
 import yaml
-
 
 logger = logging.getLogger("maria")
 

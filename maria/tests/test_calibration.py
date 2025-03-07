@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-
-import pytest
 import numpy as np
+import pytest
 
 import maria
-from maria import Simulation, all_bands, all_regions
-from maria.constants import T_CMB
-from maria.calibration import Calibration
+from maria import all_bands, all_regions
 from maria.atmosphere import AtmosphericSpectrum
+from maria.calibration import Calibration
+from maria.constants import T_CMB
 
 
 def test_brightness_temperature_to_spectral_flux_density_per_pixel():
-
     square_arcminute = np.radians(1 / 60) ** 2
 
     assert np.isclose(
@@ -46,7 +44,6 @@ test_bands = np.random.choice(a=all_bands, size=n_tests)
     zip(test_regions, test_bands),
 )
 def test_cmb_atmosphere_reversability(region, band):
-
     band = maria.get_band(band)
 
     eps = 1e-4

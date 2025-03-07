@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import logging
 import os
-import arrow
-
-import numpy as np
-import scipy as sp
 import time as ttime
 
+import arrow
+import numpy as np
+import scipy as sp
 from tqdm import tqdm
 
 from ..functions import approximate_normalized_matern
-
-from ..utils import compute_aligning_transform
 from ..io import humanize_time
+from ..utils import compute_aligning_transform
 from ..weather import Weather
-
 from .extrusion import ProcessExtrusion, generate_layers
 from .spectrum import AtmosphericSpectrum
 
@@ -112,7 +109,6 @@ class Atmosphere:
             desc="Constructing atmosphere",
             disable=self.disable_progress_bars,
         ):
-
             process_init_s = ttime.monotonic()
 
             in_process = self.layers.process_index == process_index
@@ -124,14 +120,11 @@ class Atmosphere:
             if process_layers.angular.any():
                 vx = (
                     process_layers.wind_east.values[:, None] * np.cos(self.boresight.az)
-                    - process_layers.wind_north.values[:, None]
-                    * np.sin(self.boresight.az)
+                    - process_layers.wind_north.values[:, None] * np.sin(self.boresight.az)
                 ) / process_layers.h.values[:, None]
                 vy = (
-                    -process_layers.wind_north.values[:, None]
-                    * np.cos(self.boresight.az)
-                    - process_layers.wind_east.values[:, None]
-                    * np.sin(self.boresight.az)
+                    -process_layers.wind_north.values[:, None] * np.cos(self.boresight.az)
+                    - process_layers.wind_east.values[:, None] * np.sin(self.boresight.az)
                 ) / (process_layers.h.values[:, None] * np.sin(self.boresight.el))
                 vx, vy = vx.compute(), vy.compute()
             else:
@@ -142,11 +135,7 @@ class Atmosphere:
                     self.boresight.shape[-1],
                 )
 
-            w = (
-                process_layers.absolute_humidity
-                * process_layers.temperature
-                * process_layers.divergence
-            ).values
+            w = (process_layers.absolute_humidity * process_layers.temperature * process_layers.divergence).values
             vx = (w[:, None] * vx).sum(axis=0) / w.sum()
             vy = (w[:, None] * vy).sum(axis=0) / w.sum()
             vz = np.zeros(vx.shape)
@@ -157,9 +146,7 @@ class Atmosphere:
             # here we want enough points for a hull
             # we have made sure that any hull for this subpointing is a cover for the whole pointing
 
-            process_points_for_hull_list = (
-                []
-            )  # da.zeros_like(np.zeros((len(process_layers), *outer_coords.shape[:-1], len(outer_coords.time), 3)))
+            process_points_for_hull_list = []  # da.zeros_like(np.zeros((len(process_layers), *outer_coords.shape[:-1], len(outer_coords.time), 3)))
 
             for i, (layer_index, layer_entry) in enumerate(process_layers.iterrows()):
                 if layer_entry.angular:
@@ -201,9 +188,7 @@ class Atmosphere:
             tp = process_points_for_hull @ transform
             triangulation = sp.spatial.Delaunay(tp[..., 1:])
 
-            logger.debug(
-                f"Computed process bounds in {humanize_time(ttime.monotonic() - process_init_s)}."
-            )
+            logger.debug(f"Computed process bounds in {humanize_time(ttime.monotonic() - process_init_s)}.")
             # proc_s = ttime.monotonic()
 
             min_tx, min_ty, min_tz = tp.min(axis=0)
@@ -242,11 +227,7 @@ class Atmosphere:
 
             outer_scale = np.maximum(1e3, 300 + process_layers.h.mean() / 10)
 
-            matern_kwargs = (
-                {"nu": 1 / 3, "r0": outer_scale}
-                if self.model == "3d"
-                else {"nu": 5 / 6, "r0": outer_scale}
-            )
+            matern_kwargs = {"nu": 1 / 3, "r0": outer_scale} if self.model == "3d" else {"nu": 5 / 6, "r0": outer_scale}
 
             process = ProcessExtrusion(
                 cross_section=cross_section_points,

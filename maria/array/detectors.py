@@ -2,22 +2,17 @@ from __future__ import annotations
 
 import os
 
-import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import scipy as sp
 
+from ..band import BandList
+from ..beam import compute_angular_fwhm
 from ..units import Angle
 from ..utils import compute_diameter
-from ..band import BandList
-from .beam import compute_angular_fwhm
 
 here, this_filename = os.path.split(__file__)
 
-HEX_CODE_LIST = [
-    mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
-    for t in [*np.linspace(0.05, 0.95, 12)]
-]
 
 DET_COLUMN_TYPES = {
     "array": "str",
@@ -30,6 +25,7 @@ DET_COLUMN_TYPES = {
     "baseline_x": "float",
     "baseline_y": "float",
     "baseline_z": "float",
+    "polarized": "bool",
     "pol_angle": "float",
     "pol_label": "str",
     "primary_size": "float",
@@ -44,7 +40,7 @@ SUPPORTED_ARRAY_PACKINGS = ["hex", "square", "sunflower"]
 SUPPORTED_ARRAY_SHAPES = ["hex", "square", "circle"]
 
 
-class Detectors:
+class ArrayList:
     def __init__(self, df: pd.DataFrame, bands: BandList, config: dict = {}):
         self.df = df
         self.df.index = np.arange(len(self.df.index))
@@ -69,7 +65,7 @@ class Detectors:
 
     def _subset(self, mask):
         df = self.df.loc[mask]
-        return Detectors(
+        return ArrayList(
             df=df,
             bands=[b for b in self.bands if b.name in self.df.band_name.values],
         )
@@ -151,7 +147,7 @@ class Detectors:
                 values[self.band_name == band.name] = getattr(band, attr)
             return values
 
-        raise AttributeError(f"'Detectors' object has no attribute '{attr}'")
+        raise AttributeError(f"{self.__class__.__name__} object has no attribute '{attr}'")
 
     def __len__(self):
         return len(self.df)

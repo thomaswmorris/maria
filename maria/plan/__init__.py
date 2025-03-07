@@ -1,23 +1,22 @@
 from __future__ import annotations
 
-import arrow
 import logging
 import os
-
 from collections.abc import Mapping
-from typing import Union
 from pathlib import Path
-from arrow import Arrow
+from typing import Union
 
+import arrow
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
 import pandas as pd
+import scipy as sp
+from arrow import Arrow
 
 from .. import coords
 from ..units import Angle
 from ..utils import read_yaml
-from .patterns import scan_patterns, get_scan_pattern_generator
+from .patterns import get_scan_pattern_generator, scan_patterns
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -46,8 +45,7 @@ all_plans = list(plan_data.index.values)
 class UnsupportedPlanError(Exception):
     def __init__(self, invalid_plan):
         super().__init__(
-            f"The plan '{invalid_plan}' is not a supported plan. "
-            f"Supported plans are: \n\n{plan_data.to_string()}",
+            f"The plan '{invalid_plan}' is not a supported plan. Supported plans are: \n\n{plan_data.to_string()}",
         )
 
 
@@ -98,9 +96,7 @@ class Plan:
         center_degrees = Angle(self.scan_center, units="radians").degrees
 
         parts.append(f"start_time={self.start_time.format()}")
-        parts.append(
-            f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)"
-        )
+        parts.append(f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)")
         parts.append(f"pattern={self.scan_pattern}")
         parts.append(f"pattern_kwargs={self.scan_options}")
 
@@ -119,7 +115,6 @@ class Plan:
         scan_pattern: str = "daisy",
         scan_options: dict = {},
     ):
-
         self.description = description
         self.start_time = start_time
         self.duration = duration
@@ -127,9 +122,7 @@ class Plan:
         self.frame = frame
         self.degrees = degrees
         self.jitter = jitter
-        self.scan_center = Angle(
-            scan_center, units=("degrees" if degrees else "radians")
-        ).radians
+        self.scan_center = Angle(scan_center, units=("degrees" if degrees else "radians")).radians
         self.scan_pattern = scan_pattern
         self.scan_options = scan_options
 
@@ -162,9 +155,7 @@ class Plan:
             **self.scan_options,
         )
 
-        self.scan_offsets = Angle(
-            scan_offsets, units=("degrees" if degrees else "radians")
-        ).radians
+        self.scan_offsets = Angle(scan_offsets, units=("degrees" if degrees else "radians")).radians
 
         scan_velocity = np.gradient(
             self.scan_offsets,
@@ -179,9 +170,7 @@ class Plan:
         ) / np.gradient(self.time)
 
         self.max_vel_deg = np.degrees(np.sqrt(np.sum(scan_velocity**2, axis=0)).max())
-        self.max_acc_deg = np.degrees(
-            np.sqrt(np.sum(scan_acceleration**2, axis=0)).max()
-        )
+        self.max_acc_deg = np.degrees(np.sqrt(np.sum(scan_acceleration**2, axis=0)).max())
 
         if self.max_vel_deg > MAX_VELOCITY_WARN:
             logger.warning(
@@ -201,9 +190,7 @@ class Plan:
                 stacklevel=2,
             )
 
-        self.scan_offsets += np.radians(self.jitter) * np.random.standard_normal(
-            size=self.scan_offsets.shape
-        )  # noqa
+        self.scan_offsets += np.radians(self.jitter) * np.random.standard_normal(size=self.scan_offsets.shape)  # noqa
 
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
             *self.scan_offsets,
@@ -217,14 +204,15 @@ class Plan:
             raise ValueError("Not a valid pointing frame!")
 
     def plot(self):
-
         fig, ax = plt.subplots(1, 1, figsize=(4, 4))
 
         center = Angle(self.scan_center, units="radians")
         offsets = Angle(self.scan_offsets, units="radians")
 
         frame = coords.frames[self.frame]
-        label = f"{round(center.deg[0], 3)}° {frame['phi_short_name']}, {round(center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
+        label = (
+            f"{round(center.deg[0], 3)}° {frame['phi_short_name']}, {round(center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
+        )
 
         ax.plot(*offsets.values, lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=label)
@@ -233,10 +221,7 @@ class Plan:
         ax.legend(loc="upper right")
 
     def map_counts(self, instrument=None, x_bins=100, y_bins=100):
-
-        array_offsets = (
-            np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
-        )
+        array_offsets = np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
 
         OFFSETS = self.scan_offsets.T[None] + array_offsets
 
@@ -259,12 +244,9 @@ class Plan:
         return x_bins, y_bins, bs[0]
 
     def plot_counts(self, instrument=None, x_bins=100, y_bins=100):
-
         fig, ax = plt.subplots(1, 1, figsize=(5, 4))
 
-        x, y, counts = self.map_counts(
-            instrument=instrument, x_bins=x_bins, y_bins=y_bins
-        )
+        x, y, counts = self.map_counts(instrument=instrument, x_bins=x_bins, y_bins=y_bins)
         x = Angle(x)
         y = Angle(y)
 

@@ -3,11 +3,12 @@ from __future__ import annotations
 import glob
 import os
 from collections.abc import Mapping
+
 import pandas as pd
 
+from ..utils import flatten_config, read_yaml
 from .band import Band, get_band  # noqa
 from .band_list import BandList  # noqa
-from ..utils import flatten_config, read_yaml
 
 here, this_filename = os.path.split(__file__)
 

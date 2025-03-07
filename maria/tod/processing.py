@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import logging
+import time as ttime
 
 import numpy as np
 import scipy as sp
-import time as ttime
 
 from .. import utils
-from ..utils import remove_slope
 from ..io import humanize_time
+from ..utils import remove_slope
 from .tod import TOD
 
 logger = logging.getLogger("maria")
@@ -39,11 +39,8 @@ def process_operation_kwargs(**kwargs):  # lol
     config = {}
 
     for operation, operation_params in OPERATION_KWARGS.items():
-
         if operation not in OPERATION_KWARGS:
-            raise ValueError(
-                f'Invalid operation "{operation}". Valid operations are {OPERATION_KWARGS.keys()}.'
-            )
+            raise ValueError(f'Invalid operation "{operation}". Valid operations are {OPERATION_KWARGS.keys()}.')
 
         subconfig = {}
         for key, param in operation_params.items():
@@ -96,26 +93,19 @@ def process_tod(tod, config=None, **kwargs):
     W = np.ones(D.shape)
 
     if "remove_slope" in config:
-
         remove_slope_start_s = ttime.monotonic()
         D -= np.linspace(D[..., 0], D[..., -1], D.shape[-1]).T
 
-        logger.debug(
-            f'Completed tod operation "remove_slope in {humanize_time(ttime.monotonic() - remove_slope_start_s)}.'
-        )
+        logger.debug(f'Completed tod operation "remove_slope in {humanize_time(ttime.monotonic() - remove_slope_start_s)}.')
 
     if "window" in config:
-
         window_start_s = ttime.monotonic()
         window_function = getattr(sp.signal.windows, config["window"]["name"])
         W *= window_function(D.shape[-1], **config["window"].get("kwargs", {}))
         D *= W
-        logger.debug(
-            f'Completed tod operation "window" in {humanize_time(ttime.monotonic() - window_start_s)}.'
-        )
+        logger.debug(f'Completed tod operation "window" in {humanize_time(ttime.monotonic() - window_start_s)}.')
 
     if "filter" in config:
-
         filter_start_s = ttime.monotonic()
 
         D = remove_slope(D)
@@ -141,24 +131,18 @@ def process_tod(tod, config=None, **kwargs):
                 method="bessel",
             )
 
-        logger.debug(
-            f'Completed tod operation "filter" in {humanize_time(ttime.monotonic() - filter_start_s)}.'
-        )
+        logger.debug(f'Completed tod operation "filter" in {humanize_time(ttime.monotonic() - filter_start_s)}.')
 
     if "remove_modes" in config:
-
         remove_modes_start_s = ttime.monotonic()
 
         modes_to_remove = config["remove_modes"]["modes_to_remove"]
         A, B = utils.signal.decompose(D, k=np.max(modes_to_remove) + 1)
         D -= A[:, modes_to_remove] @ B[modes_to_remove]
 
-        logger.debug(
-            f'Completed tod operation "remove_modes" in {humanize_time(ttime.monotonic() - remove_modes_start_s)}.'
-        )
+        logger.debug(f'Completed tod operation "remove_modes" in {humanize_time(ttime.monotonic() - remove_modes_start_s)}.')
 
     if "remove_spline" in config:
-
         remove_spline_start_s = ttime.monotonic()
 
         B = utils.signal.get_bspline_basis(

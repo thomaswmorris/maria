@@ -3,15 +3,14 @@ from __future__ import annotations
 import os
 
 import h5py
+import matplotlib as mpl
 import numpy as np
 from astropy.io import fits
+from matplotlib.colors import ListedColormap
 
 from .base import Map
-from .projected import ProjectedMap  # noqa
 from .healpix import HEALPixMap  # noqa
-
-from matplotlib.colors import ListedColormap
-import matplotlib as mpl
+from .projected import ProjectedMap  # noqa
 
 here, this_filename = os.path.split(__file__)
 
@@ -42,9 +41,7 @@ def read_hdf(filename: str, **kwargs) -> Map:
         for field in ["stokes", "nu", "t", "width", "center", "frame", "units"]:
             if field in f.keys():
                 value = f[field][()]
-                metadata[field] = (
-                    value if not isinstance(value, bytes) else value.decode()
-                )
+                metadata[field] = value if not isinstance(value, bytes) else value.decode()
 
         if "weight" in f.keys():
             metadata["weight"] = f["weight"][:]

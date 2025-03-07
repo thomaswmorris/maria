@@ -42,7 +42,7 @@ maria
 .. “integrated” atmospheric model that is much cheaper to compute than a
 .. three-dimensional model, which can effectively describe time-evolving
 .. atmospheric emission. maria can thus effectively simulate correlated
-.. atmospheric emission for in excess of 100,000 detectors observing the
+.. atmospheric emission for in excess of 100,000 ArrayList observing the
 .. sky concurrently, at resolutions as fine as one arcminute. The
 .. atmospheric model used is detailed
 .. `here <https://arxiv.org/abs/2111.01319>`_.

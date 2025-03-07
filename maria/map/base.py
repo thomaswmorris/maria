@@ -1,14 +1,12 @@
-import arrow
-import os
 import logging
+import os
+import time as ttime
+from collections.abc import Iterable
 
+import arrow
+import dask.array as da
 import numpy as np
 import scipy as sp
-
-import dask.array as da
-import time as ttime
-
-from typing import Iterable
 
 from ..calibration import Calibration
 from ..units import parse_units
@@ -16,7 +14,6 @@ from ..units import parse_units
 logger = logging.getLogger("maria")
 
 here, this_filename = os.path.split(__file__)
-
 
 STOKES = ["I", "Q", "U", "V"]
 
@@ -35,13 +32,10 @@ class Map:
         t: list[float],
         units: str = "K_RJ",
     ):
-
         self.data = da.asarray(data)
         self._weight = da.asarray(weight) if weight is not None else weight
 
-        self.stokes = (
-            [param.upper() for param in stokes] if stokes is not None else ["I"]
-        )
+        self.stokes = [param.upper() for param in stokes] if stokes is not None else ["I"]
         self.nu = np.atleast_1d(nu) if nu is not None else np.array([150.0])
         self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
 
@@ -95,9 +89,7 @@ class Map:
 
     @property
     def weight(self):
-        return (
-            self._weight if self._weight is not None else da.ones(shape=self.data.shape)
-        )
+        return self._weight if self._weight is not None else da.ones(shape=self.data.shape)
 
     @property
     def n_stokes(self):
@@ -119,7 +111,6 @@ class Map:
             return self.x_res * self.y_res
 
     def to(self, units, inplace=False):
-
         if units == self.units:
             data = self.data.copy()
 
@@ -127,7 +118,6 @@ class Map:
             data = np.zeros(self.data.shape)
 
             for i, nu in enumerate(self.nu):
-
                 cal = Calibration(
                     f"{self.units} -> {units}",
                     nu=nu,
@@ -148,10 +138,7 @@ class Map:
             return type(self)(**package)
 
     def sample_nu(self, nu):
-
-        map_nu_interpolator = sp.interpolate.interp1d(
-            self.nu, self.data, axis=1, kind="linear"
-        )
+        map_nu_interpolator = sp.interpolate.interp1d(self.nu, self.data, axis=1, kind="linear")
 
         nu_maps = []
         for nu in np.atleast_1d(nu):

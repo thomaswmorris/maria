@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-import arrow
 import logging
 import os
-
 import time as ttime
-import numpy as np
 
+import arrow
+import numpy as np
 from tqdm import tqdm
 
-from .base import BaseSimulation
-
-from ..atmosphere import Atmosphere, DEFAULT_ATMOSPHERE_KWARGS
-from ..cmb import CMB, generate_cmb, get_cmb, DEFAULT_CMB_KWARGS
+from ..atmosphere import DEFAULT_ATMOSPHERE_KWARGS, Atmosphere
+from ..cmb import CMB, DEFAULT_CMB_KWARGS, generate_cmb, get_cmb
 from ..errors import PointingError
 from ..instrument import Instrument
 from ..io import humanize_time
@@ -20,10 +17,10 @@ from ..map import Map
 from ..plan import Plan
 from ..site import Site
 from .atmosphere import AtmosphereMixin
+from .base import BaseSimulation
 from .cmb import CMBMixin
 from .map import MapMixin
 from .noise import NoiseMixin
-
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -57,7 +54,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         progress_bars: bool = True,
         keep_mean_signal: bool = False,
     ):
-
         super().__init__(
             instrument=instrument,
             plan=plan,
@@ -77,7 +73,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         self.end = arrow.get(self.boresight.t.max()).to("utc")
 
         if atmosphere:
-
             self.atmosphere_kwargs = DEFAULT_ATMOSPHERE_KWARGS.copy()
             self.atmosphere_kwargs.update(atmosphere_kwargs)
 
@@ -85,20 +80,16 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             el_min = np.atleast_1d(self.coords.el).min().compute()
             if el_min < np.radians(MIN_ELEVATION_WARN):
                 logger.warning(
-                    f"Some detectors come within {MIN_ELEVATION_WARN} degrees of the horizon"
+                    f"Some ArrayList come within {MIN_ELEVATION_WARN} degrees of the horizon"
                     f"(el_min = {np.degrees(el_min):.01f}°)",
                 )
             if el_min <= np.radians(MIN_ELEVATION_ERROR):
                 raise PointingError(
-                    f"Some detectors come within {MIN_ELEVATION_ERROR} degrees of the horizon"
+                    f"Some ArrayList come within {MIN_ELEVATION_ERROR} degrees of the horizon"
                     f"(el_min = {np.degrees(el_min):.01f}°)",
                 )
 
-            self.weather_kwargs = (
-                self.atmosphere_kwargs.pop("weather")
-                if "weather" in self.atmosphere_kwargs
-                else {}
-            )
+            self.weather_kwargs = self.atmosphere_kwargs.pop("weather") if "weather" in self.atmosphere_kwargs else {}
 
             self.atmosphere = Atmosphere(
                 model=atmosphere,
@@ -113,14 +104,11 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             # give it the simulation, so that it knows about pointing, site, etc. (kind of cursed)
             self.atmosphere.initialize(self)
 
-            logger.debug(
-                f"Initialized atmosphere simulation in {humanize_time(ttime.monotonic() - sim_start_s)}."
-            )
+            logger.debug(f"Initialized atmosphere simulation in {humanize_time(ttime.monotonic() - sim_start_s)}.")
 
         cmb_start_s = ttime.monotonic()
 
         if cmb:
-
             self.cmb_kwargs = DEFAULT_CMB_KWARGS.copy()
             self.cmb_kwargs.update(cmb_kwargs)
 
@@ -136,9 +124,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             else:
                 raise ValueError(f"Invalid value for cmb: '{cmb}'.")
 
-            logger.debug(
-                f"Initialized CMB simulation in {humanize_time(ttime.monotonic() - cmb_start_s)}."
-            )
+            logger.debug(f"Initialized CMB simulation in {humanize_time(ttime.monotonic() - cmb_start_s)}.")
 
         map_start_s = ttime.monotonic()
         if map:
@@ -158,56 +144,40 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
             self.map = map.to(units="K_RJ")
 
-        logger.debug(
-            f"Initialized map simulation in {humanize_time(ttime.monotonic() - map_start_s)}."
-        )
+        logger.debug(f"Initialized map simulation in {humanize_time(ttime.monotonic() - map_start_s)}.")
 
         noise_start_s = ttime.monotonic()
         if noise:
             pass
-        logger.debug(
-            f"Initialized noise simulation in {humanize_time(ttime.monotonic() - noise_start_s)}."
-        )
+        logger.debug(f"Initialized noise simulation in {humanize_time(ttime.monotonic() - noise_start_s)}.")
 
-        logger.debug(
-            f"Initialized simulation in {humanize_time(ttime.monotonic() - sim_start_s)}."
-        )
+        logger.debug(f"Initialized simulation in {humanize_time(ttime.monotonic() - sim_start_s)}.")
 
     def _run(self):
-
         if hasattr(self, "atmosphere"):
             atmosphere_sim_start_s = ttime.monotonic()
             self._simulate_atmosphere()
             self._compute_atmospheric_emission()
-            logger.debug(
-                f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}."
-            )
+            logger.debug(f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}.")
 
         if hasattr(self, "cmb"):
             cmb_sim_start_s = ttime.monotonic()
             self._simulate_cmb_emission()
-            logger.debug(
-                f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}."
-            )
+            logger.debug(f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}.")
 
         if hasattr(self, "map"):
             map_sim_start_s = ttime.monotonic()
             self._sample_maps()
-            logger.debug(
-                f"Ran map simulation in {humanize_time(ttime.monotonic() - map_sim_start_s)}."
-            )
+            logger.debug(f"Ran map simulation in {humanize_time(ttime.monotonic() - map_sim_start_s)}.")
 
         # number of bands are lost here
         if self.noise:
             noise_sim_start_s = ttime.monotonic()
             self._simulate_noise()
-            logger.debug(
-                f"Ran noise simulation in {humanize_time(ttime.monotonic() - noise_sim_start_s)}."
-            )
+            logger.debug(f"Ran noise simulation in {humanize_time(ttime.monotonic() - noise_sim_start_s)}.")
 
         gain_error = np.exp(
-            self.instrument.dets.gain_error
-            * np.random.standard_normal(size=self.instrument.dets.n),
+            self.instrument.dets.gain_error * np.random.standard_normal(size=self.instrument.dets.n),
         )
 
         for field in self.loading:

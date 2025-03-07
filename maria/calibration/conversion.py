@@ -1,12 +1,12 @@
 import numpy as np
 import scipy as sp
 
-from ..constants import k_B, T_CMB
+from ..constants import T_CMB, k_B
 from ..functions.radiometry import (
-    rayleigh_jeans_spectrum,
+    inverse_planck_spectrum,
     inverse_rayleigh_jeans_spectrum,
     planck_spectrum,
-    inverse_planck_spectrum,
+    rayleigh_jeans_spectrum,
 )  # noqa
 
 
@@ -68,7 +68,6 @@ def radiant_flux_to_rayleigh_jeans_temperature(P, band, spectrum, **kwargs):
 
 
 def brightness_temperature_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
-
     test_T_b = np.linspace(np.min(T_b) - 1e-6, np.max(T_b) + 1e-6, 2)
 
     if spectrum:
@@ -77,9 +76,7 @@ def brightness_temperature_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
             nu=1e9 * spectrum.side_nu,
         )
         integral = np.trapezoid(
-            y=test_T_RJ[:, None, None, None]
-            * np.exp(-spectrum._opacity)
-            * band.passband(spectrum.side_nu),
+            y=test_T_RJ[:, None, None, None] * np.exp(-spectrum._opacity) * band.passband(spectrum.side_nu),
             x=1e9 * spectrum.side_nu,
             axis=-1,
         )
@@ -96,9 +93,7 @@ def brightness_temperature_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
         test_T_RJ = inverse_rayleigh_jeans_spectrum(
             planck_spectrum(T_b=test_T_b[:, None], nu=1e9 * band.nu), nu=1e9 * band.nu
         )
-        integral = np.trapezoid(
-            y=test_T_RJ * band.passband(band.nu), x=1e9 * band.nu, axis=-1
-        )
+        integral = np.trapezoid(y=test_T_RJ * band.passband(band.nu), x=1e9 * band.nu, axis=-1)
         return k_B * sp.interpolate.interp1d(test_T_b, integral)(T_b)
 
 
@@ -107,13 +102,8 @@ def radiant_flux_to_brightness_temperature(P, **kwargs):
 
 
 def dP_dT_CMB(band, spectrum, eps=1e-4, **kwargs):
-
-    P_lo = brightness_temperature_to_radiant_flux(
-        T_CMB - eps / 2, band=band, spectrum=spectrum, **kwargs
-    )
-    P_hi = brightness_temperature_to_radiant_flux(
-        T_CMB + eps / 2, band=band, spectrum=spectrum, **kwargs
-    )
+    P_lo = brightness_temperature_to_radiant_flux(T_CMB - eps / 2, band=band, spectrum=spectrum, **kwargs)
+    P_hi = brightness_temperature_to_radiant_flux(T_CMB + eps / 2, band=band, spectrum=spectrum, **kwargs)
 
     return (P_hi - P_lo) / eps
 
@@ -126,9 +116,7 @@ def radiant_flux_to_cmb_temperature_anisotropy(P, band, spectrum, **kwargs):
     return P / dP_dT_CMB(band=band, spectrum=spectrum, **kwargs)
 
 
-def rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel(
-    T_RJ: float, nu: float, pixel_area: float, **kwargs
-):
+def rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel(T_RJ: float, nu: float, pixel_area: float, **kwargs):
     """
     T_RJ: Rayleigh-Jeans temperature, in Kelvin
     nu: frequency, in GHz
@@ -137,9 +125,7 @@ def rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel(
     return 1e26 * rayleigh_jeans_spectrum(T_RJ=T_RJ, nu=1e9 * nu) * pixel_area
 
 
-def spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature(
-    E: float, nu: float, pixel_area: float, **kwargs
-):
+def spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature(E: float, nu: float, pixel_area: float, **kwargs):
     """
     T_RJ: Rayleigh-Jeans temperature, in Jy/pixel
     nu: frequency, in GHz
@@ -154,7 +140,6 @@ def cmb_temperature_anisotropy_to_radiant_flux_slope(
     eps: float = 1e-3,
     **kwargs,
 ):
-
     test_T_b = T_CMB + np.array([[-eps / 2], [+eps / 2]])
     T_RJ = inverse_rayleigh_jeans_spectrum(
         planck_spectrum(T_b=test_T_b, nu=1e9 * band.nu),

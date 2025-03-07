@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import os
+
 import arrow
 import h5py
-
 import numpy as np
-import scipy as sp
 import pandas as pd
+import scipy as sp
 
-from ..io import fetch, DEFAULT_TIME_FORMAT
-from ..site import InvalidRegionError, all_regions, supported_regions_table
 from ..constants import g
+from ..io import DEFAULT_TIME_FORMAT, fetch
+from ..site import InvalidRegionError, all_regions, supported_regions_table
 from ..utils import get_utc_day_hour, get_utc_year_day
 
 here, this_filename = os.path.split(__file__)
@@ -115,9 +115,7 @@ class Weather:
 
             for attr in f["data"].keys():
                 self.region_quantiles[attr] = (
-                    f["data"][attr]["normalized_quantiles"][:]
-                    * f["data"][attr]["scale"][()]
-                    + f["data"][attr]["mean"][()]
+                    f["data"][attr]["normalized_quantiles"][:] * f["data"][attr]["scale"][()] + f["data"][attr]["mean"][()]
                 )
 
             # quantiles["wind_speed"] = np.sqrt(quantiles["wind_east"]**2 + quantiles["wind_north"]**2)
@@ -141,15 +139,10 @@ class Weather:
 
         # handle the overrided parameters
         if "pwv" in self.override.keys():
-            force_absolute_humidity = (
-                self.override["pwv"] / self.pwv * self.absolute_humidity
-            )
-            self.humidity = absolute_to_relative_humidity(
-                self.temperature, force_absolute_humidity
-            )
+            force_absolute_humidity = self.override["pwv"] / self.pwv * self.absolute_humidity
+            self.humidity = absolute_to_relative_humidity(self.temperature, force_absolute_humidity)
 
     def __getattr__(self, attr):
-
         if attr in self.data:
             return self.data[attr]
 
@@ -172,7 +165,6 @@ class Weather:
     #     return np.sqrt(self.wind_east**2 + self.wind_north**2 + self.wind_vertical**2)
 
     def layers(self):
-
         df = pd.DataFrame(self.data)
         df.insert(0, "altitude", df.geopotential.values / g)
         df.insert(1, "pressure", 1e2 * self.pressure_levels)
@@ -198,7 +190,6 @@ class Weather:
         )
 
         for layer_index, (h1, h2) in enumerate(zip(h_bins[:-1], h_bins[1:])):
-
             h = np.linspace(h1, h2, 256)
 
             absolute_humidity = sp.interpolate.interp1d(

@@ -1,30 +1,27 @@
 import os
-import pandas as pd
 
+import pandas as pd
 
 from ..atmosphere import AtmosphericSpectrum
 from ..units import parse_units
 from .conversion import (
     brightness_temperature_to_radiant_flux,
-    radiant_flux_to_rayleigh_jeans_temperature,
-    radiant_flux_to_cmb_temperature_anisotropy,
-    radiant_flux_to_brightness_temperature,
-    rayleigh_jeans_temperature_to_radiant_flux,
-    rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
-    rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
     cmb_temperature_anisotropy_to_radiant_flux,
     cmb_temperature_anisotropy_to_rayleigh_jeans_temperature,
-    spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature,
     identity,
+    radiant_flux_to_brightness_temperature,
+    radiant_flux_to_cmb_temperature_anisotropy,
+    radiant_flux_to_rayleigh_jeans_temperature,
+    rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
+    rayleigh_jeans_temperature_to_radiant_flux,
+    rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
+    spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature,
 )
-
 
 here, this_filename = os.path.split(__file__)
 
 transition_dict = {}
-transition_dict["brightness_temperature"] = {
-    "radiant_flux": brightness_temperature_to_radiant_flux
-}
+transition_dict["brightness_temperature"] = {"radiant_flux": brightness_temperature_to_radiant_flux}
 
 transition_dict["radiant_flux"] = {
     "rayleigh_jeans_temperature": radiant_flux_to_rayleigh_jeans_temperature,
@@ -60,10 +57,7 @@ for q1 in quantities:
 max_steps = 10
 
 steps = 0
-while (
-    any([paths_dict[q1][q2] == [] for q2 in quantities for q1 in quantities])
-    and steps < max_steps
-):
+while any([paths_dict[q1][q2] == [] for q2 in quantities for q1 in quantities]) and steps < max_steps:
     for start_node in quantities:
         extended_walks = []
         for walk in walks_dict[start_node]:
@@ -73,8 +67,7 @@ while (
                     extended_walks.append(extended_walk)
                     if not paths_dict[start_node][end_node]:
                         function_path = [
-                            transition_dict[_q2][_q1]
-                            for _q1, _q2 in zip(extended_walk[:-1], extended_walk[1:])
+                            transition_dict[_q2][_q1] for _q1, _q2 in zip(extended_walk[:-1], extended_walk[1:])
                         ]
                         paths_dict[start_node][end_node] = function_path[::-1]
         walks_dict[start_node] = extended_walks
@@ -97,9 +90,7 @@ def parse_calibration_signature(s: str):
 
 
 class Calibration:
-
     def __init__(self, signature: str, spectrum: AtmosphericSpectrum = None, **kwargs):
-
         if not isinstance(signature, str):
             raise ValueError("'signature' must be a string.")
 
@@ -120,7 +111,6 @@ class Calibration:
                 raise ValueError(f"Invalid kwarg '{key}'.")
 
     def __call__(self, x) -> float:
-
         if self.config.loc["quantity", "in"] == self.config.loc["quantity", "out"]:
             return x * self.in_factor / self.out_factor
 
@@ -160,7 +150,5 @@ class Calibration:
         return self.config.loc["to", "out"]
 
     def __repr__(self):
-        stuffing = ", ".join(
-            [self.signature, *[f"{k}={v}" for k, v in self.kwargs.items()]]
-        )
+        stuffing = ", ".join([self.signature, *[f"{k}={v}" for k, v in self.kwargs.items()]])
         return f"Calibration({stuffing})"

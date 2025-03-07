@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as sp
+
 from .radiometry import *  # noqa
 
 
@@ -52,9 +53,7 @@ def approximate_normalized_matern(r, nu=1 / 3, r0=1e0, n_test_points=1024):
             ),
         )
         cov = np.exp(
-            np.interp(
-                np.log(r_eff_nonzero), np.log(r_eff_samples), np.log(cov_samples)
-            ),
+            np.interp(np.log(r_eff_nonzero), np.log(r_eff_samples), np.log(cov_samples)),
         )
 
     # we combine the log interpolations so that both extremes have really good precision

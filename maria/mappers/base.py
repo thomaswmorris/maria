@@ -1,18 +1,17 @@
 from __future__ import annotations
 
+import logging
 import os
+import time as ttime
 from collections.abc import Sequence
 
 import numpy as np
 import scipy as sp
-import time as ttime
-import logging
 
 from ..instrument import BandList
+from ..io import humanize_time
 from ..map import ProjectedMap
 from ..tod import TOD
-
-from ..io import humanize_time
 
 # np.seterr(invalid="ignore")
 
@@ -37,7 +36,6 @@ class BaseMapper:
         calibrate: bool,
         tods: Sequence[TOD],
     ):
-
         self.resolution = np.radians(resolution) if degrees else resolution
         self.center = np.radians(center) if degrees else center
         self.width = np.radians(width) if degrees else width
@@ -72,7 +70,6 @@ class BaseMapper:
             self.tods.append(tod)
 
             for band in tod.dets.bands:
-
                 self.bands.add(band)
 
         # self.bands = list(
@@ -83,7 +80,6 @@ class BaseMapper:
         raise ValueError("Not implemented!")
 
     def run(self):
-
         if not len(self.tods):
             raise RuntimeError("This mapper has no TODs!")
 
@@ -92,9 +88,7 @@ class BaseMapper:
         for band in self.bands:
             band_start_s = ttime.monotonic()
             self.map_data[band.name] = self._run(band)
-            logger.info(
-                f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}."
-            )
+            logger.info(f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}.")
 
         map_data = np.zeros((len(self.map_data), 1, self.n_y, self.n_x))
         map_weight = np.zeros((len(self.map_data), 1, self.n_y, self.n_x))
@@ -121,9 +115,7 @@ class BaseMapper:
             map_data[i, :] = band_map_numer / band_map_denom
             map_weight[i, :] = band_map_denom
 
-        map_offsets = np.nansum(map_data * map_weight, axis=(-1, -2)) / map_weight.sum(
-            axis=(-1, -2)
-        )
+        map_offsets = np.nansum(map_data * map_weight, axis=(-1, -2)) / map_weight.sum(axis=(-1, -2))
 
         return ProjectedMap(
             data=map_data - map_offsets[..., None, None],

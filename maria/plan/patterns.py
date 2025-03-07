@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+
 import numpy as np
 import pandas as pd
 
@@ -13,7 +14,6 @@ def lissajous(
     height=None,
     freq_ratio=1.193,
 ):  # noqa
-
     width = width or radius / 2
     height = height or width
     speed = speed or width / 10
@@ -27,15 +27,12 @@ def lissajous(
 
 
 def double_circle(time, speed=None, radius=1.0, ratio=0.5, freq_ratio=1.7):
-
     speed = speed or radius / 10
 
     a = radius / (1 + 1 / ratio)
     b = a / ratio
 
-    phase = (
-        time * speed / np.maximum(a + b * freq_ratio, 1e-16)
-    )  # do not divide by zero!
+    phase = time * speed / np.maximum(a + b * freq_ratio, 1e-16)  # do not divide by zero!
 
     x_p = a * np.sin(phase) + b * np.sin(phase * freq_ratio)
     y_p = a * np.cos(phase) + b * np.cos(phase * freq_ratio)
@@ -44,12 +41,8 @@ def double_circle(time, speed=None, radius=1.0, ratio=0.5, freq_ratio=1.7):
 
 
 def daisy_from_phase(phase, a, b, petals, miss_freq):
-    x_p = a * np.cos(petals * phase) * np.sin(phase) + b * np.sin(
-        petals * phase
-    ) * np.cos(miss_freq * phase)
-    y_p = a * np.cos(petals * phase) * np.cos(phase) + b * np.sin(
-        petals * phase
-    ) * np.sin(miss_freq * phase)
+    x_p = a * np.cos(petals * phase) * np.sin(phase) + b * np.sin(petals * phase) * np.cos(miss_freq * phase)
+    y_p = a * np.cos(petals * phase) * np.cos(phase) + b * np.sin(petals * phase) * np.sin(miss_freq * phase)
     X = np.stack([x_p, y_p])
     return (a + b) * X / np.sqrt(np.square(X).sum(axis=0).max())
 
@@ -62,7 +55,6 @@ def daisy(
     miss_factor=0.15,
     miss_freq=np.sqrt(2),
 ):  # noqa
-
     speed = speed or radius / 10
     a = radius / (1 + miss_factor)
     b = a * miss_factor
@@ -70,11 +62,8 @@ def daisy(
     dp_dt = speed / radius
 
     for iteration in range(4):
-
         phase = dp_dt * time
-        test_x, test_y = daisy_from_phase(
-            phase, a=a, b=b, petals=petals, miss_freq=miss_freq
-        )
+        test_x, test_y = daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
         vx2 = (np.gradient(test_x) / np.gradient(time)) ** 2
         vy2 = (np.gradient(test_y) / np.gradient(time)) ** 2
         max_speed = np.sqrt(vx2 + vy2).max()
@@ -91,10 +80,7 @@ def smooth_sawtooth(p, throw=1, delta=0.01):
     return throw * (1 - 2 * np.arccos((1 - delta) * np.sin(p)) / np.pi)
 
 
-def back_and_forth(
-    t, radius=1, x_throw=None, y_throw=0, speed=1.0, max_accel=np.inf, d=0.01
-):
-
+def back_and_forth(t, radius=1, x_throw=None, y_throw=0, speed=1.0, max_accel=np.inf, d=0.01):
     x_throw = x_throw or radius
 
     factor = 1 / (1 - 2 * np.arccos(1 - d) / np.pi)
@@ -251,9 +237,7 @@ scan_patterns = {
 }
 
 for key in scan_patterns:
-    scan_patterns[key]["signature"] = str(
-        inspect.signature(scan_patterns[key]["generator"])
-    )
+    scan_patterns[key]["signature"] = str(inspect.signature(scan_patterns[key]["generator"]))
 
 scan_patterns = pd.DataFrame(scan_patterns).T
 

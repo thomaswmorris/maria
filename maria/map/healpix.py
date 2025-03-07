@@ -1,14 +1,13 @@
 import os
-import h5py
 
+import dask.array as da
+import h5py
 import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
-import dask.array as da
 
-from .base import Map
 from ..units import parse_units
-
+from .base import Map
 
 here, this_filename = os.path.split(__file__)
 
@@ -28,13 +27,10 @@ class HEALPixMap(Map):
         frame: str = "ra_dec",
         units: str = "K_RJ",
     ):
-
         # give it four dimensions
         data = data * np.ones((1, 1, 1, 1))
 
-        super().__init__(
-            data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units
-        )
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units)
 
         self.frame = frame
 
@@ -70,10 +66,7 @@ class HEALPixMap(Map):
 
     @property
     def package(self):
-        return {
-            k: getattr(self, k)
-            for k in ["data", "weight", "stokes", "nu", "t", "frame", "units"]
-        }
+        return {k: getattr(self, k) for k in ["data", "weight", "stokes", "nu", "t", "frame", "units"]}
 
     @property
     def X(self):
@@ -84,18 +77,14 @@ class HEALPixMap(Map):
         return np.meshgrid(self.x_side, self.y_side)[1]
 
     def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False):
-
         if not (sigma is None) ^ (fwhm is None):
             raise ValueError("You must supply exactly one of 'sigma' or 'fwhm'.")
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
 
-        data = np.stack(
-            [
-                hp.sphtfunc.smoothing(m, sigma=sigma)
-                for m in self.data.reshape(-1, self.npix)
-            ]
-        ).reshape(self.data.shape)
+        data = np.stack([hp.sphtfunc.smoothing(m, sigma=sigma) for m in self.data.reshape(-1, self.npix)]).reshape(
+            self.data.shape
+        )
 
         if inplace:
             self.data = data
@@ -106,9 +95,7 @@ class HEALPixMap(Map):
             return type(self)(**package)
 
     def to_hdf(self, filename):
-
         with h5py.File(filename, "w") as f:
-
             f.create_dataset("data", dtype=float, data=self.data)
 
             if self._weight is not None:
@@ -118,9 +105,7 @@ class HEALPixMap(Map):
                 f.create_dataset(field, data=getattr(self, field))
 
     def plot(self):
-
         for i in range(len(self.stokes)):
-
             m = self.data[i, 0, 0]
             min, max = da.percentile(m, q=[0.1, 99.9])
 

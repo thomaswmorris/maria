@@ -8,8 +8,8 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
+from ..beam import compute_angular_fwhm
 from ..constants import k_B
-from ..instrument import beam
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -40,7 +40,7 @@ class MapMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
-            band_fwhm = beam.compute_angular_fwhm(
+            band_fwhm = compute_angular_fwhm(
                 fwhm_0=self.instrument.dets.primary_size.mean(),
                 z=np.inf,
                 nu=band.center,
@@ -50,6 +50,7 @@ class MapMixin:
             smoothed_map = self.map.smooth(fwhm=band_fwhm)
 
             for nu_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
+                # TODO: skip if the band can't see the map nu bin
 
                 spectrum_kwargs = (
                     {
@@ -62,9 +63,7 @@ class MapMixin:
                     else {}
                 )
 
-                sample_integral = band.compute_nu_integral(
-                    nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs
-                )
+                sample_integral = band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
 
                 if len(self.map.t) > 1:
                     sample_T_RJ = sp.interpolate.RegularGridInterpolator(
@@ -87,9 +86,7 @@ class MapMixin:
                 if (sample_T_RJ == 0).all():
                     logger.warning("No power from map!")
 
-                self.loading["map"][band_mask] += (
-                    1e12 * k_B * sample_integral * sample_T_RJ
-                )
+                self.loading["map"][band_mask] += 1e12 * k_B * sample_integral * sample_T_RJ
 
                 logger.debug(f"Computed map power for band {band.name}.")
 

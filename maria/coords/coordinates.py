@@ -3,21 +3,19 @@ from __future__ import annotations
 import functools
 import logging
 import time as ttime
+from copy import deepcopy
 
 import arrow
-
 import dask.array as da
 import numpy as np
 import pandas as pd
 import scipy as sp
-
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from scipy.interpolate import interp1d
-from copy import deepcopy
 
-from ..io import humanize_time, DEFAULT_TIME_FORMAT
+from ..io import DEFAULT_TIME_FORMAT, humanize_time
 from ..utils import repr_lat_lon
 from .transforms import (
     dx_dy_to_phi_theta,
@@ -127,9 +125,7 @@ class Coordinates:
 
         self.shaped_t = np.atleast_1d(self.t)
         keep_dims = (-1,) if hasattr(self.t, "__len__") else ()
-        t_ordered_center_phi_theta = np.c_[
-            get_center_phi_theta(self._phi, self._theta, keep_dims=keep_dims)
-        ]
+        t_ordered_center_phi_theta = np.c_[get_center_phi_theta(self._phi, self._theta, keep_dims=keep_dims)]
 
         # (nt) t samples on which to explicitly compute the transformation from astropy
         t_samples_min_res_seconds = 10
@@ -193,7 +189,6 @@ class Coordinates:
         )  # noqa
 
     def compute_transform(self, frame):
-
         ref_time = ttime.monotonic()
 
         if frame not in frames:
@@ -221,11 +216,7 @@ class Coordinates:
         self.fid_points[frame] = phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
 
         # voodoo!
-        self.transforms[frame] = (
-            np.linalg.inv(self.AT @ self.A)
-            @ self.AT
-            @ phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
-        )
+        self.transforms[frame] = np.linalg.inv(self.AT @ self.A) @ self.AT @ phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
 
         transform_stack = interp1d(
             self.fid_t,
@@ -259,7 +250,6 @@ class Coordinates:
         return self._phi.ndim
 
     def __getattr__(self, attr):
-
         if attr == "t":
             return self._t[tuple(0 for _ in range(self.ndim - 1))].compute()
 
@@ -274,16 +264,9 @@ class Coordinates:
         raise AttributeError(f"Coordinates object has no attribute '{attr}'.")
 
     def __getitem__(self, key):
-
         clone = deepcopy(self)
         attrs = ["_x", "_y", "_z", "_r", "_phi", "_theta", "_t"]
-        attrs.extend(
-            [
-                frames[frame][angle]
-                for frame in self.computed_frames
-                for angle in ["phi", "theta"]
-            ]
-        )
+        attrs.extend([frames[frame][angle] for frame in self.computed_frames for angle in ["phi", "theta"]])
         for attr in attrs:
             setattr(clone, attr, getattr(clone, attr)[key])
 
@@ -333,20 +316,15 @@ class Coordinates:
         boresight = self.boresight
         for attr in ["az", "el", "ra", "dec"]:
             for stat in ["min", "mean", "max"]:
-                summary.loc[attr, stat] = (
-                    f"{float(np.degrees(getattr(getattr(boresight, attr), stat)().compute())):.03f}°"
-                )
+                summary.loc[attr, stat] = f"{float(np.degrees(getattr(getattr(boresight, attr), stat)().compute())):.03f}°"
 
         return summary
 
     @property
     def xyz(self):
-        return np.concatenate(
-            [self.x[..., None], self.y[..., None], self.z[..., None]], axis=-1
-        )
+        return np.concatenate([self.x[..., None], self.y[..., None], self.z[..., None]], axis=-1)
 
     def project(self, z, frame="az_el"):
-
         phi = getattr(self, frames[frame]["phi"])
         theta = getattr(self, frames[frame]["theta"])
 

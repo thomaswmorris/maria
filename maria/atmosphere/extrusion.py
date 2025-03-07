@@ -49,11 +49,7 @@ def generate_layers(
     z_samples = h_samples / np.sin(min_el)
 
     fov = sim.instrument.dets.field_of_view.rad
-    fwhm = (
-        sim.instrument.dets.one_detector_from_each_band()
-        .physical_fwhm(z_samples[:, None] + 1e-16)
-        .min(axis=1)
-    )
+    fwhm = sim.instrument.dets.one_detector_from_each_band().physical_fwhm(z_samples[:, None] + 1e-16).min(axis=1)
     r1 = min_res * np.ones(len(z_samples))
     r2 = min_res_per_beam * fwhm
     r3 = min_res_per_fov * z_samples * fov
@@ -92,7 +88,6 @@ def generate_layers(
     h_boundaries = [0, *(layers.h.values[:-1] + layers.h.values[1:]) / 2, 1e5]
 
     for layer_index, (h1, h2) in enumerate(zip(h_boundaries[:-1], h_boundaries[1:])):
-
         dummy_h = sim.site.altitude + np.linspace(h1, h2, 1024)
         h = weather.altitude
         w = weather.absolute_humidity
@@ -190,7 +185,7 @@ class ProcessExtrusion:
 
         self.n_cross_section = len(self.cross_section)
         self.n_extrusion = len(self.extrusion)
-        I, J = np.meshgrid(np.arange(self.n_cross_section), np.arange(self.n_extrusion))
+        I, J = np.meshgrid(np.arange(self.n_cross_section), np.arange(self.n_extrusion))  # noqa
 
         points = np.c_[self.extrusion[J][..., None], self.cross_section[I]]
 

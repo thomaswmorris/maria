@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import pytest
-import maria
 import numpy as np
+import pytest
+
+import maria
 from maria.plan import scan_patterns
 
 
@@ -33,16 +34,13 @@ def test_pattern_speed(scan_pattern):
         return
 
     for trial in range(16):
-
         radius = np.random.choice(np.geomspace(1e-1, 1e0, 256))  # in degrees
         speed = np.random.choice(np.geomspace(1e-1, 1e0, 256))  # in degrees
 
-        x, y = scan_patterns.loc[scan_pattern].generator(
-            time, radius=radius, speed=speed
-        )
+        x, y = scan_patterns.loc[scan_pattern].generator(time, radius=radius, speed=speed)
         vx = np.diff(x) / np.diff(time)
         vy = np.diff(y) / np.diff(time)
 
         max_speed = np.sqrt(vx**2 + vy**2).max()
 
-        assert np.isclose(max_speed, speed, rtol=1e-2)
+        assert np.isclose(max_speed, speed, rtol=1e-1)

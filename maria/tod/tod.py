@@ -1,23 +1,22 @@
 from __future__ import annotations
 
-import arrow
 import copy
 import json
-import h5py
 import logging
-
-import numpy as np
-import scipy as sp
 import time as ttime
 
-from dask import array as da
+import arrow
+import h5py
+import numpy as np
+import scipy as sp
 from astropy.io import fits
+from dask import array as da
 
-from ..coords import Coordinates
-from ..instrument import Detectors
-from ..plotting import tod_plot, twinkle_plot
-from ..io import humanize_time, DEFAULT_TIME_FORMAT
+from ..array import ArrayList
 from ..atmosphere import AtmosphericSpectrum
+from ..coords import Coordinates
+from ..io import DEFAULT_TIME_FORMAT, humanize_time
+from ..plotting import tod_plot, twinkle_plot
 
 logger = logging.getLogger("maria")
 
@@ -33,11 +32,10 @@ class TOD:
         weight: float = None,
         coords: Coordinates = None,
         units: str = "K_RJ",
-        dets: Detectors = None,
+        dets: ArrayList = None,
         dtype: type = np.float32,
         metadata: dict = {},
     ):
-
         self.weight = weight
         self.coords = coords
         self.dets = dets
@@ -49,7 +47,6 @@ class TOD:
         self.data = {}
 
         for field, field_data in data.items():
-
             if field_data.ndim != 2:
                 raise ValueError("Only two-dimensional TODs are currently supported.")
 
@@ -77,12 +74,7 @@ class TOD:
         return self._boresight
 
     def calibration_kwargs(self, band=None):
-
-        kwargs = {
-            "elevation": np.degrees(
-                self.el[self.dets.band_name == band.name] if band else self.el
-            )
-        }
+        kwargs = {"elevation": np.degrees(self.el[self.dets.band_name == band.name] if band else self.el)}
 
         if self.metadata["atmosphere"]:
             kwargs["spectrum"] = self.spectrum
@@ -101,16 +93,13 @@ class TOD:
 
         cal_start_s = ttime.monotonic()
 
-        # make sure that all detectors have a band that the TOD knows about
+        # make sure that all Array have a band that the TOD knows about
         for band_name in np.unique(self.dets.band_name):
             if band_name not in self.dets.bands.name:
-                raise ValueError(
-                    f"No band defined for detector with band '{band_name}'."
-                )
+                raise ValueError(f"No band defined for detector with band '{band_name}'.")
 
         content = self.content
         for band in self.dets.bands:
-
             band_mask = self.dets.band_name == band.name
 
             if band_mask.sum() == 0:
@@ -121,14 +110,11 @@ class TOD:
             cal = band.cal(f"{self.units} -> {units}", **self.calibration_kwargs(band))
 
             for field in self.fields:
-
                 content["data"][field][band_mask] = cal(self.data[field][band_mask])
 
         content["units"] = units
 
-        logger.debug(
-            f'Converted {self} to units "{units}" in {humanize_time(ttime.monotonic() - cal_start_s)}.'
-        )
+        logger.debug(f'Converted {self} to units "{units}" in {humanize_time(ttime.monotonic() - cal_start_s)}.')
 
         return TOD(**content)
 
@@ -183,7 +169,6 @@ class TOD:
         band: str = None,
         fields: list = None,
     ):
-
         det_mask = det_mask or np.arange(self.nd)
         time_mask = time_mask or np.arange(self.nt)
         fields = fields or self.fields
@@ -191,7 +176,7 @@ class TOD:
         if band is not None:
             det_mask = self.dets.band_name == band
             if not det_mask.sum() > 0:
-                raise ValueError(f"There are no detectors for band '{band}'.")
+                raise ValueError(f"There are no Array for band '{band}'.")
 
         if time_mask is not None:
             if len(time_mask) != self.nt:
@@ -204,10 +189,7 @@ class TOD:
         content = self.content
         content.update(
             {
-                "data": {
-                    field: self.data[field][det_mask][..., time_mask]
-                    for field in fields
-                },
+                "data": {field: self.data[field][det_mask][..., time_mask] for field in fields},
                 "weight": self.weight[det_mask][..., time_mask],
                 "coords": self.coords[det_mask][..., time_mask],
                 "dets": self.dets._subset(det_mask),
@@ -254,10 +236,7 @@ class TOD:
 
     @property
     def azim_phase(self):
-        return np.pi * (
-            sp.signal.sawtooth(2 * np.pi * self.time / self.azim_scan_period, width=1)
-            + 1
-        )
+        return np.pi * (sp.signal.sawtooth(2 * np.pi * self.time / self.azim_scan_period, width=1) + 1)
 
     @property
     def turnarounds(self):
@@ -329,9 +308,7 @@ class TOD:
             col05 = fits.Column(
                 name="TIME ",
                 format="E",
-                array=(
-                    (self.time - self.time[0]) * np.ones_like(self.coords.ra)
-                ).flatten(),
+                array=((self.time - self.time[0]) * np.ones_like(self.coords.ra)).flatten(),
                 unit="s",
             )
             col06 = fits.Column(name="COL  ", format="I")
@@ -340,8 +317,7 @@ class TOD:
                 name="PIXID",
                 format="I",
                 array=(
-                    np.arange(len(self.coords.ra), dtype=np.int16).reshape(-1, 1)
-                    * np.ones_like(self.coords.ra)
+                    np.arange(len(self.coords.ra), dtype=np.int16).reshape(-1, 1) * np.ones_like(self.coords.ra)
                 ).flatten(),
             )
             col09 = fits.Column(

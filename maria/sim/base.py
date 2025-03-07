@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-import arrow
+import gc
 import logging
 import os
-import gc
-
-import numpy as np
 import time as ttime
+
+import arrow
+import numpy as np
 
 from ..coords import Coordinates
 from ..instrument import Instrument, get_instrument
-from ..utils import read_yaml
 from ..io import humanize_time
 from ..plan import Plan, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
+from ..utils import read_yaml
 
 here, this_filename = os.path.split(__file__)
 
@@ -67,16 +67,13 @@ class BaseSimulation:
         dtype=np.float32,
         **kwargs,
     ):
-
         start_init_s = ttime.monotonic()
 
         if hasattr(self, "boresight"):
             return
 
         self.dtype = dtype
-        self.disable_progress_bars = (not progress_bars) or (
-            logging.getLevelName(logger.level) == "DEBUG"
-        )
+        self.disable_progress_bars = (not progress_bars) or (logging.getLevelName(logger.level) == "DEBUG")
         parsed_sim_kwargs = parse_sim_kwargs(kwargs, master_params)
 
         if isinstance(instrument, Instrument):
@@ -87,9 +84,7 @@ class BaseSimulation:
                 **parsed_sim_kwargs["instrument"],
             )
 
-        logger.debug(
-            f"Initialized instrument in {humanize_time(ttime.monotonic() - start_init_s)}."
-        )
+        logger.debug(f"Initialized instrument in {humanize_time(ttime.monotonic() - start_init_s)}.")
         instrument_init_s = ttime.monotonic()
 
         if isinstance(plan, Plan):
@@ -97,9 +92,7 @@ class BaseSimulation:
         else:
             self.plan = get_plan(plan_name=plan, **parsed_sim_kwargs["plan"])
 
-        logger.debug(
-            f"Initialized plan in {humanize_time(ttime.monotonic() - instrument_init_s)}."
-        )
+        logger.debug(f"Initialized plan in {humanize_time(ttime.monotonic() - instrument_init_s)}.")
         plan_init_s = ttime.monotonic()
 
         if isinstance(site, Site):
@@ -111,9 +104,7 @@ class BaseSimulation:
                 "The passed site must be either a Site object or a string.",
             )
 
-        logger.debug(
-            f"Initialized site in {humanize_time(ttime.monotonic() - plan_init_s)}."
-        )
+        logger.debug(f"Initialized site in {humanize_time(ttime.monotonic() - plan_init_s)}.")
         site_init_s = ttime.monotonic()
 
         self.boresight = Coordinates(
@@ -124,9 +115,7 @@ class BaseSimulation:
             frame=self.plan.frame,
         )
 
-        logger.debug(
-            f"Initialized boresight in {humanize_time(ttime.monotonic() - site_init_s)}."
-        )
+        logger.debug(f"Initialized boresight in {humanize_time(ttime.monotonic() - site_init_s)}.")
         boresight_init_s = ttime.monotonic()
 
         if self.plan.max_vel_deg > self.instrument.vel_limit:
@@ -151,13 +140,9 @@ class BaseSimulation:
             frame="az_el",
         )
 
-        logger.debug(
-            f"Initialized coordinates in {humanize_time(ttime.monotonic() - boresight_init_s)}."
-        )
+        logger.debug(f"Initialized coordinates in {humanize_time(ttime.monotonic() - boresight_init_s)}.")
 
-        logger.debug(
-            f"Initialized generic simulation in {humanize_time(ttime.monotonic() - start_init_s)}."
-        )
+        logger.debug(f"Initialized generic simulation in {humanize_time(ttime.monotonic() - start_init_s)}.")
 
     def _run(self):
         raise NotImplementedError()
@@ -178,9 +163,7 @@ class BaseSimulation:
         if hasattr(self, "atmosphere"):
             metadata["atmosphere"] = True
             metadata["pwv"] = float(np.round(self.atmosphere.weather.pwv, 3))
-            metadata["base_temperature"] = float(
-                np.round(self.atmosphere.weather.temperature[0], 3)
-            )
+            metadata["base_temperature"] = float(np.round(self.atmosphere.weather.temperature[0], 3))
 
         tod = TOD(
             data=self.loading,
