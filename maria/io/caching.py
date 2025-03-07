@@ -1,9 +1,8 @@
 import logging
 import os
-import requests
-
 import time as ttime
 
+import requests
 from tqdm import tqdm
 
 from ..utils.io import test_file

@@ -10,13 +10,10 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from ..instrument.beam import compute_angular_fwhm
-from ..units import Angle, parse_units
+from ..beam import compute_angular_fwhm
+from ..units import QUANTITIES, Angle, parse_units, prefixes
 from ..utils.signal import detrend as detrend_signal
 from ..utils.signal import remove_slope
-
-from ..units import QUANTITIES
-from ..units import prefixes
 
 
 def tod_plot(
@@ -58,16 +55,12 @@ def tod_plot(
             signal = data[band_mask]
 
             if band_mask.sum() > max_dets:
-                signal = signal[
-                    np.random.choice(np.arange(len(signal)), max_dets, replace=False)
-                ]
+                signal = signal[np.random.choice(np.arange(len(signal)), max_dets, replace=False)]
 
             if detrend:
                 signal = detrend_signal(signal, order=1)
 
-            f, ps = sp.signal.periodogram(
-                remove_slope(signal.compute()), fs=tod.fs, window="tukey"
-            )
+            f, ps = sp.signal.periodogram(remove_slope(signal.compute()), fs=tod.fs, window="tukey")
 
             f_bins = np.geomspace(f[1], f[-1], n_freq_bins)
             f_mids = np.sqrt(f_bins[1:] * f_bins[:-1])
@@ -206,9 +199,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
 
         u = parse_units(tod.units)
         quantity = QUANTITIES.loc[u["quantity"]]
-        units = (
-            prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else ""
-        ) + quantity.base_unit_latex
+        units = (prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else "") + quantity.base_unit_latex
         cbar.set_label(f"{quantity.long_name} $[{units}]$")
 
         subplots[band] = {
@@ -229,7 +220,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
         # i = frame_index[frame]
 
         for band, subplot in subplots.items():
-            info = f'time = {time_offset:.00f} + {subplot["time"][frame]:.02f} s\naz = {np.degrees(subplot["az"][frame]):.02f} deg\nel = {np.degrees(subplot["el"][frame]):.02f} deg'  # noqa
+            info = f"time = {time_offset:.00f} + {subplot['time'][frame]:.02f} s\naz = {np.degrees(subplot['az'][frame]):.02f} deg\nel = {np.degrees(subplot['el'][frame]):.02f} deg"  # noqa
 
             buffer = 4
 

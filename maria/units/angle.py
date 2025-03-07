@@ -11,23 +11,25 @@ UNITS = {
 
 
 class Angle:
-    def __init__(self, a, units="radians"):
-        self.radians = None
+    def __init__(self, a, units: str = "radians", unwrap: bool = False):
+        self.x = None
+        self.unwrap = unwrap
         for k in UNITS:
             if units in [k, UNITS[k]["short_name"]]:
-                self.radians = np.array(a) / UNITS[k]["factor"]
-        if self.radians is None:
+                self.x = np.array(a) / UNITS[k]["factor"]
+        if self.x is None:
             raise ValueError(f"Invalid units '{units}'.")
 
         self.is_scalar = len(np.shape(self.radians)) == 0
 
-        if not self.is_scalar:
-            self.radians = np.unwrap(self.radians)
+        if self.is_scalar and unwrap:
+            raise ValueError()
 
     def __getattr__(self, attr):
+        radians = self.x if self.unwrap else (self.x + np.pi) % (2 * np.pi) - np.pi
         for k in UNITS:
             if attr in [k, UNITS[k]["short_name"]]:
-                return self.radians * UNITS[k]["factor"]
+                return radians * UNITS[k]["factor"]
         raise AttributeError(f"Angle object has no attribute named '{attr}'.")
 
     def __getitem__(self, idx):
@@ -39,13 +41,17 @@ class Angle:
     def __repr__(self):
         units = self.units
         if self.is_scalar:
-            return f"{getattr(self, units)}{UNITS[units]['symbol']}"
+            return f"{round(getattr(self, units), 3)}{self.symbol}"
         else:
             return f"Angle({getattr(self, units)}, units={units})"
 
     @property
     def shape(self):
         return self.radians.shape
+
+    @property
+    def symbol(self):
+        return UNITS[self.units]["symbol"]
 
     @property
     def units(self):

@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 from collections.abc import Sequence
 
+import dask.array as da
 import numpy as np
 import scipy as sp
-import dask.array as da
 
 from ..tod import TOD
 from .base import BaseMapper
@@ -30,7 +30,6 @@ class BinMapper(BaseMapper):
         map_postprocessing: dict = {},
         tods: Sequence[TOD] = [],
     ):
-
         height = height or width
 
         super().__init__(
@@ -65,12 +64,7 @@ class BinMapper(BaseMapper):
         # )  # noqa
 
         for tod in self.tods:
-
-            band_tod = (
-                tod.subset(band=band.name)
-                .process(config=self.tod_preprocessing)
-                .to(self.units)
-            )
+            band_tod = tod.subset(band=band.name).process(config=self.tod_preprocessing).to(self.units)
 
             dx, dy = band_tod.coords.offsets(frame=self.frame, center=self.center)
 

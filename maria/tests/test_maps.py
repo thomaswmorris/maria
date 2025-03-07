@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pytest
 
 import maria
-import numpy as np
-from maria.io import fetch
-
 from maria.instrument import Band
+from maria.io import fetch
 from maria.mappers import BinMapper
 
 plt.close("all")
@@ -55,7 +54,6 @@ def test_fetch_hdf_map(map_name):
 
 
 def test_trivial_recover_original_map():
-
     f090 = Band(center=90, width=30)
     f150 = Band(center=150, width=30)
     f220 = Band(center=220, width=30)
@@ -70,9 +68,7 @@ def test_trivial_recover_original_map():
     instrument = maria.get_instrument(array=array)
 
     map_filename = fetch("maps/big_cluster.fits", refresh=True)
-    input_map = maria.map.read_fits(
-        filename=map_filename, nu=150, width=0.1, center=(150, 10)
-    ).downsample(n_x=100, n_y=100)
+    input_map = maria.map.read_fits(filename=map_filename, nu=150, width=0.1, center=(150, 10)).downsample(n_x=100, n_y=100)
 
     plan = maria.Plan(
         scan_pattern="daisy",
@@ -107,19 +103,14 @@ def test_trivial_recover_original_map():
 
     weight = output_map.weight / output_map.weight.sum()
     residuals = (output_map.data - input_map.data).compute()
-    relative_residual = (
-        np.nanstd(weight * residuals).compute() / np.nanstd(input_map.data).compute()
-    )
+    relative_residual = np.nanstd(weight * residuals).compute() / np.nanstd(input_map.data).compute()
 
     assert relative_residual < 1e-3
 
 
 def test_time_ordered_map_sim():
-
     time_evolving_sun_path = fetch("maps/sun.h5")
-    input_map = maria.map.load(
-        filename=time_evolving_sun_path, t=1.7e9 + np.linspace(0, 180, 16)
-    )
+    input_map = maria.map.load(filename=time_evolving_sun_path, t=1.7e9 + np.linspace(0, 180, 16))
     plan = maria.Plan(
         start_time=1.7e9,
         duration=180,

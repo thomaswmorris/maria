@@ -6,10 +6,10 @@ import astropy.constants as const
 import numpy as np
 from astropy import units as u
 
-from .si import prefixes  # noqa
-from .angle import Angle  # noqa
-from .quantities import parse_units, QUANTITIES  # noqa
 from ..constants import T_CMB, c, g, k_B  # noqa
+from .angle import Angle  # noqa
+from .quantities import QUANTITIES, parse_units  # noqa
+from .si import prefixes  # noqa
 
 here, this_filename = os.path.split(__file__)
 symbols = {"radians": "rad"}

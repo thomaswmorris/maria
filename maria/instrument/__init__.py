@@ -3,25 +3,18 @@ from __future__ import annotations
 import glob
 import os
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from ..utils import flatten_config, read_yaml
-from ..units import Angle
-from .array import Array, ArrayList
+from ..array import Array, ArrayList  # noqa
 from ..band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
-from .detectors import Detectors  # noqa
+from ..units import Angle
+from ..utils import HEX_CODE_LIST, flatten_config, get_rotation_matrix_2d, read_yaml
 
 here, this_filename = os.path.split(__file__)
-
-HEX_CODE_LIST = [
-    mpl.colors.to_hex(mpl.colormaps.get_cmap("Paired")(t))
-    for t in [*np.linspace(0.05, 0.95, 12)]
-]
 
 INSTRUMENT_CONFIGS = {}
 for path in glob.glob(f"{here}/configs/*.yml"):
@@ -143,7 +136,7 @@ allowed_subarray_params = {
 
 #         if "file" in subarray:  # it points to a file:
 #             if not os.path.exists(subarray["file"]):
-#                 subarray["file"] = f"{here}/detectors/arrays/{subarray['file']}"
+#                 subarray["file"] = f"{here}/ArrayList/arrays/{subarray['file']}"
 #             df = pd.read_csv(subarray["file"], index_col=0)
 
 #             if "bands" not in subarray:
@@ -199,24 +192,17 @@ class Instrument:
         c = config.copy()
 
         if "array" in c:
-            c["arrays"] = {"": c.pop("array")}
-
-        arrays_config = c.pop("arrays")
-
-        arrays = []
-        for array_name, array_config in arrays_config.items():
-            array = Array.from_config(name=array_name, **array_config)
-            arrays.append(array)
+            c["arrays"] = [c.pop("array")]
 
         for key in ["aliases"]:
             if key in c:
                 c.pop(key)
 
-        return cls(arrays=arrays, **c)
+        return cls(**c)
 
     def __init__(
         self,
-        arrays: ArrayList | list,
+        arrays: ArrayList | list | dict,
         description: str = "An instrument.",
         documentation: str = "",
         vel_limit: float = 1e2,  # in deg/s
@@ -229,8 +215,7 @@ class Instrument:
             The maximum angular speed of the array.
         """
 
-        self.arrays = ArrayList(arrays)
-
+        self.dets = ArrayList(arrays).combine()
         self.description = description
         self.documentation = documentation
         self.vel_limit = vel_limit
@@ -248,13 +233,9 @@ class Instrument:
         #     self.units = "degrees"
 
     def __repr__(self):
-        arrays_repr = self.arrays.__repr__().replace("\n", "\n  ")
+        arrays_repr = self.dets.__repr__().replace("\n", "\n  ")
         return f"""Instrument:
 {arrays_repr})"""
-
-    @property
-    def dets(self):
-        return self.arrays.dets
 
     @property
     def bands(self):
@@ -308,51 +289,66 @@ class Instrument:
     #     """
     #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-    def plot(self, z=np.inf):
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=160)
+    def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=False):
+        if plot_baseline == "infer":
+            plot_baseline = self.dets.max_baseline > 0
 
-        fwhms = Angle(self.dets.angular_fwhm(z=z))
-        offsets = Angle(self.dets.offsets)
-
-        legend_handles = []
+        if plot_baseline:
+            fig, (focal_ax, baseline_ax) = plt.subplots(1, 2, figsize=(8, 5), dpi=160, constrained_layout=True)
+        else:
+            fig, focal_ax = plt.subplots(1, 1, figsize=(4, 4), dpi=160, constrained_layout=True)
 
         i = 0
+        legend_handles = []
 
-        for ia, array in enumerate(self.arrays):
-            array_mask = self.dets.array_name == array.name
+        focal_plane = Angle(self.dets.offsets)
+        resolution = Angle(self.dets.fwhm)
 
-            for ib, band in enumerate(array.dets.bands):
-                band_mask = self.dets.band_name == band.name
-
-                mask = array_mask & band_mask
-
+        for ia, array in enumerate(self.dets.split()):
+            for ib, band in enumerate(array.bands):
                 c = HEX_CODE_LIST[i % len(HEX_CODE_LIST)]
 
-                ax.add_collection(
+                band_array = array(band=band.name)
+
+                fwhms = Angle(band_array.angular_fwhm(z=z))
+                offsets = Angle(band_array.offsets)
+                pol_angles = Angle(band_array.pol_angle)
+                baselines = band_array.baselines
+
+                if plot_pol_angles:
+                    dx = np.c_[-np.ones(band_array.n), np.ones(band_array.n)] / 2
+                    dy = np.zeros((band_array.n, 2))
+
+                    R = get_rotation_matrix_2d(pol_angles.radians)
+                    dl = np.moveaxis(R @ np.stack([dx, dy], axis=1), 0, 2)
+                    P = Angle(offsets.radians.T[:, None] + fwhms.radians * dl)
+                    focal_ax.plot(*getattr(P, focal_plane.units), c=c, lw=5e-1)
+
+                focal_ax.add_collection(
                     EllipseCollection(
-                        widths=getattr(fwhms, offsets.units)[mask],
-                        heights=getattr(fwhms, offsets.units)[mask],
+                        widths=getattr(fwhms, focal_plane.units),
+                        heights=getattr(fwhms, focal_plane.units),
                         angles=0,
                         units="xy",
                         facecolors=c,
                         edgecolors="k",
                         lw=1e-1,
                         alpha=0.5,
-                        offsets=getattr(offsets, offsets.units)[mask],
-                        transOffset=ax.transData,
+                        offsets=getattr(offsets, focal_plane.units),
+                        transOffset=focal_ax.transData,
                     ),
                 )
 
                 legend_handles.append(
                     Patch(
-                        label=f"{band.name}, (n={mask.sum()}, "
-                        f"res={getattr(fwhms, fwhms.units)[band_mask].mean():.01f} {fwhms.units})",
+                        label=f"{band.name}, (n={band_array.n}, "
+                        f"res={getattr(fwhms, resolution.units).mean():.01f}{resolution.symbol})",
                         color=c,
                     ),
                 )
 
-                ax.scatter(
-                    *getattr(offsets, offsets.units)[band_mask].T,
+                focal_ax.scatter(
+                    *getattr(offsets, focal_plane.units).T,
                     # label=band.name,
                     s=0,
                     color=c,
@@ -360,19 +356,22 @@ class Instrument:
 
                 i += 1
 
-        ax.set_xlabel(rf"$\theta_x$ offset ({offsets.units})")
-        ax.set_ylabel(rf"$\theta_y$ offset ({offsets.units})")
-        ax.legend(handles=legend_handles)
+                if plot_baseline:
+                    baseline_ax.scatter(*baselines.T[:2])
 
-        xls, yls = ax.get_xlim(), ax.get_ylim()
+        focal_ax.set_xlabel(rf"$\theta_x$ offset ({focal_plane.units})")
+        focal_ax.set_ylabel(rf"$\theta_y$ offset ({focal_plane.units})")
+        focal_ax.legend(handles=legend_handles, fontsize=8)
+
+        xls, yls = focal_ax.get_xlim(), focal_ax.get_ylim()
         cen_x, cen_y = np.mean(xls), np.mean(yls)
         wid_x, wid_y = np.ptp(xls), np.ptp(yls)
         radius = 0.5 * np.maximum(wid_x, wid_y)
 
-        margin = getattr(fwhms, offsets.units).max()
+        margin = getattr(fwhms, focal_plane.units).max()
 
-        ax.set_xlim(cen_x - radius - margin, cen_x + radius + margin)
-        ax.set_ylim(cen_y - radius - margin, cen_y + radius + margin)
+        focal_ax.set_xlim(cen_x - radius - margin, cen_x + radius + margin)
+        focal_ax.set_ylim(cen_y - radius - margin, cen_y + radius + margin)
 
 
 instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T

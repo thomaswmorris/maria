@@ -1,20 +1,19 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 
-import os
 import maria
-import numpy as np
-
 from maria.io import fetch
 
 
 def test_change_cache_dir():
     try:
         maria.set_cache_dir("/tmp/maria-data-2")
-        fetch(f"maps/cluster.fits")
+        fetch("maps/cluster.fits")
         assert os.path.isfile(os.environ["MARIA_CACHE_DIR"] + "/maps/cluster.fits")
-    except:
+    except Exception:
         del os.environ["MARIA_CACHE_DIR"]
         raise Exception()
 
@@ -22,12 +21,11 @@ def test_change_cache_dir():
 @pytest.mark.parametrize("filename", ["big_cluster.fits", "cluster.fits"])
 def test_maps_from_cache(filename):
     map_filename = fetch(f"maps/{filename}")
-    m = maria.map.read_fits(filename=map_filename, width=0.1, center=(150, 10))
+    m = maria.map.read_fits(filename=map_filename, width=0.1, center=(150, 10))  # noqa
 
 
 @pytest.mark.parametrize("filename", ["big_cluster.fits", "cluster.fits"])
 def test_maps_io(filename):
-
     map_filename = fetch(f"maps/{filename}")
     m = maria.map.load(filename=map_filename, width=1e0, units="K_RJ")
 
@@ -36,4 +34,4 @@ def test_maps_io(filename):
     new_m = maria.map.load("/tmp/test.fits").to("MK_RJ")
     new_m.to_hdf("/tmp/test.h5")
 
-    new_new_m = maria.map.load("/tmp/test.h5").to("K_RJ")
+    new_new_m = maria.map.load("/tmp/test.h5").to("K_RJ")  # noqa

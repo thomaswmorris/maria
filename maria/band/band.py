@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 
-from ..utils import flatten_config, read_yaml
 from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
 from ..constants import c
 from ..io import humanize
+from ..utils import flatten_config, read_yaml
 
 here, this_filename = os.path.split(__file__)
 
@@ -90,11 +90,7 @@ class Band:
             self.nu = np.array(nu)
             self.tau = np.array(tau) / tau_max
 
-            if (
-                (self.nu.ndim != 1)
-                or (self.tau.ndim != 1)
-                or (self.nu.shape != self.tau.shape)
-            ):
+            if (self.nu.ndim != 1) or (self.tau.ndim != 1) or (self.nu.shape != self.tau.shape):
                 raise ValueError(
                     f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape}).",
                 )
@@ -138,10 +134,7 @@ class Band:
     def fwhm(self):
         crossovers = np.where((self.tau[1:] > 0.5) != (self.tau[:-1] > 0.5))[0]
         return np.ptp(
-            [
-                sp.interpolate.interp1d(self.tau[[i, i + 1]], self.nu[[i, i + 1]])(0.5)
-                for i in crossovers
-            ],
+            [sp.interpolate.interp1d(self.tau[[i, i + 1]], self.nu[[i, i + 1]])(0.5) for i in crossovers],
         )
 
     def summary(self):
@@ -162,7 +155,7 @@ class Band:
         return summary
 
     def __repr__(self):
-        return f'Band({", ".join([f"{index}={entry}" for index, entry in self.summary().items()])})'
+        return f"Band({', '.join([f'{index}={entry}' for index, entry in self.summary().items()])})"
 
     def plot(self):
         fig, ax = plt.subplots(1, 1)
@@ -213,16 +206,10 @@ class Band:
             return np.trapezoid(y=self.passband(nu), x=1e9 * nu, axis=-1)
 
         else:
-            nu = spectrum.side_nu[
-                (spectrum.side_nu >= nu_min) & (spectrum.side_nu < nu_max)
-            ]
-            integral_grid = np.trapezoid(
-                y=self.passband(nu) * np.exp(-spectrum._opacity), x=1e9 * nu, axis=-1
-            )
+            nu = spectrum.side_nu[(spectrum.side_nu >= nu_min) & (spectrum.side_nu < nu_max)]
+            integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=1e9 * nu, axis=-1)
             xi = (kwargs["zenith_pwv"], kwargs["base_temperature"], kwargs["elevation"])
-            return sp.interpolate.interpn(
-                points=spectrum.points[:3], values=integral_grid, xi=xi
-            )
+            return sp.interpolate.interpn(points=spectrum.points[:3], values=integral_grid, xi=xi)
 
     def transmission(self, region="chajnantor", pwv=1, elevation=90) -> float:
         if not hasattr(self, "spectrum"):

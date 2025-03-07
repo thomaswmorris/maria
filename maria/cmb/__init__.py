@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 
 from ..constants import T_CMB
-from ..map import HEALPixMap
 from ..io import download_from_url, fetch
+from ..map import HEALPixMap
 
 # shut up healpy I don't care about the resolution
 logging.getLogger("healpy").setLevel(logging.WARNING)

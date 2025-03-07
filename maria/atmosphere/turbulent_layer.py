@@ -5,10 +5,10 @@ import numpy as np
 import scipy as sp
 
 from .. import utils
+from ..beam import construct_beam_filter, separably_filter_2d
 from ..coords import Coordinates, get_center_phi_theta
 from ..functions import approximate_normalized_matern
 from ..instrument import Instrument
-from ..instrument.beam import construct_beam_filter, separably_filter_2d
 from ..weather import Weather
 
 MIN_SAMPLES_PER_RIBBON = 2
@@ -75,15 +75,9 @@ class TurbulentLayer:
             axis=0,
         )(self.layer_altitude)
 
-        angular_velocity_x = (
-            +layer_wind_east * np.cos(self.sim_az)
-            - layer_wind_north * np.sin(self.sim_az)
-        ) / self.depth
+        angular_velocity_x = (+layer_wind_east * np.cos(self.sim_az) - layer_wind_north * np.sin(self.sim_az)) / self.depth
 
-        angular_velocity_y = (
-            -layer_wind_east * np.sin(self.sim_az)
-            + layer_wind_north * np.cos(self.sim_az)
-        ) / self.depth
+        angular_velocity_y = (-layer_wind_east * np.sin(self.sim_az) + layer_wind_north * np.cos(self.sim_az)) / self.depth
 
         if verbose:
             print(f"{(layer_wind_east, layer_wind_north)=}")
@@ -115,13 +109,10 @@ class TurbulentLayer:
         stare_convex_hull = sp.spatial.ConvexHull(
             (
                 self.detector_offsets[None, :, None]
-                + self.instrument.angular_fwhm(depth)[:, None, None]
-                * unit_circle_offsets[None]
+                + self.instrument.angular_fwhm(depth)[:, None, None] * unit_circle_offsets[None]
             ).reshape(-1, 2),
         )
-        stare_convex_hull_points = stare_convex_hull.points[
-            stare_convex_hull.vertices
-        ].reshape(-1, 2)
+        stare_convex_hull_points = stare_convex_hull.points[stare_convex_hull.vertices].reshape(-1, 2)
 
         # convex hull downsample index, to get to 1 second
         chds_index = [
@@ -135,14 +126,9 @@ class TurbulentLayer:
 
         # this is a convex hull for the atmosphere
         atmosphere_hull = sp.spatial.ConvexHull(
-            (
-                self.boresight_angular_position[chds_index, None]
-                + stare_convex_hull_points[None]
-            ).reshape(-1, 2),
+            (self.boresight_angular_position[chds_index, None] + stare_convex_hull_points[None]).reshape(-1, 2),
         )
-        self.atmosphere_hull_points = atmosphere_hull.points.reshape(-1, 2)[
-            atmosphere_hull.vertices
-        ]
+        self.atmosphere_hull_points = atmosphere_hull.points.reshape(-1, 2)[atmosphere_hull.vertices]
 
         # R takes us from the real (dx, dy) to a more compact (cross_section, extrusion) frame
         self.optres = utils.linalg.optimize_area_minimizing_rotation_matrix(
@@ -252,8 +238,7 @@ class TurbulentLayer:
         i, j = np.triu_indices(self.n_sample, k=1)
         COV_S_S = np.eye(self.n_sample) + JITTER_LEVEL
         COV_S_S[i, j] = matern_callback(
-            np.sqrt(np.square(sample_positions[j] - sample_positions[i]).sum(axis=1))
-            / self.angular_outer_scale,
+            np.sqrt(np.square(sample_positions[j] - sample_positions[i]).sum(axis=1)) / self.angular_outer_scale,
             5 / 6,
             n_test_points=256,
         )
@@ -297,9 +282,7 @@ class TurbulentLayer:
 
         self.shaped_values = da.asarray(self.shaped_values)
 
-        self.atmosphere_detector_points = (
-            self.detector_offsets[:, None] + self.boresight_angular_position[None]
-        ) @ self.R.T
+        self.atmosphere_detector_points = (self.detector_offsets[:, None] + self.boresight_angular_position[None]) @ self.R.T
 
     def generate(self):
         n_steps = self.n_extrusion
@@ -326,9 +309,7 @@ class TurbulentLayer:
             # we assume the atmosphere looks the same for every nu in the band
 
             band_index = self.instrument.dets.subset(band_name=band.name).index
-            band_angular_fwhm = self.instrument.angular_fwhm(z=self.depth)[
-                band_index
-            ].mean()
+            band_angular_fwhm = self.instrument.angular_fwhm(z=self.depth)[band_index].mean()
 
             F = construct_beam_filter(
                 fwhm=band_angular_fwhm,

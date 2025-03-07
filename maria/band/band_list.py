@@ -5,7 +5,7 @@ from collections.abc import Mapping, Sequence
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from .band import Band, get_band, BAND_FIELD_FORMATS
+from .band import BAND_FIELD_FORMATS, Band, get_band
 
 
 class BandList(Sequence):

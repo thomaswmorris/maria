@@ -3,12 +3,13 @@ from __future__ import annotations
 import numpy as np
 import scipy as sp
 
+from ..units.si import *  # noqa
+from .coords import *  # noqa
 from .io import *  # noqa
 from .linalg import *  # noqa
+from .plotting import *  # noqa
 from .signal import *  # noqa
 from .time import *  # noqa
-from .coords import *  # noqa
-from ..units.si import *  # noqa
 
 # nothing in here should import from other maria module
 
@@ -58,7 +59,9 @@ def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
 
 
 def get_rotation_matrix_2d(a):
-    return sp.linalg.expm(np.array([[0, -a], [a, 0]]))
+    G = np.array([[0, -1], [1, 0]])  # generator
+    A = np.expand_dims(a, axis=(-1, -2))  # angles
+    return sp.linalg.expm(A * G)
 
 
 def get_rotation_matrix_3d(**rotations):
