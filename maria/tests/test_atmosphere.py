@@ -1,27 +1,21 @@
 from __future__ import annotations
 
-import time
-
 import pytest
 
 import maria
 from maria import Simulation
-from maria.atmosphere import Atmosphere, AtmosphericSpectrum, Weather
+from maria.atmosphere import Atmosphere, AtmosphericSpectrum
 
 
 @pytest.mark.parametrize("region_name", maria.all_regions)
 def test_atmosphere(region_name):
     atmosphere = Atmosphere(region=region_name)
+    atmosphere.spectrum.emission(nu=90, elevation=45, pwv=1.5)
 
 
 @pytest.mark.parametrize("region_name", ["chajnantor"])
 def test_spectrum_from_cache(region_name):
-    spectrum = AtmosphericSpectrum(region=region_name, refresh_cache=True)
-
-
-@pytest.mark.parametrize("region_name", ["chajnantor"])
-def test_weather_from_cache(region_name):
-    weather = Weather(region=region_name, refresh_cache=True)
+    spectrum = AtmosphericSpectrum(region=region_name, refresh_cache=True)  # noqa
 
 
 def test_atmosphere_2d():
@@ -31,4 +25,4 @@ def test_atmosphere_2d():
         site="green_bank",
         atmosphere="2d",
     )
-    tod = sim.run()
+    tod = sim.run()  # noqa

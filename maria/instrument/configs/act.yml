@@ -6,7 +6,7 @@ ABS:
   array:
     n: 250
     field_of_view: 25
-    array_shape: hex
+    shape: hexagon
     bands: [abs/f150]
     primary_size: 0.5
 
@@ -16,9 +16,6 @@ AdvACT:
   description: Atacama Cosmology Telescope
   documentation: https://act.princeton.edu/overview/camera-specifications/advact
   arrays:
-    pa4:
-      key: act/pa4
-    pa5:
-      key: act/pa5
-    pa6:
-      key: act/pa6
+  - act/pa4
+  - act/pa5
+  - act/pa6

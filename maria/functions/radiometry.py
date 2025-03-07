@@ -1,4 +1,5 @@
 import numpy as np
+
 from ..constants import c, h, k_B  # noqa
 
 

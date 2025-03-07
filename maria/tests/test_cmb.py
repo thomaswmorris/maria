@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import pytest
+
 import maria
 
 
 @pytest.mark.parametrize("nside", [256, 512, 1024, 2048])
 def test_generate_cmb(nside):
-
     cmb = maria.cmb.generate_cmb(nside=nside)
     cmb.plot()
 
 
 def test_cmb_calibration():
-
     plan = maria.Plan(
         scan_pattern="daisy",
         scan_options={"radius": 10, "speed": 1},  # in degrees
