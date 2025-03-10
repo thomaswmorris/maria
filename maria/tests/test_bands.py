@@ -13,10 +13,23 @@ def test_band_manual():
     b.plot()
 
 
-@pytest.mark.parametrize("band_name", all_bands)
 def test_band_list(band_name):
-
     bl = BandList()
     for band_name in all_bands:
         band = get_band(band_name)
         bl.add(band)
+
+
+def test_noise_conversion():
+    my_band = Band(
+        center=150,  # in GHz
+        width=30,  # in GHz
+        efficiency=0.5,  # in K_RJ
+        NET_RJ=1e-5,
+        spectrum_kwargs={
+            "region": "chajnantor",
+            "zenith_pwv": 1e1,  # in mm
+            "elevation": 90,
+        },
+    )  # in degrees
+    print(my_band)

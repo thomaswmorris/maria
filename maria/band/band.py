@@ -108,8 +108,19 @@ class Band:
         self.knee = knee
         self.time_constant = time_constant
         self.gain_error = gain_error
-        self.spectrum_kwargs = spectrum_kwargs
-        self.spectrum = AtmosphericSpectrum(region=spectrum_kwargs) if spectrum_kwargs else None
+
+        self.spectrum_kwargs = {}
+        if spectrum_kwargs:
+            self.spectrum = AtmosphericSpectrum(region=spectrum_kwargs["region"])
+            default_spectrum_kwargs = {
+                "zenith_pwv": 1e0,
+                "elevation": 90.0,
+                "base_temperature": self.spectrum.side_base_temperature.mean(),
+            }
+            for param in ["zenith_pwv", "base_temperature", "elevation"]:
+                self.spectrum_kwargs[param] = spectrum_kwargs.get(param, default_spectrum_kwargs[param])
+        else:
+            self.spectrum = None
 
         if sensitivity:
             logger.warning(
@@ -118,7 +129,7 @@ class Band:
             NET_RJ = sensitivity
 
         if (NEP is None) and (NET_RJ is None) and (NET_CMB is None):
-            logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 1 uK.")
+            logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 1 uK_RJ.")
             self.NET_RJ = 1e-6
 
         else:
@@ -130,12 +141,6 @@ class Band:
                 self.NET_CMB = NET_CMB
 
         self.transmission_integral_grids = {}
-
-    @property
-    def default_spectrum_kwargs(self):
-        if self.spectrum is not None:
-            return {"zenith_pwv": 1e0, "elevation": 90, "base_temperature": self.spectrum.side_base_temperature.mean()}
-        return {}
 
     @property
     def name(self):
@@ -187,19 +192,19 @@ class Band:
 
     @property
     def NET_RJ(self):
-        return self.cal("W -> K_RJ", spectrum=self.spectrum, **self.default_spectrum_kwargs)(self.NEP).item()
+        return self.cal("W -> K_RJ", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP).item()
 
     @NET_RJ.setter
     def NET_RJ(self, value):
-        self.NEP = self.cal("K_RJ -> W", spectrum=self.spectrum, **self.default_spectrum_kwargs)(value).item()
+        self.NEP = self.cal("K_RJ -> W", spectrum=self.spectrum, **self.spectrum_kwargs)(value).item()
 
     @property
     def NET_CMB(self):
-        return self.cal("W -> K_CMB", spectrum=self.spectrum, **self.default_spectrum_kwargs)(self.NEP).item()
+        return self.cal("W -> K_CMB", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP).item()
 
     @NET_CMB.setter
     def NET_CMB(self, value):
-        self.NEP = self.cal("K_CMB -> W", spectrum=self.spectrum, **self.default_spectrum_kwargs)(value).item()
+        self.NEP = self.cal("K_CMB -> W", spectrum=self.spectrum, **self.spectrum_kwargs)(value).item()
 
     def compute_nu_integral(
         self,
