@@ -68,6 +68,7 @@ class Band:
         name: str = None,
         shape: str = "top_hat",
         efficiency: float = 0.5,
+        sensitivity: float = None,
         NET_RJ: float = None,
         NET_CMB: float = None,
         NEP: float = None,
@@ -109,6 +110,12 @@ class Band:
         self.gain_error = gain_error
         self.spectrum_kwargs = spectrum_kwargs
         self.spectrum = AtmosphericSpectrum(region=spectrum_kwargs) if spectrum_kwargs else None
+
+        if sensitivity:
+            logger.warning(
+                "The 'sensitivity' keyword is deprecated and will be removed in future releases. To specify noise levels in terms of sky temperature, use the 'NET_RJ' or 'NET_CMB' keywords instead."
+            )
+            NET_RJ = sensitivity
 
         if (NEP is None) and (NET_RJ is None) and (NET_CMB is None):
             logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 1 uK.")
