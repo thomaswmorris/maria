@@ -31,12 +31,12 @@
     "f090 = Band(\n",
     "    center=90,  # in GHz\n",
     "    width=20,\n",
-    "    sensitivity=3e-5,  # in K sqrt(s)\n",
+    "    NET_RJ=3e-5,  # in K sqrt(s)\n",
     "    knee=1e0,\n",
     "    gain_error=5e-2,\n",
     ")\n",
     "\n",
-    "f150 = Band(center=150, width=30, sensitivity=5e-5, knee=1e0, gain_error=5e-2)"
+    "f150 = Band(center=150, width=30, NET_RJ=5e-5, knee=1e0, gain_error=5e-2)"
    ]
   },
   {

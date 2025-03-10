@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -203,20 +204,20 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../../usage.html">Usage</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="../instruments.html">Instruments</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Instruments</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../instruments/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../instruments/bands.html">Bands</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../instruments/arrays.html">Arrays</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../instruments/noise.html">Noise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../simulations.html">Simulations</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../inputs.html">Inputs</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Inputs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../inputs/instruments.html">Instruments</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Instruments</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../inputs/instruments/overview.html">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../inputs/instruments/bands.html">Bands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../inputs/instruments/noise.html">Noise</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../inputs/instruments/arrays.html">Arrays</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../sites.html">Sites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../plans.html">Plans</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../simulations.html">Simulations</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../simulations/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../simulations/atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../simulations/cmb.html">The cosmic microwave background</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../simulations/maps.html">Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../inputs/sites.html">Sites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../inputs/plans.html">Plans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../inputs/atmosphere.html">Atmosphere</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../inputs/cmb.html">CMB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../inputs/maps.html">Maps</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../tods.html">TODs</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of TODs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -280,7 +281,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="mapping">
-<h1>Mapping<a class="headerlink" href="#mapping" title="Link to this heading">¶</a></h1>
+<span id="id1"></span><h1>Mapping<a class="headerlink" href="#mapping" title="Link to this heading">¶</a></h1>
 <p>We can map a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (or several of them) with a <code class="docutils literal notranslate"><span class="pre">Mapper</span></code>. The simplest possible mapper just bins the data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
 
@@ -339,7 +340,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2024, Thomas W. Morris
+                Copyright &#169; 2025, Thomas W. Morris
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
