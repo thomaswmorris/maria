@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 project = "maria"
-copyright = "2024, Thomas W. Morris"
+copyright = "2025, Thomas W. Morris"
 author = "Thomas W. Morris"
 
 html_title = "maria"
@@ -28,8 +28,16 @@ extensions = [
     "numpydoc",
     "sphinx_copybutton",
     "nbsphinx",
-    # "autoapi.extension",
+    # 'matplotlib.sphinxext.only_directives',
+    "matplotlib.sphinxext.plot_directive",
+    "sphinx.ext.doctest",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.autosectionlabel",
 ]
+
+autosectionlabel_prefix_document = True
+# "autoapi.extension",
+
 
 templates_path = ["_templates"]
 exclude_patterns = []

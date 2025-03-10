@@ -18,9 +18,9 @@ ten_second_stare:
   sample_rate: 20
   scan_options: {}
 
-daisy_2deg_10min:
+daisy_2deg_3min:
   description: A daisy scan.
-  duration: 60
+  duration: 180
   frame: ra_dec
   degrees: True
   scan_pattern: daisy

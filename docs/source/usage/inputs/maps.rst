@@ -1,14 +1,17 @@
+
+.. _maps:
 ####
 Maps
 ####
 
 A map is represented by a ``Map`` object. We can load some pre-defined ones with
 
-.. code-block:: python
+.. plot:: 
+   :include-source: True
 
-    from maria.io import fetch
+    import maria
 
-    map_filename = fetch("maps/big_cluster.fits")
+    map_filename = maria.io.fetch("maps/big_cluster.fits")
 
     input_map = maria.map.read_fits(filename=map_filename,
                                     index=1, # which index of the HDU to read
@@ -18,7 +21,7 @@ A map is represented by a ``Map`` object. We can load some pre-defined ones with
                                     frame="ra_dec",
                                     units="Jy/pixel")
 
-    input_map.to(units="K_RJ").plot()
+    input_map.to(units="uK_RJ").plot()
 
 
 We can then add the map to a simulation as

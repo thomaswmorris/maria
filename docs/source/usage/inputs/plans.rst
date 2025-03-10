@@ -1,12 +1,23 @@
+.. _plans:
 #####
 Plans
 #####
 
-The observing plan is represented by a ``Plan``. To see the list of supported plans, run
+Overview
+--------
 
-.. code-block:: python
 
-    print(maria.all_instruments)
+The observing site is represented by a ``Plan``. For example:
+
+.. plot:: 
+   :include-source: True
+
+    import maria
+
+    daisy_scan = maria.get_plan("daisy_2deg_3min")
+    daisy_scan.plot()
+
+.. hint:: To see all available pre-defined sites, run ``print(maria.all_plans)``.
 
 
 +++++++++++++++++
@@ -23,8 +34,6 @@ A 60-second zenith stare would be instantiated as
                            sample_rate=20, # in Hz
                            pointing_frame="az_el",
                            scan_center=(0, 90)) # in degrees
-
-
 
 We might also do a daisy scan on some given point on the sky, which the telescope will track:
 
