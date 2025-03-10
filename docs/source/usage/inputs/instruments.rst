@@ -1,3 +1,4 @@
+.. _instruments:
 ===========
 Instruments
 ===========
@@ -5,7 +6,9 @@ Instruments
 .. toctree::
    :maxdepth: 2
 
-   instruments/index.rst
+   instruments/overview.rst
    instruments/bands.rst
-   instruments/arrays.rst
    instruments/noise.rst
+   instruments/arrays.rst
+
+   
