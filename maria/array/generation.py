@@ -17,41 +17,38 @@ def generate_sunflower_packing(n: int):
     x = 0.5966 * np.sqrt(i) * np.cos(golden_angle * i)
     y = 0.5966 * np.sqrt(i) * np.sin(golden_angle * i)
 
-    return pd.DataFrame({"x": x, "y": y, "topo_x": x, "topo_y": y})
+    return pd.DataFrame({"x": x, "y": y})
 
 
-def generate_square_packing(n_x: int, n_y: int):
-    x_side = np.arange(-n_x // 2, n_x // 2, dtype=float) + 1.0
-    y_side = np.arange(-n_y // 2, n_y // 2, dtype=float) + 1.0
-    topo_x, topo_y = np.meshgrid(x_side, y_side)
+def generate_square_packing(n_row: int, n_col: int):
+    x_side = np.arange(n_col, dtype=float)
+    y_side = np.arange(n_row, dtype=float)
+    col, row = np.meshgrid(x_side, y_side)
 
-    return pd.DataFrame(
-        {
-            "x": topo_x.ravel(),
-            "y": topo_y.ravel(),
-            "topo_x": topo_x.ravel(),
-            "topo_y": topo_y.ravel(),
-        }
-    )
+    x = col - n_col // 2 + (n_col + 1) % 2
+    y = row - n_row // 2 + (n_row + 1) % 2
+
+    df = pd.DataFrame({"x": x.ravel(), "y": y.ravel(), "row": row.ravel(), "col": col.ravel()})  # noqa
+    df = df.sort_values(["row", "col"], ascending=[False, True])  # noqa
+    df.index = np.arange(len(df))
+
+    return df
 
 
-def generate_triangular_packing(n_x: int, n_y: int):
-    x_side = np.arange(-n_x // 2, n_x // 2, dtype=float) + 1.0
-    y_side = np.arange(-n_y // 2, n_y // 2, dtype=float) + 1.0
-    topo_x, topo_y = np.meshgrid(x_side, y_side)
-    # x = topo_x * np.sqrt(3) / 2
-    # y = topo_y - topo_x / 2
-    topo_x *= np.sqrt(3) / 2
-    topo_y[:, n_x % 2 :: 2] -= 0.5
+def generate_triangular_packing(n_col: int, n_row: int):
+    x_side = np.arange(n_col, dtype=float)
+    y_side = np.arange(n_row, dtype=float)
+    col, row = np.meshgrid(x_side, y_side)
 
-    return pd.DataFrame(
-        {
-            "x": topo_x.ravel(),
-            "y": topo_y.ravel(),
-            "topo_x": topo_x.ravel(),
-            "topo_y": topo_y.ravel(),
-        }
-    )
+    x = col - n_col // 2 + (n_col + 1) % 2
+    y = row - n_row // 2 + (n_row + 1) % 2 - 0.5 * x
+    x *= np.sqrt(3) / 2
+
+    df = pd.DataFrame({"x": x.ravel(), "y": y.ravel(), "row": row.ravel(), "col": col.ravel()})  # noqa
+    df = df.sort_values(["row", "col"], ascending=[False, True])  # noqa
+    df.index = np.arange(len(df))
+
+    return df
 
 
 def scaled_distance(x: float, y: float, shape: str, height_scale: float = 1.0):
@@ -75,8 +72,8 @@ def scaled_distance(x: float, y: float, shape: str, height_scale: float = 1.0):
 
 def generate_2d_pattern(
     n: int = None,
-    n_x: int = None,
-    n_y: int = None,
+    n_col: int = None,
+    n_row: int = None,
     max_diameter: float = None,
     spacing: float = None,
     shape: str = "hexagon",
@@ -99,7 +96,7 @@ def generate_2d_pattern(
 
     # if no detector is supplied, we'll use an iterative method to find the right number.
     # a good first guess might be n = (max_diameter / spacing) ** 2
-    n_explicit = (n is not None) or ((n_x is not None) and (n_y is not None))
+    n_explicit = (n is not None) or ((n_col is not None) and (n_row is not None))
     n_args = sum([n_explicit, spacing is not None, max_diameter is not None])
 
     if n_args < 2:
@@ -140,33 +137,34 @@ def generate_2d_pattern(
         return offsets
 
     else:
-        if (n is not None) ^ ((n_x is not None) and (n_y is not None)):
+        if (n is not None) ^ ((n_col is not None) and (n_row is not None)):
             if n is not None:
-                n_x = int(2 * np.sqrt(n))
-                n_y = int(2 * np.sqrt(n))
+                n_col = int(2 * np.sqrt(n))
+                n_row = int(2 * np.sqrt(n))
         else:
             raise ValueError()
 
         if packing == "square":
-            df = generate_square_packing(n_x=n_x, n_y=n_y)
+            df = generate_square_packing(n_col=n_col, n_row=n_row)
 
         elif packing == "triangular":
-            df = generate_triangular_packing(n_x=n_x, n_y=n_y)
+            df = generate_triangular_packing(n_col=n_col, n_row=n_row)
 
         elif packing == "sunflower":
-            df = generate_sunflower_packing(n=max(n_x, n_y) ** 2)
+            df = generate_sunflower_packing(n=max(n_col, n_row) ** 2)
 
         if n is None:
             x = 2 * np.abs(df.x) - 0.25
             y = 2 * np.abs(df.y) - 0.25
-            subset_index = np.where((x < n_x) & (y < n_y))[0]
+            subset_index = np.where((x <= n_col) & (y < n_row))[0]
 
         else:
             loss = scaled_distance(x=df.x.values, y=df.y.values, shape=shape, height_scale=height_scale)
 
             subset_index = np.argsort(loss)[:n]
 
-        df = df.iloc[subset_index]
+            df = df.iloc[subset_index]
+
         X = (get_rotation_matrix_2d(rotation) @ np.stack([df.x.values, df.y.values])).T
 
         if max_diameter:

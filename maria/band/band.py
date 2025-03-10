@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import glob
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -15,6 +16,8 @@ from ..io import humanize
 from ..utils import flatten_config, read_yaml
 
 here, this_filename = os.path.split(__file__)
+
+logger = logging.getLogger("maria")
 
 BAND_FIELD_FORMATS = pd.read_csv(f"{here}/format.csv", index_col=0)
 
@@ -65,12 +68,14 @@ class Band:
         name: str = None,
         shape: str = "top_hat",
         efficiency: float = 0.5,
-        sensitivity: float = None,
-        gain_error: float = 0,
+        NET_RJ: float = None,
+        NET_CMB: float = None,
         NEP: float = None,
         NEP_per_loading: float = 0.0,
+        gain_error: float = 0,
         knee: float = 1.0,
         time_constant: float = 0.0,
+        spectrum_kwargs: dict = {},
     ):
         auto = center is not None and width is not None
         manual = nu is not None and tau is not None
@@ -99,24 +104,31 @@ class Band:
         self.shape = shape
         self.efficiency = efficiency
         self.NEP_per_loading = NEP_per_loading
-
         self.knee = knee
         self.time_constant = time_constant
-
         self.gain_error = gain_error
+        self.spectrum_kwargs = spectrum_kwargs
+        self.spectrum = AtmosphericSpectrum(region=spectrum_kwargs) if spectrum_kwargs else None
 
-        if (NEP is not None) and (sensitivity is not None):
-            raise RuntimeError(
-                "When defining a band, you must specify exactly one of 'NEP' or 'sensitivity'.",
-            )  # noqa
-        elif NEP is not None:
-            self.NEP = NEP
-        elif sensitivity is not None:
-            self.sensitivity = sensitivity
+        if (NEP is None) and (NET_RJ is None) and (NET_CMB is None):
+            logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 1 uK.")
+            self.NET_RJ = 1e-6
+
         else:
-            self.sensitivity = 1e-6
+            if NEP is not None:
+                self.NEP = NEP
+            elif NET_RJ is not None:
+                self.NET_RJ = NET_RJ
+            elif NET_CMB is not None:
+                self.NET_CMB = NET_CMB
 
         self.transmission_integral_grids = {}
+
+    @property
+    def default_spectrum_kwargs(self):
+        if self.spectrum is not None:
+            return {"zenith_pwv": 1e0, "elevation": 90, "base_temperature": self.spectrum.side_base_temperature.mean()}
+        return {}
 
     @property
     def name(self):
@@ -167,28 +179,20 @@ class Band:
         ax.legend()
 
     @property
-    def sensitivity(self):
-        return self.NET_RJ
-
-    @sensitivity.setter
-    def sensitivity(self, value):
-        self.NET_RJ = value
-
-    @property
     def NET_RJ(self):
-        return self.cal("W -> K_RJ", spectrum=None)(self.NEP)
+        return self.cal("W -> K_RJ", spectrum=self.spectrum, **self.default_spectrum_kwargs)(self.NEP).item()
 
     @NET_RJ.setter
     def NET_RJ(self, value):
-        self.NEP = self.cal("K_RJ -> W", spectrum=None)(value)
+        self.NEP = self.cal("K_RJ -> W", spectrum=self.spectrum, **self.default_spectrum_kwargs)(value).item()
 
     @property
     def NET_CMB(self):
-        return self.cal("W -> K_CMB", spectrum=None)(self.NEP)
+        return self.cal("W -> K_CMB", spectrum=self.spectrum, **self.default_spectrum_kwargs)(self.NEP).item()
 
     @NET_CMB.setter
     def NET_CMB(self, value):
-        self.NEP = self.cal("K_CMB -> W", spectrum=None)(value)
+        self.NEP = self.cal("K_CMB -> W", spectrum=self.spectrum, **self.default_spectrum_kwargs)(value).item()
 
     def compute_nu_integral(
         self,

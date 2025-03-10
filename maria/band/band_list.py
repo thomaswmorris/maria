@@ -23,8 +23,10 @@ class BandList(Sequence):
             for band in bands:
                 if isinstance(band, Band):
                     self.bands.append(band)
-                else:
+                elif isinstance(band, str):
                     self.bands.append(get_band(band))
+                else:
+                    self.bands.append(Band(**band))
 
     # @classmethod
     # def from_list(cls, bands):

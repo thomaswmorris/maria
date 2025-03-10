@@ -4,15 +4,19 @@ import copy
 import glob
 import logging
 import os
+import uuid
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
+from matplotlib.collections import EllipseCollection
+from matplotlib.patches import Patch
 
-from ..band import Band, BandList
+from ..band import Band, BandList  # noqa
 from ..beam import compute_angular_fwhm
 from ..units import Angle
-from ..utils import compute_diameter, flatten_config, read_yaml
+from ..utils import HEX_CODE_LIST, compute_diameter, flatten_config, get_rotation_matrix_2d, read_yaml
 from .generation import generate_2d_pattern
 
 # from ..ArrayList import ArrayList
@@ -66,8 +70,8 @@ ALLOWED_ARRAY_KWARGS = [
     "focal_plane_offset",
     "key",
     "n",
-    "n_x",
-    "n_y",
+    "n_col",
+    "n_row",
     "name",
     "packing",
     "polarized",
@@ -91,9 +95,10 @@ def get_array(key):
 
 class Array:
     def __init__(self, dets: pd.DataFrame, bands: BandList, config: dict = {}, name: str = ""):
-        self.name = name
+        self.name = name or str(uuid.uuid4())
         self.dets = dets
         self.dets.index = np.arange(len(self.dets.index))
+        self.dets.loc[:, "array_name"] = self.name
 
         self.bands = BandList([band for band in bands if band.name in self.dets.band_name.values])
         self.config = config
@@ -282,8 +287,8 @@ class Array:
             # - two of (n-like, field_of_view, beam_spacing), or
             # - two of (n-like, baseline_diameter, baseline_spacing)
 
-            n_kwargs = {k: config.get(k) for k in ["n", "n_x", "n_y"] if config.get(k) is not None}
-            n_explicit = ("n" in n_kwargs) or (("n_x" in n_kwargs) and ("n_y" in n_kwargs))
+            n_kwargs = {k: config.get(k) for k in ["n", "n_col", "n_row"] if config.get(k) is not None}
+            n_explicit = ("n" in n_kwargs) or (("n_col" in n_kwargs) and ("n_row" in n_kwargs))
             n_focal_plane_kwargs = sum([n_explicit, "field_of_view" in config, "focal_plane_spacing" in config])
             n_baseline_kwargs = sum(
                 [
@@ -372,6 +377,99 @@ class Array:
             df[col] = df[col].astype(DET_COLUMN_TYPES.get(col, str))
 
         return cls(dets=df, bands=bands, name=config.get("name"))
+
+    def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=False):
+        # if plot_baseline == "infer":
+        #     plot_baseline = self.dets.max_baseline > 0
+
+        # if plot_baseline:
+        fig, (focal_ax, band_ax) = plt.subplots(1, 2, figsize=(10, 5), dpi=256, constrained_layout=True)
+
+        i = 0
+        legend_handles = []
+        band_legend_handles = []
+
+        focal_plane = Angle(self.offsets)
+        resolution = Angle(self.fwhm)
+
+        for ia, array in enumerate(self.split()):
+            for ib, band in enumerate(array.bands):
+                c = HEX_CODE_LIST[i % len(HEX_CODE_LIST)]
+
+                band_array = array(band=band.name)
+
+                fwhms = Angle(band_array.angular_fwhm(z=z))
+                offsets = Angle(band_array.offsets)
+                pol_angles = Angle(band_array.pol_angle)
+                baselines = band_array.baselines
+
+                if plot_pol_angles:
+                    dx = np.c_[-np.ones(band_array.n), np.ones(band_array.n)] / 2
+                    dy = np.zeros((band_array.n, 2))
+
+                    R = get_rotation_matrix_2d(pol_angles.radians)
+                    dl = np.moveaxis(R @ np.stack([dx, dy], axis=1), 0, 2)
+                    P = Angle(offsets.radians.T[:, None] + fwhms.radians * dl)
+                    focal_ax.plot(*getattr(P, focal_plane.units), c=c, lw=5e-1)
+
+                focal_ax.add_collection(
+                    EllipseCollection(
+                        widths=getattr(fwhms, focal_plane.units),
+                        heights=getattr(fwhms, focal_plane.units),
+                        angles=0,
+                        units="xy",
+                        facecolors=c,
+                        edgecolors="k",
+                        lw=1e-1,
+                        alpha=0.5,
+                        offsets=getattr(offsets, focal_plane.units),
+                        transOffset=focal_ax.transData,
+                    ),
+                )
+
+                band_ax.plot(band.nu, band.tau, color=c, label=f"{band.name}")
+
+                legend_handles.append(
+                    Patch(
+                        label=f"{band.name} (n={band_array.n}, "
+                        f"res={getattr(fwhms, resolution.units).mean():.01f}{resolution.symbol})",
+                        color=c,
+                    ),
+                )
+                band_legend_handles.append(Patch(label=rf"{band.name} ($\eta$={band.efficiency})", color=c))  # noqa
+
+                focal_ax.scatter(
+                    *getattr(offsets, focal_plane.units).T,
+                    # label=band.name,
+                    s=0,
+                    color=c,
+                )
+
+                i += 1
+
+        focal_ax.set_xlabel(rf"$\theta_x$ offset [{focal_plane.units}]")
+        focal_ax.set_ylabel(rf"$\theta_y$ offset [{focal_plane.units}]")
+        focal_ax.legend(handles=legend_handles, fontsize=8)
+
+        band_ax.set_xlabel(rf"$\nu$ [GHz]")
+        band_ax.set_ylabel(rf"$\tau(\nu)$")
+        band_ax.legend(handles=band_legend_handles, fontsize=8)
+
+        nu_min = min([b.nu.min() for b in self.bands])
+        nu_max = max([b.nu.max() for b in self.bands])
+
+        band_ax.plot([nu_min, nu_max], [0, 0], c="k", lw=0.5, ls=":")
+        band_ax.set_xlim(nu_min, nu_max)
+
+        xls, yls = focal_ax.get_xlim(), focal_ax.get_ylim()
+        cen_x, cen_y = np.mean(xls), np.mean(yls)
+        wid_x, wid_y = np.ptp(xls), np.ptp(yls)
+        radius = 0.5 * np.maximum(wid_x, wid_y)
+
+        margin = getattr(fwhms, focal_plane.units).max()
+
+        focal_ax.set_xlim(cen_x - radius - margin, cen_x + radius + margin)
+        focal_ax.set_ylim(cen_y - radius - margin, cen_y + radius + margin)
 
 
 class ArrayList:
