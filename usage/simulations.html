@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Overview" href="simulations/index.html" /><link rel="prev" title="Plans" href="plans.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Inputs" href="inputs.html" /><link rel="prev" title="Usage" href="../usage.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Simulations - maria</title>
@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -180,7 +181,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -203,20 +204,20 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../usage.html">Usage</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="instruments.html">Instruments</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Instruments</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="instruments/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="instruments/bands.html">Bands</a></li>
-<li class="toctree-l3"><a class="reference internal" href="instruments/arrays.html">Arrays</a></li>
-<li class="toctree-l3"><a class="reference internal" href="instruments/noise.html">Noise</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Simulations</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="inputs.html">Inputs</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Inputs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="inputs/instruments.html">Instruments</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Instruments</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="inputs/instruments/overview.html">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="inputs/instruments/bands.html">Bands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="inputs/instruments/noise.html">Noise</a></li>
+<li class="toctree-l4"><a class="reference internal" href="inputs/instruments/arrays.html">Arrays</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="sites.html">Sites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="plans.html">Plans</a></li>
-<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">Simulations</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="simulations/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="simulations/atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3"><a class="reference internal" href="simulations/cmb.html">The cosmic microwave background</a></li>
-<li class="toctree-l3"><a class="reference internal" href="simulations/maps.html">Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs/sites.html">Sites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs/plans.html">Plans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs/atmosphere.html">Atmosphere</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs/cmb.html">CMB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs/maps.html">Maps</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="tods.html">TODs</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of TODs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -273,7 +274,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -281,20 +282,51 @@
         <article role="main" id="furo-main-content">
           <section id="simulations">
 <h1>Simulations<a class="headerlink" href="#simulations" title="Link to this heading">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="simulations/index.html">Overview</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="simulations/index.html#customizing-simulations">Customizing simulations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="simulations/atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l1"><a class="reference internal" href="simulations/cmb.html">The cosmic microwave background</a></li>
-<li class="toctree-l1"><a class="reference internal" href="simulations/maps.html">Maps</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="simulations/maps.html#time-evolving-maps">Time-evolving maps</a></li>
-</ul>
-</li>
-</ul>
+<section id="creating-simulations">
+<h2>Creating simulations<a class="headerlink" href="#creating-simulations" title="Link to this heading">¶</a></h2>
+<p>Simulations in <code class="docutils literal notranslate"><span class="pre">maria</span></code> are done with a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>. Each <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> always needs an <code class="docutils literal notranslate"><span class="pre">instrument</span></code>, a <code class="docutils literal notranslate"><span class="pre">site</span></code>, and a <code class="docutils literal notranslate"><span class="pre">plan</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;ACT&quot;</span><span class="p">,</span>
+                       <span class="n">site</span><span class="o">=</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">,</span>
+                       <span class="n">plan</span><span class="o">=</span><span class="s2">&quot;stare&quot;</span><span class="p">)</span>
+</pre></div>
 </div>
+<p>Each of these string refers to a pre-defined configuration that <code class="docutils literal notranslate"><span class="pre">maria</span></code> knows about.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>To see all available pre-defined instruments, sites, and plans, run <code class="docutils literal notranslate"><span class="pre">print(maria.all_instruments)</span></code>, <code class="docutils literal notranslate"><span class="pre">print(maria.all_sites)</span></code>, and <code class="docutils literal notranslate"><span class="pre">print(maria.all_plans)</span></code>. For documentation on customizing these inputs, see the <a class="reference internal" href="inputs/instruments.html#instruments"><span class="std std-ref">Instruments</span></a>, <a class="reference internal" href="inputs/sites.html#sites"><span class="std std-ref">Sites</span></a>, and <a class="reference internal" href="inputs/plans.html#plans"><span class="std std-ref">Plans</span></a> sections.</p>
+</div>
+<p>The simulation we instantiated above won’t be very interesting, since we haven’t given it anything to observe yet; if we ran it, we would just see detector noise.
+We optionally give the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> an <code class="docutils literal notranslate"><span class="pre">atmosphere</span></code>, a <code class="docutils literal notranslate"><span class="pre">cmb</span></code>, or a <code class="docutils literal notranslate"><span class="pre">map</span></code> (or any combination), for example as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;ACT&quot;</span><span class="p">,</span>
+                       <span class="n">site</span><span class="o">=</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">,</span>
+                       <span class="n">plan</span><span class="o">=</span><span class="s2">&quot;stare&quot;</span><span class="p">,</span>
+                       <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
+                       <span class="n">cmb</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">,</span>
+                       <span class="nb">map</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
+                       <span class="p">)</span>
+</pre></div>
+</div>
+<p>For documentation on these inputs (including how to customize them), see the <a class="reference internal" href="inputs/atmosphere.html#atmosphere"><span class="std std-ref">Atmosphere</span></a>, <a class="reference internal" href="inputs/cmb.html#cmb"><span class="std std-ref">CMB</span></a>, and <a class="reference internal" href="inputs/maps.html#maps"><span class="std std-ref">Maps</span></a> sections.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While we add any combination of <code class="docutils literal notranslate"><span class="pre">atmosphere</span></code>, <code class="docutils literal notranslate"><span class="pre">cmb</span></code>, and <code class="docutils literal notranslate"><span class="pre">map</span></code> parameters, they are not independent; the presence of an atmosphere will affect a <code class="docutils literal notranslate"><span class="pre">map</span></code> and <code class="docutils literal notranslate"><span class="pre">cmb</span></code></p>
+</div>
+</section>
+<section id="running-simulations">
+<h2>Running simulations<a class="headerlink" href="#running-simulations" title="Link to this heading">¶</a></h2>
+<p>Running a simulation will return the time-ordered data as a <code class="docutils literal notranslate"><span class="pre">TOD</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Subsequent runs will each return another <code class="docutils literal notranslate"><span class="pre">TOD</span></code> where the last simulation left off</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">yet_another_tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Each <code class="docutils literal notranslate"><span class="pre">TOD</span></code> can be fed into <code class="docutils literal notranslate"><span class="pre">maria</span></code>’s native mapping code (see <a class="reference internal" href="mapping/index.html#mapping"><span class="std std-ref">Mapping</span></a>) or exported as a FITS file to be used by some other package or software.</p>
+</section>
 </section>
 
         </article>
@@ -302,23 +334,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="simulations/index.html">
+          <a class="next-page" href="inputs.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Overview</div>
+                <div class="title">Inputs</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="plans.html">
+          <a class="prev-page" href="../usage.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Plans</div>
+                <div class="title">Usage</div>
                 
               </div>
             </a>
@@ -326,7 +358,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2024, Thomas W. Morris
+                Copyright &#169; 2025, Thomas W. Morris
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -340,8 +372,28 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Simulations</a><ul>
+<li><a class="reference internal" href="#creating-simulations">Creating simulations</a></li>
+<li><a class="reference internal" href="#running-simulations">Running simulations</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

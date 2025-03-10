@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Instruments" href="usage/instruments.html" /><link rel="prev" title="Installation" href="installation.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Simulations" href="usage/simulations.html" /><link rel="prev" title="Installation" href="installation.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Usage - maria</title>
@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -203,20 +204,20 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Usage</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Usage</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="usage/instruments.html">Instruments</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Instruments</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="usage/instruments/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage/instruments/bands.html">Bands</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage/instruments/arrays.html">Arrays</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage/instruments/noise.html">Noise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/simulations.html">Simulations</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="usage/inputs.html">Inputs</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Inputs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="usage/inputs/instruments.html">Instruments</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Instruments</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/inputs/instruments/overview.html">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/inputs/instruments/bands.html">Bands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/inputs/instruments/noise.html">Noise</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/inputs/instruments/arrays.html">Arrays</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="usage/sites.html">Sites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/plans.html">Plans</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="usage/simulations.html">Simulations</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Simulations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="usage/simulations/index.html">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage/simulations/atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage/simulations/cmb.html">The cosmic microwave background</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage/simulations/maps.html">Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/sites.html">Sites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/plans.html">Plans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/atmosphere.html">Atmosphere</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/cmb.html">CMB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/maps.html">Maps</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="usage/tods.html">TODs</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of TODs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -283,30 +284,31 @@
 <h1>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="usage/instruments.html">Instruments</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage/instruments/index.html">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/instruments/bands.html">Bands</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/instruments/arrays.html">Arrays</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/instruments/noise.html">Noise</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="usage/sites.html">Sites</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage/sites.html#customizing-sites">Customizing Sites</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="usage/plans.html">Plans</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage/plans.html#customizing-plans">Customizing Plans</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="usage/simulations.html">Simulations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage/simulations/index.html">Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="usage/simulations/index.html#customizing-simulations">Customizing simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/simulations.html#creating-simulations">Creating simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/simulations.html#running-simulations">Running simulations</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="usage/simulations/atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/simulations/cmb.html">The cosmic microwave background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/simulations/maps.html">Maps</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="usage/simulations/maps.html#time-evolving-maps">Time-evolving maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage/inputs.html">Inputs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/inputs/instruments.html">Instruments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/instruments/overview.html">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/instruments/bands.html">Bands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/instruments/noise.html">Noise</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/instruments/arrays.html">Arrays</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/inputs/sites.html">Sites</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/sites.html#overview">Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/inputs/plans.html">Plans</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/plans.html#overview">Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/inputs/atmosphere.html">Atmosphere</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/inputs/cmb.html">CMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/inputs/maps.html">Maps</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/inputs/maps.html#time-evolving-maps">Time-evolving maps</a></li>
 </ul>
 </li>
 </ul>
@@ -332,12 +334,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="usage/instruments.html">
+          <a class="next-page" href="usage/simulations.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Instruments</div>
+                <div class="title">Simulations</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -356,7 +358,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2024, Thomas W. Morris
+                Copyright &#169; 2025, Thomas W. Morris
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -383,5 +385,7 @@
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>
