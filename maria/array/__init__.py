@@ -371,7 +371,7 @@ class Array:
                 band_dfs.append(band_df)
             df = pd.concat(band_dfs)
 
-        df = df.sort_values(["band_name"], ascending=True)
+        df = df.sort_values(["band_name", "base_det_index"], ascending=True)
 
         for col in df.columns:
             df[col] = df[col].astype(DET_COLUMN_TYPES.get(col, str))
