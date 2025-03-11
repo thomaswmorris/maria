@@ -50,9 +50,7 @@ class AtmosphericSpectrum:
     def __repr__(self):
         return f"AtmosphericSpectrum(region={self.region}, nu_res={self.nu_res}GHz)"
 
-    def _interpolate_quantity(
-        self, quantity, nu, pwv=None, base_temperature=None, elevation=45
-    ):
+    def _interpolate_quantity(self, quantity, nu, pwv=None, base_temperature=None, elevation=45):
         if pwv is None:
             pwv = np.median(self.side_zenith_pwv)
         if base_temperature is None:
@@ -66,18 +64,12 @@ class AtmosphericSpectrum:
         min_elevation = self.side_elevation.min()
         max_elevation = self.side_elevation.max()
         if (np.min(elevation) < min_elevation) or (np.max(elevation) > max_elevation):
-            raise ValueError(
-                f"Elevation (in degrees) must be between {min_elevation} and {max_elevation}."
-            )
+            raise ValueError(f"Elevation (in degrees) must be between {min_elevation} and {max_elevation}.")
 
         min_base_temp = self.side_base_temperature.min()
         max_base_temp = self.side_base_temperature.max()
-        if (np.min(base_temperature) < min_base_temp) or (
-            np.max(base_temperature) > max_base_temp
-        ):
-            raise ValueError(
-                f"Base temperature (in Kelvin) must be between {min_base_temp:.01f} and {max_base_temp:.01f}."
-            )
+        if (np.min(base_temperature) < min_base_temp) or (np.max(base_temperature) > max_base_temp):
+            raise ValueError(f"Base temperature (in Kelvin) must be between {min_base_temp:.01f} and {max_base_temp:.01f}.")
 
         return sp.interpolate.RegularGridInterpolator(
             points=(

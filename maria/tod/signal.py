@@ -92,12 +92,8 @@ def get_phase_template(DATA, phase, n_phase_bins, discriminator=None):
         )
 
         P = np.zeros((nt, n_phase_bins))
-        P[np.arange(nt), np.floor(fractional_bin_index).astype(int) % n_phase_bins] = (
-            1 - fractional_bin_index % 1
-        )
-        P[np.arange(nt), np.ceil(fractional_bin_index).astype(int) % n_phase_bins] = (
-            fractional_bin_index % 1
-        )
+        P[np.arange(nt), np.floor(fractional_bin_index).astype(int) % n_phase_bins] = 1 - fractional_bin_index % 1
+        P[np.arange(nt), np.ceil(fractional_bin_index).astype(int) % n_phase_bins] = fractional_bin_index % 1
 
         P = sp.ndimage.gaussian_filter1d(P, sigma=1, axis=1, mode="wrap")
         PP = np.concatenate(

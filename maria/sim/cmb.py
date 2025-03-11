@@ -8,10 +8,7 @@ from tqdm import tqdm
 
 class CMBMixin:
     def _simulate_cmb_emission(self):
-
-        self.loading["cmb"] = da.zeros(
-            shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype
-        )
+        self.loading["cmb"] = da.zeros(shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype)
 
         bands_pbar = tqdm(
             self.instrument.bands,
@@ -20,7 +17,6 @@ class CMBMixin:
         )
 
         for band in bands_pbar:
-
             bands_pbar.set_postfix({"band": band.name})
 
             band_mask = self.instrument.dets.band_name == band.name
@@ -31,9 +27,7 @@ class CMBMixin:
                 theta=np.pi / 2 - self.coords.b[band_mask],
             ).ravel()
 
-            band_cmb_temperature_samples = self.cmb.data[0, 0, 0][
-                flat_band_pixel_index
-            ].reshape(band_mask.sum(), -1)
+            band_cmb_temperature_samples = self.cmb.data[0, 0, 0][flat_band_pixel_index].reshape(band_mask.sum(), -1)
 
             if hasattr(self, "atmosphere"):
                 band_cal = band.cal(
@@ -46,9 +40,7 @@ class CMBMixin:
             else:
                 band_cal = band.cal(f"{self.cmb.units} -> pW")
 
-            self.loading["cmb"][band_mask] = band_cal(
-                band_cmb_temperature_samples.compute()
-            )
+            self.loading["cmb"][band_mask] = band_cal(band_cmb_temperature_samples.compute())
 
             # P_lo, P_hi = (
             #     1e12
