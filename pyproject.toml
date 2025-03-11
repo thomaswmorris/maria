@@ -44,10 +44,14 @@ classifiers = [  # Optional
 ]
 
 [project.optional-dependencies] # Optional
-mapmaking = [
+mapping = [
   "torch",
 ]
-
+pre-commit = [
+  "ruff",
+  "import-linter",
+  "nbstripout",
+]
 dev = [
   "pytest-codecov",
   "coverage",
