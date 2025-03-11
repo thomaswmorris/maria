@@ -13,7 +13,7 @@ def test_band_manual():
     b.plot()
 
 
-def test_band_list(band_name):
+def test_band_list():
     bl = BandList()
     for band_name in all_bands:
         band = get_band(band_name)
