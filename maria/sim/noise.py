@@ -11,9 +11,7 @@ class NoiseMixin:
         self._simulate_noise()
 
     def _simulate_noise(self):
-        self.loading["noise"] = da.zeros(
-            shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype
-        )
+        self.loading["noise"] = da.zeros(shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype)
 
         bands_pbar = tqdm(
             self.instrument.dets.bands,
@@ -25,9 +23,7 @@ class NoiseMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
-            self.total_NEP = (
-                band.NEP + band.NEP_per_loading * self.total_loading[band_mask]
-            )
+            self.total_NEP = band.NEP + band.NEP_per_loading * self.total_loading[band_mask]
 
             self.loading["noise"][band_mask] = (
                 1e12

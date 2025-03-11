@@ -24,7 +24,6 @@ test_sites = np.random.choice(a=all_sites, size=n_sims)
     zip(test_instruments, test_sites),
 )
 def test_complete_sim(instrument, site):
-
     plan = get_plan("ten_second_stare")
     sim = Simulation(
         instrument=instrument,

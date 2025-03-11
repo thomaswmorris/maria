@@ -57,7 +57,6 @@ def downsample(DATA, rate, axis=-1, method=None):
 
 
 def decompose(data, k: int = None):
-
     k = k or len(data)
 
     if data.ndim != 2:
@@ -91,9 +90,9 @@ def get_bspline_basis(x, spacing=60, order=3, **kwargs):
 
     for i in range(1, order + 1):
         for j in range(len(t) - (order + 1)):
-            B[i, j] = B[i - 1, j] * (x - t[j]) / (t[j + i] - t[j]) + B[i - 1, j + 1] * (
-                t[j + i + 1] - x
-            ) / (t[j + i + 1] - t[j + 1])
+            B[i, j] = B[i - 1, j] * (x - t[j]) / (t[j + i] - t[j]) + B[i - 1, j + 1] * (t[j + i + 1] - x) / (
+                t[j + i + 1] - t[j + 1]
+            )
 
     basis = B[-1]  # .reshape(-1, len(x))
     basis = basis[basis.sum(axis=-1) > 0]
