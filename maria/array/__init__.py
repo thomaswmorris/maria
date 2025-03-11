@@ -326,8 +326,9 @@ class Array:
                     "an array or exactly two of [n, baseline_diameter, baseline_spacing]."
                 )
 
-            df.loc[:, "base_det_index"] = np.arange(len(df))
             df.loc[:, "bath_temp"] = config.get("bath_temp", 0)
+
+        df.loc[:, "base_det_index"] = np.arange(len(df))
 
         for key in ["primary_size", "bath_temp"]:
             if (key in config) and (key not in df.columns):
@@ -371,7 +372,7 @@ class Array:
                 band_dfs.append(band_df)
             df = pd.concat(band_dfs)
 
-        df = df.sort_values(["band_name"], ascending=True)
+        df = df.sort_values(["band_name", "base_det_index"], ascending=True)
 
         for col in df.columns:
             df[col] = df[col].astype(DET_COLUMN_TYPES.get(col, str))

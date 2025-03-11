@@ -158,11 +158,9 @@ def generate_2d_pattern(
             y = 2 * np.abs(df.y) - 0.25
             subset_index = np.where((x <= n_col) & (y < n_row))[0]
 
-        else:
+        if n is not None:
             loss = scaled_distance(x=df.x.values, y=df.y.values, shape=shape, height_scale=height_scale)
-
-            subset_index = np.argsort(loss)[:n]
-
+            subset_index = sorted(np.argsort(loss)[:n])
             df = df.iloc[subset_index]
 
         X = (get_rotation_matrix_2d(rotation) @ np.stack([df.x.values, df.y.values])).T
