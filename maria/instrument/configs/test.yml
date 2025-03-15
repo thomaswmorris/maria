@@ -8,16 +8,16 @@
     primary_size: 5
     bands:
       f090:
-        center: 90
-        width: 30
+        center: 90.e+9
+        width: 30.e+9
         efficiency: 0.6
       f150:
-        center: 150
-        width: 30
+        center: 150.e+9
+        width: 30.e+9
         efficiency: 0.5
       f220:
-        center: 220
-        width: 30
+        center: 220.e+9
+        width: 30.e+9
         efficiency: 0.4
 
 10deg:
@@ -28,6 +28,6 @@
     primary_size: 5
     bands:
       f150:
-        center: 150
-        width: 30
+        center: 150.e+9
+        width: 30.e+9
         efficiency: 0.5

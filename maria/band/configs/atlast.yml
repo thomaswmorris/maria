@@ -1,6 +1,6 @@
 f027:
-  center: 27
-  width: 5
+  center: 27.e+9
+  width: 5.e+9
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
@@ -9,8 +9,8 @@ f027:
   knee: 1.0 # Hz
 
 f039:
-  center: 39
-  width: 5
+  center: 39.e+9
+  width: 5.e+9
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
@@ -19,8 +19,8 @@ f039:
   knee: 1.0 # Hz
 
 f093:
-  center: 93
-  width: 10
+  center: 93.e+9
+  width: 10.e+9
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
@@ -29,8 +29,8 @@ f093:
   knee: 1.0 # Hz
 
 f150:
-  center: 150
-  width: 10
+  center: 150.e+9
+  width: 10.e+9
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
@@ -39,8 +39,8 @@ f150:
   knee: 1.0 # Hz
 
 f225:
-  center: 225
-  width: 30
+  center: 225.e+9
+  width: 30.e+9
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
@@ -49,8 +49,8 @@ f225:
   knee: 1.0 # Hz
 
 f280:
-  center: 280
-  width: 40
+  center: 280.e+9
+  width: 40.e+9
   shape: gaussian
   time_constant: 0
   efficiency: 0.5
