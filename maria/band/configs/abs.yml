@@ -1,6 +1,6 @@
 f150:
-  center: 150
-  width: 30
+  center: 150.e+9
+  width: 30.e+9
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz

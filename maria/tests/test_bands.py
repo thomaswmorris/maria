@@ -7,8 +7,8 @@ from maria.band import Band, BandList, all_bands, get_band
 
 
 def test_band_manual():
-    nu = np.linspace(120, 180, 64)
-    tau = np.exp(-(((nu - 150) / (2 * 10)) ** 2))
+    nu = np.linspace(120e9, 180e9, 64)
+    tau = np.exp(-(((nu - 150e9) / (2 * 10e9)) ** 2))
     b = Band(nu=nu, tau=tau)
     b.plot()
 
@@ -28,7 +28,7 @@ def test_noise_conversion():
         NET_RJ=1e-5,
         spectrum_kwargs={
             "region": "chajnantor",
-            "zenith_pwv": 1e1,  # in mm
+            "pwv": 1e1,  # in mm
             "elevation": 90,
         },
     )  # in degrees
