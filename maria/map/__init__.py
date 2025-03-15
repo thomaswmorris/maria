@@ -24,6 +24,9 @@ mpl.colormaps.register(cmb_cmap)
 
 
 def load(filename: str, **kwargs) -> Map:
+    if "nu" in kwargs:
+        kwargs["nu"] = 1e9 * kwargs["nu"]
+
     format = filename.split(".")[-1]
     if format == "fits":
         return read_fits(filename, **kwargs)

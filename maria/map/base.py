@@ -9,13 +9,16 @@ import numpy as np
 import scipy as sp
 
 from ..calibration import Calibration
-from ..units import parse_units
+from ..units import Quantity, parse_units
 
 logger = logging.getLogger("maria")
 
 here, this_filename = os.path.split(__file__)
 
 STOKES = ["I", "Q", "U", "V"]
+
+MIN_NU = 1e6  # 1 MHz
+MAX_NU = 1e13  # 10 THz
 
 
 class Map:
@@ -36,7 +39,23 @@ class Map:
         self._weight = da.asarray(weight) if weight is not None else weight
 
         self.stokes = [param.upper() for param in stokes] if stokes is not None else ["I"]
-        self.nu = np.atleast_1d(nu) if nu is not None else np.array([150.0])
+
+        # if nu is None:
+        #     logger.warning("No map frequency specified, assuming nu=150 GHz.")
+        #     self.nu = np.array([150.e9])
+        # elif nu < 1e6:
+        #     logger.warning("Assuming ")
+        #     self.nu = 1e9 * np.atleast_1d(nu)
+        # else:
+        #     self.nu = np.atleast_1d(nu)
+
+        if np.min(nu) < MIN_NU:
+            raise ValueError(f"'nu' should be specified in Hz; maximum supported nu is {Quantity(MIN_NU, units='Hz')}.")
+        if np.max(nu) > MAX_NU:
+            raise ValueError(f"'nu' should be specified in Hz; maximum supported nu is {Quantity(MAX_NU, units='Hz')}.")
+
+        self.nu = np.atleast_1d(nu)
+
         self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
 
         self.units = units
@@ -84,7 +103,7 @@ class Map:
         return (self.t_bins[:-1] + self.t_bins[1:]) / 2
 
     @property
-    def units_config(self):
+    def u(self):
         return parse_units(self.units)
 
     @property
@@ -118,15 +137,15 @@ class Map:
             data = np.zeros(self.data.shape)
 
             for i, nu in enumerate(self.nu):
+                if not nu > 0:
+                    raise ValueError(f"Cannot convert map with frequency nu={nu}.")
+
                 cal = Calibration(
                     f"{self.units} -> {units}",
                     nu=nu,
                     pixel_area=self.pixel_area,
                 )
                 data[i] = cal(self.data[i])
-
-                if np.isnan(self.nu):
-                    raise ValueError(f"Cannot convert map with frequency nu={nu}.")
 
         if inplace:
             self.data = data

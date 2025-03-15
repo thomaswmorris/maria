@@ -88,7 +88,7 @@ def generate_cmb(nside=2048, seed=123456, **kwargs):
         data=1e6 * (T_CMB + cmb_data[:, None, None, :]),
         stokes=["I", "Q", "U"],
         units="uK_b",
-        nu=150,
+        nu=148e9,
     )
 
 

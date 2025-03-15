@@ -13,6 +13,7 @@ from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
 from ..constants import c
 from ..io import humanize
+from ..units import Quantity
 from ..utils import flatten_config, read_yaml
 
 here, this_filename = os.path.split(__file__)
@@ -31,6 +32,9 @@ BAND_CONFIGS = flatten_config(BAND_CONFIGS)
 band_data = pd.DataFrame(BAND_CONFIGS).T.sort_index()
 all_bands = list(band_data.index)
 
+MIN_NU = 1e6  # 1 MHz
+MAX_NU = 1e13  # 10 THz
+
 
 def get_band(band_name):
     if band_name in BAND_CONFIGS:
@@ -42,6 +46,8 @@ def get_band(band_name):
 def generate_passband(center, width, shape, samples=256):
     if shape == "flat":
         nu_min, nu_max = (center - 0.6 * width, center + 0.6 * width)
+    elif shape == "top_hat":
+        nu_min, nu_max = (center - width, center + width)
     else:
         nu_min, nu_max = (center - 1.5 * width, center + 1.5 * width)
 
@@ -54,7 +60,7 @@ def generate_passband(center, width, shape, samples=256):
     elif shape == "top_hat":
         tau = np.exp(np.log(0.5) * (2 * (nu - center) / width) ** 8)
     else:
-        raise ValueError(f"Invalid shape '{shape}'.")
+        raise ValueError(f"Invalid shape '{shape}'")
     return nu, tau
 
 
@@ -101,7 +107,8 @@ class Band:
                     f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape}).",
                 )
 
-        self._name = name
+        # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
+        self.name = name or f"f{10 ** (np.log10(self.center) % 3):>03.0f}"
         self.shape = shape
         self.efficiency = efficiency
         self.NEP_per_loading = NEP_per_loading
@@ -112,13 +119,11 @@ class Band:
         self.spectrum_kwargs = {}
         if spectrum_kwargs:
             self.spectrum = AtmosphericSpectrum(region=spectrum_kwargs["region"])
-            default_spectrum_kwargs = {
-                "zenith_pwv": 1e0,
-                "elevation": 90.0,
-                "base_temperature": self.spectrum.side_base_temperature.mean(),
-            }
-            for param in ["zenith_pwv", "base_temperature", "elevation"]:
-                self.spectrum_kwargs[param] = spectrum_kwargs.get(param, default_spectrum_kwargs[param])
+            self.spectrum_kwargs["zenith_pwv"] = spectrum_kwargs.get("pwv", 1e0)
+            self.spectrum_kwargs["base_temperature"] = spectrum_kwargs.get(
+                "temperature", self.spectrum.side_base_temperature.mean()
+            )
+            self.spectrum_kwargs["elevation"] = np.radians(spectrum_kwargs.get("elevation", 45))
         else:
             self.spectrum = None
 
@@ -142,9 +147,10 @@ class Band:
 
         self.transmission_integral_grids = {}
 
-    @property
-    def name(self):
-        return self._name or f"f{int(self.center):>03}"
+        if self.nu.min() < MIN_NU:
+            raise ValueError(f"Minimum supported nu is {Quantity(MIN_NU, units='Hz')}.")
+        if self.nu.max() > MAX_NU:
+            raise ValueError(f"Maximum supported nu is {Quantity(MAX_NU, units='Hz')}.")
 
     @property
     def center(self):
@@ -168,7 +174,7 @@ class Band:
             value = getattr(self, field)
 
             if (entry["units"] != "none") and (entry["dtype"] == "float"):
-                s = humanize(value, unit=entry["units"])
+                s = humanize(value, units=entry["units"])
             elif entry["dtype"] == "str":
                 s = f"'{value}'"
             else:
@@ -184,9 +190,12 @@ class Band:
     def plot(self):
         fig, ax = plt.subplots(1, 1)
 
-        ax.plot(self.nu, self.tau, label=self.name)
+        qnu = Quantity(self.nu, "Hz")
 
-        ax.set_xlabel(r"$\nu$ [GHz]")
+        ax.plot(qnu.value, self.tau, label=self.name)
+
+        ax.set_xlim(qnu.value.min(), qnu.value.max())
+        ax.set_xlabel(rf"$\nu$ [${qnu.u['math_name']}$]")
         ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
         ax.legend()
 
@@ -219,15 +228,15 @@ class Band:
 
         if spectrum is None:
             nu = self.nu[(self.nu >= nu_min) & (self.nu < nu_max)]
-            return np.trapezoid(y=self.passband(nu), x=1e9 * nu, axis=-1)
+            return np.trapezoid(y=self.passband(nu), x=nu, axis=-1)
 
         else:
             nu = spectrum.side_nu[(spectrum.side_nu >= nu_min) & (spectrum.side_nu < nu_max)]
-            integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=1e9 * nu, axis=-1)
+            integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=nu, axis=-1)
             xi = (kwargs["zenith_pwv"], kwargs["base_temperature"], kwargs["elevation"])
             return sp.interpolate.interpn(points=spectrum.points[:3], values=integral_grid, xi=xi)
 
-    def transmission(self, region="chajnantor", pwv=1, elevation=90) -> float:
+    def transmission(self, region="chajnantor", pwv=1, elevation=np.radians(90)) -> float:
         if not hasattr(self, "spectrum"):
             self.spectrum = AtmosphericSpectrum(region=region)
         elif self.spectrum.region != region:
@@ -257,44 +266,12 @@ class Band:
             fill_value=0,
         )(nu)
 
-    # @property
-    # def dP_dTRJ(self) -> float:
-    #     """
-    #     In watts per Kelvin Rayleigh-Jeans
-    #     """
-    #     T_0 = 1e0
-    #     eps = 1e-3
-
-    #     return (self.cal("K_RJ -> W")(T_0 + eps) - self.cal("K_RJ -> W")(T_0)) / eps
-
-    # @property
-    # def dP_dTCMB(self) -> float:
-    #     """
-    #     In watts per kelvin CMB, assuming perfect transmission.
-    #     """
-
-    #     eps = 1e-3
-    #     delta_T = np.array([-eps / 2, eps / 2])
-
-    #     TRJ = (
-    #         planck_spectrum(nu=1e9 * self.nu, T=T_CMB + delta_T[:, None])
-    #         * c**2
-    #         / (2 * k_B * (1e9 * self.nu) ** 2)
-    #     )
-
-    #     return (
-    #         self.efficiency
-    #         * k_B
-    #         * np.diff(np.trapezoid(TRJ * self.passband(self.nu), 1e9 * self.nu))[0]
-    #         / eps
-    #     )
-
     @property
     def wavelength(self):
         """
         Return the wavelength of the center, in meters.
         """
-        return c / (1e9 * self.center)
+        return c / self.center
 
     def cal(self, signature: str, **kwargs) -> float:
         return Calibration(

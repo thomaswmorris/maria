@@ -11,7 +11,6 @@ from matplotlib.patches import Patch
 
 from ..array import Array, ArrayList  # noqa
 from ..band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
-from ..units import Angle
 from ..utils import HEX_CODE_LIST, flatten_config, get_rotation_matrix_2d, read_yaml
 
 here, this_filename = os.path.split(__file__)
@@ -66,7 +65,7 @@ subarray_params_to_inherit = [
     "array_shape",
     "array_offset",
     "beam_spacing",
-    "baseline_diameter",
+    "max_baseline",
     "baseline_packing",
     "baseline_shape",
     "baseline_offset",
@@ -96,7 +95,7 @@ allowed_subarray_params = {
     "array_shape": "float",
     "array_offset": "float",
     "beam_spacing": "float",
-    "baseline_diameter": "float",
+    "max_baseline": "float",
     "baseline_packing": "float",
     "baseline_shape": "float",
     "baseline_offset": "float",
