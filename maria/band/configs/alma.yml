@@ -1,6 +1,6 @@
 f043:
-  center: 43
-  width: 16
+  center: 43.e+9
+  width: 16.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -9,8 +9,8 @@ f043:
   gain_error: 5.e-2
 
 f078:
-  center: 78
-  width: 22
+  center: 78.e+9
+  width: 22.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -19,8 +19,8 @@ f078:
   gain_error: 5.e-2
 
 f100:
-  center: 100
-  width: 32
+  center: 100.e+9
+  width: 32.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -29,8 +29,8 @@ f100:
   gain_error: 5.e-2
 
 f144:
-  center: 144
-  width: 38
+  center: 144.e+9
+  width: 38.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -39,8 +39,8 @@ f144:
   gain_error: 5.e-2
 
 f187:
-  center: 187
-  width: 48
+  center: 187.e+9
+  width: 48.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -49,8 +49,8 @@ f187:
   gain_error: 5.e-2
 
 f243:
-  center: 243
-  width: 64
+  center: 243.e+9
+  width: 64.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -59,8 +59,8 @@ f243:
   gain_error: 5.e-2
 
 f324:
-  center: 324
-  width: 98
+  center: 324.e+9
+  width: 98.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -69,8 +69,8 @@ f324:
   gain_error: 5.e-2
 
 f447:
-  center: 447
-  width: 114
+  center: 447.e+9
+  width: 114.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -79,8 +79,8 @@ f447:
   gain_error: 5.e-2
 
 f661:
-  center: 661
-  width: 118
+  center: 661.e+9
+  width: 118.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -89,8 +89,8 @@ f661:
   gain_error: 5.e-2
 
 f869:
-  center: 869
-  width: 163
+  center: 869.e+9
+  width: 163.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)

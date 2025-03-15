@@ -14,7 +14,7 @@ import scipy as sp
 from arrow import Arrow
 
 from .. import coords
-from ..units import Angle
+from ..units import Quantity
 from ..utils import read_yaml
 from .patterns import get_scan_pattern_generator, scan_patterns
 
@@ -93,7 +93,7 @@ class Plan:
     def __repr__(self):
         parts = []
         frame = coords.frames[self.frame]
-        center_degrees = Angle(self.scan_center, units="radians").degrees
+        center_degrees = Quantity(self.scan_center, units="rad").deg
 
         parts.append(f"start_time={self.start_time.format()}")
         parts.append(f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)")
@@ -122,7 +122,7 @@ class Plan:
         self.frame = frame
         self.degrees = degrees
         self.jitter = jitter
-        self.scan_center = Angle(scan_center, units=("degrees" if degrees else "radians")).radians
+        self.scan_center = Quantity(scan_center, units=("deg" if degrees else "rad")).rad
         self.scan_pattern = scan_pattern
         self.scan_options = scan_options
 
@@ -155,7 +155,7 @@ class Plan:
             **self.scan_options,
         )
 
-        self.scan_offsets = Angle(scan_offsets, units=("degrees" if degrees else "radians")).radians
+        self.scan_offsets = Quantity(scan_offsets, units=("deg" if degrees else "rad")).rad
 
         scan_velocity = np.gradient(
             self.scan_offsets,
@@ -204,20 +204,18 @@ class Plan:
             raise ValueError("Not a valid pointing frame!")
 
     def plot(self):
-        fig, ax = plt.subplots(1, 1, figsize=(4, 4))
+        fig, ax = plt.subplots(1, 1, figsize=(4, 4), dpi=256)
 
-        center = Angle(self.scan_center, units="radians")
-        offsets = Angle(self.scan_offsets, units="radians")
+        q_center = Quantity(self.scan_center, units="rad")
+        q_offsets = Quantity(self.scan_offsets, units="rad")
 
         frame = coords.frames[self.frame]
-        label = (
-            f"{round(center.deg[0], 3)}° {frame['phi_short_name']}, {round(center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
-        )
+        label = f"{round(q_center.deg[0], 3)}° {frame['phi_short_name']}, {round(q_center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
 
-        ax.plot(*offsets.values, lw=5e-1)
+        ax.plot(*q_offsets.value, lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=label)
-        ax.set_xlabel(rf"$\Delta \, \theta_x$ [{offsets.units_short}]")
-        ax.set_ylabel(rf"$\Delta \, \theta_y$ [{offsets.units_short}]")
+        ax.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.u['math_name']}$]")
+        ax.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.u['math_name']}$]")
         ax.legend(loc="upper right")
 
     def map_counts(self, instrument=None, x_bins=100, y_bins=100):
@@ -247,12 +245,12 @@ class Plan:
         fig, ax = plt.subplots(1, 1, figsize=(5, 4))
 
         x, y, counts = self.map_counts(instrument=instrument, x_bins=x_bins, y_bins=y_bins)
-        x = Angle(x)
-        y = Angle(y)
+        q_x = Quantity(x, "rad")
+        q_y = Quantity(y, "rad")
 
-        heatmap = ax.pcolormesh(x.values, y.values, counts, cmap="turbo", vmin=0)
-        ax.set_xlabel(rf"$\Delta \theta_x$ [{x.units_short}]")
-        ax.set_ylabel(rf"$\Delta \theta_y$ [{y.units_short}]")
+        heatmap = ax.pcolormesh(q_x.value, q_y.value, counts, cmap="turbo", vmin=0)
+        ax.set_xlabel(rf"$\Delta \theta_x$ [{q_x.u['math_name']}]")
+        ax.set_ylabel(rf"$\Delta \theta_y$ [{q_y.u['math_name']}]")
 
         cbar = fig.colorbar(heatmap, location="right")
         cbar.set_label("counts")

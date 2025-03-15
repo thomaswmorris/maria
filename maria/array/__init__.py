@@ -15,7 +15,7 @@ from matplotlib.patches import Patch
 
 from ..band import Band, BandList  # noqa
 from ..beam import compute_angular_fwhm
-from ..units import Angle
+from ..units import Quantity
 from ..utils import HEX_CODE_LIST, compute_diameter, flatten_config, get_rotation_matrix_2d, read_yaml
 from .generation import generate_2d_pattern
 
@@ -60,7 +60,7 @@ DET_COLUMN_TYPES = {
 ALLOWED_ARRAY_KWARGS = [
     "band",
     "bands",
-    "baseline_diameter",
+    "max_baseline",
     "baseline_offset",
     "baseline_spacing",
     "bath_temp",
@@ -159,11 +159,11 @@ class Array:
 
     @property
     def field_of_view(self):
-        return Angle(compute_diameter(self.offsets))
+        return Quantity(compute_diameter(self.offsets), units="rad")
 
     @property
     def max_baseline(self):
-        return compute_diameter(self.baselines)
+        return Quantity(compute_diameter(self.baselines), units="m")
 
     @property
     def index(self):
@@ -180,7 +180,7 @@ class Array:
         """
         return self.angular_fwhm(z=np.inf)
 
-    def angular_fwhm(self, z):  # noqa F401
+    def angular_fwhm(self, z=np.inf):  # noqa F401
         """
         Angular beam width (in radians) as a function of depth (in meters)
         """
@@ -219,13 +219,13 @@ class Array:
         raise AttributeError(f"{self.__class__.__name__} object has no attribute '{attr}'")
 
     def __len__(self):
-        return len(self.df)
+        return len(self.dets)
 
     def filling(self):
         return {
             "n_det": self.n,
             "field_of_view": self.field_of_view,
-            "max_baseline": f"{round(self.max_baseline)}m",
+            "max_baseline": self.max_baseline,
             "bands": f"[{','.join(self.bands.name)}]",
         }
 
@@ -279,13 +279,10 @@ class Array:
             ]
         )
 
-        # if "beam_spacing" in config:
-        config["focal_plane_spacing"] = config.get("beam_spacing", 1.5) * max_resolution
-
         if "file" not in config:
             # we need:
             # - two of (n-like, field_of_view, beam_spacing), or
-            # - two of (n-like, baseline_diameter, baseline_spacing)
+            # - two of (n-like, max_baseline, baseline_spacing)
 
             n_kwargs = {k: config.get(k) for k in ["n", "n_col", "n_row"] if config.get(k) is not None}
             n_explicit = ("n" in n_kwargs) or (("n_col" in n_kwargs) and ("n_row" in n_kwargs))
@@ -293,38 +290,92 @@ class Array:
             n_baseline_kwargs = sum(
                 [
                     n_explicit,
-                    "baseline_diameter" in config,
+                    "max_baseline" in config,
                     "baseline_spacing" in config,
                 ]
             )
 
-            if n_focal_plane_kwargs >= 2:
-                X = generate_2d_pattern(
-                    **n_kwargs,
-                    shape=config.get("shape", "hexagon"),
-                    packing=config.get("packing", "triangular"),
-                    max_diameter=np.radians(config.get("field_of_view")),
-                    spacing=config.get("focal_plane_spacing"),
-                )
+            # this is not supposed to be elegant, it is supposed to be easy to understand
+            if n_explicit:
+                pattern_kwargs = {**n_kwargs}
+                if ("field_of_view" in config) or ("beam_spacing" in config):
+                    # we can only use one if n is explicit
+                    mode = "focal_plane"
+                    if "field_of_view" in config:
+                        pattern_kwargs["max_diameter"] = np.radians(config["field_of_view"])
+                    else:
+                        pattern_kwargs["spacing"] = config.get("beam_spacing", 1.5) * max_resolution
 
-                df = pd.DataFrame(X, columns=["sky_x", "sky_y"])
+                elif "max_baseline" in config:
+                    mode = "baseline"
+                    pattern_kwargs["max_diameter"] = config["max_baseline"]
 
-            elif n_baseline_kwargs >= 2:
-                X = generate_2d_pattern(
-                    **n_kwargs,
-                    shape=config.get("shape", "circle"),
-                    packing=config.get("packing", "sunflower"),
-                    max_diameter=config.get("baseline_diameter"),
-                    spacing=config.get("baseline_spacing"),
-                )
+                elif "baseline_spacing" in config:
+                    mode = "baseline"
+                    pattern_kwargs["spacing"] = config["baseline_spacing"]
 
-                df = pd.DataFrame(X, columns=["baseline_x", "baseline_y"])
+                else:
+                    raise ValueError(
+                        "Invalid array spec: if detector counts are explicit, you must supply either 'field_of_view' or "
+                        "either 'max_baseline' or 'baseline_spacing' for an interferometer array."
+                    )
 
             else:
-                raise ValueError(
-                    "Invalid array spec: you must supply exactly two of [n, field_of_view, beam_spacing] for "
-                    "an array or exactly two of [n, baseline_diameter, baseline_spacing]."
-                )
+                pattern_kwargs = {}
+                if "field_of_view" in config:
+                    mode = "focal_plane"
+                    pattern_kwargs["max_diameter"] = np.radians(config["field_of_view"])
+                    pattern_kwargs["spacing"] = config.get("beam_spacing", 1.5) * max_resolution
+
+                elif ("max_baseline" in config) and ("baseline_spacing" in config):
+                    mode = "baseline"
+                    pattern_kwargs["max_diameter"] = config["max_baseline"]
+                    pattern_kwargs["spacing"] = config["baseline_spacing"]
+
+                else:
+                    raise ValueError(
+                        "Invalid array spec: if detector counts are implicit, you must supply either 'field_of_view' or "
+                        "both 'max_baseline' or 'baseline_spacing' for an interferometer array."
+                    )
+
+            X = generate_2d_pattern(
+                **pattern_kwargs,
+                shape=config.get("shape", "hexagon"),
+                packing=config.get("packing", "triangular"),
+            )
+
+            if mode == "focal_plane":
+                df = pd.DataFrame(X, columns=["sky_x", "sky_y"])
+            else:
+                df = pd.DataFrame(X, columns=["baseline_x", "baseline_y"])
+
+            # if n_focal_plane_kwargs >= 2:
+            #     X = generate_2d_pattern(
+            #         **n_kwargs,
+            #         shape=config.get("shape", "hexagon"),
+            #         packing=config.get("packing", "triangular"),
+            #         max_diameter=np.radians(config.get("field_of_view")),
+            #         spacing=config.get("focal_plane_spacing"),
+            #     )
+
+            #     df = pd.DataFrame(X, columns=["sky_x", "sky_y"])
+
+            # elif n_baseline_kwargs >= 2:
+            #     X = generate_2d_pattern(
+            #         **n_kwargs,
+            #         shape=config.get("shape", "circle"),
+            #         packing=config.get("packing", "sunflower"),
+            #         max_diameter=config.get("max_baseline"),
+            #         spacing=config.get("baseline_spacing"),
+            #     )
+
+            #     df = pd.DataFrame(X, columns=["baseline_x", "baseline_y"])
+
+            # else:
+            #     raise ValueError(
+            #         "Invalid array spec: you must supply exactly two of [n, field_of_view, beam_spacing] for "
+            #         "an array or exactly two of [n, max_baseline, baseline_spacing]."
+            #     )
 
             df.loc[:, "bath_temp"] = config.get("bath_temp", 0)
 
@@ -340,12 +391,12 @@ class Array:
         for i in range(3):
             dim = "xyz"[i]
             if f"baseline_{dim}" not in df.columns:
-                df.loc[:, f"baseline_{dim}"] = 0
+                df.loc[:, f"baseline_{dim}"] = 0.0
             df.loc[:, f"baseline_{dim}"] += baseline_offset[i]
             if dim == "z":
                 continue
             if f"sky_{dim}" not in df.columns:
-                df.loc[:, f"sky_{dim}"] = 0
+                df.loc[:, f"sky_{dim}"] = 0.0
             df.loc[:, f"sky_{dim}"] += np.radians(focal_plane_offset[i])
 
         if config.get("polarized", False):
@@ -390,8 +441,13 @@ class Array:
         legend_handles = []
         band_legend_handles = []
 
-        focal_plane = Angle(self.offsets)
-        resolution = Angle(self.fwhm)
+        focal_plane_units = Quantity(self.offsets, "rad").units
+        resolution_units = Quantity(self.fwhm, "rad").units
+
+        qnu_min, qnu_max = self.bands.nu_min, self.bands.nu_max
+
+        qnu = Quantity(np.linspace(self.bands.nu_min, self.bands.nu_max, 1024), "Hz")
+        qnu_min, qnu_max = qnu.value.min(), qnu.value.max()
 
         for ia, array in enumerate(self.split()):
             for ib, band in enumerate(array.bands):
@@ -399,10 +455,10 @@ class Array:
 
                 band_array = array(band=band.name)
 
-                fwhms = Angle(band_array.angular_fwhm(z=z))
-                offsets = Angle(band_array.offsets)
-                pol_angles = Angle(band_array.pol_angle)
-                baselines = band_array.baselines
+                fwhms = Quantity(band_array.angular_fwhm(z=z), "rad")
+                offsets = Quantity(band_array.offsets, "rad")
+                pol_angles = Quantity(band_array.pol_angle, "rad")
+                # baselines = Quantity(band_array.baselines, "m")
 
                 if plot_pol_angles:
                     dx = np.c_[-np.ones(band_array.n), np.ones(band_array.n)] / 2
@@ -410,37 +466,37 @@ class Array:
 
                     R = get_rotation_matrix_2d(pol_angles.radians)
                     dl = np.moveaxis(R @ np.stack([dx, dy], axis=1), 0, 2)
-                    P = Angle(offsets.radians.T[:, None] + fwhms.radians * dl)
-                    focal_ax.plot(*getattr(P, focal_plane.units), c=c, lw=5e-1)
+                    P = Quantity(offsets.radians.T[:, None] + fwhms.radians * dl, units="rad")
+                    focal_ax.plot(*getattr(P, focal_plane_units), c=c, lw=5e-1)
 
                 focal_ax.add_collection(
                     EllipseCollection(
-                        widths=getattr(fwhms, focal_plane.units),
-                        heights=getattr(fwhms, focal_plane.units),
+                        widths=getattr(fwhms, focal_plane_units),
+                        heights=getattr(fwhms, focal_plane_units),
                         angles=0,
                         units="xy",
                         facecolors=c,
                         edgecolors="k",
                         lw=1e-1,
                         alpha=0.5,
-                        offsets=getattr(offsets, focal_plane.units),
+                        offsets=getattr(offsets, focal_plane_units),
                         transOffset=focal_ax.transData,
                     ),
                 )
 
-                band_ax.plot(band.nu, band.tau, color=c, label=f"{band.name}")
+                band_ax.plot(qnu.value, band.passband(qnu.Hz), color=c)
 
                 legend_handles.append(
                     Patch(
                         label=f"{band.name} (n={band_array.n}, "
-                        f"res={getattr(fwhms, resolution.units).mean():.01f}{resolution.symbol})",
+                        f"res={getattr(fwhms, resolution_units).value.mean():.01f} {resolution_units})",
                         color=c,
                     ),
                 )
                 band_legend_handles.append(Patch(label=rf"{band.name} ($\eta$={band.efficiency})", color=c))  # noqa
 
                 focal_ax.scatter(
-                    *getattr(offsets, focal_plane.units).T,
+                    *getattr(offsets, focal_plane_units).T,
                     # label=band.name,
                     s=0,
                     color=c,
@@ -448,26 +504,23 @@ class Array:
 
                 i += 1
 
-        focal_ax.set_xlabel(rf"$\theta_x$ offset [{focal_plane.units}]")
-        focal_ax.set_ylabel(rf"$\theta_y$ offset [{focal_plane.units}]")
+        focal_ax.set_xlabel(rf"$\theta_x$ offset [{focal_plane_units}]")
+        focal_ax.set_ylabel(rf"$\theta_y$ offset [{focal_plane_units}]")
         focal_ax.legend(handles=legend_handles, fontsize=8)
 
-        band_ax.set_xlabel(rf"$\nu$ [GHz]")
+        band_ax.set_xlabel(rf"$\nu$ [${qnu.u['math_name']}$]")
         band_ax.set_ylabel(rf"$\tau(\nu)$")
         band_ax.legend(handles=band_legend_handles, fontsize=8)
 
-        nu_min = min([b.nu.min() for b in self.bands])
-        nu_max = max([b.nu.max() for b in self.bands])
-
-        band_ax.plot([nu_min, nu_max], [0, 0], c="k", lw=0.5, ls=":")
-        band_ax.set_xlim(nu_min, nu_max)
+        band_ax.plot([qnu_min, qnu_max], [0, 0], c="k", lw=0.5, ls=":")
+        band_ax.set_xlim(qnu_min, qnu_max)
 
         xls, yls = focal_ax.get_xlim(), focal_ax.get_ylim()
         cen_x, cen_y = np.mean(xls), np.mean(yls)
         wid_x, wid_y = np.ptp(xls), np.ptp(yls)
         radius = 0.5 * np.maximum(wid_x, wid_y)
 
-        margin = getattr(fwhms, focal_plane.units).max()
+        margin = getattr(fwhms, focal_plane_units).max()
 
         focal_ax.set_xlim(cen_x - radius - margin, cen_x + radius + margin)
         focal_ax.set_ylim(cen_y - radius - margin, cen_y + radius + margin)
@@ -516,11 +569,11 @@ class ArrayList:
 
     @property
     def field_of_view(self):
-        return Angle(compute_diameter(self.offsets))
+        return Quantity(compute_diameter(self.offsets), units="rad")
 
     @property
     def max_baseline(self):
-        return compute_diameter(self.baselines)
+        return Quantity(compute_diameter(self.baselines), units="m")
 
     @property
     def n(self):
@@ -543,8 +596,7 @@ class ArrayList:
         """
         Angular beam width (in radians) as a function of depth (in meters)
         """
-        nu = self.band_center  # in GHz
-        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=nu)
+        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=self.band_center)
 
     def physical_fwhm(self, z):
         """

@@ -57,7 +57,7 @@ class MapMixin:
                         "spectrum": self.atmosphere.spectrum,
                         "zenith_pwv": self.zenith_scaled_pwv[band_mask],
                         "base_temperature": self.atmosphere.weather.temperature[0],
-                        "elevation": np.degrees(self.coords.el[band_mask]),
+                        "elevation": self.coords.el[band_mask],
                     }
                     if hasattr(self, "atmosphere")
                     else {}
