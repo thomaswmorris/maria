@@ -61,6 +61,10 @@ def generate_passband(center, width, shape, samples=256):
         tau = np.exp(np.log(0.5) * (2 * (nu - center) / width) ** 8)
     else:
         raise ValueError(f"Invalid shape '{shape}'")
+
+    if np.trapezoid(tau, x=nu) < 1e-2 * (nu_max - nu_min):
+        raise ValueError("Error generating band")
+
     return nu, tau
 
 
