@@ -489,7 +489,7 @@ class Array:
                 legend_handles.append(
                     Patch(
                         label=f"{band.name} (n={band_array.n}, "
-                        f"res={getattr(fwhms, resolution_units).value.mean():.01f} {resolution_units})",
+                        f"res={getattr(fwhms, resolution_units).mean():.01f} {resolution_units})",
                         color=c,
                     ),
                 )
@@ -497,7 +497,6 @@ class Array:
 
                 focal_ax.scatter(
                     *getattr(offsets, focal_plane_units).T,
-                    # label=band.name,
                     s=0,
                     color=c,
                 )
