@@ -40,21 +40,12 @@ class Map:
 
         self.stokes = [param.upper() for param in stokes] if stokes is not None else ["I"]
 
-        # if nu is None:
-        #     logger.warning("No map frequency specified, assuming nu=150 GHz.")
-        #     self.nu = np.array([150.e9])
-        # elif nu < 1e6:
-        #     logger.warning("Assuming ")
-        #     self.nu = 1e9 * np.atleast_1d(nu)
-        # else:
-        #     self.nu = np.atleast_1d(nu)
+        self.nu = np.atleast_1d(nu if nu is not None else 150.0e9)
 
-        if np.min(nu) < MIN_NU:
+        if self.nu.min() < MIN_NU:
             raise ValueError(f"'nu' should be specified in Hz; maximum supported nu is {Quantity(MIN_NU, units='Hz')}.")
-        if np.max(nu) > MAX_NU:
+        if self.nu.min() > MAX_NU:
             raise ValueError(f"'nu' should be specified in Hz; maximum supported nu is {Quantity(MAX_NU, units='Hz')}.")
-
-        self.nu = np.atleast_1d(nu)
 
         self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
 

@@ -22,8 +22,8 @@ def test_band_list():
 
 def test_noise_conversion():
     my_band = Band(
-        center=150,  # in GHz
-        width=30,  # in GHz
+        center=150e9,  # in Hz
+        width=30e9,  # in Hz
         efficiency=0.5,  # in K_RJ
         NET_RJ=1e-5,
         spectrum_kwargs={
