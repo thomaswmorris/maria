@@ -10,7 +10,8 @@ import scipy as sp
 
 from ..constants import g
 from ..io import DEFAULT_TIME_FORMAT, fetch
-from ..site import InvalidRegionError, all_regions, supported_regions_table
+from ..site import REGIONS, InvalidRegionError, all_regions
+from ..units import Quantity
 from ..utils import get_utc_day_hour, get_utc_year_day
 
 here, this_filename = os.path.split(__file__)
@@ -82,10 +83,10 @@ class Weather:
         )
 
         if self.base_altitude is None:
-            self.base_altitude = supported_regions_table.loc[self.region, "altitude"]
+            self.base_altitude = REGIONS.loc[self.region, "altitude"]
 
         self.base_altitude = np.round(self.base_altitude, 0)
-        self.time_zone = supported_regions_table.loc[self.region, "timezone"]
+        self.time_zone = REGIONS.loc[self.region, "timezone"]
         self.local_time = self.time.to(self.time_zone)
 
         self.utc_day_hour = get_utc_day_hour(self.time.timestamp())
@@ -220,8 +221,8 @@ class Weather:
 
     def __repr__(self):
         parts = []
-        parts.append(f"region={repr(self.region)}")
-        parts.append(f"time={self.local_time.format(DEFAULT_TIME_FORMAT)}")
-        parts.append(f"elevation={int(self.base_altitude)}m")
-        parts.append(f"pwv={self.pwv:.03f}mm")
+        parts.append(f"region={self.region}")
+        parts.append(f"time={self.local_time.format('MMM D HH:mm:ss ZZ')}")
+        parts.append(f"altitude={Quantity(self.base_altitude, 'm')}")
+        parts.append(f"pwv={Quantity(self.pwv, 'mm')}")
         return f"Weather({', '.join(parts)})"

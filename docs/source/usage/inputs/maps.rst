@@ -15,7 +15,7 @@ A map is represented by a ``Map`` object. We can load some pre-defined ones with
 
     input_map = maria.map.read_fits(filename=map_filename,
                                     index=1, # which index of the HDU to read
-                                    nu=150., # in GHz
+                                    nu=150e9, # in Hz
                                     resolution=1/1024,
                                     center=(150, 10),
                                     frame="ra_dec",

@@ -6,7 +6,7 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..units import parse_units
+from ..units import Quantity, parse_units
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -119,3 +119,13 @@ class HEALPixMap(Map):
             # hp.visufunc.gnomview(self.data[i,0,0], cmap="cmb")
 
         plt.tight_layout()
+
+    def __repr__(self):
+        return f"""{self.__class__.__name__}:
+  nside: {self.nside}
+  stokes: {self.stokes}
+  nu: {Quantity(self.nu, "Hz")}
+  t: {Quantity(self.t, "s")}
+  quantity: {self.u["quantity"]}
+  units: {self.units}
+  resolution: {Quantity(self.resolution, "rad")}"""

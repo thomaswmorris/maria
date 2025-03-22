@@ -1,7 +1,7 @@
 pa4:
   f150:
-    center: 150
-    width: 30
+    center: 150.e+9
+    width: 30.e+9
     shape: gaussian
     time_constant: 0
     NEP: 3.e-17 # W / sqrt(s)
@@ -9,8 +9,8 @@ pa4:
     efficiency: 0.5
     gain_error: 5.e-2
   f220:
-    center: 220
-    width: 40
+    center: 220.e+9
+    width: 40.e+9
     shape: gaussian
     time_constant: 0
     NEP: 3.e-17 # W / sqrt(s)
@@ -19,8 +19,8 @@ pa4:
     gain_error: 5.e-2
 pa5:
   f090:
-    center: 90
-    width: 20
+    center: 90.e+9
+    width: 20.e+9
     shape: gaussian
     time_constant: 0
     NEP: 3.e-17 # W / sqrt(s)
@@ -28,8 +28,8 @@ pa5:
     efficiency: 0.5
     gain_error: 5.e-2
   f150:
-    center: 150
-    width: 30
+    center: 150.e+9
+    width: 30.e+9
     shape: gaussian
     time_constant: 0
     NEP: 3.e-17 # W / sqrt(s)
@@ -38,8 +38,8 @@ pa5:
     gain_error: 5.e-2
 pa6:
   f090:
-    center: 90
-    width: 20
+    center: 90.e+9
+    width: 20.e+9
     shape: gaussian
     time_constant: 0
     NEP: 3.e-17 # W / sqrt(s)
@@ -47,8 +47,8 @@ pa6:
     efficiency: 0.5
     gain_error: 5.e-2
   f150:
-    center: 150
-    width: 30
+    center: 150.e+9
+    width: 30.e+9
     shape: gaussian
     time_constant: 0
     NEP: 3.e-17 # W / sqrt(s)

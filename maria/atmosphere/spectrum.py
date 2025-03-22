@@ -8,6 +8,7 @@ import scipy as sp
 
 from ..io import fetch
 from ..site import InvalidRegionError, all_regions
+from ..units import Quantity
 
 here, this_filename = os.path.split(__file__)
 
@@ -33,8 +34,8 @@ class AtmosphericSpectrum:
         }
 
         with h5py.File(self.cache_path, "r") as f:
-            self.side_nu = f["side_nu_GHz"][:]
-            self.side_elevation = f["side_elevation_deg"][:]
+            self.side_nu = 1e9 * f["side_nu_GHz"][:]
+            self.side_elevation = np.radians(f["side_elevation_deg"][:])
             self.side_zenith_pwv = f["side_zenith_pwv_mm"][:]
             self.side_base_temperature = f["side_base_temperature_K"][:]
 
@@ -48,13 +49,18 @@ class AtmosphericSpectrum:
         self.nu_res = np.gradient(self.side_nu).mean()
 
     def __repr__(self):
-        return f"AtmosphericSpectrum(region={self.region}, nu_res={self.nu_res}GHz)"
+        filling = {
+            "region": self.region,
+            "nu_min": Quantity(self.side_nu.min(), "Hz"),
+            "nu_max": Quantity(self.side_nu.max(), "Hz"),
+        }
+        filling_string = ", ".join([f"{k}={v}" for k, v in filling.items()])
+        return f"AtmosphericSpectrum({filling_string})"
 
-    def _interpolate_quantity(self, quantity, nu, pwv=None, base_temperature=None, elevation=45):
-        if pwv is None:
-            pwv = np.median(self.side_zenith_pwv)
-        if base_temperature is None:
-            base_temperature = np.median(self.side_base_temperature)
+    def _interpolate_quantity(self, quantity, nu, pwv=None, base_temperature=None, elevation=None):
+        pwv = pwv or np.median(self.side_zenith_pwv)
+        base_temperature = base_temperature or np.median(self.side_base_temperature)
+        elevation = elevation or np.radians(45)
 
         min_pwv = self.side_zenith_pwv.min()
         max_pwv = self.side_zenith_pwv.max()
@@ -90,7 +96,7 @@ class AtmosphericSpectrum:
             self.side_nu,
         )
 
-    def emission(self, nu, pwv=None, base_temperature=None, elevation=45):
+    def emission(self, nu, pwv=None, base_temperature=None, elevation=None):
         return self._interpolate_quantity(
             "emission",
             nu=nu,
@@ -99,7 +105,7 @@ class AtmosphericSpectrum:
             elevation=elevation,
         )
 
-    def opacity(self, nu, pwv=None, base_temperature=None, elevation=45):
+    def opacity(self, nu, pwv=None, base_temperature=None, elevation=None):
         return self._interpolate_quantity(
             "opacity",
             nu=nu,
@@ -108,7 +114,7 @@ class AtmosphericSpectrum:
             elevation=elevation,
         )
 
-    def path_delay(self, nu, pwv=None, base_temperature=None, elevation=45):
+    def path_delay(self, nu, pwv=None, base_temperature=None, elevation=None):
         return self._interpolate_quantity(
             "path_delay",
             nu=nu,
@@ -117,7 +123,7 @@ class AtmosphericSpectrum:
             elevation=elevation,
         )
 
-    def transmission(self, nu, pwv=None, base_temperature=None, elevation=45):
+    def transmission(self, nu, pwv=None, base_temperature=None, elevation=None):
         return np.exp(
             -self.opacity(
                 nu,

@@ -9,8 +9,8 @@ default:
     shape: circle
     bands:
       f150:
-        center: 150
-        width: 30
+        center: 150.e+9.e+9
+        width: 30.e+9.e+9
   primary_size: 5
 
 

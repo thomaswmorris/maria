@@ -1,26 +1,17 @@
 import logging
 import time as ttime
 
-from ..units import prefixes
+import numpy as np
+
+from ..units import Quantity
 
 
-def humanize(x, unit=""):
-    for _, prefix in prefixes.iterrows():
-        if prefix.primary:
-            value = x / prefix.factor
-            if value < 1e3:
-                break
-    if value > 100:
-        value = round(value)
-    elif value > 10:
-        value = round(value, 1)
-    else:
-        value = round(value, 2)
-    return f"{value} {prefix.name}{unit}"
+def humanize(x, units):
+    return str(Quantity(x, units=units))
 
 
 def humanize_time(seconds):
-    return humanize(seconds, unit="s")
+    return humanize(seconds, units="s")
 
 
 def log_duration(ref_time, message, level="debug"):

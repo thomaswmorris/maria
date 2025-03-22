@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from ..functions import approximate_normalized_matern
 from ..io import humanize_time
+from ..units import Quantity
 from ..utils import compute_aligning_transform
 from ..weather import Weather
 from .extrusion import ProcessExtrusion, generate_layers
@@ -249,6 +250,16 @@ class Atmosphere:
             self.processes[int(process_index)] = process
 
         self._initialized = True
+
+    def __repr__(self):
+        return f"""Atmosphere({len(self.processes)} processes with {len(self.layers)} layers):
+├ spectrum:
+│   region: {self.spectrum.region}
+└ weather:
+    region: {self.weather.region}
+    time: {self.weather.local_time.format("MMM D HH:mm:ss ZZ")}
+    altitude={Quantity(self.weather.base_altitude, "m")}
+    pwv={Quantity(self.weather.pwv, "mm")}"""
 
     def simulate_pwv(self):
         if not self._initialized:

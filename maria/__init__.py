@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 
 from ._version import __version__, __version_tuple__  # noqa
-from .array import Array  # noqa
+from .array import Array, all_arrays, get_array  # noqa
 from .band import Band, all_bands, get_band  # noqa
 from .instrument import Instrument, all_instruments, get_instrument  # noqa
 from .io import fetch, set_cache_dir  # noqa

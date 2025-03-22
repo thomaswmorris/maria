@@ -74,7 +74,7 @@ class TOD:
         return self._boresight
 
     def calibration_kwargs(self, band=None):
-        kwargs = {"elevation": np.degrees(self.el[self.dets.band_name == band.name] if band else self.el)}
+        kwargs = {"elevation": self.el[self.dets.band_name == band.name] if band else self.el}
 
         if self.metadata["atmosphere"]:
             kwargs["spectrum"] = self.spectrum

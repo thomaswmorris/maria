@@ -3,6 +3,8 @@ from __future__ import annotations
 import numpy as np
 import scipy as sp  # noqa F401
 
+from ..constants import c
+
 
 def compute_angular_fwhm(fwhm_0, z=np.inf, n=1.0, nu=None, l=None):  # noqa F401
     """
@@ -17,10 +19,8 @@ def compute_angular_fwhm(fwhm_0, z=np.inf, n=1.0, nu=None, l=None):  # noqa F401
 
     w_0 = fwhm_0 / 2
 
-    l = l if l is not None else 2.998e-1 / nu  # noqa F401
-
     # Rayleigh range
-    z_r = np.pi * w_0**2 * n / l
+    z_r = np.pi * w_0**2 * n / (l or c / nu)
 
     return 2 * w_0 * np.sqrt(1 / z**2 + 1 / z_r**2)
 

@@ -8,7 +8,7 @@ import scipy as sp
 
 from ..band import BandList
 from ..beam import compute_angular_fwhm
-from ..units import Angle
+from ..units import Quantity
 from ..utils import compute_diameter
 
 here, this_filename = os.path.split(__file__)
@@ -96,11 +96,11 @@ class ArrayList:
 
     @property
     def field_of_view(self):
-        return Angle(compute_diameter(self.offsets))
+        return Quantity(compute_diameter(self.offsets), "rad")
 
     @property
     def max_baseline(self):
-        return compute_diameter(self.baselines)
+        return Quantity(compute_diameter(self.baselines), "m")
 
     @property
     def index(self):

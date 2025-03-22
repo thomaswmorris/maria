@@ -10,7 +10,8 @@ import scipy as sp
 from astropy.io import fits
 
 from ..coords import frames
-from ..units import QUANTITIES, Angle, parse_units, prefixes
+from ..units import Quantity, parse_units
+from ..utils import repr_phi_theta
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -122,23 +123,21 @@ class ProjectedMap(Map):
     def points(self):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
-    # broadcasted_attrs = ["NU", "T", "Y", "X"]
-
     def __repr__(self):
-        parts = []
-        frame = frames[self.frame]
-        center_degrees = np.degrees(self.center)
-
-        parts.append(
-            f"shape[stokes, nu, t, y, x]=({self.n_stokes}, {self.n_nu}, {self.n_t}, {self.n_y}, {self.n_x})",
-        )
-        parts.append(
-            f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)",
-        )
-        parts.append(f"width={Angle(self.width).__repr__()}")
-        parts.append(f"height={Angle(self.height).__repr__()}")
-
-        return f"ProjectedMap({', '.join(parts)})"
+        cphi_repr, ctheta_repr = repr_phi_theta(*self.center, frame=self.frame)
+        return f"""{self.__class__.__name__}:
+  shape[stokes, nu, t, y, x]: {self.data.shape}
+  stokes: {self.stokes}
+  nu: {Quantity(self.nu, "Hz")}
+  t: {Quantity(self.t, "s")}
+  quantity: {self.u["quantity"]}
+  units: {self.units}
+  width: {Quantity(self.width, "rad")}
+  height: {Quantity(self.height, "rad")}
+  center:
+    {cphi_repr}
+    {ctheta_repr}
+  resolution: {Quantity(self.x_res, "rad")}"""
 
     @property
     def package(self):
@@ -288,7 +287,7 @@ class ProjectedMap(Map):
 
         plot_width = np.maximum(12, subplot_size * n_nu)
         plot_height = np.maximum(12, subplot_size * n_t)
-        plot_size = np.min([plot_width, plot_height, 5])
+        plot_size = np.min([plot_width, plot_height, 4])
 
         # if (n_nu > 1) and (n_time > 1):
         fig, axes = plt.subplots(
@@ -298,6 +297,7 @@ class ProjectedMap(Map):
             sharex=True,
             sharey=True,
             constrained_layout=True,
+            dpi=256,
         )
 
         axes = np.atleast_1d(axes).reshape(n_nu, n_t)
@@ -320,11 +320,13 @@ class ProjectedMap(Map):
 
         # axes_generator = iter(axes.ravel())
 
-        d = self.data.ravel()
+        map_qdata = Quantity(self.data.compute(), units=self.units)
+
+        d = map_qdata.value.ravel()
         w = self.weight.ravel()
         subset = np.random.choice(d.size, size=10000)
         vmin, vmax = np.nanquantile(
-            d[subset].compute(),
+            d[subset],
             weights=w[subset].compute(),
             q=[rel_vmin, rel_vmax],
             method="inverted_cdf",
@@ -363,13 +365,13 @@ class ProjectedMap(Map):
 
                 # ax.set_title(f"{nu} GHz")
 
-                x = Angle(self.x_bins)
-                y = Angle(self.y_bins)
+                x = Quantity(self.x_bins, "rad")
+                y = Quantity(self.y_bins, "rad")
 
                 ax.pcolormesh(
-                    x.values,
-                    y.values,
-                    self.data[stokes_index, i_nu, i_t],
+                    x.value,
+                    y.value,
+                    map_qdata.value[stokes_index, i_nu, i_t],
                     cmap=cmap,
                     # interpolation="none",
                     # extent=map_extent,
@@ -378,9 +380,9 @@ class ProjectedMap(Map):
                 )
 
                 if i_t == n_t - 1:
-                    ax.set_xlabel(rf"$\Delta\,\theta_x$ [{x.units_short}.]")
+                    ax.set_xlabel(rf"$\Delta\,\theta_x$ [${x.u['math_name']}$]")
                 if i_nu == 0:
-                    ax.set_ylabel(rf"$\Delta\,\theta_y$ [{y.units_short}.]")
+                    ax.set_ylabel(rf"$\Delta\,\theta_y$ [${y.u['math_name']}$]")
 
                 ax.set_aspect("equal")
 
@@ -394,19 +396,16 @@ class ProjectedMap(Map):
             ax=axes,
             shrink=0.75,
             aspect=16,
-            location="bottom",
+            location="right",
         )
 
-        u = parse_units(self.units)
-        quantity = QUANTITIES.loc[u["quantity"]]
-        units = (prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else "") + quantity.base_unit_latex
-        cbar.set_label(f"{quantity.long_name} $[{units}]$")
+        cbar.set_label(f"{map_qdata.q['long_name']} [${map_qdata.u['math_name']}$]")
 
         if filepath is not None:
             plt.savefig(filepath=filepath, dpi=256)
 
     def to_fits(self, filepath):
-        m = self.to(self.units_config["base_unit"])
+        m = self.to(self.u["base_unit"])
         header = self.header
         header["UNITS"] = m.units
 
