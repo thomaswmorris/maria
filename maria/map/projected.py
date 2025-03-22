@@ -11,6 +11,7 @@ from astropy.io import fits
 
 from ..coords import frames
 from ..units import Quantity, parse_units
+from ..utils import repr_phi_theta
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -122,24 +123,21 @@ class ProjectedMap(Map):
     def points(self):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
-    # broadcasted_attrs = ["NU", "T", "Y", "X"]
-
     def __repr__(self):
-        parts = []
-        frame = frames[self.frame]
-        center_degrees = np.degrees(self.center)
-
-        parts.append(
-            f"shape[stokes, nu, t, y, x]=({self.n_stokes}, {self.n_nu}, {self.n_t}, {self.n_y}, {self.n_x})",
-        )
-        parts.append(
-            f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)",
-        )
-        parts.append(f"width={Quantity(self.width, 'rad')}")
-        parts.append(f"height={Quantity(self.height, 'rad')}")
-        parts.append(f"units={self.units}")
-
-        return f"ProjectedMap({', '.join(parts)})"
+        cphi_repr, ctheta_repr = repr_phi_theta(*self.center, frame=self.frame)
+        return f"""{self.__class__.__name__}:
+  shape[stokes, nu, t, y, x]: {self.data.shape}
+  stokes: {self.stokes}
+  nu: {Quantity(self.nu, "Hz")}
+  t: {Quantity(self.t, "s")}
+  quantity: {self.u["quantity"]}
+  units: {self.units}
+  width: {Quantity(self.width, "rad")}
+  height: {Quantity(self.height, "rad")}
+  center:
+    {cphi_repr}
+    {ctheta_repr}
+  resolution: {Quantity(self.x_res, "rad")}"""
 
     @property
     def package(self):
@@ -398,7 +396,7 @@ class ProjectedMap(Map):
             ax=axes,
             shrink=0.75,
             aspect=16,
-            location="bottom",
+            location="right",
         )
 
         cbar.set_label(f"{map_qdata.q['long_name']} [${map_qdata.u['math_name']}$]")

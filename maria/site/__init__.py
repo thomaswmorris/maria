@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import h5py
 import healpy as hp
 import matplotlib as mpl
 import numpy as np
@@ -11,6 +12,7 @@ from astropy.coordinates import EarthLocation
 from matplotlib import pyplot as plt
 
 from ..io import fetch
+from ..units import Quantity
 from ..utils import read_yaml, repr_lat_lon
 
 here, this_filename = os.path.split(__file__)
@@ -35,21 +37,21 @@ site_data = pd.DataFrame(SITE_CONFIGS).T.sort_values("region")
 all_sites = list(site_data.index.values)
 
 REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude"]
-supported_regions_table = pd.read_csv(f"{here}/regions.csv", index_col=0)
-all_regions = list(supported_regions_table.index.values)
+REGIONS = pd.read_csv(f"{here}/regions.csv", index_col=0)
+all_regions = list(REGIONS.index.values)
 
 
 def get_height_map():
-    height_map = hp.fitsfunc.read_map(fetch("world_heightmap.fits")).astype(np.uint16)
-    height_map = 32 * np.where(height_map < 255, height_map, np.nan)
-    return height_map
+    with h5py.File(fetch("world_heightmap.h5"), "r") as f:
+        height_map = f["data"][:].astype(np.uint16)
+    return 32 * np.where(height_map < 255, height_map, np.nan)
 
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         super().__init__(
             f"The region '{invalid_region}' is not supported. "
-            f"Supported regions are:\n\n{supported_regions_table.loc[:, REGION_DISPLAY_COLUMNS].to_string()}",
+            f"Supported regions are:\n\n{REGIONS.loc[:, REGION_DISPLAY_COLUMNS].to_string()}",
         )
 
 
@@ -112,17 +114,17 @@ class Site:
         self.documentation = documentation
         self.instruments = instruments
 
-        if self.region not in supported_regions_table.index.values:
+        if self.region not in REGIONS.index.values:
             raise InvalidRegionError(self.region)
 
         if self.longitude is None:
-            self.longitude = float(supported_regions_table.loc[self.region].longitude)
+            self.longitude = float(REGIONS.loc[self.region].longitude)
 
         if self.latitude is None:
-            self.latitude = float(supported_regions_table.loc[self.region].latitude)
+            self.latitude = float(REGIONS.loc[self.region].latitude)
 
         if self.altitude is None:
-            self.altitude = float(supported_regions_table.loc[self.region].altitude)
+            self.altitude = float(REGIONS.loc[self.region].altitude)
 
         self.earth_location = EarthLocation.from_geodetic(
             lon=self.longitude,
@@ -145,22 +147,23 @@ class Site:
 
         zoom_map = hp.gnomview(
             height_map,
-            xsize=8 / res,
+            xsize=4 / res,
             **kwargs,
         )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
         wide_map = hp.gnomview(
             height_map,
-            xsize=90 / res,
+            xsize=60 / res,
             **kwargs,
         )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
 
         fig, axes = plt.subplots(1, 2, figsize=(8, 5), constrained_layout=True)
 
-        zoom_vmax = np.nanpercentile(zoom_map[zoom_map > 0], q=99)
-        wide_vmax = np.nanpercentile(wide_map[wide_map > 0], q=99)
+        zoom_vmax = np.nanpercentile(zoom_map.data, q=99)
+        wide_vmax = np.nanpercentile(wide_map.data, q=99)
 
         cmap = mpl.cm.gist_ncar
-        cmap.set_bad("gray", 1.0)
+        cmap = mpl.cm.gist_earth
+        cmap.set_bad("royalblue", 1.0)
 
         axes[0].imshow(
             wide_map[::-1],
@@ -178,8 +181,8 @@ class Site:
         )
 
         for ax in axes:
-            ax.scatter(0, 0, color="gray", alpha=0.8, s=256)
-            ax.scatter(0, 0, color="r", marker="x", linewidth=2, s=128)
+            # ax.scatter(0, 0, color="gray", alpha=0.8, s=256)
+            ax.scatter(0, 0, edgecolor="r", facecolor="none", linewidth=2, s=256)
             ax.set_xticks([])
             ax.set_yticks([])
             ax.set_facecolor("gray")
@@ -193,13 +196,22 @@ class Site:
             cbar.set_label("height [m]")
 
     def __repr__(self):
-        parts = {
-            "location": f"({repr_lat_lon(self.latitude, self.longitude)})",
-            "region": self.region,
-            "altitude": f"{self.altitude}m",
-            "seasonal": self.seasonal,
-            "diurnal": self.diurnal,
-            "weather_quantiles": self.weather_quantiles,
-        }
+        s = f"""Site:
+  region: {self.region}
+  location: {repr_lat_lon(self.latitude, self.longitude)}
+  altitude: {Quantity(self.altitude, "m")}
+  seasonal: {self.seasonal}
+  diurnal: {self.diurnal}"""
 
-        return rf"Site({', '.join([f'{k}={v}' for k, v in parts.items()])})"
+        return s
+
+        # parts = {
+        #     "location": f"({repr_lat_lon(self.latitude, self.longitude)})",
+        #     "region": self.region,
+        #     "altitude": f"{self.altitude}m",
+        #     "seasonal": self.seasonal,
+        #     "diurnal": self.diurnal,
+        #     "weather_quantiles": self.weather_quantiles,
+        # }
+
+        # return rf"Site({', '.join([f'{k}={v}' for k, v in parts.items()])})"

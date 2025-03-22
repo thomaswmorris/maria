@@ -11,22 +11,22 @@ angle:
     angle: 1
   units:
     rad:
-      long_name: Radians
+      long_name: Radian
       math_name: \text{rad}
       factor: 57.29577951308232
       natural: False
     deg:
-      long_name: Degrees
+      long_name: Degree
       math_name: \text{deg}
       factor: 1.0
       natural: True
     arcmin:
-      long_name: Arcminutes
+      long_name: Arcminute
       math_name: \text{arcmin}
       factor: 0.016666666666666666
       natural: True
     arcsec:
-      long_name: Arcseconds
+      long_name: Arcsecond
       math_name: \text{arcsec}
       factor: 0.0002777777777777778
       natural: True
@@ -43,17 +43,17 @@ time:
     time: 1
   units:
     s:
-      long_name: Seconds
+      long_name: Second
       math_name: \text{s}
       factor: 1.0
       natural: True
     min:
-      long_name: Minutes
+      long_name: Minute
       math_name: \text{min}
       factor: 60.
       natural: False
     hour:
-      long_name: Hours
+      long_name: Hour
       math_name: \text{hour}
       factor: 3600.
       natural: False

@@ -120,6 +120,7 @@ class BandList(Sequence):
         for band in self.bands:
             band_summary = band.summary()
             for field, entry in BAND_FIELD_FORMATS.iterrows():
+                if field in ["name", "shape"]:
+                    continue
                 summary.loc[band.name, field] = band_summary[field]
-
         return summary

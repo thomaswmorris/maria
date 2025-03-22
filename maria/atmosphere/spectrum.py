@@ -8,6 +8,7 @@ import scipy as sp
 
 from ..io import fetch
 from ..site import InvalidRegionError, all_regions
+from ..units import Quantity
 
 here, this_filename = os.path.split(__file__)
 
@@ -48,7 +49,13 @@ class AtmosphericSpectrum:
         self.nu_res = np.gradient(self.side_nu).mean()
 
     def __repr__(self):
-        return f"AtmosphericSpectrum(region={self.region}, nu_res={self.nu_res}GHz)"
+        filling = {
+            "region": self.region,
+            "nu_min": Quantity(self.side_nu.min(), "Hz"),
+            "nu_max": Quantity(self.side_nu.max(), "Hz"),
+        }
+        filling_string = ", ".join([f"{k}={v}" for k, v in filling.items()])
+        return f"AtmosphericSpectrum({filling_string})"
 
     def _interpolate_quantity(self, quantity, nu, pwv=None, base_temperature=None, elevation=None):
         pwv = pwv or np.median(self.side_zenith_pwv)

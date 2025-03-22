@@ -9,6 +9,7 @@ import numpy as np
 import scipy as sp
 
 from ..calibration import Calibration
+from ..constants import MARIA_MAX_NU, MARIA_MIN_NU
 from ..units import Quantity, parse_units
 
 logger = logging.getLogger("maria")
@@ -16,9 +17,6 @@ logger = logging.getLogger("maria")
 here, this_filename = os.path.split(__file__)
 
 STOKES = ["I", "Q", "U", "V"]
-
-MIN_NU = 1e6  # 1 MHz
-MAX_NU = 1e13  # 10 THz
 
 
 class Map:
@@ -42,10 +40,14 @@ class Map:
 
         self.nu = np.atleast_1d(nu if nu is not None else 150.0e9)
 
-        if self.nu.min() < MIN_NU:
-            raise ValueError(f"'nu' should be specified in Hz; maximum supported nu is {Quantity(MIN_NU, units='Hz')}.")
-        if self.nu.min() > MAX_NU:
-            raise ValueError(f"'nu' should be specified in Hz; maximum supported nu is {Quantity(MAX_NU, units='Hz')}.")
+        bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
+        if bad_freqs:
+            qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
+            qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
+            raise ValueError(
+                f"Bad frequencies nu={bad_freqs} Hz; maria supports frequencies between "
+                f"{qmin_nu.Hz:.0e} ({qmin_nu}) and {qmax_nu.Hz:.0e} ({qmax_nu})."
+            )
 
         self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
 
