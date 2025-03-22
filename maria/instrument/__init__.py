@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import glob
 import os
+from typing import Mapping
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,9 +10,9 @@ import pandas as pd
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from ..array import Array, ArrayList  # noqa
+from ..array import Array, ArrayList, get_array_config  # noqa
 from ..band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
-from ..utils import HEX_CODE_LIST, flatten_config, get_rotation_matrix_2d, read_yaml
+from ..utils import HEX_CODE_LIST, flatten_config, get_rotation_matrix_2d, read_yaml  # noqa
 
 here, this_filename = os.path.split(__file__)
 
@@ -214,7 +215,47 @@ class Instrument:
             The maximum angular speed of the array.
         """
 
-        self.dets = ArrayList(arrays).combine()
+        # if isinstance(arrays, list):
+        #     array_index = 1
+        #     for array in arrays:
+        #         if "name" not in array:
+        #             array["name"] = f"array{array_index}"
+        #             array_index += 1
+
+        # array_list = []
+        # for array in arrays:
+        #     if isinstance(array, Mapping):
+        #         array_config = get_array_config(**array)
+        #         array_list.append(Array.from_config(array_config))
+        #     elif isinstance(array, Array):
+        #         array_list.append(array)
+
+        # if isinstance(arrays, ArrayList):
+        #     self.arrays = arrays.arrays
+        # else:
+        #     if isinstance(arrays, list):
+        #         array_names = [array.name for i in range(len(arrays))]
+        #         array_values = arrays
+
+        #     elif isinstance(arrays, dict):
+        #         array_names = list(arrays.keys())
+        #         array_values = list(arrays.values())
+        #     else:
+        #         raise ValueError("'arrays' must be a list or a dict.")
+
+        #     self.arrays = []
+        #     for array_name, array in zip(array_names, array_values):
+        #         if isinstance(array, Array):
+        #             array.name = array.name or array_name
+        #             self.arrays.append(array)
+        #         elif isinstance(array, dict):
+        #             if "name" not in array:
+        #                 array["name"] = array_name
+        #             self.arrays.append(Array.from_config(array))
+        #         elif isinstance(array, str):
+        #             self.arrays.append(Array.from_kwargs(name=array_name, key=array))
+
+        self.arrays = ArrayList(arrays)
         self.description = description
         self.documentation = documentation
         self.vel_limit = vel_limit
@@ -232,13 +273,22 @@ class Instrument:
         #     self.units = "degrees"
 
     def __repr__(self):
-        arrays_repr = self.dets.__repr__().replace("\n", "\n  ")
-        return f"""Instrument:
-{arrays_repr})"""
+        s = f"""Instrument({len(self.arrays)} array{"s" if len(self.arrays) > 1 else ""})
+├ arrays:
+{"\n".join([f"│  {s}" for s in str(self.arrays.summary().__repr__()).split("\n")])}
+│ 
+└ bands:
+{"\n".join([f"   {s}" for s in str(self.arrays.bands.summary().__repr__()).split("\n")])}"""
+
+        return s
+
+    @property
+    def dets(self):
+        return self.arrays.combine()
 
     @property
     def bands(self):
-        return self.dets.bands
+        return self.arrays.bands
 
     @property
     def sky_x(self):

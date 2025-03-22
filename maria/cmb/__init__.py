@@ -31,37 +31,16 @@ CMB_MAP_CACHE_MAX_AGE = 30 * 86400  # one month
 DEFAULT_CMB_KWARGS = {"nside": 1024}
 
 
-class CMB:
-    def __init__(self, data, fields):
-        if len(data) != len(fields):
-            raise ValueError("Data and labels must have the same shape!")
-
-        self.data = {}
-        for field, M in zip(fields, data):
-            self.data[field] = M
-
-        self.nside = int(np.sqrt(len(M) / 12))
-
-    def __getattr__(self, attr):
-        if attr in self.data:
-            return self.data[attr]
-        raise AttributeError(f"No attribute named '{attr}'.")
-
-    @property
-    def fields(self):
-        return list(self.data.keys())
-
-    def plot(self, field=None, units="uK_CMB"):
-        field = field or self.fields[0]
-        m = self.data[field]
-        vmin, vmax = 1e6 * np.quantile(m[~np.isnan(m)], q=[0.001, 0.999])
-        hp.visufunc.mollview(
-            1e6 * m,
-            min=vmin,
-            max=vmax,
-            cmap="cmb",
-            unit=r"uK$_{CMB}$",
-        )
+class CMB(HEALPixMap):
+    def __init__(
+        self,
+        data: float,
+        weight: float = None,
+        stokes: float = None,
+        nu: float = None,
+        units: str = "K_CMB",
+    ):
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, units=units)
 
 
 def generate_cmb(nside=2048, seed=123456, **kwargs):
@@ -84,7 +63,7 @@ def generate_cmb(nside=2048, seed=123456, **kwargs):
     alm = hp.synalm((cl.TT, cl.EE, cl.BB, cl.TE), lmax=lmax, new=True)
     cmb_data = hp.alm2map(alm, nside=nside, lmax=lmax)
 
-    return HEALPixMap(
+    return CMB(
         data=1e6 * (T_CMB + cmb_data[:, None, None, :]),
         stokes=["I", "Q", "U"],
         units="uK_b",

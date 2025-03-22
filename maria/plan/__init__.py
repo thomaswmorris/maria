@@ -14,8 +14,9 @@ import scipy as sp
 from arrow import Arrow
 
 from .. import coords
+from ..io import DEFAULT_TIME_FORMAT
 from ..units import Quantity
-from ..utils import read_yaml
+from ..utils import read_yaml, repr_dms, repr_hms, repr_phi_theta
 from .patterns import get_scan_pattern_generator, scan_patterns
 
 here, this_filename = os.path.split(__file__)
@@ -90,18 +91,6 @@ class Plan:
     A dataclass containing time-ordered plan data.
     """
 
-    def __repr__(self):
-        parts = []
-        frame = coords.frames[self.frame]
-        center_degrees = Quantity(self.scan_center, units="rad").deg
-
-        parts.append(f"start_time={self.start_time.format()}")
-        parts.append(f"center[{frame['phi']}, {frame['theta']}]=({center_degrees[0]:.02f}°, {center_degrees[1]:.02f}°)")
-        parts.append(f"pattern={self.scan_pattern}")
-        parts.append(f"pattern_kwargs={self.scan_options}")
-
-        return f"Plan({', '.join(parts)})"
-
     def __init__(
         self,
         description: str = "",
@@ -122,7 +111,7 @@ class Plan:
         self.frame = frame
         self.degrees = degrees
         self.jitter = jitter
-        self.scan_center = Quantity(scan_center, units=("deg" if degrees else "rad")).rad
+        self.scan_center = Quantity(scan_center, units=("deg" if degrees else "rad"))
         self.scan_pattern = scan_pattern
         self.scan_options = scan_options
 
@@ -194,7 +183,7 @@ class Plan:
 
         self.phi, self.theta = coords.dx_dy_to_phi_theta(
             *self.scan_offsets,
-            *self.scan_center,
+            *self.scan_center.rad,
         )
         if self.frame == "ra_dec":
             self.ra, self.dec = self.phi, self.theta
@@ -206,7 +195,7 @@ class Plan:
     def plot(self):
         fig, ax = plt.subplots(1, 1, figsize=(4, 4), dpi=256)
 
-        q_center = Quantity(self.scan_center, units="rad")
+        q_center = self.scan_center
         q_offsets = Quantity(self.scan_offsets, units="rad")
 
         frame = coords.frames[self.frame]
@@ -254,3 +243,16 @@ class Plan:
 
         cbar = fig.colorbar(heatmap, location="right")
         cbar.set_label("counts")
+
+    def __repr__(self):
+        cphi_repr, ctheta_repr = repr_phi_theta(*self.scan_center.rad, frame=self.frame)
+
+        return f"""Plan:
+  start_time: {self.start_time.format(DEFAULT_TIME_FORMAT)}
+  duration: {Quantity(self.duration, "s")}
+  sample_rate: {Quantity(self.sample_rate, "Hz")}
+  center:
+    {cphi_repr}
+    {ctheta_repr}
+  scan_pattern: {self.scan_pattern}
+  scan_kwargs: {self.scan_options}"""

@@ -5,6 +5,7 @@ import glob
 import logging
 import os
 import uuid
+from typing import Mapping
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -83,19 +84,23 @@ ALLOWED_ARRAY_KWARGS = [
 all_arrays = list(ARRAY_CONFIGS.keys())
 
 
-def get_array_config(key):
-    if key not in ARRAY_CONFIGS:
-        raise KeyError(f"'{key}' is not a valid array name.")
-    return copy.deepcopy(ARRAY_CONFIGS[key])
+def get_array_config(key=None, **kwargs):
+    c = {}
+    if key:
+        if key not in ARRAY_CONFIGS:
+            raise KeyError(f"'{key}' is not a valid array name.")
+        c = {"name": key, **ARRAY_CONFIGS[key]}
+    c.update(kwargs)
+    return c
 
 
 def get_array(key):
-    return Array.from_kwargs(key=key)
+    return Array.from_config(get_array_config(key=key))
 
 
 class Array:
-    def __init__(self, dets: pd.DataFrame, bands: BandList, config: dict = {}, name: str = ""):
-        self.name = name or str(uuid.uuid4())
+    def __init__(self, name: str, dets: pd.DataFrame, bands: BandList, config: dict = {}):
+        self.name = name  # or str(uuid.uuid4())
         self.dets = dets
         self.dets.index = np.arange(len(self.dets.index))
         self.dets.loc[:, "array_name"] = self.name
@@ -114,7 +119,7 @@ class Array:
         for array_name in sorted(np.unique(self.dets.array_name.values)):
             array_dets = self.dets.loc[self.dets.array_name.values == array_name]
             array_bands = [band for band in self.bands if band.name in array_dets.band_name.values]
-            array_list.append(Array(dets=array_dets, bands=array_bands, name=array_name))
+            array_list.append(Array(name=array_name, dets=array_dets, bands=array_bands))
         return ArrayList(array_list)
 
     def mask(self, **kwargs):
@@ -128,10 +133,7 @@ class Array:
 
     def _subset(self, mask):
         df = self.dets.loc[mask]
-        return Array(
-            dets=df,
-            bands=[b for b in self.bands if b.name in df.band_name.values],
-        )
+        return Array(name=self.name, dets=df, bands=[b for b in self.bands if b.name in df.band_name.values])  # noqa
 
     def one_detector_from_each_band(self):
         first_det_mask = np.isin(
@@ -204,7 +206,7 @@ class Array:
         mask = True
         if band:
             mask &= self.band_name == band
-        return Array(dets=self.dets.loc[mask], bands=self.bands)
+        return Array(name=self.name, dets=self.dets.loc[mask], bands=self.bands)
 
     def __getattr__(self, attr):
         if attr in self.dets.columns:
@@ -229,11 +231,16 @@ class Array:
             "bands": f"[{','.join(self.bands.name)}]",
         }
 
+    def summary(self):
+        series = pd.Series(self.filling())
+        series.name = self.name
+        return series
+
     def __repr__(self):
         return f"{self.__class__.__name__}({', '.join([f'{k}={v}' for k, v in self.filling().items()])})"
 
     def __getitem__(self, key):
-        return Array(dets=self.dets[key], bands=self.bands)
+        return Array(name=self.name, dets=self.dets[key], bands=self.bands)
 
     @classmethod
     def from_kwargs(cls, **kwargs):
@@ -428,7 +435,7 @@ class Array:
         for col in df.columns:
             df[col] = df[col].astype(DET_COLUMN_TYPES.get(col, str))
 
-        return cls(dets=df, bands=bands, name=config.get("name"))
+        return cls(dets=df, bands=bands, name=config.get("name", str(uuid.uuid4())[:8]))
 
     def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=False):
         # if plot_baseline == "infer":
@@ -526,31 +533,31 @@ class Array:
 
 
 class ArrayList:
-    def __init__(self, arrays: list):
-        if isinstance(arrays, ArrayList):
+    def __init__(self, arrays: list[Mapping]):
+        if isinstance(arrays, Mapping):
+            # convert to a list
+            arrays = [{"name": k, **v} for k, v in arrays.items()]
+
+        if isinstance(arrays, list):
+            unnamed_array_index = 1
+            self.arrays = []
+            for array in arrays:
+                if isinstance(array, str):
+                    self.arrays.append(get_array(array))
+                elif isinstance(array, Mapping):
+                    if "name" not in array:
+                        array["name"] = f"array{unnamed_array_index}"
+                        unnamed_array_index += 1
+                    array_config = get_array_config(**array)
+                    self.arrays.append(Array.from_config(array_config))
+                elif isinstance(array, Array):
+                    self.arrays.append(array)
+                else:
+                    raise ValueError("Arrays must be either a string or a mapping")
+        elif isinstance(arrays, ArrayList):
             self.arrays = arrays.arrays
         else:
-            if isinstance(arrays, list):
-                array_names = [f"array_{i}" for i in range(len(arrays))]
-                array_values = arrays
-
-            elif isinstance(arrays, dict):
-                array_names = list(arrays.keys())
-                array_values = list(arrays.values())
-            else:
-                raise ValueError("'arrays' must be a list or a dict.")
-
-            self.arrays = []
-            for array_name, array in zip(array_names, array_values):
-                if isinstance(array, Array):
-                    array.name = array.name or array_name
-                    self.arrays.append(array)
-                elif isinstance(array, dict):
-                    if "name" not in array:
-                        array["name"] = array_name
-                    self.arrays.append(Array.from_config(array))
-                elif isinstance(array, str):
-                    self.arrays.append(Array.from_kwargs(name=array_name, key=array))
+            raise ValueError("Each element of 'arrays' must be either an Array, a string, or a mapping.")
 
     def combine(self):
         array_dets = []
@@ -558,7 +565,7 @@ class ArrayList:
             df = copy.deepcopy(array.dets)
             df.loc[:, "array_name"] = array.name
             array_dets.append(df)
-        return Array(dets=pd.concat(array_dets), bands=self.bands)
+        return Array(name="", dets=pd.concat(array_dets), bands=self.bands)
 
     def one_detector_from_each_band(self):
         return ArrayList(arrays=[array.one_detector_from_each_band() for array in self.arrays])
@@ -610,7 +617,7 @@ class ArrayList:
         return ArrayList([array.subset(**kwargs).dets for array in self.arrays], bands=self.bands)
 
     def summary(self):
-        return pd.DataFrame({array.name: array.filling() for array in self.arrays}).T
+        return pd.concat([array.summary() for array in self.arrays], axis=1).T
 
     @property
     def array_name(self):

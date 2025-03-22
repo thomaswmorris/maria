@@ -11,7 +11,7 @@ import scipy as sp
 
 from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
-from ..constants import c
+from ..constants import MARIA_MAX_NU, MARIA_MIN_NU, c
 from ..io import humanize
 from ..units import Quantity
 from ..utils import flatten_config, read_yaml
@@ -31,9 +31,6 @@ BAND_CONFIGS = flatten_config(BAND_CONFIGS)
 
 band_data = pd.DataFrame(BAND_CONFIGS).T.sort_index()
 all_bands = list(band_data.index)
-
-MIN_NU = 1e6  # 1 MHz
-MAX_NU = 1e13  # 10 THz
 
 
 def get_band(band_name):
@@ -111,6 +108,21 @@ class Band:
                     f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape}).",
                 )
 
+        bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
+        if bad_freqs:
+            qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
+            qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
+            if nu is None:
+                raise ValueError(
+                    f"Bad params (center, width) = ({center}, {width}) Hz; maria supports frequencies between "
+                    f"{qmin_nu.Hz:.01e} ({qmin_nu}) and {qmax_nu.Hz:.01e} ({qmax_nu})."
+                )
+            else:
+                raise ValueError(
+                    f"Bad frequencies nu={nu} Hz; maria supports frequencies between "
+                    f"{qmin_nu.Hz:.01e} ({qmin_nu}) and {qmax_nu.Hz:.01e} ({qmax_nu})."
+                )
+
         # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
         self.name = name or f"f{10 ** (np.log10(self.center) % 3):>03.0f}"
         self.shape = shape
@@ -150,11 +162,6 @@ class Band:
                 self.NET_CMB = NET_CMB
 
         self.transmission_integral_grids = {}
-
-        if self.nu.min() < MIN_NU:
-            raise ValueError(f"Minimum supported nu is {Quantity(MIN_NU, units='Hz')}.")
-        if self.nu.max() > MAX_NU:
-            raise ValueError(f"Maximum supported nu is {Quantity(MAX_NU, units='Hz')}.")
 
     @property
     def center(self):

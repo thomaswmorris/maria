@@ -75,7 +75,7 @@ def xyz_to_phi_theta(xyz):
 def get_center_phi_theta(phi, theta, keep_dims=()):
     """ """
 
-    xyz = phi_theta_to_xyz(phi, theta)
+    xyz = phi_theta_to_xyz(np.atleast_1d(phi), np.atleast_1d(theta))
 
     axes = list(range(xyz.ndim - 1))
 

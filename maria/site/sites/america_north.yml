@@ -43,3 +43,10 @@ summit_station:
   longitude: -38.4596
   altitude: 3216
   documentation: https://geo-summit.org/
+
+very_large_array:
+  description: Very Large Array
+  region: san_agustin
+  latitude: 34.079
+  longitude: -107.618
+  altitude: 2124
