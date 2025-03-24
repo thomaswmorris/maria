@@ -30,6 +30,7 @@ OPERATION_KWARGS = {
     },
     "remove_spline": {
         "knot_spacing": {"dtype": float, "aliases": ["remove_spline_knot_spacing"]},
+        "remove_el_gradient": {"dtype": bool, "aliases": ["remove_el_gradient"]},
         "order": {"dtype": int, "aliases": ["depline_order"]},
     },
 }
@@ -101,11 +102,16 @@ def process_tod(tod, config=None, **kwargs):
     if "remove_spline" in config:
         remove_spline_start_s = ttime.monotonic()
 
-        B = utils.signal.cross_basis(
-            [tod.time, tod.boresight.el.compute()],
-            spacing=[config["remove_spline"]["knot_spacing"], 0.1],
-            order=[config["remove_spline"].get("order", 3), 1],
+        B = utils.signal.bspline_basis(
+            tod.time,
+            spacing=config["remove_spline"]["knot_spacing"],
+            order=config["remove_spline"].get("order", 3),
         )
+
+        if config["remove_spline"].get("remove_el_gradient", True):
+            el = tod.boresight.el.compute()
+            rel_el = (el - el.min()) / (el.max() - el.min())
+            B = np.concatenate([B * rel_el[None], B * (1 - rel_el)[None]], axis=0)
 
         A = np.linalg.inv(B @ B.T) @ B @ D.T
         D -= A.T @ B
