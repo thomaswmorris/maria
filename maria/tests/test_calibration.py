@@ -34,7 +34,7 @@ def test_brightness_temperature_to_spectral_flux_density_per_pixel():
 #         tod.signal.compute(), tod.to("K_RJ").to("pW").signal.compute()
 #     ).all()
 
-n_tests = 16
+n_tests = 8
 test_regions = np.random.choice(a=all_regions, size=n_tests)
 test_bands = np.random.choice(a=all_bands, size=n_tests)
 

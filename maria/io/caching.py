@@ -107,9 +107,9 @@ def fetch(
     if status != "ok":
         try:
             download_from_url(url, cache_path=cache_path, **download_kwargs)
-        except Exception:
+        except Exception as error:
             if status == "old":
-                logger.info(f"Could not download {url}, reverting to old cache.")
+                logger.info(f"Encountered an error while trying to download {url}: {repr(error)}. Reverting to old cache.")
             else:
-                raise RuntimeError(f"Could not download {url}.")
+                raise RuntimeError(f"Encountered an error while trying to download {url}: {repr(error)}")
     return cache_path

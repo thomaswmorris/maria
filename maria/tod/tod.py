@@ -355,7 +355,7 @@ class TOD:
     def __getattr__(self, attr):
         if attr in self.fields:
             return self.data[attr]
-        raise AttributeError(f"No attribute named '{attr}'.")
+        raise AttributeError(f"'TOD' object has no attribute '{attr}'")
 
     def __repr__(self):
         parts = []

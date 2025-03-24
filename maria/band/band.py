@@ -179,20 +179,17 @@ class Band:
         )
 
     def summary(self):
-        summary = pd.Series(index=BAND_FIELD_FORMATS.index, dtype=str)
+        filling = {
+            "center": Quantity(self.center, "Hz"),
+            "width": Quantity(self.width, "Hz"),
+            "η": self.efficiency,
+            "NEP": Quantity(self.NEP, "W√s"),
+            "NET_RJ": Quantity(self.NET_RJ, "K√s"),
+            "NET_CMB": Quantity(self.NET_CMB, "K√s"),
+        }
 
-        for field, entry in BAND_FIELD_FORMATS.iterrows():
-            value = getattr(self, field)
-
-            if (entry["units"] != "none") and (entry["dtype"] == "float"):
-                s = humanize(value, units=entry["units"])
-            elif entry["dtype"] == "str":
-                s = f"'{value}'"
-            else:
-                s = f"{value}"
-
-            summary[field] = s
-
+        summary = pd.Series(filling)
+        summary.name = self.name
         return summary
 
     def __repr__(self):
@@ -244,7 +241,7 @@ class Band:
         else:
             nu = spectrum.side_nu[(spectrum.side_nu >= nu_min) & (spectrum.side_nu < nu_max)]
             integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=nu, axis=-1)
-            xi = (kwargs["zenith_pwv"], kwargs["base_temperature"], kwargs["elevation"])
+            xi = (kwargs["base_temperature"], kwargs["zenith_pwv"], kwargs["elevation"])
             return sp.interpolate.interpn(points=spectrum.points[:3], values=integral_grid, xi=xi)
 
     def transmission(self, region="chajnantor", pwv=1, elevation=np.radians(90)) -> float:

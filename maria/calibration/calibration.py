@@ -116,14 +116,16 @@ class Calibration:
 
         y = x * self.in_factor
 
-        for f in self.function_chain:
+        for f in self.function_chain():
             y = f(y, **self.kwargs)
 
         return y / self.out_factor
 
-    @property
     def function_chain(self):
-        return function_chains.loc[self.in_quantity, self.out_quantity]
+        try:
+            return function_chains.loc[self.in_quantity, self.out_quantity]
+        except KeyError:
+            raise ValueError(f"Cannot convert from {self.in_quantity} to {self.out_quantity}")
 
     @property
     def in_factor(self) -> float:

@@ -261,7 +261,7 @@ class Coordinates:
                 self.compute_transform(frame=frame)
                 return getattr(self, attr)
 
-        raise AttributeError(f"Coordinates object has no attribute '{attr}'.")
+        raise AttributeError(f"'Coordinates' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
         clone = deepcopy(self)
