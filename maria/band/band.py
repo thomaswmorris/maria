@@ -145,7 +145,8 @@ class Band:
 
         if sensitivity:
             logger.warning(
-                "The 'sensitivity' keyword is deprecated and will be removed in future releases. To specify noise levels in terms of sky temperature, use the 'NET_RJ' or 'NET_CMB' keywords instead."
+                "The 'sensitivity' keyword is deprecated and will be removed in future releases. "
+                "To specify noise levels in terms of sky temperature, use the 'NET_RJ' or 'NET_CMB' keywords instead."
             )
             NET_RJ = sensitivity
 

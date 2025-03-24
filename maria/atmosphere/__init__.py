@@ -147,7 +147,7 @@ class Atmosphere:
             # here we want enough points for a hull
             # we have made sure that any hull for this subpointing is a cover for the whole pointing
 
-            process_points_for_hull_list = []  # da.zeros_like(np.zeros((len(process_layers), *outer_coords.shape[:-1], len(outer_coords.time), 3)))
+            process_points_for_hull_list = []
 
             for i, (layer_index, layer_entry) in enumerate(process_layers.iterrows()):
                 if layer_entry.angular:
