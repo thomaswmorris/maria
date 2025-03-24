@@ -7,6 +7,7 @@ import time as ttime
 import arrow
 import numpy as np
 import scipy as sp
+from numpy.linalg import LinAlgError
 from tqdm import tqdm
 
 from ..functions import approximate_normalized_matern
@@ -246,7 +247,17 @@ class Atmosphere:
             process.vy = vy
             process.tp = tp
 
-            process.compute_covariance_matrices()
+            success = False
+            for jitter in [1e-8, 1e-6, 1e-4]:
+                try:
+                    process.compute_covariance_matrices()
+                    success = True
+                except LinAlgError as e:
+                    logger.debug(f"Singular covariance matrix with jitter={jitter}")
+
+            if not success:
+                raise LinAlgError("Covariance matrix was singular even with max jitter.")
+
             self.processes[int(process_index)] = process
 
         self._initialized = True
