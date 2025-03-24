@@ -197,11 +197,13 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             trees.append("├ " + getattr(self, attr).__repr__().replace("\n", "\n│ "))
         trees.append("└ " + getattr(self, attrs[-1]).__repr__().replace("\n", "\n  "))
 
+        trees_string = "\n".join(trees)
+
         return f"""Simulation
 {instrument_tree}
 {site_tree}
 {plan_tree}
-{"\n".join(trees)}"""
+{trees_string}"""
 
     @property
     def total_loading(self):

@@ -273,12 +273,15 @@ class Instrument:
         #     self.units = "degrees"
 
     def __repr__(self):
+        arrays_repr = "\n".join([f"│  {s}" for s in str(self.arrays.summary().__repr__()).split("\n")])
+        bands_repr = "\n".join([f"   {s}" for s in str(self.arrays.bands.summary().__repr__()).split("\n")])
+
         s = f"""Instrument({len(self.arrays)} array{"s" if len(self.arrays) > 1 else ""})
 ├ arrays:
-{"\n".join([f"│  {s}" for s in str(self.arrays.summary().__repr__()).split("\n")])}
+{arrays_repr}
 │ 
 └ bands:
-{"\n".join([f"   {s}" for s in str(self.arrays.bands.summary().__repr__()).split("\n")])}"""
+{bands_repr}"""
 
         return s
 
