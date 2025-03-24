@@ -257,9 +257,9 @@ class Atmosphere:
 │   region: {self.spectrum.region}
 └ weather:
     region: {self.weather.region}
+    altitude: {Quantity(self.weather.base_altitude, "m")}
     time: {self.weather.local_time.format("MMM D HH:mm:ss ZZ")}
-    altitude={Quantity(self.weather.base_altitude, "m")}
-    pwv={Quantity(self.weather.pwv, "mm")}"""
+    pwv: {Quantity(self.weather.pwv, "mm")}"""
 
     def simulate_pwv(self):
         if not self._initialized:

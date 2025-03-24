@@ -147,7 +147,7 @@ class ArrayList:
                 values[self.band_name == band.name] = getattr(band, attr)
             return values
 
-        raise AttributeError(f"{self.__class__.__name__} object has no attribute '{attr}'")
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'")
 
     def __len__(self):
         return len(self.df)

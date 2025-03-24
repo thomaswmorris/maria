@@ -105,7 +105,7 @@ class Quantity:
             return self.to(attr)
         except Exception:
             pass
-        raise AttributeError(f"Quantity object has no attribute '{attr}'")
+        raise AttributeError(f"'Quantity' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
         return Quantity(self.value[key], units=self.units)

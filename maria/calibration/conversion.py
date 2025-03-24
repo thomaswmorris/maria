@@ -83,8 +83,8 @@ def brightness_temperature_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
         points = (test_T_b, *spectrum.points[:3])
         xi = (
             T_b,
-            kwargs["zenith_pwv"],
             kwargs["base_temperature"],
+            kwargs["zenith_pwv"],
             kwargs["elevation"],
         )
         return k_B * sp.interpolate.interpn(points, integral, xi)

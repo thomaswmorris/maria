@@ -61,18 +61,14 @@ class AtmosphereMixin:
             )
 
             band_power_interpolator = sp.interpolate.RegularGridInterpolator(
-                (
-                    self.atmosphere.spectrum.side_zenith_pwv,
-                    self.atmosphere.spectrum.side_base_temperature,
-                    self.atmosphere.spectrum.side_elevation,
-                ),
+                self.atmosphere.spectrum.points[:3],
                 det_power_grid,
             )
 
             self.loading["atmosphere"][band_index] = band_power_interpolator(
                 (
-                    self.zenith_scaled_pwv[band_index],
                     self.atmosphere.weather.temperature[0],
+                    self.zenith_scaled_pwv[band_index],
                     self.coords.el[band_index],
                 ),
             )

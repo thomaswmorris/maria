@@ -7,55 +7,62 @@ import numpy as np
 import scipy as sp
 
 from ..io import fetch
-from ..site import InvalidRegionError, all_regions
+from ..site import REGIONS, InvalidRegionError, all_regions
 from ..units import Quantity
 
 here, this_filename = os.path.split(__file__)
 
 
 class AtmosphericSpectrum:
-    def __init__(self, region, source="am", refresh_cache=False):
+    def __init__(self, region, altitude: int = None, source: str = "am", refresh_cache=False):
         if region not in all_regions:
             raise InvalidRegionError(region)
 
         self.region = region
+        self.altitude = altitude or REGIONS.loc[self.region, "altitude"]
         self.source = source
 
         self.cache_path = fetch(
-            f"atmosphere/spectra/{self.source}/{self.region}.h5",
+            f"atmosphere/spectra/{self.source}/v2/{self.region}.h5",
             max_age=30 * 86400,
             refresh=refresh_cache,
         )
 
         key_mapping = {
-            "brightness_temperature_rayleigh_jeans_K": "_emission",
+            "rayleigh_jeans_temperature_K": "_emission",
             "opacity_nepers": "_opacity",
             "excess_path_m": "_path_delay",
         }
 
         with h5py.File(self.cache_path, "r") as f:
-            self.side_nu = 1e9 * f["side_nu_GHz"][:]
-            self.side_elevation = np.radians(f["side_elevation_deg"][:])
-            self.side_zenith_pwv = f["side_zenith_pwv_mm"][:]
-            self.side_base_temperature = f["side_base_temperature_K"][:]
+            # dims are (alt, temp, pwv, el)
+            self.side_altitude = f["side_altitude_m"][:].astype(float)
+            self.side_base_temperature = f["side_base_temperature_K"][:].astype(float)
+            self.side_elevation = np.radians(f["side_elevation_deg"][:].astype(float))
+            self.side_zenith_pwv = f["side_zenith_pwv_mm"][:].astype(float)
+            self.side_nu = f["side_nu_Hz"][:].astype(float)
 
             for key, mapping in key_mapping.items():
+                d = f[key]["relative"][:] * f[key]["scale"][:] + f[key]["offset"][:]
+
                 setattr(
                     self,
                     mapping,
-                    f[key]["relative"][:] * f[key]["scale"][:] + f[key]["offset"][:],
+                    sp.interpolate.interp1d(self.side_altitude, d, axis=0)(self.altitude),
                 )
 
-        self.nu_res = np.gradient(self.side_nu).mean()
+    @property
+    def nu_min(self):
+        return Quantity(self.side_nu.min(), "Hz")
+
+    @property
+    def nu_max(self):
+        return Quantity(self.side_nu.max(), "Hz")
 
     def __repr__(self):
-        filling = {
-            "region": self.region,
-            "nu_min": Quantity(self.side_nu.min(), "Hz"),
-            "nu_max": Quantity(self.side_nu.max(), "Hz"),
-        }
-        filling_string = ", ".join([f"{k}={v}" for k, v in filling.items()])
-        return f"AtmosphericSpectrum({filling_string})"
+        return f"""AtmosphereSpectrum({self.nu_min} - {self.nu_max}):
+  region: {self.region}
+  altitude: {Quantity(self.altitude, "m")}"""
 
     def _interpolate_quantity(self, quantity, nu, pwv=None, base_temperature=None, elevation=None):
         pwv = pwv or np.median(self.side_zenith_pwv)
@@ -78,20 +85,15 @@ class AtmosphericSpectrum:
             raise ValueError(f"Base temperature (in Kelvin) must be between {min_base_temp:.01f} and {max_base_temp:.01f}.")
 
         return sp.interpolate.RegularGridInterpolator(
-            points=(
-                self.side_zenith_pwv,
-                self.side_base_temperature,
-                self.side_elevation,
-                self.side_nu,
-            ),
+            points=self.points,
             values=getattr(self, f"_{quantity}"),
-        )((pwv, base_temperature, elevation, nu))
+        )((base_temperature, pwv, elevation, nu))
 
     @property
     def points(self):
         return (
-            self.side_zenith_pwv,
             self.side_base_temperature,
+            self.side_zenith_pwv,
             self.side_elevation,
             self.side_nu,
         )
