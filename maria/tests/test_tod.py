@@ -47,6 +47,12 @@ def test_tod_preprocessing_with_config():
 
     tod.process(config=pp_config)
 
+    tod.twinkle(
+        rate=2,
+        max_frames=10,
+        filename="/tmp/test_twinkle.gif",
+    )
+
 
 def test_tod_preprocessing_with_kwargs():
     sim = Simulation()
