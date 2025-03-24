@@ -14,7 +14,7 @@ plt.close("all")
 
 @pytest.mark.parametrize(
     "map_name",
-    ["maps/cluster.fits", "maps/big_cluster.fits", "maps/galaxy.fits"],
+    ["maps/cluster.fits", "maps/big_cluster.h5", "maps/galaxy.fits"],
 )  # noqa
 def test_fetch_fits_map(map_name):
     map_filename = fetch(map_name)
@@ -31,7 +31,7 @@ def test_fetch_fits_map(map_name):
 
 @pytest.mark.parametrize(
     "map_name",
-    ["maps/cluster.fits", "maps/big_cluster.fits", "maps/galaxy.fits"],
+    ["maps/cluster.fits", "maps/big_cluster.h5", "maps/galaxy.fits"],
 )  # noqa
 def test_map_units_conversion(map_name):
     map_filename = fetch(map_name)
@@ -67,10 +67,8 @@ def test_trivial_recover_original_map():
 
     instrument = maria.get_instrument(array=array)
 
-    map_filename = fetch("maps/big_cluster.fits", refresh=True)
-    input_map = maria.map.read_fits(filename=map_filename, nu=150e9, width=0.1, center=(150, 10)).downsample(
-        n_x=100, n_y=100
-    )
+    map_filename = fetch("maps/big_cluster.h5", refresh=True)
+    input_map = maria.map.load(filename=map_filename, nu=150e9, width=0.1, center=(150, 10)).downsample(n_x=100, n_y=100)
 
     plan = maria.Plan(
         scan_pattern="daisy",
@@ -122,3 +120,19 @@ def test_time_ordered_map_sim():
     sim = maria.Simulation(plan=plan, map=input_map)
     tod = sim.run()
     tod.to("K_RJ").plot()
+
+
+@pytest.mark.parametrize("filename", ["big_cluster.h5", "cluster.fits"])
+def test_maps_io(filename):
+    map_filename = fetch(f"maps/{filename}")
+    m = maria.map.load(filename=map_filename, width=1e0, units="K_RJ")
+
+    m.to("cK_RJ").to_fits("/tmp/test.fits")
+
+    new_m = maria.map.load("/tmp/test.fits").to("MK_RJ")
+    new_m.to_hdf("/tmp/test.h5")
+
+    new_new_m = maria.map.load("/tmp/test.h5").to("K_RJ")  # noqa
+
+    assert np.allclose(new_new_m.data, m.data)
+    assert new_new_m.resolution == m.resolution

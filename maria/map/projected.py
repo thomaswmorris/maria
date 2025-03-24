@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 
@@ -43,7 +44,7 @@ class ProjectedMap(Map):
 
         super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units)
 
-        self.center = tuple(np.radians(center)) if degrees else center
+        self.center = Quantity(tuple(center), ("deg" if degrees else "rad")).rad
 
         self.frame = frame
 
@@ -51,8 +52,8 @@ class ProjectedMap(Map):
 
         self.units = units
 
-        if not ((width is not None) or (height is not None)) ^ (resolution is not None):
-            raise ValueError("You must pass exactly one of ('width' and or 'height') or 'resolution'.")
+        if ((width is None) and (height is None)) and (resolution is None):
+            raise ValueError("You must pass at least one of ('width' and or 'height') or 'resolution'.")
 
         if resolution is not None:
             if not resolution > 0:
@@ -94,8 +95,7 @@ class ProjectedMap(Map):
         header["CRPIX1"] = self.data.shape[-1] // 2
         header["CRPIX2"] = self.data.shape[-2] // 2
 
-        header["WIDTH"] = np.degrees(self.width)
-        header["HEIGHT"] = np.degrees(self.height)
+        header["RESOLUTION"] = np.degrees(self.resolution)
         header["FRAME"] = self.frame
         header["UNITS"] = self.units
 
@@ -139,21 +139,21 @@ class ProjectedMap(Map):
     {ctheta_repr}
   resolution: {Quantity(self.x_res, "rad")}"""
 
-    @property
     def package(self):
-        package_keys = [
-            "data",
-            "weight",
-            "stokes",
-            "nu",
-            "t",
-            "width",
-            "height",
-            "center",
-            "frame",
-            "units",
-        ]
-        return {"degrees": False, **{k: getattr(self, k) for k in package_keys}}
+        return copy.deepcopy(
+            {
+                "degrees": True,
+                "data": self.data,
+                "weight": self.weight,
+                "stokes": self.stokes,
+                "nu": self.nu,
+                "t": self.t,
+                "center": np.degrees(self.center),
+                "frame": self.frame,
+                "units": self.units,
+                "resolution": np.degrees(self.resolution),
+            }
+        )
 
     @property
     def resolution(self):
@@ -272,8 +272,8 @@ class ProjectedMap(Map):
         t_index=None,
         stokes="I",
         cmap="cmb",
-        rel_vmin=0.001,
-        rel_vmax=0.999,
+        rel_vmin=0.005,
+        rel_vmax=0.995,
         subplot_size=3,
         filepath=None,
     ):
@@ -423,5 +423,9 @@ class ProjectedMap(Map):
             if self._weight is not None:
                 f.create_dataset("weight", dtype=float, data=self._weight)
 
-            for field in ["nu", "t", "width", "height", "center", "frame", "units"]:
-                f.create_dataset(field, data=getattr(self, field))
+            f.create_dataset("nu", dtype=float, data=self.nu)
+            f.create_dataset("t", dtype=float, data=self.t)
+            f.create_dataset("center", dtype=float, data=np.degrees(self.center))
+            f.create_dataset("resolution", dtype=float, data=np.degrees(self.resolution))
+            f.create_dataset("units", data=self.units)
+            f.create_dataset("frame", data=self.frame)

@@ -22,6 +22,8 @@ MIN_RES = {"2d": 5, "3d": 15}
 MIN_RES_PER_BEAM = {"2d": 0.1, "3d": 0.5}
 MIN_RES_PER_FOV = {"2d": 0.05, "3d": 0.1}
 
+COV_MAT_JITTER = 1e-6
+
 
 def generate_layers(
     sim,
@@ -270,6 +272,7 @@ class ProcessExtrusion:
             **self.callback_kwargs,
         )
         COV_E_E[j, i] = COV_E_E[i, j]
+        COV_E_E += np.diag(COV_MAT_JITTER * np.diag(COV_E_E))  # add some jitter
         logger.debug(
             f"Computed edge-edge covariance {COV_E_E.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
@@ -299,6 +302,7 @@ class ProcessExtrusion:
             **self.callback_kwargs,
         )
         COV_S_S[j, i] = COV_S_S[i, j]
+        COV_S_S += np.diag(COV_MAT_JITTER * np.diag(COV_S_S))  # add some jitter
         logger.debug(
             f"Computed sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )

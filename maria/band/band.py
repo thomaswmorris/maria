@@ -151,7 +151,7 @@ class Band:
             NET_RJ = sensitivity
 
         if (NEP is None) and (NET_RJ is None) and (NET_CMB is None):
-            logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 1 uK_RJ.")
+            logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 1 uK_RJ√s.")
             self.NET_RJ = 1e-6
 
         else:

@@ -96,6 +96,9 @@ class Coordinates:
         self.frame = frame
         self.dtype = dtype
 
+        if isinstance(t, str):
+            t = arrow.get(t).timestamp()
+
         # DO NOT BROADCAST TIME. IT STAYS ONE-DIMENSIONAL.
         for attr, value in zip(
             ["x", "y", "z", "r", "phi", "theta", "t"],
@@ -383,8 +386,8 @@ class Coordinates:
             return 3600 * np.degrees(dx), 3600 * np.degrees(dy)
 
     def __repr__(self):
-        lon = self.earth_location.lon.deg
-        lat = self.earth_location.lat.deg
+        lon = self.earth_location.lon.rad
+        lat = self.earth_location.lat.rad
 
         date_string = arrow.get(np.mean(self.t)).to("utc").format(DEFAULT_TIME_FORMAT)
 
