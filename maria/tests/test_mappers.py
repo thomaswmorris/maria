@@ -22,7 +22,7 @@ def test_map_sim():
 
     map_filename = fetch("maps/cluster.fits")
 
-    input_map = maria.map.read_fits(filename=map_filename, nu=150e9, width=0.1, center=(150, 10))
+    input_map = maria.map.load(filename=map_filename, nu=150e9, width=0.1, center=(150, 10))
 
     input_map.data *= 1e3
 

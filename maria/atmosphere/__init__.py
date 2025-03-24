@@ -259,7 +259,7 @@ class Atmosphere:
     region: {self.weather.region}
     altitude: {Quantity(self.weather.base_altitude, "m")}
     time: {self.weather.local_time.format("MMM D HH:mm:ss ZZ")}
-    pwv: {Quantity(self.weather.pwv, "mm")}"""
+    pwv[mean, rms]: ({Quantity(self.weather.pwv, "mm")}, {Quantity(self.pwv_rms_frac * self.weather.pwv, "mm")})"""
 
     def simulate_pwv(self):
         if not self._initialized:

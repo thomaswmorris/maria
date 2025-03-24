@@ -98,6 +98,22 @@ def process_tod(tod, config=None, **kwargs):
 
         logger.debug(f'Completed tod operation "remove_slope in {humanize_time(ttime.monotonic() - remove_slope_start_s)}.')
 
+    if "remove_spline" in config:
+        remove_spline_start_s = ttime.monotonic()
+
+        B = utils.signal.cross_basis(
+            [tod.time, tod.boresight.el.compute()],
+            spacing=[config["remove_spline"]["knot_spacing"], 0.1],
+            order=[config["remove_spline"].get("order", 3), 1],
+        )
+
+        A = np.linalg.inv(B @ B.T) @ B @ D.T
+        D -= A.T @ B
+
+        logger.debug(
+            f'Completed tod operation "remove_spline" in {humanize_time(ttime.monotonic() - remove_spline_start_s)}.'
+        )
+
     if "window" in config:
         window_start_s = ttime.monotonic()
         window_function = getattr(sp.signal.windows, config["window"]["name"])
@@ -141,22 +157,6 @@ def process_tod(tod, config=None, **kwargs):
         D -= A[:, modes_to_remove] @ B[modes_to_remove]
 
         logger.debug(f'Completed tod operation "remove_modes" in {humanize_time(ttime.monotonic() - remove_modes_start_s)}.')
-
-    if "remove_spline" in config:
-        remove_spline_start_s = ttime.monotonic()
-
-        B = utils.signal.get_bspline_basis(
-            tod.time,
-            spacing=config["remove_spline"]["knot_spacing"],
-            order=config["remove_spline"].get("order", 3),
-        )
-
-        A = np.linalg.inv(B @ B.T) @ B @ D.T
-        D -= A.T @ B
-
-        logger.debug(
-            f'Completed tod operation "remove_spline" in {humanize_time(ttime.monotonic() - remove_spline_start_s)}.'
-        )
 
     ptod = TOD(
         data={"total": D},

@@ -64,7 +64,6 @@ class HEALPixMap(Map):
     def resolution(self):
         return hp.pixelfunc.nside2resol(self.nside)
 
-    @property
     def package(self):
         return {k: getattr(self, k) for k in ["data", "weight", "stokes", "nu", "t", "frame", "units"]}
 
@@ -90,7 +89,7 @@ class HEALPixMap(Map):
             self.data = data
 
         else:
-            package = self.package.copy()
+            package = self.package()
             package.update({"data": data})
             return type(self)(**package)
 

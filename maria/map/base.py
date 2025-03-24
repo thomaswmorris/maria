@@ -145,7 +145,7 @@ class Map:
             self.units = units
 
         else:
-            package = self.package.copy()
+            package = self.package().copy()
             package.update({"data": data, "units": units})
             return type(self)(**package)
 

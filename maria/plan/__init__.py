@@ -193,16 +193,16 @@ class Plan:
             raise ValueError("Not a valid pointing frame!")
 
     def plot(self):
-        fig, ax = plt.subplots(1, 1, figsize=(4, 4), dpi=256)
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=256)
 
-        q_center = self.scan_center
         q_offsets = Quantity(self.scan_offsets, units="rad")
 
         frame = coords.frames[self.frame]
-        label = f"{round(q_center.deg[0], 3)}° {frame['phi_short_name']}, {round(q_center.deg[1], 3)}° {frame['theta_short_name']}"  # noqa
+
+        cphi_repr, ctheta_repr = repr_phi_theta(*self.scan_center.rad, frame=self.frame)
 
         ax.plot(*q_offsets.value, lw=5e-1)
-        ax.scatter(0, 0, c="r", marker="x", label=label)
+        ax.scatter(0, 0, c="r", marker="x", label=f"{cphi_repr}\n{ctheta_repr}")
         ax.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.u['math_name']}$]")
         ax.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.u['math_name']}$]")
         ax.legend(loc="upper right")

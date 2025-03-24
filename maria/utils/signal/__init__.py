@@ -76,8 +76,10 @@ def decompose(data, k: int = None):
     return a[:, mode_sort], b[mode_sort]
 
 
-def get_bspline_basis(x, spacing=60, order=3, **kwargs):
-    k = np.arange(x[0], x[-1], spacing)
+def bspline_basis(x, spacing=60, order=3):
+    k = np.arange(np.min(x), np.max(x), spacing)
+    if not len(k) > 0:
+        k = np.array([np.mean(x)])
     k += x.mean() - k.mean()
     t = np.r_[
         k[0] + spacing * np.arange(-order - 1, 0),
@@ -96,6 +98,17 @@ def get_bspline_basis(x, spacing=60, order=3, **kwargs):
 
     basis = B[-1]  # .reshape(-1, len(x))
     basis = basis[basis.sum(axis=-1) > 0]
+
+    return basis
+
+
+def cross_basis(X: list, spacing: list, order: list):
+    basis = np.ones((1, 1))
+
+    for dim, x in enumerate(X):
+        x_basis = bspline_basis(x, spacing[dim], order[dim])
+        basis = (x_basis[:, None] * basis).reshape(-1, len(x))
+        basis = basis[basis.sum(axis=-1) > 0]
 
     return basis
 
