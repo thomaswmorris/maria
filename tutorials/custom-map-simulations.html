@@ -370,7 +370,7 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_cluster.h5: 100%|██████████| 8.40M/8.40M [00:00&lt;00:00, 169MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_cluster.h5: 100%|██████████| 8.40M/8.40M [00:00&lt;00:00, 156MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -429,7 +429,7 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 188MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 198MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -501,9 +501,9 @@ Plan:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 205MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 157MB/s]
-Constructing atmosphere: 100%|██████████| 6/6 [00:08&lt;00:00,  1.34s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 196MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 156MB/s]
+Constructing atmosphere: 100%|██████████| 6/6 [00:08&lt;00:00,  1.48s/it]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -583,11 +583,11 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 18.78it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:10&lt;00:00,  1.68s/it]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:15&lt;00:00,  7.90s/it, band=f150]
-Sampling map: 100%|██████████| 2/2 [00:52&lt;00:00, 26.15s/it, band=f150]
-Generating noise: 100%|██████████| 2/2 [00:05&lt;00:00,  2.96s/it, band=f150]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 18.03it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:09&lt;00:00,  1.60s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:14&lt;00:00,  7.09s/it, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:49&lt;00:00, 24.95s/it, band=f150]
+Generating noise: 100%|██████████| 2/2 [00:05&lt;00:00,  2.90s/it, band=f150]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -595,7 +595,7 @@ Generating noise: 100%|██████████| 2/2 [00:05&lt;00:00,  2.9
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(1798, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-03-25T17:51:05.965351+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
+TOD(shape=(1798, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-03-25T18:31:31.475890+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -642,8 +642,8 @@ TOD(shape=(1798, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-03-25 17:52:04.091 INFO: Ran mapper for band f090 in 40.56 s.
-2025-03-25 17:52:44.374 INFO: Ran mapper for band f150 in 40.28 s.
+2025-03-25 18:32:28.500 INFO: Ran mapper for band f090 in 40.09 s.
+2025-03-25 18:33:07.869 INFO: Ran mapper for band f150 in 39.37 s.
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -655,7 +655,7 @@ ProjectedMap:
   shape[stokes, nu, t, y, x]: (1, 2, 1, 200, 200)
   stokes: [&#39;I&#39;]
   nu: [ 90. 150.] GHz
-  t: [1.74292516e+09] s
+  t: [1.74292759e+09] s
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
   width: 30 arcmin
