@@ -4,7 +4,7 @@ amundsen_scott:
   - BICEP
   - SPT
   region: south_pole
-  latitude: 0.000
-  longitude: -90.000
+  latitude: -90.000
+  longitude: 0.000
   altitude: 2835
   documentation: https://www.nsf.gov/geo/opp/support/southp.jsp
