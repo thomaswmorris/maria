@@ -1,7 +1,7 @@
 ,units,dtype
 name,none,str
-center,GHz,float
-width,GHz,float
+center,Hz,float
+width,Hz,float
 shape,none,str
 efficiency,none,float
 NEP,W√s,float
