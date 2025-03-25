@@ -23,7 +23,13 @@ cmb_cmap.set_bad("white")
 mpl.colormaps.register(cmb_cmap)
 
 
+VALID_MAP_KWARGS = ["stokes", "nu", "t", "center", "width", "height", "resolution", "frame", "units"]
+
+
 def load(filename: str, **kwargs) -> Map:
+    if "nu" in kwargs:
+        kwargs["nu"] = kwargs["nu"]
+
     format = filename.split(".")[-1]
     if format == "fits":
         return read_fits(filename, **kwargs)
@@ -37,18 +43,18 @@ def read_hdf(filename: str, **kwargs) -> Map:
     with h5py.File(filename, "r") as f:
         data = f["data"][:]
 
-        metadata = {}
-        for field in ["stokes", "nu", "t", "width", "center", "frame", "units"]:
+        map_kwargs = {}
+        for field in VALID_MAP_KWARGS:
             if field in f.keys():
                 value = f[field][()]
-                metadata[field] = value if not isinstance(value, bytes) else value.decode()
+                map_kwargs[field] = value if not isinstance(value, bytes) else value.decode()
 
         if "weight" in f.keys():
-            metadata["weight"] = f["weight"][:]
+            map_kwargs["weight"] = f["weight"][:]
 
-    metadata.update(kwargs)
+    map_kwargs.update(kwargs)
 
-    return ProjectedMap(data=data, degrees=False, **metadata)
+    return ProjectedMap(data=data, degrees=True, **map_kwargs)
 
 
 def read_fits(
@@ -74,7 +80,7 @@ def read_fits(
         raise ValueError("Map should have at least 2 dimensions.")
 
     for key in hdu.header.keys():
-        if key in ["FRAME", "WIDTH", "HEIGHT", "UNITS"]:
+        if key.lower() in VALID_MAP_KWARGS:
             map_kwargs[key.lower()] = hdu.header[key]
 
-    return ProjectedMap(data=map_data, **map_kwargs)
+    return ProjectedMap(data=map_data, degrees=True, **map_kwargs)

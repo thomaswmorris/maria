@@ -1,69 +1,274 @@
-- quantity: rayleigh_jeans_temperature
+
+angle:
+  long_name: Angle
+  short_name: theta
+  math_name: \theta
+  default_units: deg
+  base_unit_latex: \text{deg}
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    angle: 1
+  units:
+    rad:
+      long_name: Radian
+      math_name: \text{rad}
+      factor: 57.29577951308232
+      natural: False
+    deg:
+      long_name: Degree
+      math_name: \text{deg}
+      factor: 1.0
+      natural: True
+    arcmin:
+      long_name: Arcminute
+      math_name: \text{arcmin}
+      factor: 0.016666666666666666
+      natural: True
+    arcsec:
+      long_name: Arcsecond
+      math_name: \text{arcsec}
+      factor: 0.0002777777777777778
+      natural: True
+
+time:
+  long_name: Time
+  short_name: t
+  math_name: t
+  default_units: s
+  default_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    time: 1
+  units:
+    s:
+      long_name: Second
+      math_name: \text{s}
+      factor: 1.0
+      natural: True
+    min:
+      long_name: Minute
+      math_name: \text{min}
+      factor: 60.
+      natural: False
+    hour:
+      long_name: Hour
+      math_name: \text{hour}
+      factor: 3600.
+      natural: False
+    day:
+      long_name: Days
+      math_name: \text{day}
+      factor: 86400.
+      natural: False
+    week:
+      long_name: Week
+      math_name: \text{week}
+      factor: 604800.
+      natural: False
+    year:
+      long_name: Year
+      math_name: \text{year}
+      factor: 31556926.
+      natural: False
+
+mass:
+  long_name: Mass
+  short_name: m
+  math_name: m
+  default_units: g
+  default_prefix: k
+  min_prefix_power: -30
+  max_prefix_power: 3
+  dimensions:
+    mass: 1
+  units:
+    g:
+      long_name: Grams
+      math_name: \text{g}
+      factor: 1.0
+      natural: True
+
+length:
+  long_name: Length
+  short_name: x
+  math_name: x
+  default_units: m
+  default_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 3
+  dimensions:
+    time: 1
+  units:
+    m:
+      long_name: Meters
+      math_name: \text{m}
+      factor: 1.0
+      natural: True
+
+
+
+frequency:
+  long_name: Frequency
+  short_name: nu
+  math_name: \nu
+  default_units: Hz
+  default_prefix: ""
+  min_prefix_power: 0
+  max_prefix_power: 30
+  dimensions:
+    frequency: 1
+  units:
+    Hz:
+      long_name: hertz
+      math_name: \text{Hz}
+      factor: 1.0
+      natural: True
+
+noise_equivalent_power:
+  long_name: Noise equivalent power
+  short_name: NEP
+  math_name: \text{NEP}
+  default_units: W√s
+  default_prefix: ""
+  dimensions:
+    mass: 1
+    length: 2
+    time: -2.5
+  units:
+    W√s:
+      long_name: watts per square root hertz
+      math_name: \text{W}\sqrt{\text{s}}
+      factor: 1.0
+      natural: True
+
+
+noise_equivalent_temperature:
+  long_name: Noise equivalent temperature
+  short_name: NET
+  math_name: \text{NET}
+  default_units: K√s
+  default_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    temperature: 1
+    time: 0.5
+  units:
+    K√s:
+      long_name: kelvin per square root hertz
+      math_name: \text{K}\sqrt{\text{s}}
+      factor: 1.0
+      natural: True
+
+rayleigh_jeans_temperature:
   long_name: Rayleigh-Jeans temperature
-  symbol: T_RJ
-  symbol_latex: T_{RJ}
-  default_prefix: .nan
-  default_prefix_latex: .nan
-  base_unit: K_RJ
-  base_unit_latex: \text{K}_\text{RJ}
-  SI: K
+  short_name: T_RJ
+  math_name: T_\text{RJ}
+  default_units: K_RJ
+  default_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    temperature: 1
+  units:
+    K_RJ:
+      long_name: kelvin Rayleigh-Jeans
+      math_name: \text{K}_\text{RJ}
+      factor: 1.0
+      natural: True
+    F_RJ:
+      long_name: fahrenheit Rayleigh-Jeans
+      math_name: \text{F}_\text{RJ}
+      factor: 1.8
+      natural: False
 
-- quantity: brightness_temperature
+brightness_temperature:
   long_name: Brightness temperature
-  symbol: T_b
-  symbol_latex: T_b
-  default_prefix: .nan
-  default_prefix_latex: .nan
-  base_unit: K_b
-  base_unit_latex: \text{K}_\text{b}
-  SI: K
+  short_name: T_b
+  math_name: T_b
+  default_units: K_b
+  default_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    temperature: 1
+  units:
+    K_b:
+      long_name: K_b
+      math_name: \text{K}_\text{b}
+      factor: 1.0
+      natural: True
+  
 
-- quantity: cmb_temperature_anisotropy
+cmb_temperature_anisotropy:
   long_name: CMB temperature anisotropy
-  symbol: T_CMB
-  symbol_latex: T_{CMB}
+  short_name: T_CMB
+  math_name: T_{CMB}
+  default_units: K_CMB
   default_prefix: u
-  default_prefix_latex: \mu
-  base_unit: K_CMB
-  base_unit_latex: \text{K}_\text{CMB}
-  SI: K
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    temperature: 1
+  units:
+    K_CMB:
+      long_name: K_CMB
+      math_name: \text{K}_\text{CMB}
+      factor: 1.0
+      natural: True
 
-- quantity: radiant_flux
-  long_name: Power
-  symbol: P
-  symbol_latex: P
-  default_prefix: p
-  default_prefix_latex: p
-  base_unit: W
-  base_unit_latex: \text{W}
-  SI: J s^-1
+radiant_flux:
+  long_name: Radiant Flux
+  short_name: P
+  math_name: P
+  default_units: W
+  default_prefix: p # pico
+  dimensions:
+    mass: 1
+    length: 2
+    time: -3
+  units:
+    W:
+      long_name: Watts
+      math_name: \text{W}
+      factor: 1.0
+      natural: True
 
-- quantity: spectral_radiance
-  long_name: Spectral Radiance
-  symbol: I_nu
-  symbol_latex: \text{I}_\nu
-  default_prefix: .nan
-  default_prefix_latex: .nan
-  base_unit: W s^-1 m^-2 sr^-1
-  base_unit_latex: .nan
-  SI: J s^-1 m^-2 sr^-1 Hz^-1
-
-- quantity: spectral_flux_density
+spectral_flux_density:
   long_name: Spectral flux density
-  symbol: E_e,nu
-  symbol_latex: E_{e,\nu}
-  default_prefix: .nan
-  default_prefix_latex: .nan
+  short_name: E_e,nu
+  math_name: E_{e,\nu}
+  default_units: Jy
+  default_prefix: ""
   base_unit: Jy
   base_unit_latex: \text{Jy}
   SI: J s^-1 m^-2 Hz^-1
+  dimensions:
+    mass: 1
+    time: -3
+  units:
+    Jy:
+      long_name: janskies
+      math_name: \text{Jy}
+      factor: 1.0
+      natural: True
 
-- quantity: spectral_flux_density_per_pixel
+
+spectral_flux_density_per_pixel:
   long_name: Spectral flux density per pixel
-  symbol: I_nu
-  symbol_latex: I_\nu
-  default_prefix: .nan
-  default_prefix_latex: .nan
-  base_unit: Jy/pixel
-  base_unit_latex: \text{Jy/pixel}
-  SI: J s^-1 m^-2 Hz^-1
+  short_name: I_nu
+  math_name: I_\nu
+  default_units: Jy/pixel
+  default_prefix: ""
+  dimensions:
+    mass: 1
+    time: -3
+    angle: -2
+  units:
+    Jy/pixel:
+      long_name: janskies per pixel
+      math_name: \text{Jy}/\text{pixel}
+      factor: 1.0
+      natural: True

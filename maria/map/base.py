@@ -9,7 +9,8 @@ import numpy as np
 import scipy as sp
 
 from ..calibration import Calibration
-from ..units import parse_units
+from ..constants import MARIA_MAX_NU, MARIA_MIN_NU
+from ..units import Quantity, parse_units
 
 logger = logging.getLogger("maria")
 
@@ -36,7 +37,18 @@ class Map:
         self._weight = da.asarray(weight) if weight is not None else weight
 
         self.stokes = [param.upper() for param in stokes] if stokes is not None else ["I"]
-        self.nu = np.atleast_1d(nu) if nu is not None else np.array([150.0])
+
+        self.nu = np.atleast_1d(nu if nu is not None else 150.0e9)
+
+        bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
+        if bad_freqs:
+            qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
+            qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
+            raise ValueError(
+                f"Bad frequencies nu={bad_freqs} Hz; maria supports frequencies between "
+                f"{qmin_nu.Hz:.0e} ({qmin_nu}) and {qmax_nu.Hz:.0e} ({qmax_nu})."
+            )
+
         self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
 
         self.units = units
@@ -84,7 +96,7 @@ class Map:
         return (self.t_bins[:-1] + self.t_bins[1:]) / 2
 
     @property
-    def units_config(self):
+    def u(self):
         return parse_units(self.units)
 
     @property
@@ -118,6 +130,9 @@ class Map:
             data = np.zeros(self.data.shape)
 
             for i, nu in enumerate(self.nu):
+                if not nu > 0:
+                    raise ValueError(f"Cannot convert map with frequency nu={nu}.")
+
                 cal = Calibration(
                     f"{self.units} -> {units}",
                     nu=nu,
@@ -125,15 +140,12 @@ class Map:
                 )
                 data[i] = cal(self.data[i])
 
-                if np.isnan(self.nu):
-                    raise ValueError(f"Cannot convert map with frequency nu={nu}.")
-
         if inplace:
             self.data = data
             self.units = units
 
         else:
-            package = self.package.copy()
+            package = self.package().copy()
             package.update({"data": data, "units": units})
             return type(self)(**package)
 

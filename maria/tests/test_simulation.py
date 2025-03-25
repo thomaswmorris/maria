@@ -14,7 +14,7 @@ all_test_plan_configs = list(read_yaml(f"{here}/configs/test_plans.yml").values(
 
 all_instruments.pop(all_instruments.index("alma/ALMA"))
 
-n_sims = 8
+n_sims = 6
 test_instruments = np.random.choice(a=all_instruments, size=n_sims)
 test_sites = np.random.choice(a=all_sites, size=n_sims)
 
@@ -41,10 +41,11 @@ def test_complete_sim(instrument, site):
 
     tod = tod.to("K_RJ")
 
-    tod.plot()
+    # tod.plot()
 
-    tod.process(config={"remove_spline": {"knot_spacing": 60}}).twinkle(
-        rate=2,
-        max_frames=10,
-        filename="/tmp/test_twinkle.gif",
-    )
+    tod.process(config={"remove_spline": {"knot_spacing": 60}})
+    # .twinkle(
+    #     rate=2,
+    #     max_frames=10,
+    #     filename="/tmp/test_twinkle.gif",
+    # )

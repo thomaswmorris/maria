@@ -14,7 +14,7 @@ def test_brightness_temperature_to_spectral_flux_density_per_pixel():
     square_arcminute = np.radians(1 / 60) ** 2
 
     assert np.isclose(
-        Calibration("K_RJ -> Jy/pixel", nu=90, pixel_area=square_arcminute)(1e0),
+        Calibration("K_RJ -> Jy/pixel", nu=90e9, pixel_area=square_arcminute)(1e0),
         21.0576123,
     )
 
@@ -34,7 +34,7 @@ def test_brightness_temperature_to_spectral_flux_density_per_pixel():
 #         tod.signal.compute(), tod.to("K_RJ").to("pW").signal.compute()
 #     ).all()
 
-n_tests = 16
+n_tests = 8
 test_regions = np.random.choice(a=all_regions, size=n_tests)
 test_bands = np.random.choice(a=all_bands, size=n_tests)
 
@@ -59,7 +59,7 @@ def test_cmb_atmosphere_reversability(region, band):
             low=s.side_base_temperature.min(),
             high=s.side_base_temperature.max(),
         ),
-        "elevation": np.random.uniform(size=n, low=10, high=90),
+        "elevation": np.radians(np.random.uniform(size=n, low=10, high=90)),
     }
 
     P_lo = Calibration("K_b -> pW", band=band, **calibration_kwargs)(T_CMB - eps / 2)

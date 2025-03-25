@@ -1,6 +1,6 @@
 f150:
-  center: 150
-  width: 40
+  center: 150.e+9
+  width: 40.e+9
   shape: top_hat
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -9,8 +9,8 @@ f150:
   gain_error: 5.e-2
 
 f220:
-  center: 220
-  width: 40
+  center: 220.e+9
+  width: 40.e+9
   shape: top_hat
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)
@@ -19,8 +19,8 @@ f220:
   gain_error: 5.e-2
 
 f270:
-  center: 270
-  width: 50
+  center: 270.e+9
+  width: 50.e+9
   shape: gaussian
   time_constant: 0
   NEP: 3.e-17 # W / sqrt(s)

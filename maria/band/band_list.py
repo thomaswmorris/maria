@@ -55,6 +55,14 @@ class BandList(Sequence):
     #         bands.append(Band(name=name, **band_config))
     #     return cls(bands=bands)
 
+    @property
+    def nu_min(self):
+        return min([b.nu.min() for b in self.bands])
+
+    @property
+    def nu_max(self):
+        return max([b.nu.max() for b in self.bands])
+
     def plot(self):
         for band in self.bands:
             fig, ax = plt.subplots(1, 1)
@@ -76,7 +84,7 @@ class BandList(Sequence):
             return self.__getitem__(attr)
         if all([hasattr(band, attr) for band in self.bands]):
             return [getattr(band, attr) for band in self.bands]
-        # raise AttributeError(f"BandList object has no attribute named '{attr}'.")
+        raise AttributeError(f"'BandList' object has no attribute '{attr}'")
 
     def __getitem__(self, index):
         if type(index) is int:
@@ -107,11 +115,4 @@ class BandList(Sequence):
         return [band.name for band in self.bands]
 
     def summary(self) -> pd.DataFrame:
-        summary = pd.DataFrame(index=self.names)
-
-        for band in self.bands:
-            band_summary = band.summary()
-            for field, entry in BAND_FIELD_FORMATS.iterrows():
-                summary.loc[band.name, field] = band_summary[field]
-
-        return summary
+        return pd.concat([band.summary() for band in self.bands], axis=1).T

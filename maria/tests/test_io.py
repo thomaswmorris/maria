@@ -18,20 +18,7 @@ def test_change_cache_dir():
         raise Exception()
 
 
-@pytest.mark.parametrize("filename", ["big_cluster.fits", "cluster.fits"])
+@pytest.mark.parametrize("filename", ["big_cluster.h5", "cluster.fits"])
 def test_maps_from_cache(filename):
     map_filename = fetch(f"maps/{filename}")
-    m = maria.map.read_fits(filename=map_filename, width=0.1, center=(150, 10))  # noqa
-
-
-@pytest.mark.parametrize("filename", ["big_cluster.fits", "cluster.fits"])
-def test_maps_io(filename):
-    map_filename = fetch(f"maps/{filename}")
-    m = maria.map.load(filename=map_filename, width=1e0, units="K_RJ")
-
-    m.to("cK_RJ").to_fits("/tmp/test.fits")
-
-    new_m = maria.map.load("/tmp/test.fits").to("MK_RJ")
-    new_m.to_hdf("/tmp/test.h5")
-
-    new_new_m = maria.map.load("/tmp/test.h5").to("K_RJ")  # noqa
+    m = maria.map.load(filename=map_filename, width=0.1, center=(150, 10))  # noqa

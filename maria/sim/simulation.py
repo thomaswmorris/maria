@@ -187,12 +187,23 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             self.loading[field] *= gain_error[:, None]
 
     def __repr__(self):
-        # object_reprs = [
-        #     getattr(self, attr).__repr__() for attr in ["instrument", "site", "plan"]
-        # ]
-        return "\n".join(
-            [self.instrument.__repr__(), self.site.__repr__(), self.plan.__repr__()],
-        )
+        instrument_tree = "├ " + self.instrument.__repr__().replace("\n", "\n│ ")
+        site_tree = "├ " + self.site.__repr__().replace("\n", "\n│ ")
+        plan_tree = "├ " + self.plan.__repr__().replace("\n", "\n│ ")
+
+        trees = []
+        attrs = [attr for attr in ["atmosphere", "cmb", "map"] if getattr(self, attr, None)]
+        for attr in attrs[:-1]:
+            trees.append("├ " + getattr(self, attr).__repr__().replace("\n", "\n│ "))
+        trees.append("└ " + getattr(self, attrs[-1]).__repr__().replace("\n", "\n  "))
+
+        trees_string = "\n".join(trees)
+
+        return f"""Simulation
+{instrument_tree}
+{site_tree}
+{plan_tree}
+{trees_string}"""
 
     @property
     def total_loading(self):

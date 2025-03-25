@@ -13,8 +13,8 @@ here, this_filename = os.path.split(__file__)
 def test_map_sim():
     map_filename = fetch("maps/cluster.fits", refresh=True)
 
-    f090 = Band(center=90, width=20, NET_RJ=5e-5)
-    f150 = Band(center=150, width=30, NET_RJ=5e-5)
+    f090 = Band(center=90e9, width=20e9, NET_RJ=5e-5)
+    f150 = Band(center=150e9, width=30e9, NET_RJ=5e-5)
 
     array = {"field_of_view": 0.02, "bands": [f090, f150], "primary_size": 50}
 
@@ -22,7 +22,7 @@ def test_map_sim():
 
     map_filename = fetch("maps/cluster.fits")
 
-    input_map = maria.map.read_fits(filename=map_filename, nu=150, width=0.1, center=(150, 10))
+    input_map = maria.map.load(filename=map_filename, nu=150e9, width=0.1, center=(150, 10))
 
     input_map.data *= 1e3
 

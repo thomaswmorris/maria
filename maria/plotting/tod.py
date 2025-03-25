@@ -11,7 +11,7 @@ from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from ..beam import compute_angular_fwhm
-from ..units import QUANTITIES, Angle, parse_units, prefixes
+from ..units import Quantity
 from ..utils.signal import detrend as detrend_signal
 from ..utils.signal import remove_slope
 
@@ -29,7 +29,7 @@ def tod_plot(
         nrows=len(tod.fields),
         sharex="col",
         figsize=(8, 4),
-        dpi=160,
+        dpi=256,
     )
     axes = np.atleast_2d(axes)
     gs = axes[0, 0].get_gridspec()
@@ -132,10 +132,8 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
     frame_time = np.arange(tod.time.min(), tod.time.max(), rate / fps)[:max_frames]
     frame_index = np.interp(frame_time, tod.time, np.arange(len(tod.time))).astype(int)
 
-    offsets = Angle(np.c_[tod.dets.sky_x, tod.dets.sky_y])
-    fwhms = Angle(
-        compute_angular_fwhm(fwhm_0=tod.dets.primary_size, nu=tod.dets.band_center),
-    )
+    offsets = Quantity(np.c_[tod.dets.sky_x, tod.dets.sky_y], "rad")
+    fwhms = Quantity(compute_angular_fwhm(fwhm_0=tod.dets.primary_size, nu=tod.dets.band_center), "rad")
 
     bands = sorted(np.unique(tod.dets.band_name))
 
@@ -152,7 +150,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
         sharex=True,
         sharey=True,
         figsize=figure_size,
-        dpi=160,
+        dpi=256,
         constrained_layout=True,
     )
 
@@ -195,12 +193,11 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
             transform=ax.transAxes,
         )
 
+        band_qdata = Quantity(tod.signal[band_mask][..., frame_index].compute(), units=tod.units)
+
         cbar = fig.colorbar(ec, ax=ax, shrink=0.8, location="bottom")
 
-        u = parse_units(tod.units)
-        quantity = QUANTITIES.loc[u["quantity"]]
-        units = (prefixes.loc[u["prefix"], "symbol_latex"] if u["prefix"] else "") + quantity.base_unit_latex
-        cbar.set_label(f"{quantity.long_name} $[{units}]$")
+        cbar.set_label(f"{band_qdata.q['long_name']} [${band_qdata.u['math_name']}$]")
 
         subplots[band] = {
             "ax": ax,
@@ -210,7 +207,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
             "time": tod.time[frame_index] - time_offset,
             "az": tod.boresight.az[frame_index].compute(),
             "el": tod.boresight.el[frame_index].compute(),
-            "data": tod.signal[band_mask][..., frame_index].compute(),
+            "data": band_qdata.value,
         }
 
     for ax in axes_iterator:
