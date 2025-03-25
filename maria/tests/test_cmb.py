@@ -8,7 +8,7 @@ import maria
 @pytest.mark.parametrize("nside", [256, 512, 1024, 2048])
 def test_generate_cmb(nside):
     cmb = maria.cmb.generate_cmb(nside=nside)
-    cmb.plot()
+    # cmb.plot()
 
 
 def test_cmb_calibration():
