@@ -3,16 +3,20 @@ name: Unit Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
   schedule:
-    - cron: '00 12 * * *'  # daily at 7 AM
+    - cron: '00 6 * * *'  # daily at 6AM UTC
 
 jobs:
   run_tests:
+    # pull requests are a duplicate of a branch push if within the same repo.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: ubuntu-latest
+
+    runs-on: ${{ matrix.host-os }}
     strategy:
       matrix:
-        python-version: ["3.9", "3.12"]
+        host-os: ["ubuntu-latest"]
+        python-version: ["3.10", "3.12"]
       fail-fast: false
 
     defaults:
