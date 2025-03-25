@@ -26,7 +26,7 @@ where the ``bands`` parameter is a list of either ``Band`` object or a string co
 
     .. code-block:: python
 
-        band_1 = Band(center=150, width=30, NET_RJ=1e-5)
+        band_1 = Band(center=150e9, width=30e9, NET_RJ=1e-5)
 
         band_2 = {"center": 90, "width": 30, "NEP": 1e-15}
 

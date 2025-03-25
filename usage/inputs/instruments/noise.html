@@ -285,29 +285,29 @@
 <p>We can control the white noise level of the detectors in a band with either an explicit noise-equivalent power level (in Watts) as</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Band</span>
 
-<span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="c1"># in GHz</span>
-               <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="c1"># in GHz</span>
+<span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
+               <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
                <span class="n">NEP</span><span class="o">=</span><span class="mf">1e-15</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>or with an implicit Rayleigh-Jeans sensitivity as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="c1"># in GHz</span>
-               <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="c1"># in GHz</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
+               <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
                <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span> <span class="c1"># in K_RJ</span>
 </pre></div>
 </div>
 <p>or in CMB units as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="c1"># in GHz</span>
-               <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="c1"># in GHz</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
+               <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
                <span class="n">NET_CMB</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span> <span class="c1"># in K_CMB</span>
 </pre></div>
 </div>
 <p>Since the sensitivity on the sky in temperature units depends on both the instrument and the observing conditions (i.e. the atmosphere), this method computes an NEP assuming there is no atmosphere. To include the effects of atmospheric opacity in this conversion, we can supply some <code class="docutils literal notranslate"><span class="pre">spectrum_kwargs</span></code> as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="c1"># in GHz</span>
-               <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="c1"># in GHz</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
+               <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="c1"># in K_RJ</span>
                <span class="n">spectrum_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;chajnantor&quot;</span><span class="p">,</span>
                                 <span class="s2">&quot;zenith_pwv&quot;</span><span class="p">:</span> <span class="mf">1e0</span><span class="p">,</span> <span class="c1"># in mm</span>

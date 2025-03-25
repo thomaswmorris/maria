@@ -32,8 +32,7 @@ We optionally give the ``Simulation`` an ``atmosphere``, a ``cmb``, or a ``map``
                            plan="stare",
                            atmosphere="2d",
                            cmb="generate",
-                           map=input_map,
-                           )
+                           map=input_map)
 
 For documentation on these inputs (including how to customize them), see the :ref:`atmosphere`, :ref:`cmb`, and :ref:`maps` sections.
 

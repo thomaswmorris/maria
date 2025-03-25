@@ -293,8 +293,8 @@
 <span class="n">map_filename</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster.fits&quot;</span><span class="p">)</span>
 
 <span class="c1"># load in the map from a fits file</span>
-<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">read_fits</span><span class="p">(</span>
-    <span class="n">nu</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">nu</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span>
     <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>  <span class="c1"># filename</span>
     <span class="n">resolution</span><span class="o">=</span><span class="mf">8.714e-05</span><span class="p">,</span>  <span class="c1"># pixel size in degrees</span>
     <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># index for fits file</span>
@@ -312,7 +312,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 130MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 128MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -367,15 +367,31 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">instrument</span><span class="p">)</span>
+<span class="n">instrument</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Instrument(1 array)
+├ arrays:
+│            n         FOV baseline      bands
+│  array1  217  4.2 arcmin      0 m  [m2/f093]
+│
+└ bands:
+               center      width    η      NEP      NET_RJ     NET_CMB
+   m2/f093  86.21 GHz  20.98 GHz  0.1  30 aW√s  1.142 mK√s  1.381 mK√s
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_7_0.png" src="../_images/tutorials_MUSTANG-2_cluster_7_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_7_1.png" src="../_images/tutorials_MUSTANG-2_cluster_7_1.png" />
 </div>
 </div>
 </section>
@@ -392,22 +408,80 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.
     <span class="n">site</span><span class="o">=</span><span class="s2">&quot;green_bank&quot;</span><span class="p">,</span>
     <span class="nb">map</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
     <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
-    <span class="n">cmb</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 136MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 203MB/s]
+Constructing atmosphere: 100%|██████████| 6/6 [00:06&lt;00:00,  1.15s/it]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Simulation
+├ Instrument(1 array)
+│ ├ arrays:
+│ │            n         FOV baseline      bands
+│ │  array1  217  4.2 arcmin      0 m  [m2/f093]
+│ │
+│ └ bands:
+│                center      width    η      NEP      NET_RJ     NET_CMB
+│    m2/f093  86.21 GHz  20.98 GHz  0.1  30 aW√s  1.142 mK√s  1.381 mK√s
+├ Site:
+│   region: green_bank
+│   location: 2202°3’15”N 4574°29’0”W
+│   altitude: 825 m
+│   seasonal: True
+│   diurnal: True
+├ Plan:
+│   start_time: 2024-02-10 06:00:00.000 +00:00
+│   duration: 1200 s
+│   sample_rate: 50 Hz
+│   center:
+│     ra: 10ʰ00ᵐ0.00ˢ
+│     dec: 10°0’0”
+│   scan_pattern: daisy
+│   scan_kwargs: {&#39;radius&#39;: 0.05, &#39;speed&#39;: 0.01}
+├ Atmosphere(6 processes with 6 layers):
+│ ├ spectrum:
+│ │   region: green_bank
+│ └ weather:
+│     region: green_bank
+│     altitude: 825 m
+│     time: Feb 10 01:09:59 -05:00
+│     pwv[mean, rms]: (8.097 mm, 242.9 um)
+└ ProjectedMap:
+    shape[stokes, nu, t, y, x]: (1, 1, 1, 1000, 1000)
+    stokes: [&#39;I&#39;]
+    nu: [150.] GHz
+    t: [1.74286953e+09] s
+    quantity: rayleigh_jeans_temperature
+    units: K_RJ
+    width: 5.228 arcmin
+    height: 5.228 arcmin
+    center:
+      ra: 10ʰ00ᵐ0.00ˢ
+      dec: 10°0’0”
+    resolution: 313.7 marcsec
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/green_bank.h5: 100%|██████████| 2.31M/2.31M [00:00&lt;00:00, 158MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 166MB/s]
-Constructing atmosphere: 100%|██████████| 6/6 [00:07&lt;00:00,  1.33s/it]
-Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/planck.csv: 293kB [00:00, 79.9MB/s]
-Generating CMB (nside=1024): 100%|██████████| 1/1 [00:06&lt;00:00,  6.30s/it]
+
 </pre></div></div>
 </div>
 </section>
@@ -428,12 +502,11 @@ Generating CMB (nside=1024): 100%|██████████| 1/1 [00:06&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 30.08it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.85it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.19s/it, band=m2/f093]
-Sampling CMB: 100%|██████████| 1/1 [00:08&lt;00:00,  8.56s/it, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:07&lt;00:00,  7.81s/it, band=m2/f093]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.04it/s, band=m2/f093]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 27.30it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.84it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.13s/it, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:07&lt;00:00,  7.80s/it, band=m2/f093]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=m2/f093]
 </pre></div></div>
 </div>
 <section id="Useful-visualizations:">
@@ -495,7 +568,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-03-24 01:44:23.711 INFO: Ran mapper for band m2/f093 in 12.3 s.
+2025-03-25 02:26:22.591 INFO: Ran mapper for band m2/f093 in 12.38 s.
 </pre></div></div>
 </div>
 </section>
@@ -518,13 +591,22 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 </div>
 <p>You can also save the map to a fits file. Here, we recover the units in which the map was initially specified in.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s2">&quot;/tmp/simulated_map.fits&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 characters or contains characters not allowed by the FITS standard; a HIERARCH card will be created. [astropy.io.fits.card]
+2025-03-25 02:26:23.239 WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 characters or contains characters not allowed by the FITS standard; a HIERARCH card will be created.
+</pre></div></div>
 </div>
 </section>
 

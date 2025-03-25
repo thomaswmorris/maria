@@ -29,14 +29,18 @@
     "from maria.instrument import Band\n",
     "\n",
     "f090 = Band(\n",
-    "    center=90,  # in GHz\n",
-    "    width=20,\n",
-    "    NET_RJ=3e-5,  # in K sqrt(s)\n",
-    "    knee=1e0,\n",
-    "    gain_error=5e-2,\n",
-    ")\n",
+    "    center=90e9,  # in Hz\n",
+    "    width=20e9,  # in Hz\n",
+    "    NET_RJ=4e-5,  # in K sqrt(s)\n",
+    "    knee=1e0,    # in Hz\n",
+    "    gain_error=5e-2)\n",
     "\n",
-    "f150 = Band(center=150, width=30, NET_RJ=5e-5, knee=1e0, gain_error=5e-2)"
+    "f150 = Band(\n",
+    "    center=150e9, \n",
+    "    width=30e9, \n",
+    "    NET_RJ=6e-5, \n",
+    "    knee=1e0, \n",
+    "    gain_error=5e-2)"
    ]
   },
   {
@@ -46,10 +50,11 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "array = {\"field_of_view\": 0.1, \"primary_size\": 100, \"bands\": [f090, f150]}\n",
+    "array = {\"field_of_view\": 0.25, \"primary_size\": 50, \"bands\": [f090, f150]}\n",
     "\n",
     "instrument = maria.get_instrument(array=array)\n",
     "\n",
+    "print(instrument)\n",
     "instrument.plot()"
    ]
   },
@@ -70,19 +75,17 @@
    "source": [
     "from maria.io import fetch\n",
     "\n",
-    "map_filename = fetch(\"maps/big_cluster.fits\")\n",
+    "map_filename = fetch(\"maps/big_cluster.h5\")\n",
     "\n",
-    "input_map = maria.map.read_fits(\n",
+    "input_map = maria.map.load(\n",
     "    filename=map_filename,\n",
-    "    nu=150,\n",
-    "    index=1,\n",
-    "    width=0.25,\n",
-    "    center=(150, 10),\n",
-    "    units=\"Jy/pixel\",\n",
-    ")\n",
+    "    nu=150e9,\n",
+    "    width=0.5,\n",
+    "    center=(291.156, -31.23),\n",
+    "    units=\"Jy/pixel\")\n",
     "\n",
-    "input_map.data *= 4\n",
-    "input_map.to(\"mK_RJ\").plot()"
+    "print(input_map)\n",
+    "input_map.plot()"
    ]
   },
   {
@@ -92,16 +95,10 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "plan = maria.Plan(\n",
-    "    scan_pattern=\"daisy\",\n",
-    "    scan_options={\"radius\": 0.1, \"speed\": 0.02},  # in degrees\n",
-    "    duration=600,  # in seconds\n",
-    "    sample_rate=50,  # in Hz\n",
-    "    scan_center=(150, 10),\n",
-    "    frame=\"ra_dec\",\n",
-    ")\n",
+    "site = maria.get_site(\"llano_de_chajnantor\", altitude=5065)\n",
     "\n",
-    "plan.plot()"
+    "print(site)\n",
+    "site.plot()"
    ]
   },
   {
@@ -111,13 +108,17 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "sim = maria.Simulation(\n",
-    "    instrument,\n",
-    "    plan=plan,\n",
-    "    site=\"llano_de_chajnantor\",\n",
-    "    map=input_map,\n",
-    "    atmosphere=\"2d\",\n",
-    ")"
+    "plan = maria.Plan(\n",
+    "    start_time=\"2024-08-06T03:00:00\",\n",
+    "    scan_pattern=\"daisy\",\n",
+    "    scan_options={\"radius\": 0.1, \"speed\": 0.02},  # in degrees\n",
+    "    duration=900,  # in seconds\n",
+    "    sample_rate=50,  # in Hz\n",
+    "    scan_center=(291.156, -31.23),\n",
+    "    frame=\"ra_dec\")\n",
+    "\n",
+    "print(plan)\n",
+    "plan.plot()"
    ]
   },
   {
@@ -127,7 +128,15 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "tod = sim.run()"
+    "sim = maria.Simulation(\n",
+    "    instrument,\n",
+    "    plan=plan,\n",
+    "    site=\"llano_de_chajnantor\",\n",
+    "    atmosphere=\"2d\",\n",
+    "    atmosphere_kwargs={\"weather\": {\"pwv\": 0.5}},\n",
+    "    map=input_map)\n",
+    "\n",
+    "print(sim)"
    ]
   },
   {
@@ -137,6 +146,9 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "tod = sim.run()\n",
+    "\n",
+    "print(tod)\n",
     "tod.plot()"
    ]
   },
@@ -150,14 +162,14 @@
     "from maria.mappers import BinMapper\n",
     "\n",
     "mapper = BinMapper(\n",
-    "    center=(150, 10),\n",
+    "    center=(291.156, -31.23),\n",
     "    frame=\"ra_dec\",\n",
-    "    width=0.25,\n",
-    "    height=0.25,\n",
-    "    resolution=0.25 / 200,\n",
+    "    width=0.5,\n",
+    "    height=0.5,\n",
+    "    resolution=0.5 / 200,\n",
     "    tod_preprocessing={\n",
     "        \"window\": {\"name\": \"tukey\", \"kwargs\": {\"alpha\": 0.1}},\n",
-    "        \"remove_spline\": {\"knot_spacing\": 10},\n",
+    "        \"remove_spline\": {\"knot_spacing\": 30, \"remove_el_gradient\": True},\n",
     "        \"remove_modes\": {\"modes_to_remove\": [0]},\n",
     "    },\n",
     "    map_postprocessing={\n",
@@ -169,16 +181,8 @@
     "\n",
     "mapper.add_tods(tod)\n",
     "\n",
-    "output_map = mapper.run()"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "11",
-   "metadata": {},
-   "outputs": [],
-   "source": [
+    "output_map = mapper.run()\n",
+    "print(output_map)\n",
     "output_map.plot()"
    ]
   }
