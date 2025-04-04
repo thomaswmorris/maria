@@ -234,9 +234,6 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="custom-map-simulations.html">Custom map simulations</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Simulating observations with MUSTANG-2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Obtaining-time-ordered-data-(TODs)">Obtaining time-ordered data (TODs)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Mapping-the-TODs">Mapping the TODs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Visualizing-the-maps">Visualizing the maps</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../supported-sites.html">Supported sites</a></li>
@@ -297,7 +294,6 @@
     <span class="n">nu</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span>
     <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>  <span class="c1"># filename</span>
     <span class="n">resolution</span><span class="o">=</span><span class="mf">8.714e-05</span><span class="p">,</span>  <span class="c1"># pixel size in degrees</span>
-    <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># index for fits file</span>
     <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>  <span class="c1"># position in the sky</span>
     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">,</span>  <span class="c1"># Units of the input map</span>
 <span class="p">)</span>
@@ -312,7 +308,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 89.4MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 76.5MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -383,8 +379,11 @@ Instrument(1 array)
 │  array1  217  4.2 arcmin      0 m  [m2/f093]
 │
 └ bands:
-               center      width    η      NEP      NET_RJ     NET_CMB
+               center      width    η      NEP      NET_RJ     NET_CMB  \
    m2/f093  86.21 GHz  20.98 GHz  0.1  30 aW√s  1.142 mK√s  1.381 mK√s
+
+                    FWHM
+   m2/f093  9.133 arcsec
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -419,9 +418,9 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 139MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 162MB/s]
-Constructing atmosphere: 100%|██████████| 6/6 [00:07&lt;00:00,  1.18s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 128MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 132MB/s]
+Constructing atmosphere: 100%|██████████| 6/6 [00:06&lt;00:00,  1.13s/it]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -436,12 +435,15 @@ Simulation
 │ │  array1  217  4.2 arcmin      0 m  [m2/f093]
 │ │
 │ └ bands:
-│                center      width    η      NEP      NET_RJ     NET_CMB
+│                center      width    η      NEP      NET_RJ     NET_CMB  \
 │    m2/f093  86.21 GHz  20.98 GHz  0.1  30 aW√s  1.142 mK√s  1.381 mK√s
+│
+│                     FWHM
+│    m2/f093  9.133 arcsec
 ├ Site:
 │   region: green_bank
-│   location: 2202°3’15”N 4574°29’0”W
-│   altitude: 825 m
+│   location: 38°25’59.16”N 79°50’23.28”W
+│   altitude: 0.825 km
 │   seasonal: True
 │   diurnal: True
 ├ Plan:
@@ -450,7 +452,7 @@ Simulation
 │   sample_rate: 50 Hz
 │   center:
 │     ra: 10ʰ00ᵐ0.00ˢ
-│     dec: 10°0’0”
+│     dec: 10°00’0.00”
 │   scan_pattern: daisy
 │   scan_kwargs: {&#39;radius&#39;: 0.05, &#39;speed&#39;: 0.01}
 ├ Atmosphere(6 processes with 6 layers):
@@ -458,22 +460,21 @@ Simulation
 │ │   region: green_bank
 │ └ weather:
 │     region: green_bank
-│     altitude: 825 m
+│     altitude: 0.825 km
 │     time: Feb 10 01:09:59 -05:00
 │     pwv[mean, rms]: (8.097 mm, 242.9 um)
 └ ProjectedMap:
     shape[stokes, nu, t, y, x]: (1, 1, 1, 1000, 1000)
     stokes: [&#39;I&#39;]
     nu: [150.] GHz
-    t: [1.74353211e+09] s
+    t: [1.74374248e+09] s
     quantity: rayleigh_jeans_temperature
     units: K_RJ
-    width: 5.228 arcmin
-    height: 5.228 arcmin
     center:
       ra: 10ʰ00ᵐ0.00ˢ
-      dec: 10°0’0”
-    resolution: 313.7 marcsec
+      dec: 10°00’0.00”
+    size[y, x]: (5.228 arcmin, 5.228 arcmin)
+    resolution[y, x]: (313.7 marcsec, 313.7 marcsec)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -485,9 +486,8 @@ Simulation
 </pre></div></div>
 </div>
 </section>
-</section>
 <section id="Obtaining-time-ordered-data-(TODs)">
-<h1>Obtaining time-ordered data (TODs)<a class="headerlink" href="#Obtaining-time-ordered-data-(TODs)" title="Link to this heading">¶</a></h1>
+<h2>Obtaining time-ordered data (TODs)<a class="headerlink" href="#Obtaining-time-ordered-data-(TODs)" title="Link to this heading">¶</a></h2>
 <p>To acquire time-ordered data (TODs), you only need to run the script. The TOD object contains time stamps, coordinates (in RA and Dec), and the intensity of each scan for every detector. The intensity units are expressed in power can be converted to surface brightness temperature units: Kelvin Rayleigh-Jeans (Even if the input map is given in Jy/pixel. We convert the units under the hood).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
@@ -502,13 +502,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 30.58it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.88it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.09s/it, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:07&lt;00:00,  7.73s/it, band=m2/f093]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 29.15it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.91it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.14s/it, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:03&lt;00:00,  3.33s/it, band=m2/f093]
 Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=m2/f093]
 </pre></div></div>
 </div>
+</section>
 <section id="Useful-visualizations:">
 <h2>Useful visualizations:<a class="headerlink" href="#Useful-visualizations:" title="Link to this heading">¶</a></h2>
 <p>Now, let’s visualize the TODS. The figure shows the mean powerspectra and a time series of the observations.</p>
@@ -524,13 +525,12 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_14_0.png" src="../_images/tutorials_MUSTANG-2_cluster_14_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_13_0.png" src="../_images/tutorials_MUSTANG-2_cluster_13_0.png" />
 </div>
 </div>
-</section>
 </section>
 <section id="Mapping-the-TODs">
-<h1>Mapping the TODs<a class="headerlink" href="#Mapping-the-TODs" title="Link to this heading">¶</a></h1>
+<h2>Mapping the TODs<a class="headerlink" href="#Mapping-the-TODs" title="Link to this heading">¶</a></h2>
 <p>To transform the TODs into images, you’ll require a mapper. While there is an option to use your own mapper, we have also implemented one for your convenience. This built-in mapper follows a straightforward approach: it removes the common mode over all ArrayList (the atmosphere if you scan fast enough), then detrends and optionally Fourier filters the time-streams to remove any noise smaller than the resolution of the dish. Then, the mapper bins the TOD on the specified grid. Notably, the mapper
 is designed to effectively eliminate correlated atmospheric noise among different scans, thereby increasing SNR of the output map.</p>
 <p>An example of how to run the mapper on the TOD is as follows:</p>
@@ -568,12 +568,12 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-04-01 18:29:23.704 INFO: Ran mapper for band m2/f093 in 12.2 s.
+2025-04-04 04:55:32.966 INFO: Ran mapper for band m2/f093 in 12.3 s.
 </pre></div></div>
 </div>
 </section>
 <section id="Visualizing-the-maps">
-<h1>Visualizing the maps<a class="headerlink" href="#Visualizing-the-maps" title="Link to this heading">¶</a></h1>
+<h2>Visualizing the maps<a class="headerlink" href="#Visualizing-the-maps" title="Link to this heading">¶</a></h2>
 <p>As interesting as the detector setup, power spectra, and time series are, intuitively we think in the image plane. so let’s visualize it!</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
@@ -587,7 +587,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_18_0.png" src="../_images/tutorials_MUSTANG-2_cluster_18_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_17_0.png" src="../_images/tutorials_MUSTANG-2_cluster_17_0.png" />
 </div>
 </div>
 <p>You can also save the map to a fits file. Here, we recover the units in which the map was initially specified in.</p>
@@ -605,9 +605,10 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 characters or contains characters not allowed by the FITS standard; a HIERARCH card will be created. [astropy.io.fits.card]
-2025-04-01 18:29:24.352 WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 characters or contains characters not allowed by the FITS standard; a HIERARCH card will be created.
+2025-04-04 04:55:33.593 WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 characters or contains characters not allowed by the FITS standard; a HIERARCH card will be created.
 </pre></div></div>
 </div>
+</section>
 </section>
 
         </article>
@@ -669,14 +670,12 @@ WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 char
 <li><a class="reference internal" href="#Observing-strategy">Observing strategy</a></li>
 <li><a class="reference internal" href="#Define-instrument">Define instrument</a></li>
 <li><a class="reference internal" href="#Initialize-the-simulation">Initialize the simulation</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#Obtaining-time-ordered-data-(TODs)">Obtaining time-ordered data (TODs)</a><ul>
+<li><a class="reference internal" href="#Obtaining-time-ordered-data-(TODs)">Obtaining time-ordered data (TODs)</a></li>
 <li><a class="reference internal" href="#Useful-visualizations:">Useful visualizations:</a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#Mapping-the-TODs">Mapping the TODs</a></li>
 <li><a class="reference internal" href="#Visualizing-the-maps">Visualizing the maps</a></li>
+</ul>
+</li>
 </ul>
 
           </div>
