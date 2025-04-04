@@ -115,12 +115,11 @@ class Band:
             if nu is None:
                 raise ValueError(
                     f"Bad params (center, width) = ({center}, {width}) Hz; maria supports frequencies between "
-                    f"{qmin_nu.Hz:.01e} ({qmin_nu}) and {qmax_nu.Hz:.01e} ({qmax_nu})."
+                    f"{qmin_nu} and {qmax_nu}"
                 )
             else:
                 raise ValueError(
-                    f"Bad frequencies nu={nu} Hz; maria supports frequencies between "
-                    f"{qmin_nu.Hz:.01e} ({qmin_nu}) and {qmax_nu.Hz:.01e} ({qmax_nu})."
+                    f"Bad frequencies nu={Quantity(nu, 'Hz')}; maria supports frequencies between {qmin_nu} and {qmax_nu}"
                 )
 
         # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
@@ -151,8 +150,8 @@ class Band:
             NET_RJ = sensitivity
 
         if (NEP is None) and (NET_RJ is None) and (NET_CMB is None):
-            logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 1 uK_RJ√s.")
-            self.NET_RJ = 1e-6
+            logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 50 uK_RJ√s.")
+            self.NET_RJ = 50e-6
 
         else:
             if NEP is not None:

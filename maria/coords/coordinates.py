@@ -365,7 +365,10 @@ class Coordinates:
             frame=frame,
         )
 
-    def offsets(self, frame, center="auto", units="radians"):
+    def offsets(self, frame, center="auto", units="radians", compute: bool = False):
+        if compute:
+            return self.offsets(frame=frame, center=center, units=units, compute=False).compute()
+
         if isinstance(center, str):
             if center == "auto":
                 center = self.center(frame=frame)
@@ -376,18 +379,11 @@ class Coordinates:
         elif frame == "galactic":
             dx, dy = phi_theta_to_dx_dy(self.l, self.b, *center)
 
-        if units == "radians":
-            return dx, dy
-        elif units == "degrees":
-            return np.degrees(dx), np.degrees(dy)
-        elif units == "arcmin":
-            return 60 * np.degrees(dx), 60 * np.degrees(dy)
-        elif units == "arcsec":
-            return 3600 * np.degrees(dx), 3600 * np.degrees(dy)
+        return da.stack([dx, dy])
 
     def __repr__(self):
-        lon = self.earth_location.lon.rad
-        lat = self.earth_location.lat.rad
+        lon = self.earth_location.lon.deg
+        lat = self.earth_location.lat.deg
 
         date_string = arrow.get(np.mean(self.t)).to("utc").format(DEFAULT_TIME_FORMAT)
 

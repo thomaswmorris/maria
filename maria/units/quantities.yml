@@ -4,7 +4,6 @@ angle:
   short_name: theta
   math_name: \theta
   default_units: deg
-  base_unit_latex: \text{deg}
   min_prefix_power: -30
   max_prefix_power: 0
   dimensions:
@@ -31,6 +30,27 @@ angle:
       factor: 0.0002777777777777778
       natural: True
 
+solid_angle:
+  long_name: Solid angle
+  short_name: Omega
+  math_name: \Omega
+  default_units: sr
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    angle: 1
+  units:
+    sr:
+      long_name: steradian
+      math_name: \text{sr}
+      factor: 1.0
+      natural: True
+    deg^2:
+      long_name: square degree
+      math_name: \text{deg}^2
+      factor: 3.04617e-4
+      natural: False
+
 time:
   long_name: Time
   short_name: t
@@ -43,38 +63,38 @@ time:
     time: 1
   units:
     s:
-      long_name: Second
+      long_name: second
       math_name: \text{s}
       factor: 1.0
       natural: True
     min:
-      long_name: Minute
+      long_name: minute
       math_name: \text{min}
       factor: 60.
       natural: False
     hour:
-      long_name: Hour
+      long_name: hour
       math_name: \text{hour}
       factor: 3600.
       natural: False
     day:
-      long_name: Days
+      long_name: days
       math_name: \text{day}
       factor: 86400.
       natural: False
     week:
-      long_name: Week
+      long_name: week
       math_name: \text{week}
       factor: 604800.
       natural: False
     year:
-      long_name: Year
+      long_name: year
       math_name: \text{year}
       factor: 31556926.
       natural: False
 
 mass:
-  long_name: Mass
+  long_name: mass
   short_name: m
   math_name: m
   default_units: g
@@ -85,13 +105,13 @@ mass:
     mass: 1
   units:
     g:
-      long_name: Grams
+      long_name: grams
       math_name: \text{g}
       factor: 1.0
       natural: True
 
 length:
-  long_name: Length
+  long_name: length
   short_name: x
   math_name: x
   default_units: m
@@ -102,7 +122,7 @@ length:
     time: 1
   units:
     m:
-      long_name: Meters
+      long_name: meters
       math_name: \text{m}
       factor: 1.0
       natural: True
@@ -110,7 +130,7 @@ length:
 
 
 frequency:
-  long_name: Frequency
+  long_name: frequency
   short_name: nu
   math_name: \nu
   default_units: Hz
@@ -127,7 +147,7 @@ frequency:
       natural: True
 
 noise_equivalent_power:
-  long_name: Noise equivalent power
+  long_name: noise equivalent power
   short_name: NEP
   math_name: \text{NEP}
   default_units: W√s
@@ -145,7 +165,7 @@ noise_equivalent_power:
 
 
 noise_equivalent_temperature:
-  long_name: Noise equivalent temperature
+  long_name: noise equivalent temperature
   short_name: NET
   math_name: \text{NET}
   default_units: K√s
@@ -255,6 +275,27 @@ spectral_flux_density:
       factor: 1.0
       natural: True
 
+spectral_radiance:
+  long_name: Spectral radiance
+  short_name: L
+  math_name: L
+  default_units: Jy/sr
+  default_prefix: ""
+  dimensions:
+    mass: 1
+    time: -3
+    angle: -2
+  units:
+    W/sr/m^2/Hz:
+      long_name: watts per steradian per square meter per hertz
+      math_name: \text{Jy}/\text{sr}
+      factor: 1.0e-26
+      natural: True
+    Jy/sr:
+      long_name: janskies per steradian
+      math_name: \text{Jy}/\text{sr}
+      factor: 1.0
+      natural: True
 
 spectral_flux_density_per_pixel:
   long_name: Spectral flux density per pixel
@@ -265,7 +306,6 @@ spectral_flux_density_per_pixel:
   dimensions:
     mass: 1
     time: -3
-    angle: -2
   units:
     Jy/pixel:
       long_name: janskies per pixel

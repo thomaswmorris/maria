@@ -20,8 +20,8 @@ for q, q_config in QUANTITIES.items():
 UNITS = pd.DataFrame(units_entries).T
 UNITS["factor"] = UNITS["factor"].astype(float)
 
-prefixes_phrase = "|".join(PREFIXES.index)
-base_units_phrase = "|".join(UNITS.index.values)
+prefixes_phrase = r"|".join(PREFIXES.index)
+base_units_phrase = r"|".join(UNITS.index.values).replace("^", "\\^")
 units_pattern = re.compile(rf"^(?P<prefix>({prefixes_phrase}))(?P<base_unit>{base_units_phrase})$")  # noqa
 
 
@@ -60,7 +60,7 @@ class Quantity:
         abs_x = np.abs(x)
 
         if (abs_x > 0).any():
-            fid_x = np.nanquantile(np.where(abs_x > 0, abs_x, np.nan), q=0.95)
+            fid_x = 2 * np.nanquantile(np.where(abs_x > 0, abs_x, np.nan), q=0.95)
             unit_index = np.digitize(fid_x, [0, *natural_units.factor.values[1:], np.inf]) - 1
             unit = natural_units.iloc[unit_index]
 

@@ -12,6 +12,8 @@ from matplotlib.patches import Patch
 
 from ..array import Array, ArrayList, get_array_config  # noqa
 from ..band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
+from ..beam import compute_angular_fwhm
+from ..units import Quantity
 from ..utils import HEX_CODE_LIST, flatten_config, get_rotation_matrix_2d, read_yaml  # noqa
 
 here, this_filename = os.path.split(__file__)
@@ -273,8 +275,11 @@ class Instrument:
         #     self.units = "degrees"
 
     def __repr__(self):
+        band_summary = self.arrays.bands.summary()
+        band_summary.loc[:, "FWHM"] = [Quantity(self.dets(band=b.name).fwhm.mean(), "rad") for b in self.bands]
+
         arrays_repr = "\n".join([f"│  {s}" for s in str(self.arrays.summary().__repr__()).split("\n")])
-        bands_repr = "\n".join([f"   {s}" for s in str(self.arrays.bands.summary().__repr__()).split("\n")])
+        bands_repr = "\n".join([f"   {s}" for s in str(band_summary.__repr__()).split("\n")])
 
         s = f"""Instrument({len(self.arrays)} array{"s" if len(self.arrays) > 1 else ""})
 ├ arrays:

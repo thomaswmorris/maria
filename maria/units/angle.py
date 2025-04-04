@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import logging
+
 import numpy as np
+
+logger = logging.getLogger("maria")
 
 UNITS = {
     "radians": {"short_name": "rad", "factor": 1.0, "symbol": "rad"},
@@ -24,6 +28,12 @@ class Angle:
 
         if self.is_scalar and unwrap:
             raise ValueError()
+
+        # 3 April 2025
+        logger.warning(
+            "The Angle class is deprecated and will be removed in a future update. "
+            "Please refactor your code using the Quantity class (maria.units.Quantity)."
+        )
 
     def __getattr__(self, attr):
         radians = self.x if self.unwrap else (self.x + np.pi) % (2 * np.pi) - np.pi

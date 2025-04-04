@@ -606,7 +606,7 @@ class ArrayList:
         return np.concatenate([array.mask(**kwargs) for array in self.arrays], axis=0)
 
     def subset(self, **kwargs):
-        return ArrayList([array.subset(**kwargs).dets for array in self.arrays], bands=self.bands)
+        return ArrayList([array.subset(**kwargs).dets for array in self.arrays])
 
     def summary(self):
         return pd.concat([array.summary() for array in self.arrays], axis=1).T

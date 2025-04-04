@@ -76,7 +76,14 @@ def decompose(data, k: int = None):
     return a[:, mode_sort], b[mode_sort]
 
 
-def bspline_basis(x, spacing=60, order=3):
+def spline(x: float, y: float, spacing: float, order: int = 3):
+    # this has shape (n_basis, len(x))
+    B = bspline_basis(x, spacing=spacing, order=order)
+
+    A = B @ B.T
+
+
+def bspline_basis(x, spacing, order=3):
     k = np.arange(np.min(x), np.max(x), spacing)
     if not len(k) > 0:
         k = np.array([np.mean(x)])

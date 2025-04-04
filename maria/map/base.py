@@ -45,8 +45,8 @@ class Map:
             qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
             qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
             raise ValueError(
-                f"Bad frequencies nu={bad_freqs} Hz; maria supports frequencies between "
-                f"{qmin_nu.Hz:.0e} ({qmin_nu}) and {qmax_nu.Hz:.0e} ({qmax_nu})."
+                f"Bad frequencies nu={Quantity(bad_freqs, 'Hz')}; maria supports frequencies between "
+                f"{qmin_nu} and {qmax_nu}."
             )
 
         self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])

@@ -27,7 +27,7 @@ def brightness_temperature_to_rayleigh_jeans_temperature(T_b, nu, **kwargs):
 def rayleigh_jeans_temperature_to_radiant_flux(
     T_RJ,
     band,
-    spectrum,
+    spectrum=None,
     **kwargs,
 ):
     """
@@ -48,7 +48,7 @@ def rayleigh_jeans_temperature_to_radiant_flux(
     return T_RJ * k_B * integral
 
 
-def radiant_flux_to_rayleigh_jeans_temperature(P, band, spectrum, **kwargs):
+def radiant_flux_to_rayleigh_jeans_temperature(P, band, spectrum=None, **kwargs):
     """
     nu: frequency, in Hz
     passband: response to a Rayleigh-Jeans source
@@ -106,11 +106,11 @@ def dP_dT_CMB(band, spectrum, eps=1e-4, **kwargs):
     return (P_hi - P_lo) / eps
 
 
-def cmb_temperature_anisotropy_to_radiant_flux(T_b, band, spectrum, **kwargs):
+def cmb_temperature_anisotropy_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
     return T_b * dP_dT_CMB(band=band, spectrum=spectrum, **kwargs)
 
 
-def radiant_flux_to_cmb_temperature_anisotropy(P, band, spectrum, **kwargs):
+def radiant_flux_to_cmb_temperature_anisotropy(P, band, spectrum=None, **kwargs):
     return P / dP_dT_CMB(band=band, spectrum=spectrum, **kwargs)
 
 
@@ -166,3 +166,19 @@ def rayleigh_jeans_temperature_to_cmb_temperature_anisotropy(
 ):
     dP_dTCMB = cmb_temperature_anisotropy_to_radiant_flux_slope(band=band)
     return rayleigh_jeans_temperature_to_radiant_flux(T_RJ, band=band) / dP_dTCMB
+
+
+def spectral_radiance_to_spectral_flux_density_per_pixel(E: float, pixel_area: float, **kwargs):
+    """
+    E: Spectral flux density per area, in Jy/sr
+    pixel_area: pixel area, in steradians
+    """
+    return E * pixel_area
+
+
+def spectral_flux_density_per_pixel_to_spectral_radiance(E: float, pixel_area: float, **kwargs):
+    """
+    E: Spectral flux density per pixel, in Jy/pixel
+    pixel_area: pixel area, in steradians
+    """
+    return E / pixel_area

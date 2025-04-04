@@ -34,6 +34,8 @@ class ProjectedMap(Map):
         width: float = None,
         height: float = None,
         resolution: float = None,
+        x_res: float = None,
+        y_res: float = None,
         center: tuple[float, float] = (0.0, 0.0),
         frame: str = "ra_dec",
         degrees: bool = True,
@@ -52,29 +54,32 @@ class ProjectedMap(Map):
 
         self.units = units
 
-        if ((width is None) and (height is None)) and (resolution is None):
-            raise ValueError("You must pass at least one of ('width' and or 'height') or 'resolution'.")
+        if all(x is None for x in [width, height, resolution, x_res, y_res]):
+            raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'x_res', or 'y_res'.")
 
-        if resolution is not None:
+        if x_res is not None:
+            y_res = y_res or x_res
+        elif y_res is not None:
+            x_res = x_res or y_res
+        elif resolution is not None:
             if not resolution > 0:
                 raise ValueError("'resolution' must be positive.")
-            self.x_res = np.radians(resolution) if degrees else resolution
-            self.y_res = np.radians(resolution) if degrees else resolution
+            x_res = y_res = resolution
         else:
             if width is not None:
                 if not width > 0:
                     raise ValueError("'width' must be positive.")
-                width_radians = np.radians(width) if degrees else width
-                self.x_res = width_radians / self.n_x
+                x_res = width / self.n_x
                 if height is not None:
-                    height_radians = np.radians(height) if degrees else height
-                    self.y_res = height_radians / self.n_y
+                    y_res = height / self.n_y
                 else:
-                    self.y_res = self.x_res
+                    y_res = x_res
             else:
                 # here height must not be None
-                height_radians = np.radians(height) if degrees else height
-                self.x_res = self.y_res = height_radians / self.n_y
+                x_res = y_res = height / self.n_y
+
+        self.x_res = np.radians(x_res) if degrees else x_res
+        self.y_res = np.radians(y_res) if degrees else y_res
 
         if len(self.nu) != self.n_nu:
             raise ValueError(
@@ -132,12 +137,11 @@ class ProjectedMap(Map):
   t: {Quantity(self.t, "s")}
   quantity: {self.u["quantity"]}
   units: {self.units}
-  width: {Quantity(self.width, "rad")}
-  height: {Quantity(self.height, "rad")}
   center:
     {cphi_repr}
     {ctheta_repr}
-  resolution: {Quantity(self.x_res, "rad")}"""
+  size[y, x]: ({Quantity(self.height, "rad")}, {Quantity(self.width, "rad")})
+  resolution[y, x]: ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})"""
 
     def package(self):
         return copy.deepcopy(
@@ -151,7 +155,8 @@ class ProjectedMap(Map):
                 "center": np.degrees(self.center),
                 "frame": self.frame,
                 "units": self.units,
-                "resolution": np.degrees(self.resolution),
+                "x_res": np.degrees(self.x_res),
+                "y_res": np.degrees(self.y_res),
             }
         )
 
@@ -271,7 +276,7 @@ class ProjectedMap(Map):
         nu_index=None,
         t_index=None,
         stokes="I",
-        cmap="cmb",
+        cmap="CMRmap",
         rel_vmin=0.005,
         rel_vmax=0.995,
         subplot_size=3,

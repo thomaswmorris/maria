@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 
 import h5py
@@ -14,6 +15,8 @@ from .projected import ProjectedMap  # noqa
 
 here, this_filename = os.path.split(__file__)
 
+logger = logging.getLogger("maria")
+
 # from https://gist.github.com/zonca/6515744
 cmb_cmap = ListedColormap(
     np.loadtxt(f"{here}/../plotting/Planck_Parchment_RGB.txt") / 255.0,
@@ -22,46 +25,50 @@ cmb_cmap = ListedColormap(
 cmb_cmap.set_bad("white")
 mpl.colormaps.register(cmb_cmap)
 
+MAP_SIZE_KWARGS = ["width", "height", "x_res", "y_res", "resolution"]
+VALID_MAP_KWARGS = ["stokes", "nu", "t", "center", "frame", "units", *MAP_SIZE_KWARGS]
 
-VALID_MAP_KWARGS = ["stokes", "nu", "t", "center", "width", "height", "resolution", "frame", "units"]
 
-
-def load(filename: str, **kwargs) -> Map:
-    if "nu" in kwargs:
-        kwargs["nu"] = kwargs["nu"]
-
-    format = filename.split(".")[-1]
+def load(filename: str, **map_kwargs) -> Map:
+    format = filename.split(".")[-1].lower()
     if format == "fits":
-        return read_fits(filename, **kwargs)
-    if format == "h5":
-        return read_hdf(filename, **kwargs)
+        data, metadata = read_fits(filename)
+    elif format == "h5":
+        data, metadata = read_hdf(filename)
     else:
         raise NotImplementedError(f"Unsupported filetype '.{format}'.")
 
+    # if there are any kwargs specifying the size of the map,
+    # then remove size kwargs from the read-in map's metadata.
+    size_kwargs = [k for k in map_kwargs if k in MAP_SIZE_KWARGS]
 
-def read_hdf(filename: str, **kwargs) -> Map:
+    if size_kwargs:
+        metadata = {k: v for k, v in metadata.items() if k not in MAP_SIZE_KWARGS}
+
+    metadata.update(map_kwargs)
+
+    logger.debug(f"Loading ProjectedMap with metadata {metadata}")
+
+    return ProjectedMap(data=data, degrees=True, **metadata)
+
+
+def read_hdf(filename: str):
     with h5py.File(filename, "r") as f:
         data = f["data"][:]
 
-        map_kwargs = {}
+        metadata = {}
         for field in VALID_MAP_KWARGS:
             if field in f.keys():
                 value = f[field][()]
-                map_kwargs[field] = value if not isinstance(value, bytes) else value.decode()
+                metadata[field] = value if not isinstance(value, bytes) else value.decode()
 
         if "weight" in f.keys():
-            map_kwargs["weight"] = f["weight"][:]
+            metadata["weight"] = f["weight"][:]
 
-    map_kwargs.update(kwargs)
-
-    return ProjectedMap(data=data, degrees=True, **map_kwargs)
+    return data, metadata
 
 
-def read_fits(
-    filename: str,
-    index: int = 0,
-    **map_kwargs,
-) -> Map:
+def read_fits(filename: str, index: int = 0) -> Map:
     if not os.path.exists(filename):
         raise FileNotFoundError(filename)
 
@@ -75,12 +82,13 @@ def read_fits(
 
     hdu = hdul[index]
 
-    map_data = hdu.data
-    if map_data.ndim < 2:
+    data = hdu.data
+    if data.ndim < 2:
         raise ValueError("Map should have at least 2 dimensions.")
 
+    metadata = {}
     for key in hdu.header.keys():
         if key.lower() in VALID_MAP_KWARGS:
-            map_kwargs[key.lower()] = hdu.header[key]
+            metadata[key.lower()] = hdu.header[key]
 
-    return ProjectedMap(data=map_data, degrees=True, **map_kwargs)
+    return data, metadata

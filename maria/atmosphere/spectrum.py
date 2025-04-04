@@ -60,7 +60,7 @@ class AtmosphericSpectrum:
         return Quantity(self.side_nu.max(), "Hz")
 
     def __repr__(self):
-        return f"""AtmosphereSpectrum({self.nu_min} - {self.nu_max}):
+        return f"""AtmosphericSpectrum({self.nu_min} - {self.nu_max}):
   region: {self.region}
   altitude: {Quantity(self.altitude, "m")}"""
 

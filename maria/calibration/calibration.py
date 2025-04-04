@@ -1,9 +1,11 @@
 import os
 
 import pandas as pd
+import yaml
 
 from ..atmosphere import AtmosphericSpectrum
-from ..units import parse_units
+from ..io import leftpad
+from ..units import QUANTITIES, Quantity, parse_units
 from .conversion import (
     brightness_temperature_to_radiant_flux,
     cmb_temperature_anisotropy_to_radiant_flux,
@@ -16,36 +18,43 @@ from .conversion import (
     rayleigh_jeans_temperature_to_radiant_flux,
     rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
     spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature,
+    spectral_flux_density_per_pixel_to_spectral_radiance,
+    spectral_radiance_to_spectral_flux_density_per_pixel,
 )
 
 here, this_filename = os.path.split(__file__)
 
-transition_dict = {}
-transition_dict["brightness_temperature"] = {"radiant_flux": brightness_temperature_to_radiant_flux}
+conversions = {}
+conversions["brightness_temperature"] = {"radiant_flux": {"f": brightness_temperature_to_radiant_flux, "linear": False}}
 
-transition_dict["radiant_flux"] = {
-    "rayleigh_jeans_temperature": radiant_flux_to_rayleigh_jeans_temperature,
-    "cmb_temperature_anisotropy": radiant_flux_to_cmb_temperature_anisotropy,
-    "brightness_temperature": radiant_flux_to_brightness_temperature,
+conversions["radiant_flux"] = {
+    "rayleigh_jeans_temperature": {"f": radiant_flux_to_rayleigh_jeans_temperature, "linear": True},
+    "cmb_temperature_anisotropy": {"f": radiant_flux_to_cmb_temperature_anisotropy, "linear": True},
+    "brightness_temperature": {"f": radiant_flux_to_brightness_temperature, "linear": False},
 }
-transition_dict["rayleigh_jeans_temperature"] = {
-    "radiant_flux": rayleigh_jeans_temperature_to_radiant_flux,
-    "cmb_temperature_anisotropy": rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
-    "spectral_flux_density_per_pixel": rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
-}
-
-transition_dict["cmb_temperature_anisotropy"] = {
-    "radiant_flux": cmb_temperature_anisotropy_to_radiant_flux,
-    "rayleigh_jeans_temperature": cmb_temperature_anisotropy_to_rayleigh_jeans_temperature,
+conversions["rayleigh_jeans_temperature"] = {
+    "radiant_flux": {"f": rayleigh_jeans_temperature_to_radiant_flux, "linear": True},
+    "cmb_temperature_anisotropy": {"f": rayleigh_jeans_temperature_to_cmb_temperature_anisotropy, "linear": False},
+    "spectral_flux_density_per_pixel": {"f": rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel, "linear": False},
 }
 
-transition_dict["spectral_flux_density_per_pixel"] = {
-    "rayleigh_jeans_temperature": spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature
+conversions["cmb_temperature_anisotropy"] = {
+    "radiant_flux": {"f": cmb_temperature_anisotropy_to_radiant_flux, "linear": True},
+    "rayleigh_jeans_temperature": {"f": cmb_temperature_anisotropy_to_rayleigh_jeans_temperature, "linear": False},
 }
 
-quantities = list(transition_dict.keys())
+conversions["spectral_flux_density_per_pixel"] = {
+    "rayleigh_jeans_temperature": {"f": spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature, "linear": False},
+    "spectral_radiance": {"f": spectral_flux_density_per_pixel_to_spectral_radiance, "linear": True},
+}
+
+conversions["spectral_radiance"] = {
+    "spectral_flux_density_per_pixel": {"f": spectral_radiance_to_spectral_flux_density_per_pixel, "linear": True},
+}
+
+quantities = list(conversions.keys())
 for q in quantities:
-    transition_dict[q][q] = identity
+    conversions[q][q] = identity
 
 
 walks_dict = {}
@@ -62,18 +71,17 @@ while any([paths_dict[q1][q2] == [] for q2 in quantities for q1 in quantities]) 
         extended_walks = []
         for walk in walks_dict[start_node]:
             for end_node in quantities:
-                if transition_dict.get(walk[-1], {}).get(end_node):
+                if conversions.get(walk[-1], {}).get(end_node):
                     extended_walk = [*walk, end_node]
                     extended_walks.append(extended_walk)
                     if not paths_dict[start_node][end_node]:
-                        function_path = [
-                            transition_dict[_q2][_q1] for _q1, _q2 in zip(extended_walk[:-1], extended_walk[1:])
-                        ]
-                        paths_dict[start_node][end_node] = function_path[::-1]
+                        function_path = [conversions[_q2][_q1] for _q1, _q2 in zip(extended_walk[:-1], extended_walk[1:])]
+                        # paths_dict[start_node][end_node] = function_path[::-1]
+                        paths_dict[start_node][end_node] = extended_walk[::-1]
         walks_dict[start_node] = extended_walks
     steps += 1
 
-function_chains = pd.DataFrame(paths_dict)
+calibration_chains = pd.DataFrame(paths_dict)
 
 
 def parse_calibration_signature(s: str):
@@ -87,6 +95,9 @@ def parse_calibration_signature(s: str):
                         res[io] = parse_units(u)
         return res
     raise ValueError("Calibration must have signature 'units1 -> units2'.")
+
+
+KWARGS_UNITS = {"nu": "Hz", "pixel_area": "sr", "zenith_pwv": "mm", "base_temperature": "K", "elevation": "rad"}
 
 
 class Calibration:
@@ -110,6 +121,24 @@ class Calibration:
             ]:
                 raise ValueError(f"Invalid kwarg '{key}'.")
 
+    def qchain(self):
+        try:
+            return calibration_chains.loc[self.in_quantity, self.out_quantity]
+        except KeyError:
+            raise ValueError(f"Cannot convert from {self.in_quantity} to {self.out_quantity}")
+
+    def uchain(self):
+        middle_terms = [QUANTITIES[q]["default_units"] for q in self.qchain()[1:-1]]
+        return " -> ".join([self.in_units, *middle_terms, self.out_units])
+
+    def function_chain(self):
+        qchain = self.qchain()
+        return [conversions[q1][q2]["f"] for q1, q2 in zip(qchain[:-1], qchain[1:])]
+
+    def linear(self):
+        qchain = self.qchain()
+        return all([conversions[q2][q1]["linear"] for q1, q2 in zip(qchain[:-1], qchain[1:])])
+
     def __call__(self, x) -> float:
         if self.config.loc["quantity", "in"] == self.config.loc["quantity", "out"]:
             return x * self.in_factor / self.out_factor
@@ -121,11 +150,13 @@ class Calibration:
 
         return y / self.out_factor
 
-    def function_chain(self):
-        try:
-            return function_chains.loc[self.in_quantity, self.out_quantity]
-        except KeyError:
-            raise ValueError(f"Cannot convert from {self.in_quantity} to {self.out_quantity}")
+    @property
+    def in_units(self) -> float:
+        return self.config.loc["units", "in"]
+
+    @property
+    def out_units(self) -> float:
+        return self.config.loc["units", "out"]
 
     @property
     def in_factor(self) -> float:
@@ -151,6 +182,29 @@ class Calibration:
     def K_RJ_to_out(self) -> float:
         return self.config.loc["to", "out"]
 
+    def leftpad(thing, n: int = 2, char=" "):
+        return "\n".join([n * char + line for line in str(thing).splitlines()])
+
     def __repr__(self):
-        stuffing = ", ".join([self.signature, *[f"{k}={v}" for k, v in self.kwargs.items()]])
-        return f"Calibration({stuffing})"
+        KWARGS_UNITS = {"nu": "Hz", "pixel_area": "sr", "zenith_pwv": "mm", "base_temperature": "K", "elevation": "rad"}
+
+        qkwargs = {}
+        for k, v in self.kwargs.items():
+            if k in ["spectrum", "band"]:
+                continue
+            qkwargs[k] = str(Quantity(v, KWARGS_UNITS[k]))
+
+        spectrum_string = self.kwargs.get("spectrum") or ""
+        kwargs_string = yaml.dump(qkwargs)
+
+        return f"""Calibration({self.signature}):
+  factor: {self(1e0) if self.linear() else "None (nonlinear)"}
+  chain: {self.uchain()}
+  kwargs:
+{leftpad(spectrum_string, n=4)}
+{leftpad(kwargs_string, n=4)}"""
+
+    # def __repr__(self):
+    #     filling = copy.deepcopy(self.kwargs.items())
+    #     fill_string = ", ".join([self.signature, *[f"{k}={v}" for k, v in self.kwargs.items()]])
+    #     return f"Calibration({stuffing})"

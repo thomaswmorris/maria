@@ -115,10 +115,11 @@ class BaseMapper:
             map_data[i, :] = band_map_numer / band_map_denom
             map_weight[i, :] = band_map_denom
 
-        map_offsets = np.nansum(map_data * map_weight, axis=(-1, -2)) / map_weight.sum(axis=(-1, -2))
+        # by convention maps have zero mean
+        map_offsets = np.nanmean(map_data, axis=(-1, -2))[..., None, None]
 
         return ProjectedMap(
-            data=map_data - map_offsets[..., None, None],
+            data=map_data - map_offsets,
             weight=map_weight,
             nu=map_freqs,
             resolution=self.resolution,
