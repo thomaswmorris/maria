@@ -39,6 +39,9 @@ def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
     *input_shape, n_dim = points.shape
     X = points.reshape(-1, n_dim)
 
+    # add jitter
+    X += 1e-12 * np.ptp(X, axis=-1).max() * np.random.standard_normal(size=X.shape)
+
     dim_mask = np.ptp(X, axis=tuple(range(X.ndim - 1))) > 0
     if not dim_mask.any():
         return 0.0

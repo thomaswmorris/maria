@@ -3,6 +3,13 @@ from __future__ import annotations
 import dask.array as da
 import numpy as np
 
+# def generate_power_law_fluctuations(
+#     t,
+#     n: int = 1,
+#     NEP: float = 1e0,
+#     beta: float = 1.0,
+# ):
+
 
 def generate_noise_with_knee(
     t,
@@ -10,6 +17,7 @@ def generate_noise_with_knee(
     NEP: float = 1e0,
     knee: float = 0,
     dask: bool = False,
+    beta: float = 1.0,
 ):
     """
     Simulate white noise for a given time and NEP.
@@ -27,7 +35,7 @@ def generate_noise_with_knee(
         f = np.fft.fftfreq(len(t), d=timestep)
         a = knee / 2
         with np.errstate(divide="ignore"):
-            pink_noise_power_spectrum = np.where(f != 0, a / np.abs(f), 0)
+            pink_noise_power_spectrum = np.where(f != 0, a / (np.abs(f) ** beta), 0)
 
         weights = np.sqrt(2 * pink_noise_power_spectrum / timestep)
         noise += np.real(

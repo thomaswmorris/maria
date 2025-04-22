@@ -93,6 +93,28 @@ time:
       factor: 31556926.
       natural: False
 
+
+information:
+  long_name: Information
+  short_name: S
+  math_name: S
+  default_units: B
+  min_prefix_power: 0
+  max_prefix_power: 30
+  dimensions:
+    angle: 1
+  units:
+    b:
+      long_name: Bit
+      math_name: \text{bit}
+      factor: 1
+      natural: False
+    B:
+      long_name: Byte
+      math_name: \text{byte}
+      factor: 8
+      natural: True
+
 mass:
   long_name: mass
   short_name: m

@@ -67,4 +67,3 @@ def test_map_sim():
 
     output_map = mapper.run()
     output_map.plot()
-    output_map.to_fits("/tmp/test-output.fits")

@@ -1,6 +1,7 @@
 import copy
 import logging
 import os
+from typing import Callable
 
 import astropy as ap
 import h5py
@@ -9,10 +10,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 from astropy.io import fits
+from astropy.wcs import WCS
+from skimage.measure import block_reduce
 
 from ..coords import frames
 from ..units import Quantity, parse_units
-from ..utils import repr_phi_theta
+from ..utils import repr_phi_theta, unpack_implicit_slice
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -40,11 +43,12 @@ class ProjectedMap(Map):
         frame: str = "ra_dec",
         degrees: bool = True,
         units: str = "K_RJ",
+        dtype: type = np.float32,
     ):
         # give it five dimensions
         data = data * np.ones((1, 1, 1, 1, 1))
 
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units)
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units, dtype=dtype)
 
         self.center = Quantity(tuple(center), ("deg" if degrees else "rad")).rad
 
@@ -78,8 +82,13 @@ class ProjectedMap(Map):
                 # here height must not be None
                 x_res = y_res = height / self.n_y
 
-        self.x_res = np.radians(x_res) if degrees else x_res
+        self.x_res = np.radians(abs(x_res)) if degrees else x_res
         self.y_res = np.radians(y_res) if degrees else y_res
+
+        if self.x_res < 0:
+            raise ValueError()
+        if self.y_res < 0:
+            raise ValueError()
 
         if len(self.nu) != self.n_nu:
             raise ValueError(
@@ -94,23 +103,32 @@ class ProjectedMap(Map):
     def header(self):
         header = ap.io.fits.header.Header()
 
-        header["CDELT1"] = np.degrees(self.x_res)  # degrees
+        header["SIMPLE"] = "T / conforms to FITS standard"
+        header["BITPIX"] = "-32 / array data type"
+        header["NAXIS"] = 5
+        header["NAXIS1"] = self.n_y
+        header["NAXIS2"] = self.n_x
+        header["NAXIS3"] = self.n_t
+        header["NAXIS4"] = self.n_nu
+        header["NAXIS5"] = self.n_stokes
+
+        header["RESTFREQ"] = self.nu.mean()
+
+        header["CDELT1"] = -np.degrees(self.x_res)  # degrees
         header["CDELT2"] = np.degrees(self.y_res)  # degrees
 
         header["CRPIX1"] = self.data.shape[-1] // 2
         header["CRPIX2"] = self.data.shape[-2] // 2
-
-        header["RESOLUTION"] = np.degrees(self.resolution)
         header["FRAME"] = self.frame
-        header["UNITS"] = self.units
+        header["BUNITS"] = self.units
 
         # specify x center
-        header["CTYPE1"] = frames[self.frame]["phi"].upper()
+        header["CTYPE1"] = self.frame_data["phi"].upper()
         header["CRVAL1"] = np.degrees(self.center[0])
         header["CUNIT1"] = "deg     "
 
         # center y center
-        header["CTYPE2"] = frames[self.frame]["theta"].upper()
+        header["CTYPE2"] = self.frame_data["theta"].upper()
         header["CRVAL2"] = np.degrees(self.center[1])
         header["CUNIT2"] = "deg     "
 
@@ -123,6 +141,44 @@ class ProjectedMap(Map):
             return broadcasted_attr_values[broadcasted_attrs.index(attr)]
 
         raise AttributeError(f"'ProjectedMap' object has no attribute '{attr}'")
+
+    def __getitem__(self, key):
+        if isinstance(key, tuple):
+            package = self.to("K_RJ").package()
+            package["data"] = package["data"][key]
+            package["weight"] = package["weight"][key]
+
+            stokes_slice, nu_slice, t_slice, y_slice, x_slice = unpack_implicit_slice(key)
+
+            package["stokes"] = package["stokes"][stokes_slice]
+            package["nu"] = package["nu"][nu_slice]
+            package["t"] = package["t"][t_slice]
+            package["x_res"] *= x_slice.step or 1
+            package["y_res"] *= y_slice.step or 1
+
+            return ProjectedMap(**package).to(self.units)
+
+    def downsample(self, reduce: tuple, func: Callable = np.mean):
+        if reduce:
+            if len(reduce) != 4:
+                raise ValueError("'reduce' must be a four-tuple of ints (nu, t, y, x)")
+
+            package = self.to("K_RJ").package()
+            package["data"] = block_reduce(package["data"].compute(), block_size=(1, *reduce), func=func)
+            package["weight"] = block_reduce(package["weight"].compute(), block_size=(1, *reduce), func=func)
+
+            *_, new_n_y, new_n_x = package["data"].shape
+
+            package["nu"] = block_reduce(package["nu"], block_size=reduce[0])
+            package["t"] = block_reduce(package["t"], block_size=reduce[1])
+            package["x_res"] *= self.n_x / new_n_x
+            package["y_res"] *= self.n_y / new_n_y
+
+            return ProjectedMap(**package).to(self.units)
+
+    @property
+    def frame_data(self):
+        return frames[self.frame]
 
     @property
     def points(self):
@@ -137,11 +193,14 @@ class ProjectedMap(Map):
   t: {Quantity(self.t, "s")}
   quantity: {self.u["quantity"]}
   units: {self.units}
+    min: {np.nanmin(self.data).compute():.03e}
+    max: {np.nanmax(self.data).compute():.03e}
   center:
     {cphi_repr}
     {ctheta_repr}
   size[y, x]: ({Quantity(self.height, "rad")}, {Quantity(self.width, "rad")})
-  resolution[y, x]: ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})"""
+  resolution[y, x]: ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})
+  memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
 
     def package(self):
         return copy.deepcopy(
@@ -227,51 +286,91 @@ class ProjectedMap(Map):
                 units=self.units,
             )
 
-    def downsample(self, n_x=None, n_y=None):
-        """
-        TODO: implement t and nu downsampling
-        """
-
-        data = self.to("K_RJ").data
-
-        new_n_nu = self.n_nu
-        new_n_t = self.n_t
-        new_n_y = n_y or self.n_y
-        new_n_x = n_x or self.n_x
-
-        # new_nu_bins = np.linspace(self.nu_bins.min(), self.nu_bins.max(), new_n_nu + 1)
-        # new_t_bins = np.linspace(self.t_bins.min(), self.t_bins.max(), new_n_t + 1)
-        new_y_bins = np.linspace(self.y_bins.min(), self.y_bins.max(), new_n_y + 1)
-        new_x_bins = np.linspace(self.x_bins.min(), self.x_bins.max(), new_n_x + 1)
-        bins_tuple = (new_y_bins, new_x_bins)
-
-        new_data = np.zeros((len(self.stokes), new_n_nu, new_n_t, new_n_y, new_n_x))
-
-        for stokes_index, stokes in enumerate(self.stokes):
-            for nu_index, nu in enumerate(self.nu):
-                for t_index, t in enumerate(self.nu):
-                    bs = sp.stats.binned_statistic_dd(
-                        sample=self.points.reshape(-1, 2),
-                        values=data[stokes_index, nu_index, t_index].reshape(-1),
-                        bins=bins_tuple,
-                        statistic="mean",
-                    )
-
-                    new_data[stokes_index, nu_index, t_index] = bs.statistic
-
-        return ProjectedMap(
-            data=new_data,
-            t=self.t,
-            nu=self.nu,
-            width=self.width,
-            height=self.height,
-            center=self.center,
-            frame=self.frame,
-            degrees=False,
-            units="K_RJ",
-        ).to(units=self.units)
-
     def plot(
+        self,
+        nu_index: int = 0,
+        t_index: int = 0,
+        stokes: str = "I",
+        cmap: str = "CMRmap",
+        rel_vmin: float = 0.005,
+        rel_vmax: float = 0.995,
+        filepath: str = None,
+    ):
+        stokes_index = self.stokes.index(stokes)
+
+        map_qdata = Quantity(self.data.compute(), units=self.units)
+
+        d = map_qdata.value.ravel()
+        w = self.weight.ravel()
+        subset = np.random.choice(d.size, size=10000)
+        vmin, vmax = np.nanquantile(
+            d[subset],
+            weights=w[subset].compute(),
+            q=[rel_vmin, rel_vmax],
+            method="inverted_cdf",
+        )
+
+        X = np.r_[self.x_bins, self.y_bins]
+        grid_u = Quantity(X, "rad").u
+        grid_center = Quantity(self.center, "rad")
+
+        x = Quantity(self.x_bins, "rad")
+        y = Quantity(self.y_bins, "rad")
+
+        header = fits.header.Header()
+        header["CDELT1"] = -grid_u["factor"]
+        header["CDELT2"] = grid_u["factor"]
+        header["CTYPE1"] = "RA---SIN"
+        header["CUNIT1"] = "deg     "
+        header["CTYPE2"] = "DEC--SIN"
+        header["CUNIT2"] = "deg     "
+        header["RADESYS"] = "FK5     "
+        header["CRVAL1"] = grid_center.deg[0]
+        header["CRVAL2"] = grid_center.deg[1]
+
+        fig = plt.figure(figsize=(6, 6), dpi=256, constrained_layout=True)
+        ax = fig.add_subplot(projection=WCS(header))
+
+        ax.pcolormesh(
+            getattr(x, grid_u["units"]),
+            getattr(y, grid_u["units"]),
+            map_qdata.value[stokes_index, nu_index, t_index],
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+        )
+
+        ax.grid(color="white", ls="solid", lw=5e-1)
+
+        dummy_map = mpl.cm.ScalarMappable(
+            mpl.colors.Normalize(vmin=vmin, vmax=vmax),
+            cmap=cmap,
+        )
+
+        cbar = fig.colorbar(
+            dummy_map,
+            ax=ax,
+            shrink=0.75,
+            aspect=16,
+            location="right",
+        )
+
+        qnu = Quantity(self.nu[nu_index], "Hz")
+        cbar.set_label(rf"{map_qdata.q['long_name']} at {qnu} [${map_qdata.u['math_name']}$]")
+        ax.tick_params(axis="x", bottom=True, top=False)
+        ax.tick_params(axis="y", left=True, right=False, rotation=90)
+        ax2 = ax.secondary_xaxis("top")
+        ay2 = ax.secondary_yaxis("right")
+        ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
+        ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
+        ax2.set_xlabel(rf"$\Delta\,\theta_x$ [${x.u['math_name']}$]")
+        ay2.set_ylabel(rf"$\Delta\,\theta_y$ [${y.u['math_name']}$]")
+        ax.set_aspect("equal")
+
+        if filepath is not None:
+            plt.savefig(filepath=filepath, dpi=256)
+
+    def plot_many(
         self,
         nu_index=None,
         t_index=None,
@@ -410,6 +509,9 @@ class ProjectedMap(Map):
             plt.savefig(filepath=filepath, dpi=256)
 
     def to_fits(self, filepath):
+        if self.n_nu > 1:
+            raise RuntimeError("Cannot write multifrequency maps to FITS")
+
         m = self.to(self.u["base_unit"])
         header = self.header
         header["UNITS"] = m.units
@@ -421,16 +523,17 @@ class ProjectedMap(Map):
             overwrite=True,
         )
 
-    def to_hdf(self, filename):
+    def to_hdf(self, filename: str, compress: bool = True):
+        compression_kwargs = {"compression": "gzip", "compression_opts": 9} if compress else {}
+
         with h5py.File(filename, "w") as f:
-            f.create_dataset("data", dtype=float, data=self.data)
-
-            if self._weight is not None:
-                f.create_dataset("weight", dtype=float, data=self._weight)
-
+            f.create_dataset("data", dtype=np.float32, data=self.data, **compression_kwargs)
+            if not (self.weight == 1).all().compute():
+                f.create_dataset("weight", dtype=np.float32, data=self.weight, **compression_kwargs)
             f.create_dataset("nu", dtype=float, data=self.nu)
             f.create_dataset("t", dtype=float, data=self.t)
             f.create_dataset("center", dtype=float, data=np.degrees(self.center))
-            f.create_dataset("resolution", dtype=float, data=np.degrees(self.resolution))
+            f.create_dataset("x_res", dtype=float, data=np.degrees(self.x_res))
+            f.create_dataset("y_res", dtype=float, data=np.degrees(self.y_res))
             f.create_dataset("units", data=self.units)
             f.create_dataset("frame", data=self.frame)

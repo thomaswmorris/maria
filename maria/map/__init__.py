@@ -6,6 +6,7 @@ import os
 import h5py
 import matplotlib as mpl
 import numpy as np
+import pandas as pd
 from astropy.io import fits
 from matplotlib.colors import ListedColormap
 
@@ -17,6 +18,9 @@ here, this_filename = os.path.split(__file__)
 
 logger = logging.getLogger("maria")
 
+MAPS = pd.read_csv(f"{here}/maps.csv", index_col=0)
+all_maps = list(MAPS.filename.values)
+
 # from https://gist.github.com/zonca/6515744
 cmb_cmap = ListedColormap(
     np.loadtxt(f"{here}/../plotting/Planck_Parchment_RGB.txt") / 255.0,
@@ -27,6 +31,14 @@ mpl.colormaps.register(cmb_cmap)
 
 MAP_SIZE_KWARGS = ["width", "height", "x_res", "y_res", "resolution"]
 VALID_MAP_KWARGS = ["stokes", "nu", "t", "center", "frame", "units", *MAP_SIZE_KWARGS]
+
+FITS_KEYWORD_MAPPING = {
+    "frame": ["FRAME"],
+    "x_res": ["CDELT1"],
+    "y_res": ["CDELT2"],
+    "units": ["BUNIT"],
+    "nu": ["RESTFREQ"],
+}
 
 
 def load(filename: str, **map_kwargs) -> Map:
@@ -87,8 +99,11 @@ def read_fits(filename: str, index: int = 0) -> Map:
         raise ValueError("Map should have at least 2 dimensions.")
 
     metadata = {}
-    for key in hdu.header.keys():
-        if key.lower() in VALID_MAP_KWARGS:
-            metadata[key.lower()] = hdu.header[key]
+    for fits_key in hdu.header.keys():
+        for maria_key in FITS_KEYWORD_MAPPING:
+            for mapped_key in FITS_KEYWORD_MAPPING[maria_key]:
+                if mapped_key == fits_key:
+                    logger.debug(f'Using FITS keyword "{fits_key}" for metadata key "{maria_key}"')
+                    metadata[maria_key] = hdu.header[fits_key]
 
     return data, metadata

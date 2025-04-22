@@ -7,49 +7,26 @@ import pytest
 import maria
 from maria.instrument import Band
 from maria.io import fetch
+from maria.map import all_maps
 from maria.mappers import BinMapper
 
 plt.close("all")
 
 
 @pytest.mark.parametrize(
-    "map_name",
-    ["maps/cluster.fits", "maps/big_cluster.h5", "maps/galaxy.fits"],
+    "map_path",
+    all_maps,
 )  # noqa
-def test_fetch_fits_map(map_name):
-    map_filename = fetch(map_name)
-    m = maria.map.load(
-        filename=map_filename,
-        nu=90e9,
-        resolution=1 / 1024,
-        center=(150, 10),
-        units="Jy/pixel",
-    )
+def test_maps(map_path):
+    m = maria.map.load(fetch(map_path))
+    assert np.allclose(m.to("K_RJ").to("Jy/pixel").to(m.units).data, m.data).compute()
 
-    m.plot()
+    m.to("cK_RJ").to_hdf("/tmp/test.h5")
+    new_m = maria.map.load("/tmp/test.h5").to(m.units)  # noqa
 
+    assert np.allclose(new_m.data, m.data)
+    assert np.allclose(new_m.resolution, m.resolution)
 
-@pytest.mark.parametrize(
-    "map_name",
-    ["maps/cluster.fits", "maps/big_cluster.h5", "maps/galaxy.fits"],
-)  # noqa
-def test_map_units_conversion(map_name):
-    map_filename = fetch(map_name)
-    m = maria.map.load(
-        filename=map_filename,
-        nu=90e9,
-        resolution=1 / 1024,
-        center=(150, 10),
-        units="Jy/pixel",
-    )
-
-    assert np.allclose(m.to("K_RJ").to("Jy/pixel").data, m.data).compute()
-
-
-@pytest.mark.parametrize("map_name", ["maps/sun.h5"])  # noqa
-def test_fetch_hdf_map(map_name):
-    map_filename = fetch(map_name)
-    m = maria.map.load(filename=map_filename, nu=100e9)
     m.plot()
 
 
@@ -125,19 +102,3 @@ def test_time_ordered_map_sim():
     sim = maria.Simulation(plan=plan, map=input_map)
     tod = sim.run()
     tod.to("K_RJ").plot()
-
-
-@pytest.mark.parametrize("filename", ["big_cluster.h5", "cluster.fits", "tarantula_nebula.h5", "whirlpool_galaxy.h5"])
-def test_maps_io(filename):
-    map_filename = fetch(f"maps/{filename}")
-    m = maria.map.load(filename=map_filename, width=1e0, units="K_RJ")
-
-    m.to("cK_RJ").to_fits("/tmp/test.fits")
-
-    new_m = maria.map.load("/tmp/test.fits").to("MK_RJ")
-    new_m.to_hdf("/tmp/test.h5")
-
-    new_new_m = maria.map.load("/tmp/test.h5").to("K_RJ")  # noqa
-
-    assert np.allclose(new_new_m.data, m.data)
-    assert np.allclose(new_new_m.resolution, m.resolution)

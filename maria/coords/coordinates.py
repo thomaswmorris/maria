@@ -30,6 +30,7 @@ logger = logging.getLogger("maria")
 
 frames = {
     "az_el": {
+        "name": "az_el",
         "astropy_name": "altaz",
         "astropy_phi": "az",
         "astropy_theta": "alt",
@@ -41,6 +42,7 @@ frames = {
         "theta_long_name": "Elevation",
     },
     "ra_dec": {
+        "name": "ra_dec",
         "astropy_name": "icrs",
         "astropy_phi": "ra",
         "astropy_theta": "dec",
@@ -48,10 +50,11 @@ frames = {
         "theta": "dec",
         "phi_short_name": "RA.",
         "theta_short_name": "Dec.",
-        "phi_long_name": "Right Ascension",
-        "theta_long_name": "Declination",
+        "phi_long_name": "Right ascension (J2000)",
+        "theta_long_name": "Declination (J2000)",
     },
     "galactic": {
+        "name": "galactic",
         "astropy_name": "galactic",
         "astropy_phi": "l",
         "astropy_theta": "b",
@@ -59,8 +62,8 @@ frames = {
         "theta": "b",
         "phi_short_name": "Gal. Lon.",
         "theta_short_name": "Gal. Lat.",
-        "phi_long_name": "Galactic Longitude",
-        "theta_long_name": "Galactic Latitude",
+        "phi_long_name": "Galactic longitude",
+        "theta_long_name": "Galactic latitude",
     },
 }
 

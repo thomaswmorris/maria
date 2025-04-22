@@ -27,14 +27,15 @@ class Map:
     def __init__(
         self,
         data: float,
-        weight: float | None,
+        weight: float,
         stokes: Iterable[str],
         nu: list[float],
         t: list[float],
         units: str = "K_RJ",
+        dtype: type = np.float32,
     ):
-        self.data = da.asarray(data)
-        self._weight = da.asarray(weight) if weight is not None else weight
+        self.data = da.asarray(data).astype(dtype)
+        self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
 
         self.stokes = [param.upper() for param in stokes] if stokes is not None else ["I"]
 
@@ -99,9 +100,9 @@ class Map:
     def u(self):
         return parse_units(self.units)
 
-    @property
-    def weight(self):
-        return self._weight if self._weight is not None else da.ones(shape=self.data.shape)
+    # @property
+    # def weight(self):
+    #     return self._weight if self._weight is not None else da.ones(shape=self.data.shape)
 
     @property
     def n_stokes(self):

@@ -11,7 +11,7 @@ A map is represented by a ``Map`` object. We can load some pre-defined ones with
 
     import maria
 
-    map_filename = maria.io.fetch("maps/big_cluster.h5")
+    map_filename = maria.io.fetch("maps/einstein.h5")
 
     input_map = maria.map.load(filename=map_filename,
                                nu=150e9, # in Hz

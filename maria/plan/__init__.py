@@ -7,16 +7,19 @@ from pathlib import Path
 from typing import Union
 
 import arrow
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
 from arrow import Arrow
+from astropy.io import fits
+from astropy.wcs import WCS
+from matplotlib import pyplot as plt
 
 from .. import coords
+from ..coords import frames
 from ..io import DEFAULT_TIME_FORMAT
 from ..units import Quantity
-from ..utils import read_yaml, repr_dms, repr_hms, repr_phi_theta
+from ..utils import compute_diameter, read_yaml, repr_phi_theta
 from .patterns import get_scan_pattern_generator, scan_patterns
 
 here, this_filename = os.path.split(__file__)
@@ -192,20 +195,47 @@ class Plan:
         else:
             raise ValueError("Not a valid pointing frame!")
 
-    def plot(self):
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=256)
+    @property
+    def frame_data(self):
+        return frames[self.frame]
 
+    def plot(self):
         q_offsets = Quantity(self.scan_offsets, units="rad")
 
         frame = coords.frames[self.frame]
+        header = fits.header.Header()
+        header["CDELT1"] = -q_offsets.u["factor"]
+        header["CDELT2"] = q_offsets.u["factor"]
+        header["CTYPE1"] = "RA---SIN"
+        header["CUNIT1"] = "deg     "
+        header["CTYPE2"] = "DEC--SIN"
+        header["CUNIT2"] = "deg     "
+        header["RADESYS"] = "FK5     "
+        header["CRVAL1"] = self.scan_center.deg[0]
+        header["CRVAL2"] = self.scan_center.deg[1]
+
+        wcs = WCS(header)
+
+        fig = plt.figure(figsize=(5, 5), dpi=256, constrained_layout=True)
+        ax = fig.add_subplot(projection=wcs)
 
         cphi_repr, ctheta_repr = repr_phi_theta(*self.scan_center.rad, frame=self.frame)
 
         ax.plot(*q_offsets.value, lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=f"{cphi_repr}\n{ctheta_repr}")
-        ax.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.u['math_name']}$]")
-        ax.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.u['math_name']}$]")
+
         ax.legend(loc="upper right")
+
+        ax.set_aspect("equal")
+
+        ax.tick_params(axis="x", bottom=True, top=False)
+        ax.tick_params(axis="y", left=True, right=False, rotation=90)
+        ax2 = ax.secondary_xaxis("top")
+        ay2 = ax.secondary_yaxis("right")
+        ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.u['math_name']}$]")
+        ay2.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.u['math_name']}$]")
+        ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
+        ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
 
     def map_counts(self, instrument=None, x_bins=100, y_bins=100):
         array_offsets = np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
@@ -255,4 +285,5 @@ class Plan:
     {cphi_repr}
     {ctheta_repr}
   scan_pattern: {self.scan_pattern}
+  scan_radius: {Quantity(compute_diameter(self.scan_offsets.T), "rad")}
   scan_kwargs: {self.scan_options}"""

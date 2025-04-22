@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from itertools import cycle
 
 import matplotlib as mpl
@@ -19,7 +20,7 @@ from ..utils.signal import remove_slope
 def tod_plot(
     tod,
     detrend: bool = True,
-    n_freq_bins: int = 256,
+    n_freq_bins: int = 1024,
     max_dets: int = 100,
     lw: float = 1e0,
     fontsize: float = 8,
@@ -28,7 +29,7 @@ def tod_plot(
         ncols=2,
         nrows=len(tod.fields),
         sharex="col",
-        figsize=(8, 4),
+        figsize=(10, 4),
         dpi=256,
     )
     axes = np.atleast_2d(axes)
@@ -43,12 +44,15 @@ def tod_plot(
     handles = []
     colors = cycle(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
-    for i, field in enumerate(tod.fields):
+    tod_ubands = np.unique(tod.dets.band_name)
+    power_spectra = np.zeros((len(tod_ubands), len(tod.fields), n_freq_bins - 1))
+
+    for field_index, field in enumerate(tod.fields):
         data = tod.data[field]
 
-        tod_ax = axes[i, 0]
+        tod_ax = axes[field_index, 0]
 
-        for band_name in np.unique(tod.dets.band_name):
+        for band_index, band_name in enumerate(tod_ubands):
             color = next(colors)
 
             band_mask = tod.dets.band_name == band_name
@@ -72,6 +76,8 @@ def tod_plot(
                 statistic="mean",
             )[0]
 
+            power_spectra[band_index, field_index] = binned_ps
+
             use = binned_ps > 0
 
             ps_ax.plot(
@@ -91,15 +97,6 @@ def tod_plot(
 
         tod_ax.set_xlim(tod.time.min(), tod.time.max())
 
-        # if tod.units == "K_RJ":
-        #     ylabel = f"{field} [K]"
-        # elif tod.units == "K_CMB":
-        #     ylabel = rf"{field} [K]"
-        # elif tod.units == "pW":
-        #     ylabel = f"{field} [pW]"
-
-        # tod_ax.set_ylabel(tod.units)
-
         label = tod_ax.text(
             0.01,
             0.99,
@@ -111,9 +108,6 @@ def tod_plot(
         )
         label.set_bbox(dict(facecolor="white", alpha=0.8))
 
-        # if i + 1 < n_fields:
-        # tod_ax.set_xticklabels([])
-
     tod_ax.set_xlabel("Time [s]", fontsize=fontsize)
 
     ps_ax.yaxis.tick_right()
@@ -123,6 +117,13 @@ def tod_plot(
     ps_ax.legend(handles=handles, loc="upper right", fontsize=fontsize)
     ps_ax.loglog()
     ps_ax.set_xlim(f_mids.min(), f_mids.max())
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        minimum_dominant_ps = np.nanmin(np.nanmax(power_spectra, axis=1))
+        minimum_maximum_ps = np.nanmin(np.nanmax(power_spectra, axis=2))
+
+    ps_ax.set_ylim(1e-1 * np.minimum(minimum_dominant_ps, minimum_maximum_ps))
 
 
 def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=None):

@@ -132,7 +132,7 @@ class Site:
             height=self.altitude,
         )
 
-    def plot(self, res=0.025):
+    def plot(self, res=0.03, wide_size: float = 45, zoom_size: float = 2):
         height_map = get_height_map()
 
         kwargs = {
@@ -147,12 +147,12 @@ class Site:
 
         zoom_map = hp.gnomview(
             height_map,
-            xsize=4 / res,
+            xsize=zoom_size / res,
             **kwargs,
         )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
         wide_map = hp.gnomview(
             height_map,
-            xsize=60 / res,
+            xsize=wide_size / res,
             **kwargs,
         )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
 
@@ -165,20 +165,25 @@ class Site:
         cmap = mpl.cm.gist_earth
         cmap.set_bad("royalblue", 1.0)
 
-        axes[0].imshow(
-            wide_map[::-1],
+        wide_mesh = axes[0].pcolormesh(
+            wide_size * np.linspace(-0.5, 0.5, int(wide_size / res)),
+            wide_size * np.linspace(-0.5, 0.5, int(wide_size / res)),
+            wide_map,
             cmap=cmap,
-            interpolation="none",
             vmax=wide_vmax,
-            extent=[-1, 1, -1, 1],
         )
-        axes[1].imshow(
-            zoom_map[::-1],
+        cbar = fig.colorbar(wide_mesh, ax=axes[0], location="bottom", shrink=0.8, label="height")
+        cbar.set_label("height [m]")
+
+        zoom_mesh = axes[1].pcolormesh(
+            zoom_size * np.linspace(-0.5, 0.5, int(zoom_size / res)),
+            zoom_size * np.linspace(-0.5, 0.5, int(zoom_size / res)),
+            zoom_map,
             cmap=cmap,
-            interpolation="none",
             vmax=zoom_vmax,
-            extent=[-1, 1, -1, 1],
         )
+        cbar = fig.colorbar(zoom_mesh, ax=axes[1], location="bottom", shrink=0.8, label="height")
+        cbar.set_label("height [m]")
 
         for ax in axes:
             # ax.scatter(0, 0, color="gray", alpha=0.8, s=256)
@@ -187,13 +192,6 @@ class Site:
             ax.set_yticks([])
             ax.set_facecolor("gray")
             ax.set_rasterized(True)
-            cbar = fig.colorbar(
-                ax.get_images()[0],
-                ax=ax,
-                location="bottom",
-                shrink=0.8,
-            )
-            cbar.set_label("height [m]")
 
     def __repr__(self):
         s = f"""Site:
