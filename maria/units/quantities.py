@@ -57,7 +57,7 @@ class Quantity:
         self.q = QUANTITIES[u["quantity"]]
         natural_units = UNITS.loc[(UNITS.quantity == u["quantity"]) & (UNITS.natural)].sort_values("factor")
 
-        abs_x = np.abs(x)
+        abs_x = np.minimum(np.abs(x), 1e100)
 
         if (abs_x > 0).any():
             fid_x = 2 * np.nanquantile(np.where(abs_x > 0, abs_x, np.nan), q=0.95)

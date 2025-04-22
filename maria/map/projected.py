@@ -277,7 +277,6 @@ class ProjectedMap(Map):
                 data=data,
                 weight=self.weight,
                 width=self.width,
-                height=self.height,
                 t=self.t,
                 nu=self.nu,
                 center=self.center,
@@ -320,6 +319,8 @@ class ProjectedMap(Map):
         header = fits.header.Header()
         header["CDELT1"] = -grid_u["factor"]
         header["CDELT2"] = grid_u["factor"]
+        header["CRPIX1"] = 1
+        header["CRPIX2"] = 1
         header["CTYPE1"] = "RA---SIN"
         header["CUNIT1"] = "deg     "
         header["CTYPE2"] = "DEC--SIN"

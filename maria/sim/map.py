@@ -12,6 +12,7 @@ from tqdm import tqdm
 from ..beam import compute_angular_fwhm
 from ..constants import k_B
 from ..io import humanize_time
+from ..units import Quantity
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -56,6 +57,9 @@ class MapMixin:
             for nu_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
                 # TODO: skip if the band can't see the map nu bin
 
+                qnu_min = Quantity(nu_min, 'Hz')
+                qnu_max = Quantity(nu_max, 'Hz')
+
                 spectrum_kwargs = (
                     {
                         "spectrum": self.atmosphere.spectrum,
@@ -68,6 +72,9 @@ class MapMixin:
                 )
 
                 sample_integral = band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
+                # channel_gain = 1e12 * k_B * sample_integral
+
+                # logger.debug(f"Map bandwidth ({qnu_min} - {qnu_max}) has gain {channel_gain:.02e} pW/K_RJ")
 
                 if len(self.map.t) > 1:
                     sample_T_RJ = sp.interpolate.RegularGridInterpolator(
@@ -106,8 +113,12 @@ class MapMixin:
                     # print(b - a)
                     # print(c - b)
 
-                if (sample_T_RJ == 0).all():
+                rms_T_RJ = sample_T_RJ.std()
+
+                if rms_T_RJ == 0:
                     logger.warning("No power from map!")
+
+                logger.debug(f"Sampled temperature map has rms {rms_T_RJ}")
 
                 # 1e12 because it's in picowatts
                 self.loading["map"][band_mask] += 1e12 * k_B * sample_integral * sample_T_RJ

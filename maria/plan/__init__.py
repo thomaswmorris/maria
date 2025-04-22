@@ -206,6 +206,8 @@ class Plan:
         header = fits.header.Header()
         header["CDELT1"] = -q_offsets.u["factor"]
         header["CDELT2"] = q_offsets.u["factor"]
+        header["CRPIX1"] = 1
+        header["CRPIX2"] = 1
         header["CTYPE1"] = "RA---SIN"
         header["CUNIT1"] = "deg     "
         header["CTYPE2"] = "DEC--SIN"
