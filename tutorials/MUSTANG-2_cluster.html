@@ -308,7 +308,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 76.5MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 179MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -418,12 +418,12 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 128MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 132MB/s]
-Constructing atmosphere: 100%|██████████| 6/6 [00:06&lt;00:00,  1.13s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 187MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 191MB/s]
+Constructing atmosphere: 100%|██████████| 6/6 [00:08&lt;00:00,  1.38s/it]
 </pre></div></div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -454,6 +454,7 @@ Simulation
 │     ra: 10ʰ00ᵐ0.00ˢ
 │     dec: 10°00’0.00”
 │   scan_pattern: daisy
+│   scan_radius: 5.999 arcmin
 │   scan_kwargs: {&#39;radius&#39;: 0.05, &#39;speed&#39;: 0.01}
 ├ Atmosphere(6 processes with 6 layers):
 │ ├ spectrum:
@@ -467,22 +468,17 @@ Simulation
     shape[stokes, nu, t, y, x]: (1, 1, 1, 1000, 1000)
     stokes: [&#39;I&#39;]
     nu: [150.] GHz
-    t: [1.74374248e+09] s
+    t: [1.74529085e+09] s
     quantity: rayleigh_jeans_temperature
     units: K_RJ
+      min: -9.270e+00
+      max: -8.839e-03
     center:
       ra: 10ʰ00ᵐ0.00ˢ
       dec: 10°00’0.00”
     size[y, x]: (5.228 arcmin, 5.228 arcmin)
     resolution[y, x]: (313.7 marcsec, 313.7 marcsec)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-
+    memory: 8 MB
 </pre></div></div>
 </div>
 </section>
@@ -502,11 +498,11 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 29.15it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.91it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.14s/it, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:03&lt;00:00,  3.33s/it, band=m2/f093]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=m2/f093]
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 28.98it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.35it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.65s/it, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:04&lt;00:00,  4.57s/it, band=m2/f093]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.02s/it, band=m2/f093]
 </pre></div></div>
 </div>
 </section>
@@ -568,7 +564,7 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-04-04 04:55:32.966 INFO: Ran mapper for band m2/f093 in 12.3 s.
+2025-04-22 03:01:41.708 INFO: Ran mapper for band m2/f093 in 13.94 s.
 </pre></div></div>
 </div>
 </section>
@@ -591,22 +587,13 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 </div>
 <p>You can also save the map to a fits file. Here, we recover the units in which the map was initially specified in.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s2">&quot;/tmp/simulated_map.fits&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 characters or contains characters not allowed by the FITS standard; a HIERARCH card will be created. [astropy.io.fits.card]
-2025-04-04 04:55:33.593 WARNING: VerifyWarning: Keyword name &#39;RESOLUTION&#39; is greater than 8 characters or contains characters not allowed by the FITS standard; a HIERARCH card will be created.
-</pre></div></div>
 </div>
 </section>
 </section>
