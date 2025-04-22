@@ -10,6 +10,7 @@ from .array import Array, all_arrays, get_array  # noqa
 from .band import Band, all_bands, get_band  # noqa
 from .instrument import Instrument, all_instruments, get_instrument  # noqa
 from .io import fetch, set_cache_dir  # noqa
+from .map import all_maps  # noqa
 from .plan import Plan, all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
 from .site import Site, all_regions, all_sites, get_site  # noqa
