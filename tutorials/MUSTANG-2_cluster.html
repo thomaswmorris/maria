@@ -182,7 +182,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -272,7 +272,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -287,19 +287,18 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
 
-<span class="n">map_filename</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster.fits&quot;</span><span class="p">)</span>
+<span class="n">map_filename</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/small_cluster.h5&quot;</span><span class="p">)</span>
 
-<span class="c1"># load in the map from a fits file</span>
 <span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
-    <span class="n">nu</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span>
+    <span class="n">nu</span><span class="o">=</span><span class="mf">930e9</span><span class="p">,</span>
     <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>  <span class="c1"># filename</span>
-    <span class="n">resolution</span><span class="o">=</span><span class="mf">8.714e-05</span><span class="p">,</span>  <span class="c1"># pixel size in degrees</span>
-    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>  <span class="c1"># position in the sky</span>
-    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">,</span>  <span class="c1"># Units of the input map</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>  <span class="c1"># width in degrees</span>
+    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">144</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>  <span class="c1"># position in the sky</span>
+    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">,</span>  <span class="c1"># units of the input map</span>
 <span class="p">)</span>
 
-<span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">1e1</span>
-<span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -308,7 +307,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.fits: 100%|██████████| 4.00M/4.00M [00:00&lt;00:00, 179MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/small_cluster.h5: 100%|██████████| 3.45M/3.45M [00:00&lt;00:00, 155MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -318,20 +317,16 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.
 <img alt="../_images/tutorials_MUSTANG-2_cluster_1_1.png" src="../_images/tutorials_MUSTANG-2_cluster_1_1.png" />
 </div>
 </div>
-<section id="Observing-strategy">
-<h2>Observing strategy<a class="headerlink" href="#Observing-strategy" title="Link to this heading">¶</a></h2>
-<p>Below we define the observing strategy containing the duration, integration time, read out rate, and pointing center</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># load the map into maria</span>
-<span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_plan</span><span class="p">(</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_plan</span><span class="p">(</span>
     <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>  <span class="c1"># scanning pattern</span>
-    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span>  <span class="c1"># in degrees</span>
+    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="o">/</span><span class="mi">60</span><span class="p">},</span>  <span class="c1"># in degrees</span>
     <span class="n">duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>  <span class="c1"># integration time in seconds</span>
     <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>  <span class="c1"># in Hz</span>
-    <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>  <span class="c1"># position in the sky</span>
+    <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mi">144</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>  <span class="c1"># position in the sky</span>
     <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -343,27 +338,15 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster.
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_3_0.png" src="../_images/tutorials_MUSTANG-2_cluster_3_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_2_0.png" src="../_images/tutorials_MUSTANG-2_cluster_2_0.png" />
 </div>
 </div>
-</section>
-<section id="Define-instrument">
-<h2>Define instrument<a class="headerlink" href="#Define-instrument" title="Link to this heading">¶</a></h2>
-<p>We have configuration files in place to mimic typical telescopes and instruments. To run a MUSTANG-2 like observations, simply initialize the instrument as follows. Other tutorials will go into more detail on how to adjust it to test out how telescope designs affect the recovered signal.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s2">&quot;MUSTANG-2&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p>We can plot the instruments which will show the location of the ArrayList in the FoV with their diffrection limited beam size. The ArrayList for MUSTANG-2 are spaced at 2 f-lambda.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">instrument</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">instrument</span><span class="p">)</span>
 <span class="n">instrument</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -390,15 +373,11 @@ Instrument(1 array)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_7_1.png" src="../_images/tutorials_MUSTANG-2_cluster_7_1.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_3_1.png" src="../_images/tutorials_MUSTANG-2_cluster_3_1.png" />
 </div>
 </div>
-</section>
-<section id="Initialize-the-simulation">
-<h2>Initialize the simulation<a class="headerlink" href="#Initialize-the-simulation" title="Link to this heading">¶</a></h2>
-<p>The simulation class combines all the components into one.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
@@ -418,12 +397,12 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 187MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 191MB/s]
-Constructing atmosphere: 100%|██████████| 6/6 [00:08&lt;00:00,  1.38s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 201MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 175MB/s]
+Constructing atmosphere: 100%|██████████| 6/6 [00:07&lt;00:00,  1.28s/it]
 </pre></div></div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -451,11 +430,11 @@ Simulation
 │   duration: 1200 s
 │   sample_rate: 50 Hz
 │   center:
-│     ra: 10ʰ00ᵐ0.00ˢ
-│     dec: 10°00’0.00”
+│     ra: 09ʰ36ᵐ0.00ˢ
+│     dec: 12°00’0.00”
 │   scan_pattern: daisy
-│   scan_radius: 5.999 arcmin
-│   scan_kwargs: {&#39;radius&#39;: 0.05, &#39;speed&#39;: 0.01}
+│   scan_radius: 4 arcmin
+│   scan_kwargs: {&#39;radius&#39;: 0.03333333333333333, &#39;speed&#39;: 0.008333333333333333}
 ├ Atmosphere(6 processes with 6 layers):
 │ ├ spectrum:
 │ │   region: green_bank
@@ -467,85 +446,72 @@ Simulation
 └ ProjectedMap:
     shape[stokes, nu, t, y, x]: (1, 1, 1, 1000, 1000)
     stokes: [&#39;I&#39;]
-    nu: [150.] GHz
-    t: [1.74529085e+09] s
+    nu: [0.93] THz
+    t: [1.74501855e+09] s
     quantity: rayleigh_jeans_temperature
     units: K_RJ
-      min: -9.270e+00
-      max: -8.839e-03
+      min: -1.831e-02
+      max: -1.746e-05
     center:
-      ra: 10ʰ00ᵐ0.00ˢ
-      dec: 10°00’0.00”
-    size[y, x]: (5.228 arcmin, 5.228 arcmin)
-    resolution[y, x]: (313.7 marcsec, 313.7 marcsec)
+      ra: 09ʰ36ᵐ0.00ˢ
+      dec: 12°00’0.00”
+    size[y, x]: (6 arcmin, 6 arcmin)
+    resolution[y, x]: (360 marcsec, 360 marcsec)
     memory: 8 MB
 </pre></div></div>
-</div>
-</section>
-<section id="Obtaining-time-ordered-data-(TODs)">
-<h2>Obtaining time-ordered data (TODs)<a class="headerlink" href="#Obtaining-time-ordered-data-(TODs)" title="Link to this heading">¶</a></h2>
-<p>To acquire time-ordered data (TODs), you only need to run the script. The TOD object contains time stamps, coordinates (in RA and Dec), and the intensity of each scan for every detector. The intensity units are expressed in power can be converted to surface brightness temperature units: Kelvin Rayleigh-Jeans (Even if the input map is given in Jy/pixel. We convert the units under the hood).</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</pre></div>
-</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 28.98it/s]
-Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.35it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.65s/it, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:04&lt;00:00,  4.57s/it, band=m2/f093]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.02s/it, band=m2/f093]
+
 </pre></div></div>
 </div>
-</section>
-<section id="Useful-visualizations:">
-<h2>Useful visualizations:<a class="headerlink" href="#Useful-visualizations:" title="Link to this heading">¶</a></h2>
-<p>Now, let’s visualize the TODS. The figure shows the mean powerspectra and a time series of the observations.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">tod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Generating turbulence: 100%|██████████| 6/6 [00:00&lt;00:00, 30.26it/s]
+Sampling turbulence: 100%|██████████| 6/6 [00:01&lt;00:00,  3.57it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:02&lt;00:00,  2.13s/it, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:03&lt;00:00,  3.97s/it, band=m2/f093]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=m2/f093]
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_13_0.png" src="../_images/tutorials_MUSTANG-2_cluster_13_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_5_1.png" src="../_images/tutorials_MUSTANG-2_cluster_5_1.png" />
 </div>
 </div>
-</section>
-<section id="Mapping-the-TODs">
-<h2>Mapping the TODs<a class="headerlink" href="#Mapping-the-TODs" title="Link to this heading">¶</a></h2>
-<p>To transform the TODs into images, you’ll require a mapper. While there is an option to use your own mapper, we have also implemented one for your convenience. This built-in mapper follows a straightforward approach: it removes the common mode over all ArrayList (the atmosphere if you scan fast enough), then detrends and optionally Fourier filters the time-streams to remove any noise smaller than the resolution of the dish. Then, the mapper bins the TOD on the specified grid. Notably, the mapper
-is designed to effectively eliminate correlated atmospheric noise among different scans, thereby increasing SNR of the output map.</p>
-<p>An example of how to run the mapper on the TOD is as follows:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
-    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">144</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
     <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-    <span class="n">resolution</span><span class="o">=</span><span class="mf">2e-4</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">6</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="mf">0.03</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>
     <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;hamming&quot;</span><span class="p">},</span>
         <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;modes_to_remove&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
-        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
     <span class="p">},</span>
     <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
@@ -564,18 +530,15 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-04-22 03:01:41.708 INFO: Ran mapper for band m2/f093 in 13.94 s.
+2025-04-22 16:17:45.387 INFO: Ran mapper for band m2/f093 in 12.73 s.
 </pre></div></div>
 </div>
-</section>
-<section id="Visualizing-the-maps">
-<h2>Visualizing the maps<a class="headerlink" href="#Visualizing-the-maps" title="Link to this heading">¶</a></h2>
-<p>As interesting as the detector setup, power spectra, and time series are, intuitively we think in the image plane. so let’s visualize it!</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">output_map</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s2">&quot;/tmp/simulated_mustang_map.fits&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -583,19 +546,9 @@ is designed to effectively eliminate correlated atmospheric noise among differen
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_MUSTANG-2_cluster_17_0.png" src="../_images/tutorials_MUSTANG-2_cluster_17_0.png" />
+<img alt="../_images/tutorials_MUSTANG-2_cluster_7_0.png" src="../_images/tutorials_MUSTANG-2_cluster_7_0.png" />
 </div>
 </div>
-<p>You can also save the map to a fits file. Here, we recover the units in which the map was initially specified in.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s2">&quot;/tmp/simulated_map.fits&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</section>
 </section>
 
         </article>
@@ -641,33 +594,8 @@ is designed to effectively eliminate correlated atmospheric noise among differen
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Simulating observations with MUSTANG-2</a><ul>
-<li><a class="reference internal" href="#Observing-strategy">Observing strategy</a></li>
-<li><a class="reference internal" href="#Define-instrument">Define instrument</a></li>
-<li><a class="reference internal" href="#Initialize-the-simulation">Initialize the simulation</a></li>
-<li><a class="reference internal" href="#Obtaining-time-ordered-data-(TODs)">Obtaining time-ordered data (TODs)</a></li>
-<li><a class="reference internal" href="#Useful-visualizations:">Useful visualizations:</a></li>
-<li><a class="reference internal" href="#Mapping-the-TODs">Mapping the TODs</a></li>
-<li><a class="reference internal" href="#Visualizing-the-maps">Visualizing the maps</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>

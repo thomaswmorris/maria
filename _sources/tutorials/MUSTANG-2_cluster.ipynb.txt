@@ -18,27 +18,18 @@
    "source": [
     "import maria\n",
     "\n",
-    "map_filename = maria.io.fetch(\"maps/cluster.fits\")\n",
+    "map_filename = maria.io.fetch(\"maps/small_cluster.h5\")\n",
     "\n",
-    "# load in the map from a fits file\n",
     "input_map = maria.map.load(\n",
-    "    nu=150e9,\n",
+    "    nu=930e9,\n",
     "    filename=map_filename,  # filename\n",
-    "    resolution=8.714e-05,  # pixel size in degrees\n",
-    "    center=(150, 10),  # position in the sky\n",
-    "    units=\"Jy/pixel\",  # Units of the input map\n",
+    "    width=6/60,  # width in degrees\n",
+    "    center=(144, 12),  # position in the sky\n",
+    "    frame=\"ra_dec\",\n",
+    "    units=\"Jy/pixel\",  # units of the input map\n",
     ")\n",
     "\n",
-    "input_map.data *= 1e1\n",
-    "input_map.to(units=\"uK_RJ\").plot()"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "### Observing strategy\n",
-    "Below we define the observing strategy containing the duration, integration time, read out rate, and pointing center"
+    "input_map.plot()"
    ]
   },
   {
@@ -47,13 +38,13 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# load the map into maria\n",
+    "\n",
     "plan = maria.get_plan(\n",
     "    scan_pattern=\"daisy\",  # scanning pattern\n",
-    "    scan_options={\"radius\": 0.05, \"speed\": 0.01},  # in degrees\n",
+    "    scan_options={\"radius\": 2/60, \"speed\": 0.5/60},  # in degrees\n",
     "    duration=1200,  # integration time in seconds\n",
     "    sample_rate=50,  # in Hz\n",
-    "    scan_center=(150, 10),  # position in the sky\n",
+    "    scan_center=(144, 12),  # position in the sky\n",
     "    frame=\"ra_dec\",\n",
     ")\n",
     "\n",
@@ -61,45 +52,14 @@
    ]
   },
   {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "### Define instrument\n",
-    "We have configuration files in place to mimic typical telescopes and instruments. To run a MUSTANG-2 like observations, simply initialize the instrument as follows. Other tutorials will go into more detail on how to adjust it to test out how telescope designs affect the recovered signal. "
-   ]
-  },
-  {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
-    "instrument = maria.get_instrument(\"MUSTANG-2\")"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "We can plot the instruments which will show the location of the ArrayList in the FoV with their diffrection limited beam size. The ArrayList for MUSTANG-2 are spaced at 2 f-lambda."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
+    "instrument = maria.get_instrument(\"MUSTANG-2\")\n",
     "print(instrument)\n",
     "instrument.plot()"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "### Initialize the simulation\n",
-    "The simulation class combines all the components into one."
    ]
   },
   {
@@ -120,48 +80,13 @@
    ]
   },
   {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "### Obtaining time-ordered data (TODs)\n",
-    "To acquire time-ordered data (TODs), you only need to run the script. The TOD object contains time stamps, coordinates (in RA and Dec), and the intensity of each scan for every detector. The intensity units are expressed in power can be converted to surface brightness temperature units: Kelvin Rayleigh-Jeans (Even if the input map is given in Jy/pixel. We convert the units under the hood)."
-   ]
-  },
-  {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
-    "tod = sim.run()"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "### Useful visualizations:\n",
-    "\n",
-    "Now, let's visualize the TODS. The figure shows the mean powerspectra and a time series of the observations."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
+    "tod = sim.run()\n",
     "tod.plot()"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "### Mapping the TODs\n",
-    "To transform the TODs into images, you'll require a mapper. While there is an option to use your own mapper, we have also implemented one for your convenience. This built-in mapper follows a straightforward approach: it removes the common mode over all ArrayList (the atmosphere if you scan fast enough), then detrends and optionally Fourier filters the time-streams to remove any noise smaller than the resolution of the dish. Then, the mapper bins the TOD on the specified grid. Notably, the mapper is designed to effectively eliminate correlated atmospheric noise among different scans, thereby increasing SNR of the output map.\n",
-    "\n",
-    "An example of how to run the mapper on the TOD is as follows:"
    ]
   },
   {
@@ -173,15 +98,15 @@
     "from maria.mappers import BinMapper\n",
     "\n",
     "mapper = BinMapper(\n",
-    "    center=(150, 10),\n",
+    "    center=(144, 12),\n",
     "    frame=\"ra_dec\",\n",
-    "    width=0.1,\n",
-    "    height=0.1,\n",
-    "    resolution=2e-4,\n",
+    "    width=6/60,\n",
+    "    height=6/60,\n",
+    "    resolution=0.03/60,\n",
     "    tod_preprocessing={\n",
     "        \"window\": {\"name\": \"hamming\"},\n",
     "        \"remove_modes\": {\"modes_to_remove\": [0]},\n",
-    "        \"remove_spline\": {\"knot_spacing\": 10},\n",
+    "        \"remove_spline\": {\"knot_spacing\": 30, \"remove_el_gradient\": True},\n",
     "    },\n",
     "    map_postprocessing={\n",
     "        \"gaussian_filter\": {\"sigma\": 1},\n",
@@ -195,36 +120,13 @@
    ]
   },
   {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "### Visualizing the maps\n",
-    "As interesting as the detector setup, power spectra, and time series are, intuitively we think in the image plane. so let's visualize it! "
-   ]
-  },
-  {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
-    "output_map.plot()"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "You can also save the map to a fits file. Here, we recover the units in which the map was initially specified in."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "output_map.to_fits(\"/tmp/simulated_map.fits\")"
+    "output_map.plot()\n",
+    "output_map.to_fits(\"/tmp/simulated_mustang_map.fits\")"
    ]
   }
  ],
