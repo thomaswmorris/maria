@@ -40,6 +40,7 @@ class Atmosphere:
         spectrum_source: str = "am",
         pwv_rms_frac: float = 0.03,
         max_height: float = 5e3,
+        timestep: float = 1e-1,
         disable_progress_bars: bool = False,
     ):
         if model not in SUPPORTED_MODELS_LIST:
@@ -69,18 +70,17 @@ class Atmosphere:
 
         self.model = model
         self.max_height = max_height
+        self.timestep = timestep
 
         self.disable_progress_bars = disable_progress_bars
 
         self._initialized = False
 
-    def initialize(self, sim, timestep: float = 1e-1, max_height=3e3):
+    def initialize(self, sim):
         """
         Simulate a realization of PWV.
         """
 
-        self.max_height = max_height
-        self.timestep = timestep
         self.sim = sim
 
         self.layers = generate_layers(
@@ -90,7 +90,7 @@ class Atmosphere:
             max_height=self.max_height,
         )
 
-        self.boresight = sim.boresight.downsample(timestep=timestep)
+        self.boresight = sim.boresight.downsample(timestep=self.timestep)
         self.coords = self.boresight.broadcast(
             sim.instrument.dets.offsets,
             frame="az_el",

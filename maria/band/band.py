@@ -12,6 +12,7 @@ import scipy as sp
 from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU, MARIA_MIN_NU, c
+from ..errors import FrequencyOutOfBoundsError
 from ..io import humanize
 from ..units import Quantity
 from ..utils import flatten_config, read_yaml
@@ -118,9 +119,7 @@ class Band:
                     f"{qmin_nu} and {qmax_nu}"
                 )
             else:
-                raise ValueError(
-                    f"Bad frequencies nu={Quantity(nu, 'Hz')}; maria supports frequencies between {qmin_nu} and {qmax_nu}"
-                )
+                raise FrequencyOutOfBoundsError(nu)
 
         # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
         self.name = name or f"f{10 ** (np.log10(self.center) % 3):>03.0f}"
@@ -180,6 +179,7 @@ class Band:
 
     def summary(self):
         filling = {
+            "name": self.name,
             "center": Quantity(self.center, "Hz"),
             "width": Quantity(self.width, "Hz"),
             "η": self.efficiency,
@@ -189,12 +189,21 @@ class Band:
         }
 
         summary = pd.Series(filling)
-        summary.name = self.name
         return summary
 
     def __repr__(self):
         return f"Band({', '.join([f'{index}={entry}' for index, entry in self.summary().items()])})"
 
+    #     def __repr__(self):
+    #         return f"""{self.__class__.__name__}:
+    #   name: {self.name}
+    #   center: {Quantity(self.center, 'Hz')}
+    #   width: {Quantity(self.width, 'Hz')}
+    #   efficiency: {self.efficiency}
+    #   NEP: {Quantity(self.NEP, "W√s")}
+    #   NET_RJ: {Quantity(self.NET_RJ, "K√s")}
+    #   NET_CMB: {Quantity(self.NET_CMB, "K√s")}
+    # """
     def plot(self):
         fig, ax = plt.subplots(1, 1)
 

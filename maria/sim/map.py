@@ -39,9 +39,7 @@ class MapMixin:
             disable=self.disable_progress_bars,
         )
         for band in bands_pbar:
-            band_start_s = ttime.monotonic()
-
-            bands_pbar.set_postfix({"band": band.name})
+            bands_pbar.set_postfix(band=band.name)
 
             band_mask = self.instrument.dets.band_name == band.name
 
@@ -54,11 +52,16 @@ class MapMixin:
             # ideally we would do this for each nu bin, but that's slow
             smoothed_map = self.map.smooth(fwhm=band_fwhm)
 
+            # compute the Mueller polarization
+            mueller = self.instrument.dets.mueller()[band_mask, 0]
+
             for nu_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
                 # TODO: skip if the band can't see the map nu bin
 
-                qnu_min = Quantity(nu_min, 'Hz')
-                qnu_max = Quantity(nu_max, 'Hz')
+                qnu_min = Quantity(nu_min, "Hz")
+                qnu_max = Quantity(nu_max, "Hz")
+
+                bands_pbar.set_postfix(channel=f"[{qnu_min}, {qnu_max}]")
 
                 spectrum_kwargs = (
                     {
@@ -72,64 +75,51 @@ class MapMixin:
                 )
 
                 sample_integral = band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
-                # channel_gain = 1e12 * k_B * sample_integral
 
-                # logger.debug(f"Map bandwidth ({qnu_min} - {qnu_max}) has gain {channel_gain:.02e} pW/K_RJ")
+                for stokes_index, stokes in enumerate(self.map.stokes):
+                    stokes_weight = mueller[:, stokes_index, None]
 
-                if len(self.map.t) > 1:
-                    sample_T_RJ = sp.interpolate.RegularGridInterpolator(
-                        (self.map.t, self.map.y_side, self.map.x_side),
-                        smoothed_map.data[0, nu_index].compute(),
-                        bounds_error=False,
-                        fill_value=0,
-                        method="linear",
-                    )((self.boresight.t, dy[band_mask], dx[band_mask]))
+                    if np.isclose(stokes_weight, 0).all():
+                        logger.debug(f"Skipping Stokes {stokes} (no weight)")
+                        continue
 
-                else:
-                    # # dx, dy = self.coords.offsets(frame=self.map.frame, center=self.map.center)
+                    bands_pbar.set_postfix(band=band.name, stokes=stokes)
 
-                    # a = ttime.monotonic()
+                    stokes_channel_s = ttime.monotonic()
 
-                    # ix = np.digitize(dx[band_mask], bins=self.map.x_bins)
-                    # iy = np.digitize(dy[band_mask], bins=self.map.y_bins)
-                    # padded_map = np.pad(smoothed_map.data[0, nu_index, 0].compute(), [(1, 1), (1, 1)], mode='edge')
-                    # sample_T_RJ = padded_map[iy, ix]
+                    if len(self.map.t) > 1:
+                        sample_T_RJ = sp.interpolate.RegularGridInterpolator(
+                            (self.map.t, self.map.y_side, self.map.x_side),
+                            smoothed_map.data[stokes_index, nu_index].compute(),
+                            bounds_error=False,
+                            fill_value=0,
+                            method="linear",
+                        )((self.boresight.t, dy[band_mask], dx[band_mask]))
 
-                    # b = ttime.monotonic()
+                    else:
+                        m = smoothed_map.data[stokes_index, nu_index, 0].compute()
+                        edge_value = np.median(np.c_[m[0], m[-1], m[:, 0], m[:, -1]])
 
-                    m = smoothed_map.data[0, nu_index, 0].compute()
-                    edge_value = np.median(np.c_[m[0], m[-1], m[:, 0], m[:, -1]])
+                        sample_T_RJ = sp.interpolate.RegularGridInterpolator(
+                            (self.map.y_side, self.map.x_side),
+                            m,
+                            bounds_error=False,
+                            fill_value=edge_value,
+                            method="linear",
+                        )((dy[band_mask], dx[band_mask]))
 
-                    sample_T_RJ = sp.interpolate.RegularGridInterpolator(
-                        (self.map.y_side, self.map.x_side),
-                        m,
-                        bounds_error=False,
-                        fill_value=edge_value,
-                        method="linear",
-                    )((dy[band_mask], dx[band_mask]))
+                    # 1e12 because it's in picowatts
+                    pW = 1e12 * k_B * stokes_weight * sample_integral * sample_T_RJ
 
-                    # c = ttime.monotonic()
+                    if logger.level == 10:
+                        logger.debug(
+                            f"Computed map load (~{Quantity(pW.std(), 'pW'):<10}) for {band.name}, "
+                            f"({qnu_min}-{qnu_max}), "
+                            f"stokes {stokes} in "
+                            f"{humanize_time(ttime.monotonic() - stokes_channel_s)}"
+                        )
 
-                    # print(b - a)
-                    # print(c - b)
-
-                rms_T_RJ = sample_T_RJ.std()
-
-                if rms_T_RJ == 0:
-                    logger.warning("No power from map!")
-
-                logger.debug(f"Sampled temperature map has rms {rms_T_RJ}")
-
-                # 1e12 because it's in picowatts
-                self.loading["map"][band_mask] += 1e12 * k_B * sample_integral * sample_T_RJ
-
-            logger.debug(f"Computed map power for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}.")
+                    self.loading["map"][band_mask] += pW
 
             if self.loading["map"][band_mask].sum().compute() == 0:
-                logger.warning(f"No power from map for band {band}.")
-
-                # things that are blackbodies that we can see are
-
-                # filtered_band_power_map = (
-                #     self.map.smooth(fwhm=band_fwhm).power(band).compute()
-                # )
+                logger.warning(f"No load from map for {band.name}")

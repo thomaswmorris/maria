@@ -49,7 +49,7 @@ class AtmosphereMixin:
 
             band_index = self.instrument.dets.mask(band_name=band.name)
 
-            # in picowatts. the 1e9 is for GHz -> Hz
+            # the 1e12 is for picowatts
             det_power_grid = (
                 1e12
                 * k_B

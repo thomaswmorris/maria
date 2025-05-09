@@ -174,6 +174,22 @@ class Array:
         """
         return self.angular_fwhm(z=np.inf)
 
+    def mueller(self):
+        """
+        For transforming Stoke's parameters. $theta$ = 0 is the horizontal
+        """
+        a = self.pol_angle
+        m = np.stack(
+            [
+                np.where(np.isnan(a), 2, 1),
+                np.where(np.isnan(a), 0, np.cos(2 * a)),
+                np.where(np.isnan(a), 0, np.sin(2 * a)),
+                np.zeros_like(a),
+            ],
+            axis=1,
+        )
+        return 0.5 * m[..., None] * m[..., None, :]
+
     def angular_fwhm(self, z=np.inf):  # noqa F401
         """
         Angular beam width (in radians) as a function of depth (in meters)
@@ -215,12 +231,17 @@ class Array:
     def __len__(self):
         return len(self.dets)
 
+    @property
+    def polarized(self):
+        return not np.isnan(self.pol_angle).all()
+
     def filling(self):
         return {
             "n": self.n,
             "FOV": self.field_of_view,
             "baseline": self.max_baseline,
             "bands": f"[{','.join(self.bands.name)}]",
+            "polarized": self.polarized,
         }
 
     def summary(self):
@@ -429,7 +450,7 @@ class Array:
 
         return cls(dets=df, bands=bands, name=config.get("name", str(uuid.uuid4())[:8]))
 
-    def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=False):
+    def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=True):
         # if plot_baseline == "infer":
         #     plot_baseline = self.dets.max_baseline > 0
 
@@ -459,14 +480,14 @@ class Array:
                 pol_angles = Quantity(band_array.pol_angle, "rad")
                 # baselines = Quantity(band_array.baselines, "m")
 
-                if plot_pol_angles:
+                if plot_pol_angles and self.polarized:
                     dx = np.c_[-np.ones(band_array.n), np.ones(band_array.n)] / 2
                     dy = np.zeros((band_array.n, 2))
 
-                    R = get_rotation_matrix_2d(pol_angles.radians)
+                    R = get_rotation_matrix_2d(pol_angles.rad)
                     dl = np.moveaxis(R @ np.stack([dx, dy], axis=1), 0, 2)
-                    P = Quantity(offsets.radians.T[:, None] + fwhms.radians * dl, units="rad")
-                    focal_ax.plot(*getattr(P, focal_plane_units), c=c, lw=5e-1)
+                    P = Quantity(offsets.rad.T[:, None] + fwhms.rad * dl, units="rad")
+                    focal_ax.plot(*getattr(P, focal_plane_units), c=c, lw=2e0)
 
                 focal_ax.add_collection(
                     EllipseCollection(

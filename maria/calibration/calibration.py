@@ -194,15 +194,18 @@ class Calibration:
                 continue
             qkwargs[k] = str(Quantity(v, KWARGS_UNITS[k]))
 
-        spectrum_string = self.kwargs.get("spectrum") or ""
-        kwargs_string = yaml.dump(qkwargs)
+        # spectrum_string = self.kwargs.get("spectrum") or ""
+        # spectrum_string = self.kwargs.get("spectrum") or ""
+        # kwargs_string = yaml.dump(qkwargs)
+
+        factor = f"{self(1e0):.03e}" if self.linear() else "None (nonlinear)"
 
         return f"""Calibration({self.signature}):
-  factor: {self(1e0) if self.linear() else "None (nonlinear)"}
+  factor: {factor}
   chain: {self.uchain()}
-  kwargs:
-{leftpad(spectrum_string, n=4)}
-{leftpad(kwargs_string, n=4)}"""
+  spectrum: {self.kwargs.get("spectrum")}
+  band: {self.kwargs.get("band")}
+  kwargs: {qkwargs}"""
 
     # def __repr__(self):
     #     filling = copy.deepcopy(self.kwargs.items())

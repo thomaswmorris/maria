@@ -10,13 +10,12 @@ import scipy as sp
 
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU, MARIA_MIN_NU
+from ..errors import FrequencyOutOfBoundsError
 from ..units import Quantity, parse_units
 
 logger = logging.getLogger("maria")
 
 here, this_filename = os.path.split(__file__)
-
-STOKES = ["I", "Q", "U", "V"]
 
 
 class Map:
@@ -37,18 +36,18 @@ class Map:
         self.data = da.asarray(data).astype(dtype)
         self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
 
-        self.stokes = [param.upper() for param in stokes] if stokes is not None else ["I"]
+        self.stokes = stokes.upper() if stokes is not None else "I"
+        if self.stokes not in ["I", "IQU", "IQUV"]:
+            raise ValueError("'stokes' parameter must be either 'I' or 'IQUV'")
 
-        self.nu = np.atleast_1d(nu if nu is not None else 150.0e9)
+        if nu is None:
+            nu = 150e9
+            logger.info("No frequency supplied for map (defaulting to 150 GHz)")
+        self.nu = np.atleast_1d(nu)
 
         bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
         if bad_freqs:
-            qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
-            qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
-            raise ValueError(
-                f"Bad frequencies nu={Quantity(bad_freqs, 'Hz')}; maria supports frequencies between "
-                f"{qmin_nu} and {qmax_nu}."
-            )
+            raise FrequencyOutOfBoundsError(bad_freqs)
 
         self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
 
@@ -56,17 +55,17 @@ class Map:
 
         parse_units(self.units)
 
-        if len(self.stokes) != self.data.shape[0]:
+        if len(self.stokes) != data.shape[0]:
             raise ValueError(
                 f"'stokes' axis has length {len(self.stokes)} but map has shape (stokes, nu, t, y, x) = {self.data.shape}.",
             )
 
-        if len(self.nu) != self.data.shape[1]:
+        if len(self.nu) != data.shape[1]:
             raise ValueError(
                 f"'nu' axis has length {len(self.nu)} but map has shape (stokes, nu, t, y, x) = {self.data.shape}.",
             )
 
-        if len(self.t) != self.data.shape[2]:
+        if len(self.t) != data.shape[2]:
             raise ValueError(
                 f"'time' axis has length {len(self.t)} but map has shape (stokes, nu, t, y, x) = {self.data.shape}.",
             )
@@ -128,7 +127,7 @@ class Map:
             data = self.data.copy()
 
         else:
-            data = np.zeros(self.data.shape)
+            data = np.zeros_like(self.data)
 
             for i, nu in enumerate(self.nu):
                 if not nu > 0:
@@ -139,7 +138,7 @@ class Map:
                     nu=nu,
                     pixel_area=self.pixel_area,
                 )
-                data[i] = cal(self.data[i])
+                data[:, i] = cal(self.data[:, i])
 
         if inplace:
             self.data = data

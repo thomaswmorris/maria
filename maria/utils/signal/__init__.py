@@ -106,7 +106,10 @@ def bspline_basis(x, spacing, order=3):
     basis = B[-1]  # .reshape(-1, len(x))
     basis = basis[basis.sum(axis=-1) > 0]
 
-    return basis
+    total_weight_per_mode = basis.sum(axis=1)
+    basis = basis[total_weight_per_mode > 0.1 * total_weight_per_mode.max()]
+
+    return basis / basis.sum(axis=0)
 
 
 def cross_basis(X: list, spacing: list, order: list):

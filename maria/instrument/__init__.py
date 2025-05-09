@@ -346,7 +346,7 @@ class Instrument:
     #     """
     #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-    def plot(self, z=np.inf, plot_pol_angles=False):
+    def plot(self, z=np.inf, plot_pol_angles=True):
         self.dets.plot(z=z, plot_pol_angles=plot_pol_angles)
 
 

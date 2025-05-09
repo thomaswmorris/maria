@@ -188,7 +188,7 @@ class ProjectedMap(Map):
         cphi_repr, ctheta_repr = repr_phi_theta(*self.center, frame=self.frame)
         return f"""{self.__class__.__name__}:
   shape[stokes, nu, t, y, x]: {self.data.shape}
-  stokes: {self.stokes}
+  stokes: {"".join(self.stokes)}
   nu: {Quantity(self.nu, "Hz")}
   t: {Quantity(self.t, "s")}
   quantity: {self.u["quantity"]}
@@ -250,7 +250,10 @@ class ProjectedMap(Map):
 
     @property
     def y_bins(self):
-        return self.height * np.linspace(-0.5, 0.5, self.n_y + 1)
+        """
+        The negative is so that
+        """
+        return -self.height * np.linspace(-0.5, 0.5, self.n_y + 1)
 
     @property
     def x_side(self):
@@ -260,47 +263,44 @@ class ProjectedMap(Map):
     def y_side(self):
         return (self.y_bins[:-1] + self.y_bins[1:]) / 2
 
-    def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False):
+    def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):
             raise ValueError("You must supply exactly one of 'sigma' or 'fwhm'.")
+
+        package = self.package()
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
         x_sigma_pixels = sigma / self.x_res
         y_sigma_pixels = sigma / self.y_res
-        data = sp.ndimage.gaussian_filter(self.data, sigma=(0, 0, 0, y_sigma_pixels, x_sigma_pixels))
+        package["data"] = sp.ndimage.gaussian_filter(self.data, sigma=(0, 0, 0, y_sigma_pixels, x_sigma_pixels))
 
-        if inplace:
-            self.data = data
+        return type(self)(**package)
 
-        else:
-            return type(self)(
-                data=data,
-                weight=self.weight,
-                width=self.width,
-                t=self.t,
-                nu=self.nu,
-                center=self.center,
-                frame=self.frame,
-                degrees=False,
-                units=self.units,
-            )
-
-    def plot(
+    def plot_slice(
         self,
+        fig,
+        ax,
         nu_index: int = 0,
         t_index: int = 0,
         stokes: str = "I",
-        cmap: str = "CMRmap",
+        cmap: str = "default",
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
-        filepath: str = None,
     ):
+        if stokes not in self.stokes:
+            raise ValueError(
+                f"Invalid stokes parameter '{stokes}'; available Stokes parameters for this map are {self.stokes}."
+            )
+
         stokes_index = self.stokes.index(stokes)
 
-        map_qdata = Quantity(self.data.compute(), units=self.units)
+        if cmap == "default":
+            cmap = "CMRmap" if stokes == "I" else "cmb"
+
+        map_qdata = Quantity(self.data[stokes_index, nu_index, t_index].compute(), units=self.units)
 
         d = map_qdata.value.ravel()
-        w = self.weight.ravel()
+        w = self.weight[stokes_index, nu_index, t_index].ravel()
         subset = np.random.choice(d.size, size=10000)
         vmin, vmax = np.nanquantile(
             d[subset],
@@ -316,26 +316,13 @@ class ProjectedMap(Map):
         x = Quantity(self.x_bins, "rad")
         y = Quantity(self.y_bins, "rad")
 
-        header = fits.header.Header()
-        header["CDELT1"] = -grid_u["factor"]
-        header["CDELT2"] = grid_u["factor"]
-        header["CRPIX1"] = 1
-        header["CRPIX2"] = 1
-        header["CTYPE1"] = "RA---SIN"
-        header["CUNIT1"] = "deg     "
-        header["CTYPE2"] = "DEC--SIN"
-        header["CUNIT2"] = "deg     "
-        header["RADESYS"] = "FK5     "
-        header["CRVAL1"] = grid_center.deg[0]
-        header["CRVAL2"] = grid_center.deg[1]
-
-        fig = plt.figure(figsize=(6, 6), dpi=256, constrained_layout=True)
-        ax = fig.add_subplot(projection=WCS(header))
+        # fig = plt.figure(figsize=(6, 6), dpi=256, constrained_layout=True)
+        # ax = fig.add_subplot(nx, ny, index, projection=WCS(header))
 
         ax.pcolormesh(
             getattr(x, grid_u["units"]),
             getattr(y, grid_u["units"]),
-            map_qdata.value[stokes_index, nu_index, t_index],
+            map_qdata.value,
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
@@ -354,160 +341,106 @@ class ProjectedMap(Map):
             shrink=0.75,
             aspect=16,
             location="right",
+            pad=0,
         )
 
         qnu = Quantity(self.nu[nu_index], "Hz")
-        cbar.set_label(rf"{map_qdata.q['long_name']} at {qnu} [${map_qdata.u['math_name']}$]")
+        cbar.set_label(rf"Stokes {stokes} at {qnu} [${map_qdata.u['math_name']}$]")
         ax.tick_params(axis="x", bottom=True, top=False)
         ax.tick_params(axis="y", left=True, right=False, rotation=90)
-        ax2 = ax.secondary_xaxis("top")
-        ay2 = ax.secondary_yaxis("right")
+
         ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
         ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
-        ax2.set_xlabel(rf"$\Delta\,\theta_x$ [${x.u['math_name']}$]")
-        ay2.set_ylabel(rf"$\Delta\,\theta_y$ [${y.u['math_name']}$]")
+
         ax.set_aspect("equal")
 
-        if filepath is not None:
-            plt.savefig(filepath=filepath, dpi=256)
+        return ax
 
-    def plot_many(
+    def plot(
         self,
-        nu_index=None,
-        t_index=None,
-        stokes="I",
-        cmap="CMRmap",
-        rel_vmin=0.005,
-        rel_vmax=0.995,
-        subplot_size=3,
-        filepath=None,
+        stokes: str = "I",
+        nu_index: int = 0,
+        t_index: int = 0,
+        cmap: str = "default",
+        rel_vmin: float = 0.005,
+        rel_vmax: float = 0.995,
+        filepath: str = None,
     ):
-        stokes_index = self.stokes.index(stokes)
+        X = np.r_[self.x_bins, self.y_bins]
+        grid_u = Quantity(X, "rad").u
+        grid_center = Quantity(self.center, "rad")
 
-        nu_index = np.atleast_1d(nu_index) if nu_index is not None else np.arange(len(self.nu))
-        t_index = np.atleast_1d(t_index) if t_index is not None else np.arange(len(self.t))
+        header = fits.header.Header()
+        header["CDELT1"] = -grid_u["factor"]
+        header["CDELT2"] = grid_u["factor"]
+        header["CRPIX1"] = 1
+        header["CRPIX2"] = 1
+        header["CTYPE1"] = "RA---SIN"
+        header["CUNIT1"] = "deg     "
+        header["CTYPE2"] = "DEC--SIN"
+        header["CUNIT2"] = "deg     "
+        header["RADESYS"] = "FK5     "
+        header["CRVAL1"] = grid_center.deg[0]
+        header["CRVAL2"] = grid_center.deg[1]
 
-        n_nu = len(nu_index)
-        n_t = len(t_index)
+        # nu_index = 0
+        # t_index = 0
+        # stokes = [["I", "Q"],
+        #         ["U", "V"]]
+        # stokes = ["I", "Q", "U"]
+        # stokes = [["I", "Q"]]
+        NU_INDEX, T_INDEX, STOKES = [np.atleast_2d(x) for x in np.broadcast_arrays(nu_index, t_index, stokes)]
 
-        plot_width = np.maximum(12, subplot_size * n_nu)
-        plot_height = np.maximum(12, subplot_size * n_t)
-        plot_size = np.min([plot_width, plot_height, 4])
+        nrows, ncols = STOKES.shape
 
-        # if (n_nu > 1) and (n_time > 1):
+        max_fig_size = 12
+
+        ax_size = 5  # np.minimum(np.maximum(np.minimum(max_fig_size / nrows, max_fig_size / ncols), 5), 8)
+
         fig, axes = plt.subplots(
-            n_t,
-            n_nu,
-            figsize=(n_nu * plot_size, n_t * plot_size),
+            nrows,
+            ncols,
+            figsize=(ax_size * ncols, ax_size * nrows),
+            subplot_kw={"projection": WCS(header)},
+            constrained_layout=True,
             sharex=True,
             sharey=True,
-            constrained_layout=True,
-            dpi=256,
         )
+        axes = np.atleast_1d(axes).reshape(STOKES.shape)
 
-        axes = np.atleast_1d(axes).reshape(n_nu, n_t)
-        #     flat = False
+        for r in range(nrows):
+            for c in range(ncols):
+                ax = axes[r, c]
 
-        # else:
-        #     n_rows = int(np.sqrt(n_maps))
-        #     n_cols = int(np.ceil(n_maps / n_rows))
-        #     fig, axes = plt.subplots(
-        #         n_rows,
-        #         n_cols,
-        #         figsize=(6, 6),
-        #         sharex=True,
-        #         sharey=True,
-        #         constrained_layout=True,
-        #     )
+                if c > 0:
+                    ax.coords[1].set_ticks_visible(False)
+                    ax.coords[1].set_ticklabel_visible(False)
+                # if c == ncols - 1:
+                #     ay2 = ax.secondary_yaxis("right")
+                #     ay2.set_ylabel(rf"$\Delta\,\theta_y$ [{grid_u['units']}]")
+                if r == 0:
+                    ax2 = ax.secondary_xaxis("top")
+                    ax2.set_xlabel(rf"$\Delta\,\theta$ [{grid_u['units']}]")
+                if r < nrows - 1:
+                    ax.coords[0].set_ticks_visible(False)
+                    ax.coords[0].set_ticklabel_visible(False)
 
-        #     axes = np.atleast_1d(axes).ravel()
-        #     flat = True
+                if STOKES[r, c] is None:
+                    continue
 
-        # axes_generator = iter(axes.ravel())
-
-        map_qdata = Quantity(self.data.compute(), units=self.units)
-
-        d = map_qdata.value.ravel()
-        w = self.weight.ravel()
-        subset = np.random.choice(d.size, size=10000)
-        vmin, vmax = np.nanquantile(
-            d[subset],
-            weights=w[subset].compute(),
-            q=[rel_vmin, rel_vmax],
-            method="inverted_cdf",
-        )
-
-        for i_t in t_index:
-            for i_nu in nu_index:
-                # ax = next(axes_generator) if flat else axes[i_nu, i_t]
-                ax = axes[i_nu, i_t]
-
-                nu = self.nu[i_nu]
-
-                header = fits.header.Header()
-
-                header["RESTFRQ"] = nu if nu > 0 else 150
-
-                center_degrees = np.degrees(self.center)
-
-                header["CDELT1"] = np.degrees(self.x_res)  # degree
-                header["CDELT2"] = np.degrees(self.y_res)  # degree
-
-                header["CRPIX1"] = self.n_x / 2
-                header["CRPIX2"] = self.n_y / 2
-
-                header["CTYPE1"] = "RA---SIN"
-                header["CUNIT1"] = "deg     "
-                header["CTYPE2"] = "DEC--SIN"
-                header["CUNIT2"] = "deg     "
-                header["RADESYS"] = "FK5     "
-
-                header["CRVAL1"] = center_degrees[0]
-                header["CRVAL2"] = center_degrees[1]
-                # wcs_input = WCS(header, naxis=2)  # noqa F401
-
-                # ax = fig.add_subplot(len(time_index), len(nu_index), i_ax, sharex=True)  # , projection=wcs_input)
-
-                # ax.set_title(f"{nu} GHz")
-
-                x = Quantity(self.x_bins, "rad")
-                y = Quantity(self.y_bins, "rad")
-
-                ax.pcolormesh(
-                    x.value,
-                    y.value,
-                    map_qdata.value[stokes_index, i_nu, i_t],
+                self.plot_slice(
+                    fig,
+                    ax,
+                    stokes=STOKES[r, c],
+                    nu_index=NU_INDEX[r, c],
+                    t_index=T_INDEX[r, c],
+                    rel_vmin=rel_vmin,
+                    rel_vmax=rel_vmax,
                     cmap=cmap,
-                    # interpolation="none",
-                    # extent=map_extent,
-                    vmin=vmin,
-                    vmax=vmax,
                 )
 
-                if i_t == n_t - 1:
-                    ax.set_xlabel(rf"$\Delta\,\theta_x$ [${x.u['math_name']}$]")
-                if i_nu == 0:
-                    ax.set_ylabel(rf"$\Delta\,\theta_y$ [${y.u['math_name']}$]")
-
-                ax.set_aspect("equal")
-
-        dummy_map = mpl.cm.ScalarMappable(
-            mpl.colors.Normalize(vmin=vmin, vmax=vmax),
-            cmap=cmap,
-        )
-
-        cbar = fig.colorbar(
-            dummy_map,
-            ax=axes,
-            shrink=0.75,
-            aspect=16,
-            location="right",
-        )
-
-        cbar.set_label(f"{map_qdata.q['long_name']} [${map_qdata.u['math_name']}$]")
-
-        if filepath is not None:
-            plt.savefig(filepath=filepath, dpi=256)
+                if filepath is not None:
+                    plt.savefig(filepath=filepath, dpi=256)
 
     def to_fits(self, filepath):
         if self.n_nu > 1:
@@ -536,5 +469,6 @@ class ProjectedMap(Map):
             f.create_dataset("center", dtype=float, data=np.degrees(self.center))
             f.create_dataset("x_res", dtype=float, data=np.degrees(self.x_res))
             f.create_dataset("y_res", dtype=float, data=np.degrees(self.y_res))
+            f.create_dataset("stokes", data=self.stokes)
             f.create_dataset("units", data=self.units)
             f.create_dataset("frame", data=self.frame)
