@@ -12,8 +12,8 @@ from ..atmosphere import DEFAULT_ATMOSPHERE_KWARGS, Atmosphere
 from ..cmb import CMB, DEFAULT_CMB_KWARGS, generate_cmb, get_cmb
 from ..errors import PointingError
 from ..instrument import Instrument
-from ..io import humanize_time
-from ..map import Map
+from ..io import fetch, humanize_time
+from ..map import Map, load
 from ..plan import Plan
 from ..site import Site
 from .atmosphere import AtmosphereMixin
@@ -128,9 +128,16 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         map_start_s = ttime.monotonic()
         if map:
-            if len(map.t) > 1:
-                map_start = arrow.get(map.t.min()).to("utc")
-                map_end = arrow.get(map.t.max()).to("utc")
+            if isinstance(map, str):
+                map = load(fetch(map), **map_kwargs)
+            elif not isinstance(map, Map):
+                raise ValueError("")
+
+            self.map = map.to(units="K_RJ")
+
+            if len(self.map.t) > 1:
+                map_start = arrow.get(self.map.t.min()).to("utc")
+                map_end = arrow.get(self.map.t.max()).to("utc")
                 if map_start > self.start:
                     logger.warning(
                         f"Beginning of map ({map_start.isoformat()[:26]}) is after the "
@@ -141,8 +148,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
                         f"End of map ({map_end.isoformat()[:26]}) is before the "
                         f"end of the simulation ({self.end.isoformat()[:26]}).",
                     )
-
-            self.map = map.to(units="K_RJ")
 
         logger.debug(f"Initialized map simulation in {humanize_time(ttime.monotonic() - map_start_s)}.")
 

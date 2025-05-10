@@ -181,7 +181,7 @@ class Array:
         a = self.pol_angle
         m = np.stack(
             [
-                np.where(np.isnan(a), 2, 1),
+                np.where(np.isnan(a), np.sqrt(2), 1),
                 np.where(np.isnan(a), 0, np.cos(2 * a)),
                 np.where(np.isnan(a), 0, np.sin(2 * a)),
                 np.zeros_like(a),
@@ -189,6 +189,9 @@ class Array:
             axis=1,
         )
         return 0.5 * m[..., None] * m[..., None, :]
+
+    def stokes_weight(self):
+        return self.mueller()[:, 0]
 
     def angular_fwhm(self, z=np.inf):  # noqa F401
         """

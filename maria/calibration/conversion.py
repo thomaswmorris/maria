@@ -67,8 +67,10 @@ def radiant_flux_to_rayleigh_jeans_temperature(P, band, spectrum=None, **kwargs)
     return P / (k_B * integral)
 
 
-def brightness_temperature_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
+def brightness_temperature_to_radiant_flux(T_b, band, polarized=False, spectrum=None, **kwargs):
     # test_T_b = np.linspace(np.min(T_b) - 1e-6, np.max(T_b) + 1e-6, 2)
+
+    stokes_factor = 0.5 if polarized else 1.0
 
     if spectrum:
         T_RJ = inverse_rayleigh_jeans_spectrum(
@@ -87,24 +89,33 @@ def brightness_temperature_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
             kwargs["zenith_pwv"],
             kwargs["elevation"],
         )
-        return k_B * sp.interpolate.RegularGridInterpolator(points, integral)(xi)
+        integral = sp.interpolate.RegularGridInterpolator(points, integral)(xi)
 
     else:
         T_RJ = inverse_rayleigh_jeans_spectrum(
             planck_spectrum(T_b=np.atleast_2d(T_b), nu=band.nu[:, None]),
             nu=band.nu[:, None],
         )
-        return k_B * np.trapezoid(y=T_RJ * band.passband(band.nu[:, None]), x=band.nu, axis=-2)
+        integral = np.trapezoid(y=T_RJ * band.passband(band.nu[:, None]), x=band.nu, axis=-2)
+
+    return k_B * stokes_factor * integral
 
 
 def radiant_flux_to_brightness_temperature(P, **kwargs):
     raise NotImplementedError()
 
 
-def dP_dT_CMB(band, spectrum, eps=1e-3, **kwargs):
-    test_T_b = np.array([T_CMB - eps / 2, T_CMB + eps / 2])
-    test_P = brightness_temperature_to_radiant_flux(test_T_b, band=band, spectrum=spectrum, **kwargs)
-    return (test_P[..., 1] - test_P[..., 0]) / eps
+# def dP_dT_CMB(band, spectrum, eps=1e-3, **kwargs):
+#     test_T_b = np.array([T_CMB - eps / 2, T_CMB + eps / 2])
+#     test_P = brightness_temperature_to_radiant_flux(test_T_b, band=band, spectrum=spectrum, **kwargs)
+#     return (test_P[..., 1] - test_P[..., 0]) / eps
+
+
+def dP_dT_CMB(band, spectrum, eps=1e-6, **kwargs):
+    P_lo = brightness_temperature_to_radiant_flux(T_CMB - eps / 2, band=band, spectrum=spectrum, **kwargs)
+    P_hi = brightness_temperature_to_radiant_flux(T_CMB + eps / 2, band=band, spectrum=spectrum, **kwargs)
+
+    return (P_hi - P_lo) / eps
 
 
 def cmb_temperature_anisotropy_to_radiant_flux(T_b, band, spectrum=None, **kwargs):

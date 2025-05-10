@@ -74,7 +74,7 @@ class MapMixin:
                     else {}
                 )
 
-                sample_integral = band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
+                pW_per_K_RJ = 1e12 * k_B * band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
 
                 for stokes_index, stokes in enumerate(self.map.stokes):
                     stokes_weight = mueller[:, stokes_index, None]
@@ -109,7 +109,7 @@ class MapMixin:
                         )((dy[band_mask], dx[band_mask]))
 
                     # 1e12 because it's in picowatts
-                    pW = 1e12 * k_B * stokes_weight * sample_integral * sample_T_RJ
+                    pW = stokes_weight * pW_per_K_RJ * sample_T_RJ
 
                     if logger.level == 10:
                         logger.debug(

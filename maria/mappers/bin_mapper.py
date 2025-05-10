@@ -65,8 +65,7 @@ class BinMapper(BaseMapper):
 
             dx, dy = band_tod.coords.offsets(frame=self.frame, center=self.center)
 
-            # the inverse stokes weight needs to be four times the stokes weight (don't think about it too hard)
-            stokes_weight = band_tod.dets.mueller()[:, 0]
+            stokes_weight = band_tod.dets.stokes_weight()
 
             stokes_pbar = tqdm(enumerate(self.stokes), total=self.n_stokes, desc=f"Mapping band {band.name}")
 

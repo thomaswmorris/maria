@@ -16,7 +16,7 @@ from ..functions.radiometry import (
 
 
 class CMBMixin:
-    def _simulate_cmb_emission(self, eps: float = 1e-3):
+    def _simulate_cmb_emission(self, eps: float = 1e-6):
         self.loading["cmb"] = da.zeros(shape=(self.instrument.n_dets, self.plan.n_time), dtype=self.dtype)
 
         bands_pbar = tqdm(
@@ -25,7 +25,7 @@ class CMBMixin:
             disable=self.disable_progress_bars,
         )
 
-        m = self.instrument.dets.mueller()[:, 0]
+        m = self.instrument.dets.stokes_weight()
 
         for band in bands_pbar:
             bands_pbar.set_postfix(band=band.name)

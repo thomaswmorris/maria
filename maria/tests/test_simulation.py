@@ -24,7 +24,7 @@ test_sites = np.random.choice(a=all_sites, size=n_sims)
     zip(test_instruments, test_sites),
 )
 def test_complete_sim(instrument, site):
-    plan = get_plan("ten_second_stare")
+    plan = get_plan("five_second_stare")
     sim = Simulation(
         instrument=instrument,
         site=site,
@@ -41,11 +41,4 @@ def test_complete_sim(instrument, site):
 
     tod = tod.to("K_RJ")
 
-    # tod.plot()
-
     tod.process(config={"remove_spline": {"knot_spacing": 60}})
-    # .twinkle(
-    #     rate=2,
-    #     max_frames=10,
-    #     filename="/tmp/test_twinkle.gif",
-    # )

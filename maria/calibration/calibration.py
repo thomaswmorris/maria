@@ -112,6 +112,7 @@ class Calibration:
         for key in kwargs:
             if key not in [
                 "nu",
+                "polarized",
                 "pixel_area",
                 "band",
                 "spectrum",

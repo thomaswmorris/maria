@@ -8,14 +8,14 @@ one_minute_zenith_stare:
   sample_rate: 20
   scan_options: {}
 
-ten_second_stare:
-  description: A stare.
-  duration: 10
+five_second_stare:
+  description: A short stare
+  duration: 5
   scan_pattern: stare
   frame: az_el
   scan_center: [60, 45]
   degrees: True
-  sample_rate: 20
+  sample_rate: 25
   scan_options: {}
 
 daisy_2deg_3min:
