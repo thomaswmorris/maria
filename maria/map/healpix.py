@@ -128,3 +128,17 @@ class HEALPixMap(Map):
   quantity: {self.u["quantity"]}
   units: {self.units}
   resolution: {Quantity(self.resolution, "rad")}"""
+
+    def __repr__(self):
+        return f"""{self.__class__.__name__}:
+  shape[stokes, nu, t, npix]: {self.data.shape}
+  stokes: {"".join(self.stokes)}
+  nu: {Quantity(self.nu, "Hz")}
+  t: {Quantity(self.t, "s")}
+  nside: {self.nside}
+  quantity: {self.u["quantity"]}
+  units: {self.units}
+    min: {np.nanmin(self.data).compute():.03e}
+    max: {np.nanmax(self.data).compute():.03e}
+  resolution: {Quantity(self.resolution, "rad")}
+  memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""

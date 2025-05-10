@@ -6,6 +6,7 @@ from collections.abc import Sequence
 import dask.array as da
 import numpy as np
 import scipy as sp
+from tqdm import tqdm
 
 from ..tod import TOD
 from .base import BaseMapper
@@ -19,6 +20,7 @@ class BinMapper(BaseMapper):
     def __init__(
         self,
         center: tuple[float, float] = (0, 0),
+        stokes: str = "I",
         width: float = 1,
         height: float = None,
         resolution: float = 0.01,
@@ -34,6 +36,7 @@ class BinMapper(BaseMapper):
 
         super().__init__(
             center=center,
+            stokes=stokes,
             width=width,
             height=height,
             resolution=resolution,
@@ -53,36 +56,39 @@ class BinMapper(BaseMapper):
         """
 
         band_map_data = {
-            "sum": da.zeros((self.n_y, self.n_x)),
-            "weight": da.zeros((self.n_y, self.n_x)),
+            "sum": da.zeros((self.n_stokes, 1, self.n_y, self.n_x)),
+            "weight": da.zeros((self.n_stokes, 1, self.n_y, self.n_x)),
         }
-
-        # tods_pbar = tqdm(
-        #     self.tods,
-        #     desc=f"Running mapper ({band})",
-        #     disable=not self.verbose,
-        # )  # noqa
 
         for tod in self.tods:
             band_tod = tod.subset(band=band.name).process(config=self.tod_preprocessing).to(self.units)
 
             dx, dy = band_tod.coords.offsets(frame=self.frame, center=self.center)
 
-            band_map_data["sum"] += sp.stats.binned_statistic_2d(
-                dy.ravel(),
-                dx.ravel(),
-                band_tod.signal.ravel(),
-                bins=(self.y_bins, self.x_bins),
-                statistic="sum",
-            ).statistic
+            stokes_weight = band_tod.dets.stokes_weight()
 
-            band_map_data["weight"] += sp.stats.binned_statistic_2d(
-                dy.ravel(),
-                dx.ravel(),
-                band_tod.weight.ravel(),
-                bins=(self.y_bins, self.x_bins),
-                statistic="sum",
-            ).statistic
+            stokes_pbar = tqdm(enumerate(self.stokes), total=self.n_stokes, desc=f"Mapping band {band.name}")
+
+            for stokes_index, stokes in stokes_pbar:
+                stokes_pbar.set_postfix(band=band.name, stokes=stokes)
+
+                w = stokes_weight[:, "IQUV".index(stokes)][..., None]
+
+                band_map_data["sum"][stokes_index] += sp.stats.binned_statistic_2d(
+                    dy.ravel(),
+                    dx.ravel(),
+                    (np.sign(w) * band_tod.weight * band_tod.signal).ravel(),
+                    bins=(self.y_bins[::-1], self.x_bins),
+                    statistic="sum",
+                ).statistic[::-1]
+
+                band_map_data["weight"][stokes_index] += sp.stats.binned_statistic_2d(
+                    dy.ravel(),
+                    dx.ravel(),
+                    (np.abs(w) * band_tod.weight).ravel(),
+                    bins=(self.y_bins[::-1], self.x_bins),
+                    statistic="sum",
+                ).statistic[::-1]
 
             del band_tod
 

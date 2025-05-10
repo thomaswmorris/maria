@@ -1,6 +1,25 @@
+temperature:
+  long_name: temperature
+  medium_name: temperature
+  short_name: T
+  math_name: T
+  default_units: K
+  default_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+  dimensions:
+    temperature: 1
+  units:
+    K:
+      long_name: kelvin
+      math_name: \text{K}
+      factor: 1.0
+      natural: True
+
 
 angle:
   long_name: Angle
+  medium_name: Angle
   short_name: theta
   math_name: \theta
   default_units: deg
@@ -32,6 +51,7 @@ angle:
 
 solid_angle:
   long_name: Solid angle
+  medium_name: Solid angle
   short_name: Omega
   math_name: \Omega
   default_units: sr
@@ -53,6 +73,7 @@ solid_angle:
 
 time:
   long_name: Time
+  medium_name: Time
   short_name: t
   math_name: t
   default_units: s
@@ -96,6 +117,7 @@ time:
 
 information:
   long_name: Information
+  medium_name: Information
   short_name: S
   math_name: S
   default_units: B
@@ -117,6 +139,7 @@ information:
 
 mass:
   long_name: mass
+  medium_name: mass
   short_name: m
   math_name: m
   default_units: g
@@ -134,6 +157,7 @@ mass:
 
 length:
   long_name: length
+  medium_name: length
   short_name: x
   math_name: x
   default_units: m
@@ -153,6 +177,7 @@ length:
 
 frequency:
   long_name: frequency
+  medium_name: frequency
   short_name: nu
   math_name: \nu
   default_units: Hz
@@ -170,6 +195,7 @@ frequency:
 
 noise_equivalent_power:
   long_name: noise equivalent power
+  medium_name: noise equivalent power
   short_name: NEP
   math_name: \text{NEP}
   default_units: W√s
@@ -188,6 +214,7 @@ noise_equivalent_power:
 
 noise_equivalent_temperature:
   long_name: noise equivalent temperature
+  medium_name: noise equivalent temperature
   short_name: NET
   math_name: \text{NET}
   default_units: K√s
@@ -206,6 +233,7 @@ noise_equivalent_temperature:
 
 rayleigh_jeans_temperature:
   long_name: Rayleigh-Jeans temperature
+  medium_name: R-J temp.
   short_name: T_RJ
   math_name: T_\text{RJ}
   default_units: K_RJ
@@ -228,6 +256,7 @@ rayleigh_jeans_temperature:
 
 brightness_temperature:
   long_name: Brightness temperature
+  medium_name: Brightness temperature
   short_name: T_b
   math_name: T_b
   default_units: K_b
@@ -246,6 +275,7 @@ brightness_temperature:
 
 cmb_temperature_anisotropy:
   long_name: CMB temperature anisotropy
+  medium_name: CMB temperature anisotropy
   short_name: T_CMB
   math_name: T_{CMB}
   default_units: K_CMB
@@ -263,6 +293,7 @@ cmb_temperature_anisotropy:
 
 radiant_flux:
   long_name: Radiant Flux
+  medium_name: Radiant Flux
   short_name: P
   math_name: P
   default_units: W
@@ -280,6 +311,7 @@ radiant_flux:
 
 spectral_flux_density:
   long_name: Spectral flux density
+  medium_name: Spectral flux density
   short_name: E_e,nu
   math_name: E_{e,\nu}
   default_units: Jy
@@ -299,6 +331,7 @@ spectral_flux_density:
 
 spectral_radiance:
   long_name: Spectral radiance
+  medium_name: Spectral radiance
   short_name: L
   math_name: L
   default_units: Jy/sr
@@ -321,6 +354,7 @@ spectral_radiance:
 
 spectral_flux_density_per_pixel:
   long_name: Spectral flux density per pixel
+  medium_name: Spectral flux density per pixel
   short_name: I_nu
   math_name: I_\nu
   default_units: Jy/pixel

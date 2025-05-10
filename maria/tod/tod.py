@@ -74,8 +74,11 @@ class TOD:
         return self._boresight
 
     def calibration_kwargs(self, band=None):
-        kwargs = {"elevation": self.el[self.dets.band_name == band.name] if band else self.el}
-
+        band_mask = self.dets.band_name == band.name
+        kwargs = {
+            "elevation": self.el[band_mask] if band else self.el,
+            "polarized": ~np.isnan(self.dets.pol_angle[band_mask]).all(),
+        }
         if self.metadata["atmosphere"]:
             kwargs["spectrum"] = self.spectrum
             kwargs["zenith_pwv"] = self.metadata["pwv"]
@@ -106,7 +109,6 @@ class TOD:
                 continue
 
             # this is to handle transmission
-
             cal = band.cal(f"{self.units} -> {units}", **self.calibration_kwargs(band))
 
             for field in self.fields:

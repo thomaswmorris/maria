@@ -76,7 +76,7 @@ class BandList(Sequence):
         if not isinstance(band, Band):
             raise ValueError("'band' must be a Band type.")
         if band.name in self.names:
-            raise RuntimeError(f"There is already a band called '{band.name}'.")
+            self.bands[self.names.index(band.name)] = band
         self.bands.append(band)
 
     def __getattr__(self, attr):

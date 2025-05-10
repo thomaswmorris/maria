@@ -14,18 +14,28 @@ from .time import *  # noqa
 # nothing in here should import from other maria module
 
 
-def generate_power_law_noise(n: tuple = (256, 256), cutoff=1e0, beta=None):
-    ndim = len(n)  # noqa
-    beta = beta or 8 / 6
+def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, beta: float = 8 / 3):
+    kx = np.fft.fftfreq(nx, d=1 / nx)
+    ky = np.fft.fftfreq(ny, d=1 / ny)
+    KY, KX = np.meshgrid(ky, kx)
+    P = np.sqrt(k0**2 + KX**2 + KY**2) ** (-beta - 1)
+    F = np.fft.fft2(np.sqrt(P) * np.fft.ifft2(np.random.standard_normal(size=(ny, nx)))).real
 
-    X_list = np.meshgrid(*[np.linspace(0, 1, _n) for _n in n])
-    K_list = np.meshgrid(*[np.fft.fftfreq(_n, d=1 / _n) for _n in n])
+    return (F - F.mean()) / F.std()
 
-    P = (cutoff**2 + sum([K**2 for K in K_list])) ** -(beta / 2)
 
-    F = np.real(np.fft.fftn(P * np.fft.ifftn(np.random.standard_normal(size=n))))
+# def generate_power_law_noise(n: tuple = (256, 256), cutoff=1e0, beta=None):
+#     ndim = len(n)  # noqa
+#     beta = beta or 8 / 6
 
-    return *X_list, (F - F.mean()) / F.std()
+#     X_list = np.meshgrid(*[np.linspace(0, 1, _n) for _n in n])
+#     K_list = np.meshgrid(*[np.fft.fftfreq(_n, d=1 / _n) for _n in n])
+
+#     P = (cutoff**2 + sum([K**2 for K in K_list])) ** -(beta / 2)
+
+#     F = np.real(np.fft.fftn(P * np.fft.ifftn(np.random.standard_normal(size=n))))
+
+#     return *X_list, (F - F.mean()) / F.std()
 
 
 def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:

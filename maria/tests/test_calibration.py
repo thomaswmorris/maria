@@ -23,7 +23,7 @@ def test_brightness_temperature_to_spectral_flux_density_per_pixel():
 
 #     sim = Simulation(
 #         instrument="MUSTANG-2",
-#         plan="ten_second_stare",
+#         plan="five_second_stare",
 #         site="green_bank",
 #         noise=True,
 #     )

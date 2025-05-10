@@ -67,39 +67,51 @@ def radiant_flux_to_rayleigh_jeans_temperature(P, band, spectrum=None, **kwargs)
     return P / (k_B * integral)
 
 
-def brightness_temperature_to_radiant_flux(T_b, band, spectrum=None, **kwargs):
-    test_T_b = np.linspace(np.min(T_b) - 1e-6, np.max(T_b) + 1e-6, 2)
+def brightness_temperature_to_radiant_flux(T_b, band, polarized=False, spectrum=None, **kwargs):
+    # test_T_b = np.linspace(np.min(T_b) - 1e-6, np.max(T_b) + 1e-6, 2)
+
+    stokes_factor = 0.5 if polarized else 1.0
 
     if spectrum:
-        test_T_RJ = inverse_rayleigh_jeans_spectrum(
-            planck_spectrum(T_b=test_T_b[:, None], nu=spectrum.side_nu),
-            nu=spectrum.side_nu,
+        T_RJ = inverse_rayleigh_jeans_spectrum(
+            planck_spectrum(T_b=np.atleast_2d(T_b), nu=spectrum.side_nu[:, None]),
+            nu=spectrum.side_nu[:, None],
         )
+
         integral = np.trapezoid(
-            y=test_T_RJ[:, None, None, None] * np.exp(-spectrum._opacity) * band.passband(spectrum.side_nu),
+            y=T_RJ[None, None, None] * (np.exp(-spectrum._opacity) * band.passband(spectrum.side_nu))[..., None],
             x=spectrum.side_nu,
-            axis=-1,
+            axis=-2,
         )
-        points = (test_T_b, *spectrum.points[:3])
+        points = spectrum.points[:3]
         xi = (
-            T_b,
             kwargs["base_temperature"],
             kwargs["zenith_pwv"],
             kwargs["elevation"],
         )
-        return k_B * sp.interpolate.interpn(points, integral, xi)
+        integral = sp.interpolate.RegularGridInterpolator(points, integral)(xi)
 
     else:
-        test_T_RJ = inverse_rayleigh_jeans_spectrum(planck_spectrum(T_b=test_T_b[:, None], nu=band.nu), nu=band.nu)
-        integral = np.trapezoid(y=test_T_RJ * band.passband(band.nu), x=band.nu, axis=-1)
-        return k_B * sp.interpolate.interp1d(test_T_b, integral)(T_b)
+        T_RJ = inverse_rayleigh_jeans_spectrum(
+            planck_spectrum(T_b=np.atleast_2d(T_b), nu=band.nu[:, None]),
+            nu=band.nu[:, None],
+        )
+        integral = np.trapezoid(y=T_RJ * band.passband(band.nu[:, None]), x=band.nu, axis=-2)
+
+    return k_B * stokes_factor * integral
 
 
 def radiant_flux_to_brightness_temperature(P, **kwargs):
     raise NotImplementedError()
 
 
-def dP_dT_CMB(band, spectrum, eps=1e-4, **kwargs):
+# def dP_dT_CMB(band, spectrum, eps=1e-3, **kwargs):
+#     test_T_b = np.array([T_CMB - eps / 2, T_CMB + eps / 2])
+#     test_P = brightness_temperature_to_radiant_flux(test_T_b, band=band, spectrum=spectrum, **kwargs)
+#     return (test_P[..., 1] - test_P[..., 0]) / eps
+
+
+def dP_dT_CMB(band, spectrum, eps=1e-6, **kwargs):
     P_lo = brightness_temperature_to_radiant_flux(T_CMB - eps / 2, band=band, spectrum=spectrum, **kwargs)
     P_hi = brightness_temperature_to_radiant_flux(T_CMB + eps / 2, band=band, spectrum=spectrum, **kwargs)
 

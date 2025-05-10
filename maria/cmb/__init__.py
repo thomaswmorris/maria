@@ -28,7 +28,7 @@ CMB_MAP_CACHE_PATH = "/tmp/maria-data/cmb/planck/map.fits"
 CMB_MAP_CACHE_MAX_AGE = 30 * 86400  # one month
 
 
-DEFAULT_CMB_KWARGS = {"nside": 1024}
+DEFAULT_CMB_KWARGS = {"nside": 2048}
 
 
 class CMB(HEALPixMap):
@@ -64,9 +64,9 @@ def generate_cmb(nside=2048, seed=123456, **kwargs):
     cmb_data = hp.alm2map(alm, nside=nside, lmax=lmax)
 
     return CMB(
-        data=1e6 * (T_CMB + cmb_data[:, None, None, :]),
-        stokes=["I", "Q", "U"],
-        units="uK_b",
+        data=1e6 * cmb_data[:, None, None, :],
+        stokes="IQU",
+        units="uK_CMB",
         nu=148e9,
     )
 

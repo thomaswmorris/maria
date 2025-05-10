@@ -27,6 +27,7 @@ class BaseMapper:
     def __init__(
         self,
         center: tuple[float, float],
+        stokes: float,
         width: float,
         height: float,
         resolution: float,
@@ -44,12 +45,13 @@ class BaseMapper:
         self.calibrate = calibrate
         self.frame = frame
         self.units = units
+        self.stokes = stokes
 
         self.n_x = int(np.maximum(1, self.width / self.resolution))
         self.n_y = int(np.maximum(1, self.height / self.resolution))
 
         self.x_bins = np.linspace(-0.5 * self.width, 0.5 * self.width, self.n_x + 1)
-        self.y_bins = np.linspace(-0.5 * self.height, 0.5 * self.height, self.n_y + 1)
+        self.y_bins = np.linspace(0.5 * self.height, -0.5 * self.height, self.n_y + 1)
 
         self.bands = BandList(bands=[])
 
@@ -62,8 +64,8 @@ class BaseMapper:
         self.map.plot()
 
     @property
-    def n_maps(self):
-        return len(self.maps)
+    def n_stokes(self):
+        return len(self.stokes)
 
     def add_tods(self, tods):
         for tod in np.atleast_1d(tods):
@@ -90,8 +92,8 @@ class BaseMapper:
             self.map_data[band.name] = self._run(band)
             logger.info(f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}.")
 
-        map_data = np.zeros((len(self.map_data), 1, self.n_y, self.n_x))
-        map_weight = np.zeros((len(self.map_data), 1, self.n_y, self.n_x))
+        map_data = np.zeros((self.n_stokes, len(self.bands), 1, self.n_y, self.n_x))
+        map_weight = np.zeros((self.n_stokes, len(self.bands), 1, self.n_y, self.n_x))
         map_freqs = []
 
         for i, (band_name, band_map_data) in enumerate(self.map_data.items()):
@@ -103,23 +105,26 @@ class BaseMapper:
             if "gaussian_filter" in self.map_postprocessing.keys():
                 sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
 
-                band_map_numer = sp.ndimage.gaussian_filter(band_map_numer, sigma=sigma)
-                band_map_denom = sp.ndimage.gaussian_filter(band_map_denom, sigma=sigma)
+                band_map_numer = sp.ndimage.gaussian_filter(band_map_numer, sigma=(0, 0, sigma, sigma))
+                band_map_denom = sp.ndimage.gaussian_filter(band_map_denom, sigma=(0, 0, sigma, sigma))
 
             if "median_filter" in self.map_postprocessing.keys():
+                size = self.map_postprocessing["median_filter"]["size"]
                 band_map_numer = sp.ndimage.median_filter(
                     band_map_numer,
-                    size=self.map_postprocessing["median_filter"]["size"],
+                    size=size,
+                    axes=(-2, -1),
                 )
 
-            map_data[i, :] = band_map_numer / band_map_denom
-            map_weight[i, :] = band_map_denom
+            map_data[:, i] = band_map_numer / band_map_denom
+            map_weight[:, i] = band_map_denom
 
         # by convention maps have zero mean
         map_offsets = np.nanmean(map_data, axis=(-1, -2))[..., None, None]
 
         return ProjectedMap(
             data=map_data - map_offsets,
+            stokes=self.stokes,
             weight=map_weight,
             nu=map_freqs,
             resolution=self.resolution,

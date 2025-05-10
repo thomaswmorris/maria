@@ -59,7 +59,7 @@ class Quantity:
 
         abs_x = np.minimum(np.abs(x), 1e100)
 
-        if (abs_x > 0).any():
+        if (abs_x > 0).any() and np.isfinite(abs_x).any():
             fid_x = 2 * np.nanquantile(np.where(abs_x > 0, abs_x, np.nan), q=0.95)
             unit_index = np.digitize(fid_x, [0, *natural_units.factor.values[1:], np.inf]) - 1
             unit = natural_units.iloc[unit_index]
@@ -118,3 +118,6 @@ class Quantity:
 
     def __sub__(self, other):
         return Quantity(self.value - getattr(other, self.units), units=self.units)
+
+    def __format__(self, *args, **kwargs):
+        return repr(self).__format__(*args, **kwargs)
