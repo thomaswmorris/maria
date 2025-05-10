@@ -6,6 +6,7 @@
   array:
     field_of_view: 0.5
     primary_size: 5
+    polarized: True
     bands:
       f090:
         center: 90.e+9
@@ -13,11 +14,11 @@
         efficiency: 0.6
       f150:
         center: 150.e+9
-        width: 30.e+9
+        width: 40.e+9
         efficiency: 0.5
       f220:
         center: 220.e+9
-        width: 30.e+9
+        width: 50.e+9
         efficiency: 0.4
 
 10deg:
