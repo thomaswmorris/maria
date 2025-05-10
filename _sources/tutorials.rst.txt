@@ -6,4 +6,5 @@ Tutorials
    :maxdepth: 2
 
    tutorials/custom-map-simulations
-   tutorials/MUSTANG-2_cluster
+   tutorials/polarized-observations
+   tutorials/cluster-mustang-2

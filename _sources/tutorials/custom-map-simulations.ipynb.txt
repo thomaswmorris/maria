@@ -116,7 +116,7 @@
     "    start_time=\"2024-08-06T03:00:00\",\n",
     "    scan_pattern=\"daisy\",\n",
     "    scan_options={\"radius\": 0.08, \"speed\": 0.01},  # in degrees\n",
-    "    duration=1200,  # in seconds\n",
+    "    duration=600,  # in seconds\n",
     "    sample_rate=50,  # in Hz\n",
     "    scan_center=(291.156, -31.23),\n",
     "    frame=\"ra_dec\")\n",
@@ -135,7 +135,7 @@
     "sim = maria.Simulation(\n",
     "    instrument,\n",
     "    plan=plan,\n",
-    "    site=\"llano_de_chajnantor\",\n",
+    "    site=site,\n",
     "    atmosphere=\"2d\",\n",
     "    atmosphere_kwargs={\"weather\": {\"pwv\": 0.5}},\n",
     "    cmb=\"generate\",\n",
@@ -186,8 +186,24 @@
     "\n",
     "mapper.add_tods(tod)\n",
     "\n",
-    "output_map = mapper.run()\n",
-    "\n",
+    "output_map = mapper.run()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "11",
+   "metadata": {},
+   "source": [
+    "We can see the recovered map with"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "12",
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "print(output_map)\n",
     "output_map.plot()"
    ]
