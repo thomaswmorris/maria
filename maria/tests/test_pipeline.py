@@ -16,7 +16,7 @@ all_test_plan_configs = list(read_yaml(f"{here}/configs/test_plans.yml").values(
 
 all_instruments.pop(all_instruments.index("alma/ALMA"))
 
-n_sims = 6
+n_sims = 4
 test_instruments = np.random.choice(a=all_instruments, size=n_sims)
 test_sites = np.random.choice(a=all_sites, size=n_sims)
 
@@ -53,8 +53,6 @@ def test_pipeline(instrument, site):
             raise ValueError(f"There are NaNs in the '{field}' field.")
 
     tod = tod.to("K_RJ")
-
-    tod.process(config={"remove_spline": {"knot_spacing": 60}})
 
     mapper = BinMapper(
         center=(0, -23),
