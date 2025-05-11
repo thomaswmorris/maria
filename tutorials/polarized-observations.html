@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Simulating observations with MUSTANG-2" href="cluster-mustang-2.html" /><link rel="prev" title="Custom map simulations" href="custom-map-simulations.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>Polarized simulations - maria</title>
+        <title>Polarized observations - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
@@ -233,7 +233,7 @@
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="custom-map-simulations.html">Custom map simulations</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Polarized simulations</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Polarized observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cluster-mustang-2.html">Simulating observations with MUSTANG-2</a></li>
 </ul>
 </li>
@@ -279,8 +279,8 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="Polarized-simulations">
-<h1>Polarized simulations<a class="headerlink" href="#Polarized-simulations" title="Link to this heading">¶</a></h1>
+          <section id="Polarized-observations">
+<h1>Polarized observations<a class="headerlink" href="#Polarized-observations" title="Link to this heading">¶</a></h1>
 <p>This tutorial covers working with polarized instrument and maps, and recovering polarized maps from observations.</p>
 <p>We start with a normal instrument, and create two orthogonally polarized copies of each detector by setting <code class="docutils literal notranslate"><span class="pre">polarized:</span> <span class="pre">True</span></code> in the <code class="docutils literal notranslate"><span class="pre">Array</span></code> config:</p>
 <div class="nbinput docutils container">
@@ -410,7 +410,7 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5: 100%|██████████| 936k/936k [00:00&lt;00:00, 16.2MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5: 100%|██████████| 936k/936k [00:00&lt;00:00, 40.1MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -484,10 +484,10 @@ Plan:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Constructing atmosphere: 100%|██████████| 10/10 [00:35&lt;00:00,  3.58s/it]
+Constructing atmosphere: 100%|██████████| 10/10 [00:41&lt;00:00,  4.19s/it]
 </pre></div></div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -543,14 +543,6 @@ Simulation
     memory: 15.02 MB
 </pre></div></div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-
-</pre></div></div>
-</div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -567,10 +559,10 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:01&lt;00:00,  8.48it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:06&lt;00:00,  1.66it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:04&lt;00:00,  2.43s/it, band=f150]
-Sampling map: 100%|██████████| 2/2 [00:15&lt;00:00,  7.79s/it, band=f150, stokes=U]
+Generating turbulence: 100%|██████████| 10/10 [00:01&lt;00:00,  8.27it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:06&lt;00:00,  1.64it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:04&lt;00:00,  2.42s/it, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:15&lt;00:00,  7.68s/it, band=f150, stokes=U]
 Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.07s/it, band=f150]
 </pre></div></div>
 </div>
@@ -579,7 +571,7 @@ Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-05-10T18:06:15.991051+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
+TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-05-11T18:26:03.285383+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -627,10 +619,10 @@ TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 3/3 [00:31&lt;00:00, 10.65s/it, band=f090, stokes=U]
-2025-05-10 18:07:03.354 INFO: Ran mapper for band f090 in 36.46 s.
-Mapping band f150: 100%|██████████| 3/3 [00:32&lt;00:00, 10.68s/it, band=f150, stokes=U]
-2025-05-10 18:07:39.985 INFO: Ran mapper for band f150 in 36.63 s.
+Mapping band f090: 100%|██████████| 3/3 [00:31&lt;00:00, 10.61s/it, band=f090, stokes=U]
+2025-05-11 18:26:50.748 INFO: Ran mapper for band f090 in 36.4 s.
+Mapping band f150: 100%|██████████| 3/3 [00:32&lt;00:00, 10.67s/it, band=f150, stokes=U]
+2025-05-11 18:27:27.291 INFO: Ran mapper for band f150 in 36.54 s.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -642,11 +634,11 @@ ProjectedMap:
   shape[stokes, nu, t, y, x]: (3, 2, 1, 256, 256)
   stokes: IQU
   nu: [ 90. 150.] GHz
-  t: [1.74690046e+09] s
+  t: [1.74698805e+09] s
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -1.184e+02
-    max: 1.280e+02
+    min: -1.188e+02
+    max: 1.284e+02
   center:
     ra: 00ʰ00ᵐ0.00ˢ
     dec: -23°00’0.00”

@@ -5,7 +5,7 @@
    "id": "0",
    "metadata": {},
    "source": [
-    "# Polarized simulations\n",
+    "# Polarized observations\n",
     "\n",
     "This tutorial covers working with polarized instrument and maps, and recovering polarized maps from observations."
    ]
