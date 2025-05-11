@@ -43,6 +43,15 @@ class CMB(HEALPixMap):
         super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, units=units)
 
 
+def get_cmb_spectrum():
+    cmb_spectrum_path = fetch(
+        "cmb/spectra/planck.csv",
+        max_age=30 * 86400,
+    )
+
+    return pd.read_csv(cmb_spectrum_path, index_col=0)
+
+
 def generate_cmb(nside=2048, seed=123456, **kwargs):
     """
     Generate a new CMB.
@@ -50,23 +59,16 @@ def generate_cmb(nside=2048, seed=123456, **kwargs):
     Taken from https://www.zonca.dev/posts/2020-09-30-planck-spectra-healpy.html
     """
 
-    cmb_spectrum_path = fetch(
-        "cmb/spectra/planck.csv",
-        max_age=30 * 86400,
-        # refresh=kwargs.get("refresh_cache", False),
-    )
-
-    # in uK
-    cl = pd.read_csv(cmb_spectrum_path, index_col=0)
+    cl = get_cmb_spectrum()
     lmax = cl.index.max()
 
     alm = hp.synalm((cl.TT, cl.EE, cl.BB, cl.TE), lmax=lmax, new=True)
     cmb_data = hp.alm2map(alm, nside=nside, lmax=lmax)
 
     return CMB(
-        data=1e6 * cmb_data[:, None, None, :],
+        data=cmb_data[:, None, None, :],
         stokes="IQU",
-        units="uK_CMB",
+        units="K_CMB",
         nu=148e9,
     )
 

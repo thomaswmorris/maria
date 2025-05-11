@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import time as ttime
+import warnings
 from collections.abc import Sequence
 
 import numpy as np
@@ -12,6 +13,7 @@ from ..instrument import BandList
 from ..io import humanize_time
 from ..map import ProjectedMap
 from ..tod import TOD
+from ..units import Quantity
 
 # np.seterr(invalid="ignore")
 
@@ -119,8 +121,15 @@ class BaseMapper:
             map_data[:, i] = band_map_numer / band_map_denom
             map_weight[:, i] = band_map_denom
 
+        for stokes_index, stokes in enumerate(self.stokes):
+            for nu_index, nu in enumerate(map_freqs):
+                if map_weight[stokes_index, nu_index].sum() == 0:
+                    logger.warning(f"No counts for map (stokes={stokes}, nu={Quantity(nu, 'Hz')})")
+
         # by convention maps have zero mean
-        map_offsets = np.nanmean(map_data, axis=(-1, -2))[..., None, None]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            map_offsets = np.nanmean(map_data, axis=(-1, -2))[..., None, None]
 
         return ProjectedMap(
             data=map_data - map_offsets,

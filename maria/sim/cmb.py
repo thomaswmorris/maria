@@ -71,7 +71,7 @@ class CMBMixin:
 
             assert P.shape[-1] == 2
 
-            pW_per_uK_CMB = 1e-6 * (P[..., 1] - P[..., 0]) / eps
+            pW_per_K_CMB = (P[..., 1] - P[..., 0]) / eps
 
             flat_band_pixel_index = hp.ang2pix(
                 nside=self.cmb.nside,
@@ -89,4 +89,4 @@ class CMBMixin:
             for stokes_index, stokes in enumerate("IQU"):
                 bands_pbar.set_postfix(band=band.name, stokes=stokes)
                 stokes_weight = m[band_mask, stokes_index][:, None]
-                self.loading["cmb"][band_mask] += stokes_weight * pW_per_uK_CMB * band_cmb_temperature_samples[stokes_index]
+                self.loading["cmb"][band_mask] += stokes_weight * pW_per_K_CMB * band_cmb_temperature_samples[stokes_index]

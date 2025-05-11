@@ -382,7 +382,11 @@ class Coordinates:
         elif frame == "galactic":
             dx, dy = phi_theta_to_dx_dy(self.l, self.b, *center)
 
-        return da.stack([dx, dy])
+        return da.stack([dx, dy], axis=0)
+
+    def spread(self, frame="ra_dec"):
+        dX = self.offsets(frame=frame)
+        return dX.std(axis=list(range(1, dX.ndim)))
 
     def __repr__(self):
         lon = self.earth_location.lon.deg

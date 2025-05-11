@@ -13,20 +13,22 @@ class BandList(Sequence):
         self.bands = []
 
         if isinstance(bands, BandList):
-            self.bands = bands.bands
+            for b in bands.bands:
+                self.add(b)
 
         elif isinstance(bands, Mapping):
             for band_name, band_config in bands.items():
-                self.bands.append(Band(name=band_name, **band_config))
+                self.add(Band(name=band_name, **band_config))
 
         elif isinstance(bands, list):
             for band in bands:
                 if isinstance(band, Band):
-                    self.bands.append(band)
+                    b = band
                 elif isinstance(band, str):
-                    self.bands.append(get_band(band))
+                    b = get_band(band)
                 else:
-                    self.bands.append(Band(**band))
+                    b = Band(**band)
+                self.add(b)
 
     # @classmethod
     # def from_list(cls, bands):
@@ -77,7 +79,8 @@ class BandList(Sequence):
             raise ValueError("'band' must be a Band type.")
         if band.name in self.names:
             self.bands[self.names.index(band.name)] = band
-        self.bands.append(band)
+        else:
+            self.bands.append(band)
 
     def __getattr__(self, attr):
         if attr in self.names:
