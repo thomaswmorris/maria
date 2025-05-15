@@ -78,6 +78,7 @@ def download_from_url(
         except Exception as error:
             if status["fails"] < max_retries:
                 status["fails"] += 1
+                ttime.sleep(5e0)
             else:
                 raise error
 

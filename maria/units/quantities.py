@@ -15,9 +15,9 @@ with open(f"{here}/quantities.yml") as f:
 units_entries = {}
 for q, q_config in QUANTITIES.items():
     for unit, unit_entry in q_config.pop("units").items():
-        units_entries[unit] = {**unit_entry, "quantity": q, "default_units": q_config["default_units"]}
+        units_entries[unit] = {**unit_entry, "quantity": q, "quantity_default_unit": q_config["default_unit"]}
 
-UNITS = pd.DataFrame(units_entries).T
+UNITS = pd.DataFrame(units_entries).fillna("").T
 UNITS["factor"] = UNITS["factor"].astype(float)
 
 prefixes_phrase = r"|".join(PREFIXES.index)
@@ -40,6 +40,8 @@ def parse_units(u):
     units_dict["long_name"] = f"{prefix.long_name}{base_unit.long_name}"
     units_dict["math_name"] = f"{prefix.symbol_latex}{base_unit.math_name}"
     units_dict["factor"] = base_unit.factor * prefix.factor
+    if not units_dict["symbol"]:
+        units_dict.pop("symbol")
     return units_dict
 
 
@@ -57,10 +59,11 @@ class Quantity:
         self.q = QUANTITIES[u["quantity"]]
         natural_units = UNITS.loc[(UNITS.quantity == u["quantity"]) & (UNITS.natural)].sort_values("factor")
 
-        abs_x = np.minimum(np.abs(x), 1e100)
+        abs_x = np.abs(x)
+        abs_fin_x = np.where((abs_x > 0) & np.isfinite(abs_x), abs_x, np.nan)
 
-        if (abs_x > 0).any() and np.isfinite(abs_x).any():
-            fid_x = 2 * np.nanquantile(np.where(abs_x > 0, abs_x, np.nan), q=0.95)
+        if (abs_fin_x > 0).any():
+            fid_x = 2 * np.nanquantile(abs_fin_x, q=0.99)
             unit_index = np.digitize(fid_x, [0, *natural_units.factor.values[1:], np.inf]) - 1
             unit = natural_units.iloc[unit_index]
 
@@ -70,7 +73,7 @@ class Quantity:
             self.u = parse_units(f"{prefix}{unit.name}")
 
         else:
-            self.u = parse_units(u["default_units"])
+            self.u = parse_units(u["quantity_default_unit"])
 
         self.value = x / self.u["factor"]
 
@@ -91,8 +94,13 @@ class Quantity:
         return self.q.get("max_prefix_power", 30)
 
     def __repr__(self) -> str:
+        u = self.u
+        if (u["prefix"] == "") and ("symbol" in u):
+            units_string = u["symbol"]
+        else:
+            units_string = f" {self.units}"
         value_repr = f"{self.value:.04g}" if np.isscalar(self.value) else self.value
-        return f"{value_repr} {self.units}"
+        return f"{value_repr}{units_string}"
 
     def to(self, units) -> float:
         u = parse_units(units)

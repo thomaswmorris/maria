@@ -44,7 +44,7 @@ def generate_layers(
     min_res_per_beam = min_res_per_beam or MIN_RES_PER_BEAM[mode]
     min_res_per_fov = min_res_per_fov or MIN_RES_PER_FOV[mode]
 
-    min_el = sim.boresight.el.min().compute()
+    min_el = sim.boresight.el.min()
 
     h_samples = np.arange(0, max_height + 1e0, 1e-1)
 
@@ -311,7 +311,7 @@ class ProcessExtrusion:
         start_time = ttime.monotonic()
         inv_COV_S_S = fast_psd_inverse(COV_S_S)
         logger.debug(
-            f"inverted sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
+            f"Inverted sample-sample covariance {COV_S_S.shape} in {1e3 * (ttime.monotonic() - start_time):.0f} ms.",
         )
 
         self.COV_S_S = COV_S_S
@@ -321,7 +321,7 @@ class ProcessExtrusion:
 
         if (self.A.sum(axis=-1) > 1.0).any():
             raise ValueError(
-                f"propagation operator is unstable (A_max = {self.A.sum(axis=-1).max()}).",
+                f"Propagation operator is unstable (A_max = {self.A.sum(axis=-1).max()}).",
             )
 
         start_time = ttime.monotonic()
@@ -329,7 +329,7 @@ class ProcessExtrusion:
 
         duration_ms = 1e3 * (ttime.monotonic() - start_time)
         logger.debug(
-            f"Computed Cholesky decomposition of posterior covariance {COV_E_E.shape} in {duration_ms:.0f} ms.",
+            f"Computed Cholesky decomposition {COV_E_E.shape} in {duration_ms:.0f} ms.",
         )
 
         self.values = np.zeros((self.n_extrusion, self.n_cross_section))

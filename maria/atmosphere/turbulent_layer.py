@@ -44,8 +44,8 @@ class TurbulentLayer:
         self.timestep = timestep
 
         self.sim_time = self.boresight.time
-        self.sim_az = self.boresight.az.compute()
-        self.sim_el = self.boresight.el.compute()
+        self.sim_az = self.boresight.az
+        self.sim_el = self.boresight.el
 
         # this is approximately correct
         # self.depth = self.depth / np.sin(np.mean(self.plan.el))
@@ -84,13 +84,13 @@ class TurbulentLayer:
 
         # compute the offset with respect to the center of the scan
         center_az, center_el = get_center_phi_theta(self.sim_az, self.sim_el)
-        dx, dy = self.boresight.offsets(frame="az_el", center=(center_az, center_el))
+        offsets = self.boresight.offsets(frame="az_el", center=(center_az, center_el))
 
         # the angular position of the boresight over time WRT the atmosphere
         # this has dimensions (2, time index)
         self.boresight_angular_position = np.c_[
-            dx + np.cumsum(angular_velocity_x * np.gradient(self.sim_time)),
-            dy + np.cumsum(angular_velocity_y * np.gradient(self.sim_time)),
+            offsets[..., 0] + np.cumsum(angular_velocity_x * np.gradient(self.sim_time)),
+            offsets[..., 1] + np.cumsum(angular_velocity_y * np.gradient(self.sim_time)),
         ]
 
         # find the detector offsets which form a convex hull

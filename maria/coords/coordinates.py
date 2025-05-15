@@ -18,10 +18,11 @@ from scipy.interpolate import interp1d
 from ..io import DEFAULT_TIME_FORMAT, humanize_time
 from ..utils import repr_lat_lon
 from .transforms import (
-    dx_dy_to_phi_theta,
     get_center_phi_theta,
-    phi_theta_to_dx_dy,
+    offsets_to_phi_theta,
+    phi_theta_to_offsets,
     phi_theta_to_xyz,
+    unjitted_offsets_to_phi_theta,
     xyz_to_phi_theta,
 )
 
@@ -109,7 +110,8 @@ class Coordinates:
         ):
             # if not isinstance(value, dask.array.Array):
             #     value = da.asarray(value)
-            setattr(self, f"_{attr}", da.asarray(value))
+            # setattr(self, f"_{attr}", da.asarray(value))
+            setattr(self, f"_{attr}", value)
 
         setattr(self, frames[self.frame]["phi"], self._phi)
         setattr(self, frames[self.frame]["theta"], self._theta)
@@ -162,12 +164,24 @@ class Coordinates:
             axis=0,
         )
 
-        self.fid_phi, self.fid_theta = dx_dy_to_phi_theta(
-            fid_offsets[..., 0],
-            fid_offsets[..., 1],
+        # for sample_index =
+
+        fpt = unjitted_offsets_to_phi_theta(
+            fid_offsets[..., :2],
             t_ordered_center_phi_theta[:, 0][sample_indices][..., None],
             t_ordered_center_phi_theta[:, 1][sample_indices][..., None],
         )
+
+        self.fid_phi, self.fid_theta = fpt[..., 0], fpt[..., 1]
+
+        # self.fid_phi = np.zeros((n_t_samples, len(fid_offsets)))
+        # self.fid_theta = np.zeros((n_t_samples, len(fid_offsets)))
+
+        # for ii, it in enumerate(sample_indices):
+        #     self.fid_phi[ii], self.fid_theta[ii] = offsets_to_phi_theta(
+        #     fid_offsets[..., :1],
+        #     *t_ordered_center_phi_theta[it],
+        # )
 
         self.fid_skycoords = {
             self.frame: SkyCoord(
@@ -257,7 +271,7 @@ class Coordinates:
 
     def __getattr__(self, attr):
         if attr == "t":
-            return self._t[tuple(0 for _ in range(self.ndim - 1))].compute()
+            return self._t[tuple(0 for _ in range(self.ndim - 1))]
 
         if attr in ["x", "y", "z", "r", "phi", "theta"]:
             return getattr(self, f"_{attr}")
@@ -322,7 +336,7 @@ class Coordinates:
         boresight = self.boresight
         for attr in ["az", "el", "ra", "dec"]:
             for stat in ["min", "mean", "max"]:
-                summary.loc[attr, stat] = f"{float(np.degrees(getattr(getattr(boresight, attr), stat)().compute())):.03f}°"
+                summary.loc[attr, stat] = f"{float(np.degrees(getattr(getattr(boresight, attr), stat)())):.03f}°"
 
         return summary
 
@@ -359,30 +373,34 @@ class Coordinates:
         )
 
     def broadcast(self, offsets, frame, axis=0):
-        phi, theta = dx_dy_to_phi_theta(*offsets.T[..., None], self.az, self.el)
+        phi_theta = unjitted_offsets_to_phi_theta(offsets[..., None, :], self.az, self.el)
         return Coordinates(
             t=self.t,
-            phi=phi.compute(),
-            theta=theta.compute(),
+            phi=phi_theta[..., 0],
+            theta=phi_theta[..., 1],
             earth_location=self.earth_location,
-            frame=frame,
+            frame="az_el",
         )
 
     def offsets(self, frame, center="auto", units="radians", compute: bool = False):
+        offsets_s = ttime.monotonic()
+
         if compute:
-            return self.offsets(frame=frame, center=center, units=units, compute=False).compute()
+            return self.offsets(frame=frame, center=center, units=units, compute=False)
 
         if isinstance(center, str):
             if center == "auto":
                 center = self.center(frame=frame)
         if frame == "az_el":
-            dx, dy = phi_theta_to_dx_dy(self.az, self.el, *center)
+            X = phi_theta_to_offsets(np.stack([self.az, self.el], axis=-1), *center)
         elif frame == "ra_dec":
-            dx, dy = phi_theta_to_dx_dy(self.ra, self.dec, *center)
+            X = phi_theta_to_offsets(np.stack([self.ra, self.dec], axis=-1), *center)
         elif frame == "galactic":
-            dx, dy = phi_theta_to_dx_dy(self.l, self.b, *center)
+            X = phi_theta_to_offsets(np.stack([self.l, self.b], axis=-1), *center)
 
-        return da.stack([dx, dy], axis=0)
+        logger.debug(f"Computed offsets for {self} in {humanize_time(ttime.monotonic() - offsets_s)}")
+
+        return X
 
     def spread(self, frame="ra_dec"):
         dX = self.offsets(frame=frame)

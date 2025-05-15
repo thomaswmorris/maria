@@ -77,7 +77,7 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             self.atmosphere_kwargs.update(atmosphere_kwargs)
 
             # do some checks
-            el_min = np.atleast_1d(self.coords.el).min().compute()
+            el_min = np.atleast_1d(self.coords.el).min()
             if el_min < np.radians(MIN_ELEVATION_WARN):
                 logger.warning(
                     f"Some ArrayList come within {MIN_ELEVATION_WARN} degrees of the horizon"
@@ -133,21 +133,31 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             elif not isinstance(map, Map):
                 raise ValueError("")
 
+            # the map can be frequency-naive if it is already in K_RJ
             self.map = map.to(units="K_RJ")
 
-            if len(self.map.t) > 1:
-                map_start = arrow.get(self.map.t.min()).to("utc")
-                map_end = arrow.get(self.map.t.max()).to("utc")
-                if map_start > self.start:
-                    logger.warning(
-                        f"Beginning of map ({map_start.isoformat()[:26]}) is after the "
-                        f"beginning of the simulation ({self.start.isoformat()[:26]}).",
-                    )
-                if map_end < self.end:
-                    logger.warning(
-                        f"End of map ({map_end.isoformat()[:26]}) is before the "
-                        f"end of the simulation ({self.end.isoformat()[:26]}).",
-                    )
+            if "stokes" not in self.map.dims:
+                self.map = self.map.unsqueeze("stokes")
+
+            if "nu" not in self.map.dims:
+                self.map = self.map.unsqueeze("nu")
+
+            if "t" in self.map.dims:
+                if self.map.dims["t"] > 1:
+                    map_start = arrow.get(self.map.t.min()).to("utc")
+                    map_end = arrow.get(self.map.t.max()).to("utc")
+                    if map_start > self.start:
+                        logger.warning(
+                            f"Beginning of map ({map_start.isoformat()[:26]}) is after the "
+                            f"beginning of the simulation ({self.start.isoformat()[:26]}).",
+                        )
+                    if map_end < self.end:
+                        logger.warning(
+                            f"End of map ({map_end.isoformat()[:26]}) is before the "
+                            f"end of the simulation ({self.end.isoformat()[:26]}).",
+                        )
+                else:
+                    self.map = self.map.squeeze("t")
 
         logger.debug(f"Initialized map simulation in {humanize_time(ttime.monotonic() - map_start_s)}.")
 

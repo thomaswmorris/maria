@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Union
 
 import arrow
+import jax.numpy as jnp
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -184,14 +185,17 @@ class Plan:
 
         self.scan_offsets += np.radians(self.jitter) * np.random.standard_normal(size=self.scan_offsets.shape)  # noqa
 
-        self.phi, self.theta = coords.dx_dy_to_phi_theta(
-            *self.scan_offsets,
+        pt = coords.offsets_to_phi_theta(
+            self.scan_offsets.T,
             *self.scan_center.rad,
         )
+
         if self.frame == "ra_dec":
-            self.ra, self.dec = self.phi, self.theta
+            self.ra = self.phi = pt[..., 0]
+            self.dec = self.theta = pt[..., 1]
         elif self.frame == "az_el":
-            self.az, self.el = self.phi, self.theta
+            self.az = self.phi = pt[..., 0]
+            self.el = self.theta = pt[..., 1]
         else:
             raise ValueError("Not a valid pointing frame!")
 

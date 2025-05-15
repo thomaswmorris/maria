@@ -66,7 +66,7 @@ def generate_cmb(nside=2048, seed=123456, **kwargs):
     cmb_data = hp.alm2map(alm, nside=nside, lmax=lmax)
 
     return CMB(
-        data=cmb_data[:, None, None, :],
+        data=cmb_data[:, None, :],
         stokes="IQU",
         units="K_CMB",
         nu=148e9,

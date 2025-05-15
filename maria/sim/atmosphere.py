@@ -7,6 +7,7 @@ import time as ttime
 import dask.array as da
 import numpy as np
 import scipy as sp
+from jax import scipy as jsp
 from tqdm import tqdm
 
 from maria.io import humanize_time
@@ -60,7 +61,7 @@ class AtmosphereMixin:
                 )
             )
 
-            band_power_interpolator = sp.interpolate.RegularGridInterpolator(
+            band_power_interpolator = jsp.interpolate.RegularGridInterpolator(
                 self.atmosphere.spectrum.points[:3],
                 det_power_grid,
             )
@@ -68,8 +69,8 @@ class AtmosphereMixin:
             self.loading["atmosphere"][band_index] = band_power_interpolator(
                 (
                     self.atmosphere.weather.temperature[0],
-                    self.zenith_scaled_pwv[band_index],
-                    self.coords.el[band_index],
+                    self.zenith_scaled_pwv[band_index].compute(),
+                    self.coords.el[band_index].clip(max=np.pi / 2),
                 ),
             )
 

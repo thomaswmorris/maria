@@ -26,39 +26,20 @@ class HEALPixMap(Map):
         t: float = None,
         frame: str = "ra_dec",
         units: str = "K_RJ",
+        dtype: type = np.float32,
     ):
-        # give it four dimensions
-        data = data * np.ones((1, 1, 1, 1))
+        data *= np.ones([1 for dim in [stokes, nu, t, True] if dim is not None])
 
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units)
+        map_dims = {"npix": data.shape[-1]}
 
-        self.frame = frame
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, map_dims=map_dims, units=units, dtype=dtype)
 
-        parse_units(units)
-
-        self.units = units
         self.npix = self.data.shape[-1]
 
         if not hp.pixelfunc.isnpixok(self.npix):
             raise ValueError(f"Invalid pixel count (n={self.npix}).")
 
         self.nside = hp.pixelfunc.npix2nside(self.npix)
-
-        if len(self.nu) != self.n_nu:
-            raise ValueError(
-                f"Number of supplied frequencies ({len(self.nu)}) does not match the "
-                f"nu dimension of the supplied map ({self.n_nu}).",
-            )
-
-    def __repr__(self):
-        parts = []
-
-        parts.append(
-            f"shape[stokes, nu, t, pix]=({self.n_stokes}, {self.n_nu}, {self.n_t}, {self.npix})",
-        )
-        parts.append(f"nside={self.nside}")
-
-        return f"HEALPixMap({', '.join(parts)})"
 
     @property
     def resolution(self):
@@ -121,20 +102,10 @@ class HEALPixMap(Map):
 
     def __repr__(self):
         return f"""{self.__class__.__name__}:
-  nside: {self.nside}
-  stokes: {self.stokes}
-  nu: {Quantity(self.nu, "Hz")}
-  t: {Quantity(self.t, "s")}
-  quantity: {self.u["quantity"]}
-  units: {self.units}
-  resolution: {Quantity(self.resolution, "rad")}"""
-
-    def __repr__(self):
-        return f"""{self.__class__.__name__}:
-  shape[stokes, nu, t, npix]: {self.data.shape}
-  stokes: {"".join(self.stokes)}
-  nu: {Quantity(self.nu, "Hz")}
-  t: {Quantity(self.t, "s")}
+  shape{self.dims_string}: {self.data.shape}
+  stokes: {self.stokes if "stokes" in self.dims else "naive"}
+  nu: {Quantity(self.nu, "Hz") if "nu" in self.dims else "naive"}
+  t: {Quantity(self.t, "s") if "t" in self.dims else "naive"}
   nside: {self.nside}
   quantity: {self.u["quantity"]}
   units: {self.units}

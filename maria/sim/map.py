@@ -7,6 +7,8 @@ import time as ttime
 import dask.array as da
 import numpy as np
 import scipy as sp
+from jax import jit
+from jax import scipy as jsp
 from tqdm import tqdm
 
 from ..beam import compute_angular_fwhm
@@ -29,9 +31,9 @@ class MapMixin:
         self._sample_maps(**kwargs)
 
     def _sample_maps(self):
-        dx, dy = self.coords.offsets(frame=self.map.frame, center=self.map.center, compute=True)
+        self.loading["map"] = da.asarray(np.zeros(self.coords.shape), dtype=self.dtype)
 
-        self.loading["map"] = da.zeros_like(dx, dtype=self.dtype)
+        stokes_weights = self.instrument.dets.stokes_weight()
 
         bands_pbar = tqdm(
             self.instrument.dets.bands,
@@ -43,6 +45,12 @@ class MapMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
+            band_coords = self.coords[band_mask]
+
+            pointing_s = ttime.monotonic()
+            pmat = self.map.pointing_matrix(band_coords)
+            logger.debug(f"Computed pointing matrix for {band.name} in {humanize_time(ttime.monotonic() - pointing_s)}")
+
             band_fwhm = compute_angular_fwhm(
                 fwhm_0=self.instrument.dets.primary_size.mean(),
                 z=np.inf,
@@ -52,21 +60,18 @@ class MapMixin:
             # ideally we would do this for each nu bin, but that's slow
             smoothed_map = self.map.smooth(fwhm=band_fwhm)
 
-            # compute the Mueller polarization
-            mueller = self.instrument.dets.mueller()[band_mask, 0]
+            for channel_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
+                channel_map = smoothed_map.data[:, channel_index]
+                qchannel = Quantity([nu_min, nu_max], "Hz")
+                channel_string = f"{qchannel}"
 
-            for nu_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
-                # TODO: skip if the band can't see the map nu bin
-
-                qnu_min = Quantity(nu_min, "Hz")
-                qnu_max = Quantity(nu_max, "Hz")
-
-                bands_pbar.set_postfix(channel=f"[{qnu_min}, {qnu_max}]")
+                bands_pbar.set_postfix(channel=channel_string)
 
                 spectrum_kwargs = (
                     {
                         "spectrum": self.atmosphere.spectrum,
-                        "zenith_pwv": self.zenith_scaled_pwv[band_mask],
+                        # "zenith_pwv": self.zenith_scaled_pwv[band_mask].compute(),
+                        "zenith_pwv": self.zenith_scaled_pwv[band_mask].mean().compute(),
                         "base_temperature": self.atmosphere.weather.temperature[0],
                         "elevation": self.coords.el[band_mask],
                     }
@@ -74,52 +79,42 @@ class MapMixin:
                     else {}
                 )
 
+                calibration_s = ttime.monotonic()
                 pW_per_K_RJ = 1e12 * k_B * band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
+                logger.debug(
+                    f"Computed K_RJ -> pW calibration for {band.name}, channel {channel_string} in "
+                    f"{humanize_time(ttime.monotonic() - calibration_s)}"
+                )
 
-                for stokes_index, stokes in enumerate(self.map.stokes):
-                    stokes_weight = mueller[:, stokes_index, None]
-
+                for stokes_index, stokes in enumerate(getattr(self.map, "stokes", "I")):
+                    stokes_weight = stokes_weights[band_mask, "IQUV".index(stokes), None]
                     if np.isclose(stokes_weight, 0).all():
-                        logger.debug(f"Skipping Stokes {stokes} (no weight)")
+                        logger.debug(f"Skipping stokes {stokes} (no weight)")
                         continue
 
-                    bands_pbar.set_postfix(band=band.name, stokes=stokes)
-
                     stokes_channel_s = ttime.monotonic()
+                    channel_stokes_map = channel_map[stokes_index].compute()
 
-                    if len(self.map.t) > 1:
-                        sample_T_RJ = sp.interpolate.RegularGridInterpolator(
-                            (self.map.t, self.map.y_side, self.map.x_side),
-                            smoothed_map.data[stokes_index, nu_index].compute(),
-                            bounds_error=False,
-                            fill_value=0,
-                            method="linear",
-                        )((self.boresight.t, dy[band_mask], dx[band_mask]))
+                    # sample_T_RJ = jit(jsp.interpolate.RegularGridInterpolator(
+                    #             (self.map.y_side[::-1], self.map.x_side),
+                    #             channel_stokes_map[::-1],
+                    #             bounds_error=False,
+                    #             fill_value=0,
+                    #             method="linear",
+                    #         ))((dy[band_mask], dx[band_mask]))
 
-                    else:
-                        m = smoothed_map.data[stokes_index, nu_index, 0].compute()
-                        edge_value = np.median(np.c_[m[0], m[-1], m[:, 0], m[:, -1]])
+                    flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
 
-                        sample_T_RJ = sp.interpolate.RegularGridInterpolator(
-                            (self.map.y_side, self.map.x_side),
-                            m,
-                            bounds_error=False,
-                            fill_value=edge_value,
-                            method="linear",
-                        )((dy[band_mask], dx[band_mask]))
+                    pW = pW_per_K_RJ * stokes_weight * (flat_padded_map @ pmat).reshape(band_coords.shape)
 
-                    # 1e12 because it's in picowatts
-                    pW = stokes_weight * pW_per_K_RJ * sample_T_RJ
+                    self.loading["map"][band_mask] += np.array(pW)
 
                     if logger.level == 10:
                         logger.debug(
-                            f"Computed map load (~{Quantity(pW.std(), 'pW'):<10}) for {band.name}, "
-                            f"({qnu_min}-{qnu_max}), "
-                            f"stokes {stokes} in "
+                            f"Computed map load ~{Quantity(pW.std(), 'pW'):<8} for {band.name}, "
+                            f"channel {channel_string}, stokes {stokes} in "
                             f"{humanize_time(ttime.monotonic() - stokes_channel_s)}"
                         )
-
-                    self.loading["map"][band_mask] += pW
 
             if self.loading["map"][band_mask].sum().compute() == 0:
                 logger.warning(f"No load from map for {band.name}")

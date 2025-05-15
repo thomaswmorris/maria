@@ -111,7 +111,7 @@ def process_tod(tod, config=None, **kwargs):
         )
 
         if config["remove_spline"].get("remove_el_gradient", False):
-            el = tod.boresight.el.compute()
+            el = tod.boresight.el
             el_ptp = el.max() - el.min()
             if el_ptp == 0:
                 raise ValueError("Cannot remove elevation gradient when elevation is constant")

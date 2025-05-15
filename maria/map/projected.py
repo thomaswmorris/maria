@@ -4,7 +4,9 @@ import os
 from typing import Callable
 
 import astropy as ap
+import dask.array as da
 import h5py
+import jax
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,9 +15,9 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from skimage.measure import block_reduce
 
-from ..coords import frames
+from ..coords import Coordinates, frames
 from ..units import Quantity, parse_units
-from ..utils import repr_phi_theta, unpack_implicit_slice
+from ..utils import compute_pointing_matrix, repr_phi_theta, unpack_implicit_slice
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -46,17 +48,22 @@ class ProjectedMap(Map):
         dtype: type = np.float32,
     ):
         # give it five dimensions
-        data = data * np.ones((1, 1, 1, 1, 1))
 
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units, dtype=dtype)
+        if data.ndim < 2:
+            raise ValueError("'data' must be at least two-dimensional")
+
+        if weight is not None:
+            if weight.shape != data.shape:
+                raise ValueError(f"'data' {data.shape} and 'weight' {weight.shape} should have the same shape.")
+        else:
+            weight = da.ones_like(data)
+
+        map_dims = {"y": data.shape[-2], "x": data.shape[-1]}
+
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, map_dims=map_dims, units=units, dtype=dtype)
 
         self.center = Quantity(tuple(center), ("deg" if degrees else "rad")).rad
-
         self.frame = frame
-
-        parse_units(units)
-
-        self.units = units
 
         if all(x is None for x in [width, height, resolution, x_res, y_res]):
             raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'x_res', or 'y_res'.")
@@ -90,14 +97,14 @@ class ProjectedMap(Map):
         if self.y_res < 0:
             raise ValueError()
 
-        if len(self.nu) != self.n_nu:
-            raise ValueError(
-                f"Number of supplied frequencies ({len(self.nu)}) does not match the "
-                f"nu dimension of the supplied map ({self.n_nu}).",
+    def pointing_matrix(self, coords: Coordinates):
+        offsets = coords.offsets(center=self.center, frame=self.frame)
+        if "t" in self.dims:
+            return compute_pointing_matrix(
+                points=(offsets[..., 0], offsets[..., 1], coords._t), bins=(self.x_bins, self.y_bins[::-1], self.t_bins)
             )
-
-        # if self.units == "Jy/pixel":
-        # self.to("K_RJ", inplace=True)
+        else:
+            return compute_pointing_matrix(points=(offsets[..., 0], offsets[..., 1]), bins=(self.x_bins, self.y_bins[::-1]))
 
     @property
     def header(self):
@@ -105,14 +112,12 @@ class ProjectedMap(Map):
 
         header["SIMPLE"] = "T / conforms to FITS standard"
         header["BITPIX"] = "-32 / array data type"
-        header["NAXIS"] = 5
-        header["NAXIS1"] = self.n_y
-        header["NAXIS2"] = self.n_x
-        header["NAXIS3"] = self.n_t
-        header["NAXIS4"] = self.n_nu
-        header["NAXIS5"] = self.n_stokes
+        header["NAXIS"] = len(self.dims)
+        for dim_index, n in enumerate(list(self.dims.values())):
+            header[f"NAXIS{dim_index + 1}"] = n
 
-        header["RESTFREQ"] = self.nu.mean()
+        if "nu" in self.dims:
+            header["RESTFREQ"] = self.nu.mean()
 
         header["CDELT1"] = -np.degrees(self.x_res)  # degrees
         header["CDELT2"] = np.degrees(self.y_res)  # degrees
@@ -187,10 +192,10 @@ class ProjectedMap(Map):
     def __repr__(self):
         cphi_repr, ctheta_repr = repr_phi_theta(*self.center, frame=self.frame)
         return f"""{self.__class__.__name__}:
-  shape[stokes, nu, t, y, x]: {self.data.shape}
-  stokes: {"".join(self.stokes)}
-  nu: {Quantity(self.nu, "Hz")}
-  t: {Quantity(self.t, "s")}
+  shape{self.dims_string}: {self.data.shape}
+  stokes: {self.stokes if "stokes" in self.dims else "naive"}
+  nu: {Quantity(self.nu, "Hz") if "nu" in self.dims else "naive"}
+  t: {Quantity(self.t, "s") if "t" in self.dims else "naive"}
   quantity: {self.u["quantity"]}
   units: {self.units}
     min: {np.nanmin(self.data).compute():.03e}
@@ -198,12 +203,12 @@ class ProjectedMap(Map):
   center:
     {cphi_repr}
     {ctheta_repr}
-  size[y, x]: ({Quantity(self.height, "rad")}, {Quantity(self.width, "rad")})
-  resolution[y, x]: ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})
+  size(y, x): ({Quantity(self.height, "rad")}, {Quantity(self.width, "rad")})
+  resolution(y, x): ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
 
     def package(self):
-        return copy.deepcopy(
+        package = copy.deepcopy(
             {
                 "degrees": True,
                 "data": self.data,
@@ -218,6 +223,12 @@ class ProjectedMap(Map):
                 "y_res": np.degrees(self.y_res),
             }
         )
+
+        for dim in ["stokes", "nu", "t"]:
+            if dim not in self.dims:
+                package.pop(dim)
+
+        return package
 
     @property
     def resolution(self):
@@ -272,7 +283,7 @@ class ProjectedMap(Map):
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
         x_sigma_pixels = sigma / self.x_res
         y_sigma_pixels = sigma / self.y_res
-        package["data"] = sp.ndimage.gaussian_filter(self.data, sigma=(0, 0, 0, y_sigma_pixels, x_sigma_pixels))
+        package["data"] = sp.ndimage.gaussian_filter(self.data, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
 
         return type(self)(**package)
 
@@ -287,27 +298,40 @@ class ProjectedMap(Map):
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
     ):
-        if stokes not in self.stokes:
-            raise ValueError(
-                f"Invalid stokes parameter '{stokes}'; available Stokes parameters for this map are {self.stokes}."
-            )
+        d = self.data
+        w = self.weight
 
-        stokes_index = self.stokes.index(stokes)
+        logger.debug(f"Plotting map slice (stokes={stokes}, nu_index={nu_index}, t_index={t_index})")
+
+        if "stokes" in self.dims:
+            if stokes not in self.stokes:
+                raise ValueError(
+                    f"Invalid stokes parameter '{stokes}'; available Stokes parameters for this map are {self.stokes}."
+                )
+            stokes_index = self.stokes.index(stokes)
+            d, w = d[stokes_index], w[stokes_index]
+
+        if "nu" in self.dims:
+            d, w = d[nu_index], w[nu_index]
+
+        if "t" in self.dims:
+            d, w = d[t_index], w[t_index]
 
         if cmap == "default":
             cmap = "CMRmap" if stokes == "I" else "cmb"
 
-        map_qdata = Quantity(self.data[stokes_index, nu_index, t_index].compute(), units=self.units)
-
-        d = map_qdata.value.ravel()
-        w = self.weight[stokes_index, nu_index, t_index].ravel()
+        map_qdata = Quantity(d.compute(), units=self.units)
         subset = np.random.choice(d.size, size=10000)
         vmin, vmax = np.nanquantile(
-            d[subset],
-            weights=w[subset].compute(),
+            map_qdata.value.ravel()[subset],
+            weights=w.ravel()[subset].compute(),
             q=[rel_vmin, rel_vmax],
             method="inverted_cdf",
         )
+
+        # print(vmin, vmax)
+
+        # assert False
 
         X = np.r_[self.x_bins, self.y_bins]
         grid_u = Quantity(X, "rad").u
@@ -324,8 +348,8 @@ class ProjectedMap(Map):
             getattr(y, grid_u["units"]),
             map_qdata.value,
             cmap=cmap,
-            vmin=vmin,
-            vmax=vmax,
+            # vmin=vmin,
+            # vmax=vmax,
         )
 
         ax.grid(color="white", ls="solid", lw=5e-1)
@@ -344,11 +368,15 @@ class ProjectedMap(Map):
             pad=0,
         )
 
-        qnu = Quantity(self.nu[nu_index], "Hz")
-        cbar.set_label(rf"Stokes {stokes} at {qnu} [${map_qdata.u['math_name']}$]")
+        label_parts = []
+        if "stokes" in self.dims:
+            label_parts.append(f"Stokes {stokes}")
+        if "nu" in self.dims:
+            label_parts.append(f"{Quantity(self.nu[nu_index], 'Hz')}")
+        label_parts.append(rf"(${map_qdata.u['math_name']}$)")
+        cbar.set_label(" ".join(label_parts), fontsize=10)
         ax.tick_params(axis="x", bottom=True, top=False)
         ax.tick_params(axis="y", left=True, right=False, rotation=90)
-
         ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
         ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
 
@@ -443,17 +471,15 @@ class ProjectedMap(Map):
                     plt.savefig(filepath=filepath, dpi=256)
 
     def to_fits(self, filepath):
-        if self.n_nu > 1:
+        if self.dims.get("nu", np.nan) > 1:
             raise RuntimeError("Cannot write multifrequency maps to FITS")
 
         m = self.to(self.u["base_unit"])
-        header = self.header
-        header["UNITS"] = m.units
 
         fits.writeto(
             filename=filepath,
             data=m.data,
-            header=header,
+            header=m.header,
             overwrite=True,
         )
 
@@ -464,11 +490,11 @@ class ProjectedMap(Map):
             f.create_dataset("data", dtype=np.float32, data=self.data, **compression_kwargs)
             if not (self.weight == 1).all().compute():
                 f.create_dataset("weight", dtype=np.float32, data=self.weight, **compression_kwargs)
-            f.create_dataset("nu", dtype=float, data=self.nu)
-            f.create_dataset("t", dtype=float, data=self.t)
+            for dim in ["stokes", "nu", "t"]:
+                if dim in self.dims:
+                    f.create_dataset(dim, data=getattr(self, dim))
             f.create_dataset("center", dtype=float, data=np.degrees(self.center))
             f.create_dataset("x_res", dtype=float, data=np.degrees(self.x_res))
             f.create_dataset("y_res", dtype=float, data=np.degrees(self.y_res))
-            f.create_dataset("stokes", data=self.stokes)
             f.create_dataset("units", data=self.units)
             f.create_dataset("frame", data=self.frame)

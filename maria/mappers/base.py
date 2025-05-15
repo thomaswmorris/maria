@@ -49,12 +49,6 @@ class BaseMapper:
         self.units = units
         self.stokes = stokes
 
-        self.n_x = int(np.maximum(1, self.width / self.resolution))
-        self.n_y = int(np.maximum(1, self.height / self.resolution))
-
-        self.x_bins = np.linspace(-0.5 * self.width, 0.5 * self.width, self.n_x + 1)
-        self.y_bins = np.linspace(0.5 * self.height, -0.5 * self.height, self.n_y + 1)
-
         self.bands = BandList(bands=[])
 
         self.tods = []
@@ -89,42 +83,43 @@ class BaseMapper:
 
         self.map_data = {}
 
-        for band in self.bands:
+        map_numer = np.zeros((self.n_stokes, len(self.bands), self.n_y, self.n_x))
+        map_denom = np.zeros((self.n_stokes, len(self.bands), self.n_y, self.n_x))
+
+        for band_index, band in enumerate(self.bands):
             band_start_s = ttime.monotonic()
-            self.map_data[band.name] = self._run(band)
+            band_maps = self._run(band)
+
+            map_numer[:, band_index] = band_maps["numer"]
+            map_denom[:, band_index] = band_maps["denom"]
+
             logger.info(f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}.")
 
-        map_data = np.zeros((self.n_stokes, len(self.bands), 1, self.n_y, self.n_x))
-        map_weight = np.zeros((self.n_stokes, len(self.bands), 1, self.n_y, self.n_x))
-        map_freqs = []
+        if "gaussian_filter" in self.map_postprocessing.keys():
+            sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
 
-        for i, (band_name, band_map_data) in enumerate(self.map_data.items()):
-            map_freqs.append(band_map_data["nom_freq"])
+            map_numer = sp.ndimage.gaussian_filter(map_numer, sigma=(0, 0, sigma, sigma))
+            map_denom = sp.ndimage.gaussian_filter(map_denom, sigma=(0, 0, sigma, sigma))
 
-            band_map_numer = band_map_data["sum"].copy()
-            band_map_denom = band_map_data["weight"].copy()
-
-            if "gaussian_filter" in self.map_postprocessing.keys():
-                sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
-
-                band_map_numer = sp.ndimage.gaussian_filter(band_map_numer, sigma=(0, 0, sigma, sigma))
-                band_map_denom = sp.ndimage.gaussian_filter(band_map_denom, sigma=(0, 0, sigma, sigma))
-
-            if "median_filter" in self.map_postprocessing.keys():
-                size = self.map_postprocessing["median_filter"]["size"]
-                band_map_numer = sp.ndimage.median_filter(
-                    band_map_numer,
-                    size=size,
-                    axes=(-2, -1),
-                )
-
-            map_data[:, i] = band_map_numer / band_map_denom
-            map_weight[:, i] = band_map_denom
+        if "median_filter" in self.map_postprocessing.keys():
+            size = self.map_postprocessing["median_filter"]["size"]
+            map_numer = sp.ndimage.median_filter(
+                map_numer,
+                size=size,
+                axes=(-2, -1),
+            )
+            map_denom = sp.ndimage.median_filter(
+                map_denom,
+                size=size,
+                axes=(-2, -1),
+            )
 
         for stokes_index, stokes in enumerate(self.stokes):
-            for nu_index, nu in enumerate(map_freqs):
-                if map_weight[stokes_index, nu_index].sum() == 0:
+            for nu_index, nu in enumerate(self.bands.center):
+                if map_denom[stokes_index, nu_index].sum() == 0:
                     logger.warning(f"No counts for map (stokes={stokes}, nu={Quantity(nu, 'Hz')})")
+
+        map_data = map_numer / map_denom
 
         # by convention maps have zero mean
         with warnings.catch_warnings():
@@ -132,10 +127,10 @@ class BaseMapper:
             map_offsets = np.nanmean(map_data, axis=(-1, -2))[..., None, None]
 
         return ProjectedMap(
-            data=map_data - map_offsets,
+            data=(map_data - map_offsets),
             stokes=self.stokes,
-            weight=map_weight,
-            nu=map_freqs,
+            weight=map_denom,
+            nu=self.bands.center,
             resolution=self.resolution,
             center=self.center,
             degrees=False,

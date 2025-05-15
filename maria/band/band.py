@@ -4,10 +4,12 @@ import glob
 import logging
 import os
 
+import jax
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
+from jax import scipy as jsp
 
 from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
@@ -251,7 +253,7 @@ class Band:
             nu = spectrum.side_nu[(spectrum.side_nu >= nu_min) & (spectrum.side_nu < nu_max)]
             integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=nu, axis=-1)
             xi = (kwargs["base_temperature"], kwargs["zenith_pwv"], kwargs["elevation"])
-            return sp.interpolate.interpn(points=spectrum.points[:3], values=integral_grid, xi=xi)
+            return np.array(jsp.interpolate.RegularGridInterpolator(points=spectrum.points[:3], values=integral_grid)(xi))
 
     def transmission(self, region="chajnantor", pwv=1, elevation=np.radians(90)) -> float:
         if not hasattr(self, "spectrum"):

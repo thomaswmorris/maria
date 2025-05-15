@@ -83,7 +83,7 @@ class CMBMixin:
             self.loading["cmb"][band_mask] += m[band_mask, 0][:, None] * P[..., 0]
 
             band_cmb_temperature_samples = (
-                self.cmb.data[:, 0, 0, flat_band_pixel_index].reshape(3, band_mask.sum(), -1).compute()
+                self.cmb.data[:, 0, flat_band_pixel_index].reshape(3, band_mask.sum(), -1).compute()
             )
 
             for stokes_index, stokes in enumerate("IQU"):

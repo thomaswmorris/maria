@@ -36,7 +36,6 @@ class TOD:
         dtype: type = np.float32,
         metadata: dict = {},
     ):
-        self.weight = weight
         self.coords = coords
         self.dets = dets
         self.header = fits.header.Header()
@@ -55,8 +54,9 @@ class TOD:
         # sort them alphabetically
         self.data = {k: self.data[k] for k in sorted(list(self.fields))}
 
-        if self.weight is None:
-            self.weight = da.ones_like(self.signal)
+        if weight is None:
+            weight = da.ones_like(self.signal)
+        self.weight = da.asarray(weight)
 
     @property
     def spectrum(self):
@@ -177,8 +177,8 @@ class TOD:
 
         if band is not None:
             det_mask = self.dets.band_name == band
-            if not det_mask.sum() > 0:
-                raise ValueError(f"There are no Array for band '{band}'.")
+            # if not det_mask.sum() > 0:
+            #     raise ValueError(f"There are no Array for band '{band}'.")
 
         if time_mask is not None:
             if len(time_mask) != self.nt:

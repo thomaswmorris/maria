@@ -7,6 +7,7 @@ import time as ttime
 import arrow
 import numpy as np
 import scipy as sp
+from jax import scipy as jsp
 from numpy.linalg import LinAlgError
 from tqdm import tqdm
 
@@ -128,7 +129,6 @@ class Atmosphere:
                     -process_layers.wind_north.values[:, None] * np.cos(self.boresight.az)
                     - process_layers.wind_east.values[:, None] * np.sin(self.boresight.az)
                 ) / (process_layers.h.values[:, None] * np.sin(self.boresight.el))
-                vx, vy = vx.compute(), vy.compute()
             else:
                 vx = process_layers.wind_east.values[:, None] * np.ones(
                     self.boresight.shape[-1],
@@ -163,9 +163,8 @@ class Atmosphere:
 
                     process_points_for_hull_list.append(p[None])
 
-                    az, el = outer_coords.az.compute(), outer_coords.el.compute()
-                    layer_x = layer_entry.z * np.sin(az) * np.cos(el)
-                    layer_y = layer_entry.z * np.cos(az) * np.cos(el)
+                    layer_x = layer_entry.z * np.sin(outer_coords.az) * np.cos(outer_coords.el)
+                    layer_y = layer_entry.z * np.cos(outer_coords.az) * np.cos(outer_coords.el)
 
                 layer_x += np.cumsum(self.timestep * vx)
                 layer_y += np.cumsum(self.timestep * vy)
@@ -184,7 +183,7 @@ class Atmosphere:
             # assert False
 
             transform = compute_aligning_transform(
-                process_points_for_hull.compute(),
+                process_points_for_hull,
                 signature=(True, True, False),
             )
             tp = process_points_for_hull @ transform
@@ -318,7 +317,7 @@ class Atmosphere:
                     p = layer_entry.h * pp + translation
                     transformed_lpp = p @ process.transform
 
-                    y = sp.interpolate.RegularGridInterpolator(
+                    y = jsp.interpolate.RegularGridInterpolator(
                         (
                             process.extrusion,
                             process.cross_section[layer_mask, 0],
