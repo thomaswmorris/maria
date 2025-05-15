@@ -13,6 +13,7 @@ dependencies = [
   "dask",
   "h5py",
   "healpy",
+  "jax",
   "matplotlib",
   "numpy>=2",
   "pandas",
