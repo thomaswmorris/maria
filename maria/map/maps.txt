@@ -1,0 +1,11 @@
+maps/3C_288.h5
+maps/big_cluster.fits
+maps/big_cluster.h5
+maps/cluster.fits
+maps/einstein.h5
+maps/maria.h5
+maps/protoplanetary_disk.h5
+maps/small_cluster.h5
+maps/sun.h5
+maps/tarantula_nebula.h5
+maps/whirlpool_galaxy.h5
