@@ -44,7 +44,7 @@ class AtmosphereMixin:
             disable=self.disable_progress_bars,
         )
         for band in bands_pbar:
-            start_s = ttime.monotonic()
+            emission_s = ttime.monotonic()
 
             bands_pbar.set_postfix({"band": band.name})
 
@@ -74,4 +74,6 @@ class AtmosphereMixin:
                 ),
             )
 
-            logger.debug(f"Sampled atmosphere for band {band.name} in {humanize_time(ttime.monotonic() - start_s)}.")
+            logger.debug(
+                f"Computed atmospheric emission for band {band.name} in {humanize_time(ttime.monotonic() - emission_s)}."
+            )

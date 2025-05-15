@@ -321,7 +321,7 @@ class ProjectedMap(Map):
             cmap = "CMRmap" if stokes == "I" else "cmb"
 
         map_qdata = Quantity(d.compute(), units=self.units)
-        subset = np.random.choice(d.size, size=10000)
+        subset = np.random.choice(d.size, size=min(d.size, 20000), replace=False)
         vmin, vmax = np.nanquantile(
             map_qdata.value.ravel()[subset],
             weights=w.ravel()[subset].compute(),
@@ -348,8 +348,8 @@ class ProjectedMap(Map):
             getattr(y, grid_u["units"]),
             map_qdata.value,
             cmap=cmap,
-            # vmin=vmin,
-            # vmax=vmax,
+            vmin=vmin,
+            vmax=vmax,
         )
 
         ax.grid(color="white", ls="solid", lw=5e-1)
