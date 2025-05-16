@@ -6,9 +6,8 @@ import healpy as hp
 import numpy as np
 import pandas as pd
 
-from ..constants import T_CMB
 from ..io import download_from_url, fetch
-from ..map import HEALPixMap
+from .cmb import CMB
 
 # shut up healpy I don't care about the resolution
 logging.getLogger("healpy").setLevel(logging.WARNING)
@@ -29,18 +28,6 @@ CMB_MAP_CACHE_MAX_AGE = 30 * 86400  # one month
 
 
 DEFAULT_CMB_KWARGS = {"nside": 2048}
-
-
-class CMB(HEALPixMap):
-    def __init__(
-        self,
-        data: float,
-        weight: float = None,
-        stokes: float = None,
-        nu: float = None,
-        units: str = "K_CMB",
-    ):
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, units=units)
 
 
 def get_cmb_spectrum():
@@ -69,6 +56,7 @@ def generate_cmb(nside=2048, seed=123456, **kwargs):
         data=cmb_data[:, None, :],
         stokes="IQU",
         units="K_CMB",
+        frame="galactic",
         nu=148e9,
     )
 

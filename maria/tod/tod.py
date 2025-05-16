@@ -33,6 +33,7 @@ class TOD:
         coords: Coordinates = None,
         units: str = "K_RJ",
         dets: ArrayList = None,
+        distributed: bool = True,
         dtype: type = np.float32,
         metadata: dict = {},
     ):
@@ -49,14 +50,17 @@ class TOD:
             if field_data.ndim != 2:
                 raise ValueError("Only two-dimensional TODs are currently supported.")
 
-            self.data[field] = da.asarray(field_data)
+            self.data[field] = da.asarray(field_data, dtype=dtype) if distributed else field_data.astype(dtype)
 
         # sort them alphabetically
         self.data = {k: self.data[k] for k in sorted(list(self.fields))}
 
         if weight is None:
-            weight = da.ones_like(self.signal)
-        self.weight = da.asarray(weight)
+            weight = np.ones(self.signal.shape)
+        if distributed:
+            weight = da.asarray(weight)
+
+        self.weight = weight
 
     @property
     def spectrum(self):
@@ -191,8 +195,8 @@ class TOD:
         content = self.content
         content.update(
             {
-                "data": {field: self.data[field][det_mask][..., time_mask] for field in fields},
-                "weight": self.weight[det_mask][..., time_mask],
+                "data": {field: self.data[field][det_mask][..., time_mask].compute() for field in fields},
+                "weight": self.weight[det_mask][..., time_mask].compute(),
                 "coords": self.coords[det_mask][..., time_mask],
                 "dets": self.dets._subset(det_mask),
             }

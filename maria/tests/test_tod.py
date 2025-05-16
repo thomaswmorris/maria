@@ -24,7 +24,7 @@ def test_tod_functions():
 
     coords = Coordinates(phi=PT[..., 0], theta=PT[..., 1], t=time, frame="az_el")
 
-    noise = generate_noise_with_knee(t=time, n=n, NEP=0.01, knee=0.5)
+    noise = generate_noise_with_knee(shape=coords.shape, sample_rate=1 / coords.timestep, knee=0.5)
 
     tod = TOD(data=dict(noise=noise), coords=coords)
 

@@ -5,8 +5,6 @@ from __future__ import annotations
 
 import logging
 
-import jax
-
 from ._version import __version__, __version_tuple__  # noqa
 from .array import Array, all_arrays, get_array  # noqa
 from .band import Band, all_bands, get_band  # noqa

@@ -36,7 +36,7 @@ class AtmosphereMixin:
         )
 
     def _compute_atmospheric_emission(self):
-        self.loading["atmosphere"] = da.zeros_like(self.zenith_scaled_pwv)
+        atmosphere_loading = np.zeros(self.zenith_scaled_pwv.shape, dtype=self.dtype)
 
         bands_pbar = tqdm(
             self.instrument.dets.bands,
@@ -66,7 +66,7 @@ class AtmosphereMixin:
                 det_power_grid,
             )
 
-            self.loading["atmosphere"][band_index] = band_power_interpolator(
+            atmosphere_loading[band_index] = band_power_interpolator(
                 (
                     self.atmosphere.weather.temperature[0],
                     self.zenith_scaled_pwv[band_index].compute(),
@@ -77,3 +77,6 @@ class AtmosphereMixin:
             logger.debug(
                 f"Computed atmospheric emission for band {band.name} in {humanize_time(ttime.monotonic() - emission_s)}."
             )
+
+        self.loading["atmosphere"] = da.asarray(atmosphere_loading, dtype=self.dtype)
+        del atmosphere_loading

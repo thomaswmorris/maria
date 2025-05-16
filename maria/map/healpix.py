@@ -5,8 +5,11 @@ import h5py
 import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy as sp
 
-from ..units import Quantity, parse_units
+from ..coords import Coordinates, frames
+from ..units import Quantity
+from ..utils import compute_pointing_matrix
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -28,22 +31,41 @@ class HEALPixMap(Map):
         units: str = "K_RJ",
         dtype: type = np.float32,
     ):
-        data *= np.ones([1 for dim in [stokes, nu, t, True] if dim is not None])
+        if weight is not None:
+            if weight.shape != data.shape:
+                raise ValueError(f"'data' {data.shape} and 'weight' {weight.shape} should have the same shape.")
+        else:
+            weight = da.ones_like(data)
 
         map_dims = {"npix": data.shape[-1]}
 
         super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, map_dims=map_dims, units=units, dtype=dtype)
 
-        self.npix = self.data.shape[-1]
-
         if not hp.pixelfunc.isnpixok(self.npix):
             raise ValueError(f"Invalid pixel count (n={self.npix}).")
 
         self.nside = hp.pixelfunc.npix2nside(self.npix)
+        self.frame = frame
+
+    def pointing_matrix(self, coords: Coordinates):
+        idx = hp.ang2pix(
+            nside=self.nside,
+            phi=getattr(coords, frames[self.frame]["phi"]).ravel(),
+            theta=np.pi / 2 - getattr(coords, frames[self.frame]["theta"]).ravel(),
+        ).ravel()
+
+        nsamps = len(idx)
+        return sp.sparse.csc_array(
+            (np.ones(coords.size, dtype=np.uint8), (idx, np.arange(nsamps))), shape=(self.npix, nsamps)
+        )
 
     @property
     def resolution(self):
         return hp.pixelfunc.nside2resol(self.nside)
+
+    @property
+    def npix(self):
+        return self.dims["npix"]
 
     def package(self):
         return {k: getattr(self, k) for k in ["data", "weight", "stokes", "nu", "t", "frame", "units"]}

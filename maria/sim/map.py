@@ -31,7 +31,7 @@ class MapMixin:
         self._sample_maps(**kwargs)
 
     def _sample_maps(self):
-        self.loading["map"] = da.asarray(np.zeros(self.coords.shape), dtype=self.dtype)
+        map_loading = np.zeros(self.coords.shape, dtype=self.dtype)
 
         stokes_weights = self.instrument.dets.stokes_weight()
 
@@ -49,7 +49,7 @@ class MapMixin:
 
             pointing_s = ttime.monotonic()
             pmat = self.map.pointing_matrix(band_coords)
-            logger.debug(f"Computed pointing matrix for {band.name} in {humanize_time(ttime.monotonic() - pointing_s)}")
+            logger.debug(f"Computed pointing matrix for band {band.name} in {humanize_time(ttime.monotonic() - pointing_s)}")
 
             band_fwhm = compute_angular_fwhm(
                 fwhm_0=self.instrument.dets.primary_size.mean(),
@@ -82,7 +82,7 @@ class MapMixin:
                 calibration_s = ttime.monotonic()
                 pW_per_K_RJ = 1e12 * k_B * band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
                 logger.debug(
-                    f"Computed K_RJ -> pW calibration for {band.name}, channel {channel_string} in "
+                    f"Computed K_RJ -> pW calibration for band {band.name}, channel {channel_string} in "
                     f"{humanize_time(ttime.monotonic() - calibration_s)}"
                 )
 
@@ -107,14 +107,19 @@ class MapMixin:
 
                     pW = pW_per_K_RJ * stokes_weight * (flat_padded_map @ pmat).reshape(band_coords.shape)
 
-                    self.loading["map"][band_mask] += np.array(pW)
+                    map_loading[band_mask] += pW
 
                     if logger.level == 10:
                         logger.debug(
-                            f"Computed map load ~{Quantity(pW.std(), 'pW'):<8} for {band.name}, "
+                            f"Computed map load {pW.shape} ~{Quantity(pW.std(), 'pW'):<8} for band {band.name}, "
                             f"channel {channel_string}, stokes {stokes} in "
                             f"{humanize_time(ttime.monotonic() - stokes_channel_s)}"
                         )
 
-            if self.loading["map"][band_mask].sum().compute() == 0:
-                logger.warning(f"No load from map for {band.name}")
+                    del pW
+
+            if map_loading[band_mask].sum() == 0:
+                logger.warning(f"No load from map for band {band.name}")
+
+        self.loading["map"] = da.asarray(map_loading, dtype=self.dtype)
+        del map_loading

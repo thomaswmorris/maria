@@ -1,4 +1,5 @@
 .. _arrays:
+
 ######
 Arrays
 ######
@@ -71,6 +72,7 @@ Here, ``maria`` will infer the number of detectors by packing the field of view 
 By default, the spacing between the beams will be 1.5 times the FWHM, but we can adjust the ratio with the ``beam_spacing`` parameter.
 
 .. _multiple-arrays:
+
 Multiple arrays
 ---------------
 

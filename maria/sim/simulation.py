@@ -25,8 +25,8 @@ from .noise import NoiseMixin
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
-MIN_ELEVATION_WARN = 10
-MIN_ELEVATION_ERROR = 5
+MIN_ELEVATION_WARN = 10  # degrees
+MIN_ELEVATION_ERROR = 5  # degrees
 
 
 class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):

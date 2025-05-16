@@ -266,6 +266,10 @@ class Coordinates:
         return self._phi.shape
 
     @property
+    def size(self):
+        return self._phi.size
+
+    @property
     def ndim(self):
         return self._phi.ndim
 
