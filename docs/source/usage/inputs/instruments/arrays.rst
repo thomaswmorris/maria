@@ -29,7 +29,7 @@ where the ``bands`` parameter is a list of either ``Band`` object or a string co
 
         band_1 = Band(center=150e9, width=30e9, NET_RJ=1e-5)
 
-        band_2 = {"center": 90, "width": 30, "NEP": 1e-15}
+        band_2 = {"center": 90e9, "width": 30e9, "NEP": 1e-15}
 
         band_3 = "act/pa5/f150"
 

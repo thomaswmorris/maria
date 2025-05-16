@@ -3,7 +3,42 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from maria.band import Band, BandList, all_bands, get_band
+from maria.band import Band, BandList, all_bands, get_band, parse_band
+from maria.errors import FrequencyOutOfBoundsError
+
+
+def test_band_conventions():
+    band1 = Band(center=150e9, width=30e9, NET_RJ=1e-5)
+    band2 = {"center": 90e9, "width": 30e9, "NEP": 1e-15}
+    band3 = "act/pa5/f150"
+
+    for band in [band1, band2, band3]:
+        parse_band(band)
+
+    bl1 = BandList(bands=[band1, band2, band3])
+
+    assert bl1[1].name == "f090"
+
+    bl2 = BandList(bands={"first_band": band1, "second_band": band2, "third_band": band3})
+
+    assert bl2[1].name == "second_band"
+
+
+def test_frequency_limits():
+    caught = False
+    try:
+        Band(center=90e3, width=20e3)
+    except FrequencyOutOfBoundsError:
+        caught = True
+    assert caught
+
+    caught = False
+    try:
+        Band(center=90e15, width=20e15)
+        caught = False
+    except FrequencyOutOfBoundsError:
+        caught = True
+    assert caught
 
 
 def test_band_manual():

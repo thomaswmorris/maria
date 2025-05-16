@@ -181,8 +181,6 @@ class Atmosphere:
 
             process_init_s = ttime.monotonic()
 
-            # assert False
-
             transform = compute_aligning_transform(
                 process_points_for_hull,
                 signature=(True, True, False),
@@ -191,7 +189,6 @@ class Atmosphere:
             triangulation = sp.spatial.Delaunay(tp[..., 1:])
 
             logger.debug(f"Computed process bounds in {humanize_time(ttime.monotonic() - process_init_s)}.")
-            # proc_s = ttime.monotonic()
 
             min_tx, min_ty, min_tz = tp.min(axis=0)
             max_tx, max_ty, max_tz = tp.max(axis=0)

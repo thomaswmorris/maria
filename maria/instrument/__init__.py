@@ -11,7 +11,7 @@ from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from ..array import Array, ArrayList, get_array_config  # noqa
-from ..band import BAND_CONFIGS, Band, BandList, parse_bands  # noqa
+from ..band import BAND_CONFIGS, Band, BandList, parse_band  # noqa
 from ..beam import compute_angular_fwhm
 from ..units import Quantity
 from ..utils import HEX_CODE_LIST, flatten_config, get_rotation_matrix_2d, read_yaml  # noqa
@@ -108,71 +108,6 @@ allowed_subarray_params = {
     "field_of_view": "float",
     "bands": "float",
 }
-
-
-# def check_subarray_format(subarray):
-#     if isinstance(subarray.get("file"), str):
-#         return True
-#     if isinstance(subarray, Mapping):
-#         return all(k in allowed_subarray_params for k in subarray)
-#     return False
-
-
-# def get_subarrays(instrument_config):
-#     """
-#     Make the subarrays!
-#     """
-#     config = copy.deepcopy(instrument_config)
-
-#     if ("array" in config) and ("subarrays" not in config):
-#         subarray = config.pop("array")
-#         if check_subarray_format(subarray):
-#             config["subarrays"] = {"array": subarray}
-#         else:
-#             raise ValueError(f"Invalid array configuration: {subarray}")
-
-#     subarrays = {}
-
-#     for subarray_name in config["subarrays"]:
-#         subarray = config["subarrays"][subarray_name]
-
-#         if "file" in subarray:  # it points to a file:
-#             if not os.path.exists(subarray["file"]):
-#                 subarray["file"] = f"{here}/ArrayList/arrays/{subarray['file']}"
-#             df = pd.read_csv(subarray["file"], index_col=0)
-
-#             if "bands" not in subarray:
-#                 subarray["bands"] = {}
-
-#             subarray["n"] = len(df)
-#             for band_name in np.unique(df.band_name.values):
-#                 subarray["bands"][band_name] = Band(
-#                     name=band_name, **BAND_CONFIGS[band_name]
-#                 )
-
-#         elif ("n" not in subarray) and ("field_of_view" not in subarray):
-#             raise ValueError(
-#                 "You must specificy one of 'n' or 'field_of_view' to generate an array."
-#             )
-
-#         subarray["bands"] = BandList(parse_bands(subarray["bands"]))
-
-#         for param in subarray_params_to_inherit:
-#             if (param in config) and (param not in subarray):
-#                 subarray[param] = config[param]
-
-#         # for band_name, band_config in subarray["bands"].items():
-#         #     for param in band_params_to_inherit:
-#         #         if param in config:
-#         #         band_config[param] = band_config.get(param, default_value)
-
-#         #     if "passband" not in band_config:
-#         #         for param, default_value in passband_params_to_inherit:
-#         #             band_config[param] = band_config.get(param, default_value)
-
-#         subarrays[subarray_name] = subarray
-
-#     return subarrays
 
 
 def get_instrument(name=None, **kwargs):

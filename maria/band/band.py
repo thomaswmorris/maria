@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+from collections.abc import Mapping
 
 import jax
 import matplotlib.pyplot as plt
@@ -15,7 +16,6 @@ from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU, MARIA_MIN_NU, c
 from ..errors import FrequencyOutOfBoundsError
-from ..io import humanize
 from ..units import Quantity
 from ..utils import flatten_config, read_yaml
 
@@ -34,6 +34,21 @@ BAND_CONFIGS = flatten_config(BAND_CONFIGS)
 
 band_data = pd.DataFrame(BAND_CONFIGS).T.sort_index()
 all_bands = list(band_data.index)
+
+
+def parse_band(band):
+    if isinstance(band, Band):
+        return band
+    if isinstance(band, Mapping):
+        return Band(**band)
+    if isinstance(band, str):
+        return get_band(band)
+
+
+def validate_band_config(band):
+    if "passband" not in band:
+        if any([key not in band for key in ["center", "width"]]):
+            raise ValueError("The band's center and width must be specified")
 
 
 def get_band(band_name):
@@ -116,12 +131,9 @@ class Band:
             qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
             qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
             if nu is None:
-                raise ValueError(
-                    f"Bad params (center, width) = ({center}, {width}) Hz; maria supports frequencies between "
-                    f"{qmin_nu} and {qmax_nu}"
-                )
+                raise FrequencyOutOfBoundsError(center_and_width=(center, width))
             else:
-                raise FrequencyOutOfBoundsError(nu)
+                raise FrequencyOutOfBoundsError(nu=nu)
 
         # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
         self.name = name or f"f{10 ** (np.log10(self.center) % 3):>03.0f}"

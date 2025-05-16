@@ -32,64 +32,64 @@ def test_maps(map_path):
     m.plot()
 
 
-# def test_trivial_recover_original_map():
-#     f090 = Band(center=90e9, width=30e9)
-#     f150 = Band(center=150e9, width=30e9)
-#     f220 = Band(center=220e9, width=30e9)
+def test_trivial_recover_original_map():
+    f090 = Band(center=90e9, width=30e9)
+    f150 = Band(center=150e9, width=30e9)
+    f220 = Band(center=220e9, width=30e9)
 
-#     map_filename = fetch("maps/big_cluster.h5")
-#     input_map = maria.map.load(filename=map_filename).to("K_RJ").downsample(n_x=256, n_y=256)
+    map_filename = fetch("maps/big_cluster.h5")
+    input_map = maria.map.load(filename=map_filename).to("K_RJ")[..., ::8, ::8]
 
-#     input_map.data -= input_map.data.mean().compute()
-#     map_width = np.degrees(input_map.width)
+    input_map.data -= input_map.data.mean().compute()
+    map_width = np.degrees(input_map.width)
 
-#     array = {
-#         "field_of_view": map_width / 2,
-#         "primary_size": 1000,
-#         "n": 300,
-#         "bands": [f090, f150, f220],
-#     }
+    array = {
+        "field_of_view": map_width / 2,
+        "primary_size": 1000,
+        "n": 300,
+        "bands": [f090, f150, f220],
+    }
 
-#     instrument = maria.get_instrument(array=array)
+    instrument = maria.get_instrument(array=array)
 
-#     plan = maria.Plan(
-#         scan_pattern="daisy",
-#         scan_options={"radius": map_width / 4, "speed": map_width / 10},  # in degrees
-#         duration=60,  # in seconds
-#         sample_rate=50,  # in Hz
-#         scan_center=np.degrees(input_map.center),
-#         jitter=0,
-#         frame="ra_dec",
-#     )
+    plan = maria.Plan(
+        scan_pattern="daisy",
+        scan_options={"radius": map_width / 4, "speed": map_width / 10},  # in degrees
+        duration=60,  # in seconds
+        sample_rate=50,  # in Hz
+        scan_center=np.degrees(input_map.center),
+        jitter=0,
+        frame="ra_dec",
+    )
 
-#     sim = maria.Simulation(
-#         instrument,
-#         plan=plan,
-#         map=input_map,
-#         site="cerro_toco",
-#         noise=False,
-#     )
+    sim = maria.Simulation(
+        instrument,
+        plan=plan,
+        map=input_map,
+        site="cerro_toco",
+        noise=False,
+    )
 
-#     tod = sim.run()
+    tod = sim.run()
 
-#     mapper = BinMapper(
-#         center=input_map.center,
-#         frame=input_map.frame,
-#         width=input_map.width,
-#         resolution=input_map.x_res,
-#         degrees=False,
-#     )
+    mapper = BinMapper(
+        center=input_map.center,
+        frame=input_map.frame,
+        width=input_map.width,
+        resolution=input_map.x_res,
+        degrees=False,
+    )
 
-#     mapper.add_tods(tod)
-#     output_map = mapper.run()
+    mapper.add_tods(tod)
+    output_map = mapper.run()
 
-#     m0 = input_map.data[0, 0, 0].compute()
-#     m1 = output_map.data[0, :, 0].compute()
-#     w = output_map.weight[-1, 0].compute()
+    m0 = input_map.data[0, 0, 0].compute()
+    m1 = output_map.data[0, :].compute()
+    w = output_map.weight[-1, 0].compute()
 
-#     relsqres = np.sqrt(np.nansum(w * (m1 - m0) ** 2, axis=(-1, -2)) / np.nansum(w))
+    relsqres = np.sqrt(np.nansum(w * (m1 - m0) ** 2, axis=(-1, -2)) / np.nansum(w))
 
-#     assert all(relsqres < 1e-3)
+    assert all(relsqres < 1e-3)
 
 
 def test_time_ordered_map_sim():
