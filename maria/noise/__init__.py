@@ -1,48 +1,36 @@
 from __future__ import annotations
 
-import dask.array as da
-import numpy as np
+from functools import partial
 
-# def generate_power_law_fluctuations(
-#     t,
-#     n: int = 1,
-#     NEP: float = 1e0,
-#     beta: float = 1.0,
-# ):
+import jax
+from jax import numpy as jnp
 
 
+@partial(jax.jit, static_argnames=["shape", "sample_rate", "knee", "beta", "seed"])
 def generate_noise_with_knee(
-    t,
-    n: int = 1,
-    NEP: float = 1e0,
+    shape: tuple,
+    sample_rate: float = 1e0,
     knee: float = 0,
-    dask: bool = False,
     beta: float = 1.0,
+    seed: int = 12345,
 ):
     """
     Simulate white noise for a given time and NEP.
     """
-    timestep = np.gradient(t, axis=-1).mean()
 
-    if dask:
-        noise = da.random.standard_normal(size=(n, len(t))).astype(np.float32)
-    else:
-        noise = np.random.standard_normal(size=(n, len(t))).astype(np.float32)
+    noise = jax.random.normal(key=jax.random.key(seed), shape=shape) * jnp.sqrt(sample_rate)
 
-    noise *= 1 / np.sqrt(timestep)  # scale the noise
-
+    # pink noise
     if knee > 0:
-        f = np.fft.fftfreq(len(t), d=timestep)
+        f = jnp.fft.fftfreq(n=shape[-1], d=1 / sample_rate)
         a = knee / 2
-        with np.errstate(divide="ignore"):
-            pink_noise_power_spectrum = np.where(f != 0, a / (np.abs(f) ** beta), 0)
+        pink_noise_power_spectrum = jnp.where(f != 0, a / (jnp.abs(f) ** beta), 0)
 
-        weights = np.sqrt(2 * pink_noise_power_spectrum / timestep)
-        noise += np.real(
-            np.fft.ifft(
-                weights * np.fft.fft(np.random.standard_normal(size=(n, len(t)))),
+        weights = jnp.sqrt(2 * sample_rate * pink_noise_power_spectrum)
+        noise += jnp.real(
+            jnp.fft.ifft(
+                weights * jnp.fft.fft(jax.random.normal(key=jax.random.key(seed), shape=shape)),
             ),
         )
 
-    # pink noise
     return noise

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from maria import Simulation
-from maria.coords import Coordinates, dx_dy_to_phi_theta
+from maria.coords import Coordinates, unjitted_offsets_to_phi_theta
 from maria.noise import generate_noise_with_knee
 from maria.tod.tod import TOD
 
@@ -18,13 +18,13 @@ def test_tod_functions():
     azim = np.radians(45) * np.ones(len(time))
     elev = np.radians(45) * np.ones(len(time))
 
-    offsets = np.radians(1e1 * np.random.standard_normal(size=(n, 2)))
+    offsets = np.radians(1e1 * np.random.standard_normal(size=(n, 1, 2)))
 
-    AZIM, ELEV = dx_dy_to_phi_theta(*offsets.T[..., None], azim, elev)
+    PT = unjitted_offsets_to_phi_theta(offsets, azim, elev)
 
-    coords = Coordinates(phi=AZIM, theta=ELEV, t=time, frame="az_el")
+    coords = Coordinates(phi=PT[..., 0], theta=PT[..., 1], t=time, frame="az_el")
 
-    noise = generate_noise_with_knee(t=time, n=n, NEP=0.01, knee=0.5)
+    noise = generate_noise_with_knee(shape=coords.shape, sample_rate=1 / coords.timestep, knee=0.5)
 
     tod = TOD(data=dict(noise=noise), coords=coords)
 

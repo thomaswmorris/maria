@@ -7,6 +7,7 @@ import time as ttime
 import dask.array as da
 import numpy as np
 import scipy as sp
+from jax import scipy as jsp
 from tqdm import tqdm
 
 from maria.io import humanize_time
@@ -35,7 +36,7 @@ class AtmosphereMixin:
         )
 
     def _compute_atmospheric_emission(self):
-        self.loading["atmosphere"] = da.zeros_like(self.zenith_scaled_pwv)
+        atmosphere_loading = np.zeros(self.zenith_scaled_pwv.shape, dtype=self.dtype)
 
         bands_pbar = tqdm(
             self.instrument.dets.bands,
@@ -43,7 +44,7 @@ class AtmosphereMixin:
             disable=self.disable_progress_bars,
         )
         for band in bands_pbar:
-            start_s = ttime.monotonic()
+            emission_s = ttime.monotonic()
 
             bands_pbar.set_postfix({"band": band.name})
 
@@ -60,17 +61,22 @@ class AtmosphereMixin:
                 )
             )
 
-            band_power_interpolator = sp.interpolate.RegularGridInterpolator(
+            band_power_interpolator = jsp.interpolate.RegularGridInterpolator(
                 self.atmosphere.spectrum.points[:3],
                 det_power_grid,
             )
 
-            self.loading["atmosphere"][band_index] = band_power_interpolator(
+            atmosphere_loading[band_index] = band_power_interpolator(
                 (
                     self.atmosphere.weather.temperature[0],
-                    self.zenith_scaled_pwv[band_index],
-                    self.coords.el[band_index],
+                    self.zenith_scaled_pwv[band_index].compute(),
+                    self.coords.el[band_index].clip(max=np.pi / 2),
                 ),
             )
 
-            logger.debug(f"Sampled atmosphere for band {band.name} in {humanize_time(ttime.monotonic() - start_s)}.")
+            logger.debug(
+                f"Computed atmospheric emission for band {band.name} in {humanize_time(ttime.monotonic() - emission_s)}."
+            )
+
+        self.loading["atmosphere"] = da.asarray(atmosphere_loading, dtype=self.dtype)
+        del atmosphere_loading

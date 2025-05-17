@@ -144,6 +144,10 @@ class BaseSimulation:
 
         logger.debug(f"Initialized generic simulation in {humanize_time(ttime.monotonic() - start_init_s)}.")
 
+    @property
+    def shape(self):
+        return (self.instrument.n_dets, self.plan.n_time)
+
     def _run(self):
         raise NotImplementedError()
 

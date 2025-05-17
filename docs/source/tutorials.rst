@@ -7,4 +7,4 @@ Tutorials
 
    tutorials/custom-map-simulations
    tutorials/polarized-observations
-   tutorials/cluster-mustang-2
+   tutorials/mustang-cluster

@@ -3,17 +3,19 @@ from __future__ import annotations
 import glob
 import logging
 import os
+from collections.abc import Mapping
 
+import jax
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
+from jax import scipy as jsp
 
 from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU, MARIA_MIN_NU, c
 from ..errors import FrequencyOutOfBoundsError
-from ..io import humanize
 from ..units import Quantity
 from ..utils import flatten_config, read_yaml
 
@@ -32,6 +34,21 @@ BAND_CONFIGS = flatten_config(BAND_CONFIGS)
 
 band_data = pd.DataFrame(BAND_CONFIGS).T.sort_index()
 all_bands = list(band_data.index)
+
+
+def parse_band(band):
+    if isinstance(band, Band):
+        return band
+    if isinstance(band, Mapping):
+        return Band(**band)
+    if isinstance(band, str):
+        return get_band(band)
+
+
+def validate_band_config(band):
+    if "passband" not in band:
+        if any([key not in band for key in ["center", "width"]]):
+            raise ValueError("The band's center and width must be specified")
 
 
 def get_band(band_name):
@@ -114,12 +131,9 @@ class Band:
             qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
             qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
             if nu is None:
-                raise ValueError(
-                    f"Bad params (center, width) = ({center}, {width}) Hz; maria supports frequencies between "
-                    f"{qmin_nu} and {qmax_nu}"
-                )
+                raise FrequencyOutOfBoundsError(center_and_width=(center, width))
             else:
-                raise FrequencyOutOfBoundsError(nu)
+                raise FrequencyOutOfBoundsError(nu=nu)
 
         # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
         self.name = name or f"f{10 ** (np.log10(self.center) % 3):>03.0f}"
@@ -251,7 +265,7 @@ class Band:
             nu = spectrum.side_nu[(spectrum.side_nu >= nu_min) & (spectrum.side_nu < nu_max)]
             integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=nu, axis=-1)
             xi = (kwargs["base_temperature"], kwargs["zenith_pwv"], kwargs["elevation"])
-            return sp.interpolate.interpn(points=spectrum.points[:3], values=integral_grid, xi=xi)
+            return np.array(jsp.interpolate.RegularGridInterpolator(points=spectrum.points[:3], values=integral_grid)(xi))
 
     def transmission(self, region="chajnantor", pwv=1, elevation=np.radians(90)) -> float:
         if not hasattr(self, "spectrum"):

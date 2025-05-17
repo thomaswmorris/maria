@@ -5,7 +5,7 @@ from collections.abc import Mapping, Sequence
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from .band import BAND_FIELD_FORMATS, Band, get_band
+from .band import Band, parse_band
 
 
 class BandList(Sequence):
@@ -13,49 +13,18 @@ class BandList(Sequence):
         self.bands = []
 
         if isinstance(bands, BandList):
-            for b in bands.bands:
-                self.add(b)
+            for band in bands.bands:
+                self.add(parse_band(band))
 
         elif isinstance(bands, Mapping):
-            for band_name, band_config in bands.items():
-                self.add(Band(name=band_name, **band_config))
+            for band_name, band in bands.items():
+                b = parse_band(band)
+                b.name = band_name
+                self.add(b)
 
         elif isinstance(bands, list):
             for band in bands:
-                if isinstance(band, Band):
-                    b = band
-                elif isinstance(band, str):
-                    b = get_band(band)
-                else:
-                    b = Band(**band)
-                self.add(b)
-
-    # @classmethod
-    # def from_list(cls, bands):
-    #     band_list = []
-    #     for band in bands:
-    #         if isinstance(band, str):
-    #             band_list.append(Band(name=band, **BAND_CONFIGS[band]))
-    #         elif isinstance(band, Band):
-    #             band_list.append(band)
-    #         else:
-    #             raise ValueError("'band' must be either a Band or a string.")
-    #     return cls(band_list)
-
-    # @classmethod
-    # def from_config(cls, config):
-    #     bands = []
-
-    #     if isinstance(config, str):
-    #         config = read_yaml(f"{here}/{config}")
-
-    #     for name in config.keys():
-    #         band_config = config[name]
-    #         if "file" in band_config.keys():
-    #             band_config = read_yaml(f'{here}/{band_config["file"]}')
-
-    #         bands.append(Band(name=name, **band_config))
-    #     return cls(bands=bands)
+                self.add(parse_band(band))
 
     @property
     def nu_min(self):

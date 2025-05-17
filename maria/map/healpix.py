@@ -5,8 +5,11 @@ import h5py
 import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy as sp
 
-from ..units import Quantity, parse_units
+from ..coords import Coordinates, frames
+from ..units import Quantity
+from ..utils import compute_pointing_matrix
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -26,43 +29,43 @@ class HEALPixMap(Map):
         t: float = None,
         frame: str = "ra_dec",
         units: str = "K_RJ",
+        dtype: type = np.float32,
     ):
-        # give it four dimensions
-        data = data * np.ones((1, 1, 1, 1))
+        if weight is not None:
+            if weight.shape != data.shape:
+                raise ValueError(f"'data' {data.shape} and 'weight' {weight.shape} should have the same shape.")
+        else:
+            weight = da.ones_like(data)
 
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, units=units)
+        map_dims = {"npix": data.shape[-1]}
 
-        self.frame = frame
-
-        parse_units(units)
-
-        self.units = units
-        self.npix = self.data.shape[-1]
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, map_dims=map_dims, units=units, dtype=dtype)
 
         if not hp.pixelfunc.isnpixok(self.npix):
             raise ValueError(f"Invalid pixel count (n={self.npix}).")
 
         self.nside = hp.pixelfunc.npix2nside(self.npix)
+        self.frame = frame
 
-        if len(self.nu) != self.n_nu:
-            raise ValueError(
-                f"Number of supplied frequencies ({len(self.nu)}) does not match the "
-                f"nu dimension of the supplied map ({self.n_nu}).",
-            )
+    def pointing_matrix(self, coords: Coordinates):
+        idx = hp.ang2pix(
+            nside=self.nside,
+            phi=getattr(coords, frames[self.frame]["phi"]).ravel(),
+            theta=np.pi / 2 - getattr(coords, frames[self.frame]["theta"]).ravel(),
+        ).ravel()
 
-    def __repr__(self):
-        parts = []
-
-        parts.append(
-            f"shape[stokes, nu, t, pix]=({self.n_stokes}, {self.n_nu}, {self.n_t}, {self.npix})",
+        nsamps = len(idx)
+        return sp.sparse.csc_array(
+            (np.ones(coords.size, dtype=np.uint8), (idx, np.arange(nsamps))), shape=(self.npix, nsamps)
         )
-        parts.append(f"nside={self.nside}")
-
-        return f"HEALPixMap({', '.join(parts)})"
 
     @property
     def resolution(self):
         return hp.pixelfunc.nside2resol(self.nside)
+
+    @property
+    def npix(self):
+        return self.dims["npix"]
 
     def package(self):
         return {k: getattr(self, k) for k in ["data", "weight", "stokes", "nu", "t", "frame", "units"]}
@@ -121,20 +124,10 @@ class HEALPixMap(Map):
 
     def __repr__(self):
         return f"""{self.__class__.__name__}:
-  nside: {self.nside}
-  stokes: {self.stokes}
-  nu: {Quantity(self.nu, "Hz")}
-  t: {Quantity(self.t, "s")}
-  quantity: {self.u["quantity"]}
-  units: {self.units}
-  resolution: {Quantity(self.resolution, "rad")}"""
-
-    def __repr__(self):
-        return f"""{self.__class__.__name__}:
-  shape[stokes, nu, t, npix]: {self.data.shape}
-  stokes: {"".join(self.stokes)}
-  nu: {Quantity(self.nu, "Hz")}
-  t: {Quantity(self.t, "s")}
+  shape{self.dims_string}: {self.data.shape}
+  stokes: {self.stokes if "stokes" in self.dims else "naive"}
+  nu: {Quantity(self.nu, "Hz") if "nu" in self.dims else "naive"}
+  t: {Quantity(self.t, "s") if "t" in self.dims else "naive"}
   nside: {self.nside}
   quantity: {self.u["quantity"]}
   units: {self.units}

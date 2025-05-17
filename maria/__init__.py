@@ -15,6 +15,8 @@ from .plan import Plan, all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
 from .site import Site, all_regions, all_sites, get_site  # noqa
 
+logging.getLogger("jax._src.xla_bridge").setLevel(logging.ERROR)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s.%(msecs)03d %(levelname)s: %(message)s",

@@ -3,7 +3,7 @@ temperature:
   medium_name: temperature
   short_name: T
   math_name: T
-  default_units: K
+  default_unit: K
   default_prefix: ""
   min_prefix_power: -30
   max_prefix_power: 0
@@ -22,7 +22,7 @@ angle:
   medium_name: Angle
   short_name: theta
   math_name: \theta
-  default_units: deg
+  default_unit: deg
   min_prefix_power: -30
   max_prefix_power: 0
   dimensions:
@@ -38,23 +38,26 @@ angle:
       math_name: \text{deg}
       factor: 1.0
       natural: True
+      symbol: °
     arcmin:
       long_name: Arcminute
       math_name: \text{arcmin}
       factor: 0.016666666666666666
       natural: True
+      symbol: ’
     arcsec:
       long_name: Arcsecond
       math_name: \text{arcsec}
       factor: 0.0002777777777777778
       natural: True
+      symbol: ”
 
 solid_angle:
   long_name: Solid angle
   medium_name: Solid angle
   short_name: Omega
   math_name: \Omega
-  default_units: sr
+  default_unit: sr
   min_prefix_power: -30
   max_prefix_power: 0
   dimensions:
@@ -76,7 +79,7 @@ time:
   medium_name: Time
   short_name: t
   math_name: t
-  default_units: s
+  default_unit: s
   default_prefix: ""
   min_prefix_power: -30
   max_prefix_power: 0
@@ -120,7 +123,7 @@ information:
   medium_name: Information
   short_name: S
   math_name: S
-  default_units: B
+  default_unit: B
   min_prefix_power: 0
   max_prefix_power: 30
   dimensions:
@@ -142,7 +145,7 @@ mass:
   medium_name: mass
   short_name: m
   math_name: m
-  default_units: g
+  default_unit: g
   default_prefix: k
   min_prefix_power: -30
   max_prefix_power: 3
@@ -160,7 +163,7 @@ length:
   medium_name: length
   short_name: x
   math_name: x
-  default_units: m
+  default_unit: m
   default_prefix: ""
   min_prefix_power: -30
   max_prefix_power: 3
@@ -180,7 +183,7 @@ frequency:
   medium_name: frequency
   short_name: nu
   math_name: \nu
-  default_units: Hz
+  default_unit: Hz
   default_prefix: ""
   min_prefix_power: 0
   max_prefix_power: 30
@@ -198,7 +201,7 @@ noise_equivalent_power:
   medium_name: noise equivalent power
   short_name: NEP
   math_name: \text{NEP}
-  default_units: W√s
+  default_unit: W√s
   default_prefix: ""
   dimensions:
     mass: 1
@@ -217,7 +220,7 @@ noise_equivalent_temperature:
   medium_name: noise equivalent temperature
   short_name: NET
   math_name: \text{NET}
-  default_units: K√s
+  default_unit: K√s
   default_prefix: ""
   min_prefix_power: -30
   max_prefix_power: 0
@@ -236,7 +239,7 @@ rayleigh_jeans_temperature:
   medium_name: R-J temp.
   short_name: T_RJ
   math_name: T_\text{RJ}
-  default_units: K_RJ
+  default_unit: K_RJ
   default_prefix: ""
   min_prefix_power: -30
   max_prefix_power: 0
@@ -259,7 +262,7 @@ brightness_temperature:
   medium_name: Brightness temperature
   short_name: T_b
   math_name: T_b
-  default_units: K_b
+  default_unit: K_b
   default_prefix: ""
   min_prefix_power: -30
   max_prefix_power: 0
@@ -278,7 +281,7 @@ cmb_temperature_anisotropy:
   medium_name: CMB temperature anisotropy
   short_name: T_CMB
   math_name: T_{CMB}
-  default_units: K_CMB
+  default_unit: K_CMB
   default_prefix: u
   min_prefix_power: -30
   max_prefix_power: 0
@@ -296,7 +299,7 @@ radiant_flux:
   medium_name: Radiant Flux
   short_name: P
   math_name: P
-  default_units: W
+  default_unit: W
   default_prefix: p # pico
   dimensions:
     mass: 1
@@ -314,7 +317,7 @@ spectral_flux_density:
   medium_name: Spectral flux density
   short_name: E_e,nu
   math_name: E_{e,\nu}
-  default_units: Jy
+  default_unit: Jy
   default_prefix: ""
   base_unit: Jy
   base_unit_latex: \text{Jy}
@@ -334,7 +337,7 @@ spectral_radiance:
   medium_name: Spectral radiance
   short_name: L
   math_name: L
-  default_units: Jy/sr
+  default_unit: Jy/sr
   default_prefix: ""
   dimensions:
     mass: 1
@@ -357,7 +360,7 @@ spectral_flux_density_per_pixel:
   medium_name: Spectral flux density per pixel
   short_name: I_nu
   math_name: I_\nu
-  default_units: Jy/pixel
+  default_unit: Jy/pixel
   default_prefix: ""
   dimensions:
     mass: 1

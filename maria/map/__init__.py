@@ -18,8 +18,8 @@ here, this_filename = os.path.split(__file__)
 
 logger = logging.getLogger("maria")
 
-MAPS = pd.read_csv(f"{here}/maps.csv", index_col=0)
-all_maps = list(MAPS.filename.values)
+with open(f"{here}/maps.txt", "r") as f:
+    all_maps = f.read().splitlines()
 
 # from https://gist.github.com/zonca/6515744
 cmb_cmap = ListedColormap(

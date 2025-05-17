@@ -7,6 +7,7 @@ import time as ttime
 import arrow
 import numpy as np
 import scipy as sp
+from jax import scipy as jsp
 from numpy.linalg import LinAlgError
 from tqdm import tqdm
 
@@ -15,7 +16,8 @@ from ..io import humanize_time
 from ..units import Quantity
 from ..utils import compute_aligning_transform
 from ..weather import Weather
-from .extrusion import ProcessExtrusion, generate_layers
+from .extrusion import generate_layers
+from .process import AutoregressiveProcess
 from .spectrum import AtmosphericSpectrum
 
 here, this_filename = os.path.split(__file__)
@@ -128,7 +130,6 @@ class Atmosphere:
                     -process_layers.wind_north.values[:, None] * np.cos(self.boresight.az)
                     - process_layers.wind_east.values[:, None] * np.sin(self.boresight.az)
                 ) / (process_layers.h.values[:, None] * np.sin(self.boresight.el))
-                vx, vy = vx.compute(), vy.compute()
             else:
                 vx = process_layers.wind_east.values[:, None] * np.ones(
                     self.boresight.shape[-1],
@@ -150,22 +151,21 @@ class Atmosphere:
 
             process_points_for_hull_list = []
 
-            for i, (layer_index, layer_entry) in enumerate(process_layers.iterrows()):
-                if layer_entry.angular:
+            for i, (layer_index, layer) in enumerate(process_layers.iterrows()):
+                if layer.angular:
                     layer_x, layer_y = outer_coords.offsets(
                         center=center,
                         frame="az_el",
                     )
 
                 else:
-                    p = outer_coords.project(z=layer_entry.h)
+                    p = outer_coords.project(z=layer.h)
                     p += np.cumsum(self.timestep * np.c_[vx, vy, vz][None], axis=-2)
 
                     process_points_for_hull_list.append(p[None])
 
-                    az, el = outer_coords.az.compute(), outer_coords.el.compute()
-                    layer_x = layer_entry.z * np.sin(az) * np.cos(el)
-                    layer_y = layer_entry.z * np.cos(az) * np.cos(el)
+                    layer_x = layer.z * np.sin(outer_coords.az) * np.cos(outer_coords.el)
+                    layer_y = layer.z * np.cos(outer_coords.az) * np.cos(outer_coords.el)
 
                 layer_x += np.cumsum(self.timestep * vx)
                 layer_y += np.cumsum(self.timestep * vy)
@@ -181,17 +181,14 @@ class Atmosphere:
 
             process_init_s = ttime.monotonic()
 
-            # assert False
-
             transform = compute_aligning_transform(
-                process_points_for_hull.compute(),
+                process_points_for_hull,
                 signature=(True, True, False),
             )
             tp = process_points_for_hull @ transform
             triangulation = sp.spatial.Delaunay(tp[..., 1:])
 
             logger.debug(f"Computed process bounds in {humanize_time(ttime.monotonic() - process_init_s)}.")
-            # proc_s = ttime.monotonic()
 
             min_tx, min_ty, min_tz = tp.min(axis=0)
             max_tx, max_ty, max_tz = tp.max(axis=0)
@@ -199,12 +196,12 @@ class Atmosphere:
             cross_section_points_list = []
             layer_labels = []
 
-            for i, (layer_index, layer_entry) in enumerate(
+            for i, (layer_index, layer) in enumerate(
                 self.layers.loc[in_process].iterrows(),
             ):
-                res = layer_entry.res
+                res = layer.res
                 wide_lp_x_dense = np.arange(min_ty - 2 * res, max_ty + 2 * res, 1e-1)
-                wide_lp_z_dense = layer_entry.h * np.ones(len(wide_lp_x_dense))
+                wide_lp_z_dense = layer.h * np.ones(len(wide_lp_x_dense))
                 wide_lp_dense = np.c_[wide_lp_x_dense, wide_lp_z_dense]
                 interior = triangulation.find_simplex(wide_lp_dense) > -1
                 lp_dense_x = wide_lp_x_dense[interior]
@@ -212,7 +209,7 @@ class Atmosphere:
                 lp_x_max = lp_dense_x.max() + 2 * res
                 n_lp = np.maximum(3, int((lp_x_max - lp_x_min) / res))
                 lp_x = np.linspace(lp_x_min, lp_x_max, n_lp)
-                lp_z = layer_entry.h * np.ones(len(lp_x))
+                lp_z = layer.h * np.ones(len(lp_x))
                 lp = np.c_[lp_x, lp_z]
                 n_lp = len(lp)
 
@@ -231,7 +228,7 @@ class Atmosphere:
 
             matern_kwargs = {"nu": 1 / 3, "r0": outer_scale} if self.model == "3d" else {"nu": 5 / 6, "r0": outer_scale}
 
-            process = ProcessExtrusion(
+            process = AutoregressiveProcess(
                 cross_section=cross_section_points,
                 extrusion=extrusion_points,
                 callback=approximate_normalized_matern,
@@ -252,6 +249,7 @@ class Atmosphere:
                 try:
                     process.compute_covariance_matrices()
                     success = True
+                    break
                 except LinAlgError as e:
                     logger.debug(f"Singular covariance matrix with jitter={jitter}")
 
@@ -283,9 +281,9 @@ class Atmosphere:
             desc="Generating turbulence",
             disable=self.disable_progress_bars,
         ):
-            process.run(
-                desc=None,
-            )  # desc=f"Generating atmosphere ({process_number + 1}/{len(self.processes)})")
+            process_s = ttime.monotonic()
+            process.run()
+            logger.debug(f"Ran atmospheric process {k} in {humanize_time(ttime.monotonic() - process_s)}")
 
         self.zenith_scaled_pwv = self.weather.pwv * np.ones(shape=pp.shape[:-1])
 
@@ -298,27 +296,29 @@ class Atmosphere:
                 wind_vector = np.c_[process.vx, process.vy, np.zeros(process.vx.shape)]
                 translation = np.cumsum(self.timestep * wind_vector[None], axis=-2)
 
-                for i, (layer_index, layer_entry) in enumerate(
+                for i, (layer_index, layer) in enumerate(
                     process.layers.iterrows(),
                 ):
+                    layer_s = ttime.monotonic()
+
                     layer_mask = process.labels == layer_index
 
                     beam_fwhm = self.sim.instrument.dets.physical_fwhm(
-                        layer_entry.z,
+                        layer.z,
                     ).mean()
                     beam_sigma = beam_fwhm / 2.355
                     extrusion_sigma = beam_sigma / process.extrusion_res
-                    x_sigma = beam_sigma / layer_entry.res
+                    x_sigma = beam_sigma / layer.res
 
                     smoothed_layer_pwv = sp.ndimage.gaussian_filter(
                         process.values[:, layer_mask],
                         sigma=(extrusion_sigma, x_sigma),
                     )
 
-                    p = layer_entry.h * pp + translation
+                    p = layer.h * pp + translation
                     transformed_lpp = p @ process.transform
 
-                    y = sp.interpolate.RegularGridInterpolator(
+                    y = jsp.interpolate.RegularGridInterpolator(
                         (
                             process.extrusion,
                             process.cross_section[layer_mask, 0],
@@ -326,6 +326,11 @@ class Atmosphere:
                         smoothed_layer_pwv,
                     )(transformed_lpp[..., :2])
 
-                    self.zenith_scaled_pwv += layer_entry.pwv_rms * y
+                    self.zenith_scaled_pwv += layer.pwv_rms * y
 
                     pbar.update(1)
+
+                    logger.debug(
+                        f"Sampled layer {layer_index} (h={Quantity(layer.h, 'm')}) with shape "
+                        f"{smoothed_layer_pwv.shape} in {humanize_time(ttime.monotonic() - layer_s)}"
+                    )

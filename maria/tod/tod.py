@@ -33,10 +33,10 @@ class TOD:
         coords: Coordinates = None,
         units: str = "K_RJ",
         dets: ArrayList = None,
+        distributed: bool = True,
         dtype: type = np.float32,
         metadata: dict = {},
     ):
-        self.weight = weight
         self.coords = coords
         self.dets = dets
         self.header = fits.header.Header()
@@ -50,13 +50,17 @@ class TOD:
             if field_data.ndim != 2:
                 raise ValueError("Only two-dimensional TODs are currently supported.")
 
-            self.data[field] = da.asarray(field_data)
+            self.data[field] = da.asarray(field_data, dtype=dtype) if distributed else field_data.astype(dtype)
 
         # sort them alphabetically
         self.data = {k: self.data[k] for k in sorted(list(self.fields))}
 
-        if self.weight is None:
-            self.weight = da.ones_like(self.signal)
+        if weight is None:
+            weight = np.ones(self.signal.shape)
+        if distributed:
+            weight = da.asarray(weight)
+
+        self.weight = weight
 
     @property
     def spectrum(self):
@@ -177,8 +181,8 @@ class TOD:
 
         if band is not None:
             det_mask = self.dets.band_name == band
-            if not det_mask.sum() > 0:
-                raise ValueError(f"There are no Array for band '{band}'.")
+            # if not det_mask.sum() > 0:
+            #     raise ValueError(f"There are no Array for band '{band}'.")
 
         if time_mask is not None:
             if len(time_mask) != self.nt:
@@ -191,8 +195,8 @@ class TOD:
         content = self.content
         content.update(
             {
-                "data": {field: self.data[field][det_mask][..., time_mask] for field in fields},
-                "weight": self.weight[det_mask][..., time_mask],
+                "data": {field: self.data[field][det_mask][..., time_mask].compute() for field in fields},
+                "weight": self.weight[det_mask][..., time_mask].compute(),
                 "coords": self.coords[det_mask][..., time_mask],
                 "dets": self.dets._subset(det_mask),
             }

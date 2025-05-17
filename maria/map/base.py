@@ -17,6 +17,21 @@ logger = logging.getLogger("maria")
 
 here, this_filename = os.path.split(__file__)
 
+SLICE_DIMS = {
+    "stokes": {
+        "dtype": str,
+        "default": "I",
+    },
+    "nu": {
+        "dtype": float,
+        "default": 150e9,
+    },
+    "t": {
+        "dtype": float,
+        "default": arrow.now().timestamp(),
+    },
+}
+
 
 class Map:
     """
@@ -30,45 +45,66 @@ class Map:
         stokes: Iterable[str],
         nu: list[float],
         t: list[float],
+        map_dims: dict,
         units: str = "K_RJ",
         dtype: type = np.float32,
     ):
         self.data = da.asarray(data).astype(dtype)
         self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
+        self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
 
-        self.stokes = stokes.upper() if stokes is not None else "I"
-        if self.stokes not in ["I", "IQU", "IQUV"]:
-            raise ValueError("'stokes' parameter must be either 'I' or 'IQUV'")
+        slice_dims = {}
+        if stokes is not None:
+            if stokes not in ["I", "IQU", "IQUV"]:
+                raise ValueError("'stokes' parameter must be either 'I', 'IQU', or 'IQUV'")
+            self.stokes = stokes.upper()
+            slice_dims["stokes"] = len(self.stokes)
+        else:
+            self.stokes = ""
 
-        if nu is None:
-            nu = 150e9
-            logger.info("No frequency supplied for map (defaulting to 150 GHz)")
-        self.nu = np.atleast_1d(nu)
+        if nu is not None:
+            self.nu = np.atleast_1d(nu)
+            bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
+            if bad_freqs:
+                raise FrequencyOutOfBoundsError(bad_freqs)
+            slice_dims["nu"] = len(self.nu)
+        else:
+            self.nu = np.array([])
 
-        bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
-        if bad_freqs:
-            raise FrequencyOutOfBoundsError(bad_freqs)
+        if t is not None:
+            self.t = np.atleast_1d(t)
+            slice_dims["t"] = len(self.t)
+        else:
+            self.t = np.array([])
 
-        self.t = np.atleast_1d(t) if t is not None else np.array([ttime.time()])
+        self.dims = {**slice_dims, **map_dims}
+
+        parse_units(units)
 
         self.units = units
 
-        parse_units(self.units)
+        # for i, (dim, n) in enumerate(slice_dims.items()):
+        #     if self.data.shape[i] != n:
+        #         raise ValueError(
+        #             f"'{dim}' has length {n} but map has {dim} length {self.data.shape[i]}.",
+        #         )
 
-        if len(self.stokes) != data.shape[0]:
+        implied_shape = tuple(list(self.dims.values()))
+        # if len(implied_shape) != self.data.ndim:
+        #     raise ValueError(f"Inputs imply rank {len(self.dims)} for map data, but data has rank {self.data.ndim}")
+
+        if implied_shape != self.data.shape:
             raise ValueError(
-                f"'stokes' axis has length {len(self.stokes)} but map has shape (stokes, nu, t, y, x) = {self.data.shape}.",
+                f"Inputs imply shape {self.dims_string}={implied_shape} for map data, but data has shape {self.data.shape}"
             )
 
-        if len(self.nu) != data.shape[1]:
-            raise ValueError(
-                f"'nu' axis has length {len(self.nu)} but map has shape (stokes, nu, t, y, x) = {self.data.shape}.",
-            )
+    @property
+    def dims_string(self):
+        return f"({', '.join(self.dims.keys())})"
 
-        if len(self.t) != data.shape[2]:
-            raise ValueError(
-                f"'time' axis has length {len(self.t)} but map has shape (stokes, nu, t, y, x) = {self.data.shape}.",
-            )
+    @property
+    def dims_list(self):
+        return list(self.dims.keys())
 
     @property
     def nu_bins(self):
@@ -103,17 +139,38 @@ class Map:
     # def weight(self):
     #     return self._weight if self._weight is not None else da.ones(shape=self.data.shape)
 
-    @property
-    def n_stokes(self):
-        return self.data.shape[0]
+    def squeeze(self, dim):
+        package = self.package()
+        for i, (name, n) in enumerate(self.dims.items()):
+            if (name == dim) or (i == dim):
+                if n == 1:
+                    package["data"] = package["data"].squeeze(i)
+                    package["weight"] = package["weight"].squeeze(i)
+                    package.pop(name)
+                    return type(self)(**package)
+                else:
+                    raise ValueError(f"Cannot squeeze dimension '{dim}' with length {n} > 1")
+        raise ValueError(f"{self.__class__.__name__} has no dimension '{dim}'")
 
-    @property
-    def n_nu(self):
-        return self.data.shape[1]
+    def unsqueeze(self, dim, value=None):
+        if dim not in SLICE_DIMS:
+            raise ValueError(f"'{dim}' is not a valid map dimension")
+        if dim in self.dims:
+            raise Exception(f"{self.__class__.__name__} already has dimension '{dim}'")
 
-    @property
-    def n_t(self):
-        return self.data.shape[2]
+        new_dim_index = 0
+        for d in ["stokes", "nu", "t"]:
+            if d in self.dims and d != dim:
+                new_dim_index += 1
+
+        package = self.package()
+        package["data"] = np.expand_dims(package["data"], new_dim_index)
+        package["weight"] = np.expand_dims(package["weight"], new_dim_index)
+        if value is None:
+            value = SLICE_DIMS[dim]["default"]
+        package[dim] = value
+
+        return type(self)(**package)
 
     @property
     def pixel_area(self):
@@ -122,32 +179,38 @@ class Map:
         else:
             return self.x_res * self.y_res
 
-    def to(self, units, inplace=False):
+    def to(self, units: str):
         if units == self.units:
-            data = self.data.copy()
+            return self
+
+        u = parse_units(units)
+
+        package = self.package().copy()
+
+        # this is just a scaling by some factor
+        if u["quantity"] == self.u["quantity"]:
+            package["data"] *= self.u["factor"] / u["factor"]
 
         else:
-            data = np.zeros_like(self.data)
+            if "nu" not in self.dims:
+                raise ValueError(
+                    f"Cannot convert from quantity {self.u['quantity']} to quantity {u['quantity']} "
+                    f"when map has no frequency."
+                )
 
-            for i, nu in enumerate(self.nu):
-                if not nu > 0:
-                    raise ValueError(f"Cannot convert map with frequency nu={nu}.")
-
+            data = package["data"].swapaxes(0, self.dims_list.index("nu"))  # put the nu index in front
+            for nu_index, nu in enumerate(self.nu):
                 cal = Calibration(
                     f"{self.units} -> {units}",
                     nu=nu,
                     pixel_area=self.pixel_area,
                 )
-                data[:, i] = cal(self.data[:, i])
+                data[nu_index] = cal(data[nu_index])
 
-        if inplace:
-            self.data = data
-            self.units = units
+            package["data"] = data.swapaxes(0, self.dims_list.index("nu"))  # swap the axes back
 
-        else:
-            package = self.package().copy()
-            package.update({"data": data, "units": units})
-            return type(self)(**package)
+        package["units"] = units
+        return type(self)(**package)
 
     def sample_nu(self, nu):
         map_nu_interpolator = sp.interpolate.interp1d(self.nu, self.data, axis=1, kind="linear")

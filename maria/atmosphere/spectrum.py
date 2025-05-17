@@ -5,6 +5,7 @@ import os
 import h5py
 import numpy as np
 import scipy as sp
+from jax import scipy as jsp
 
 from ..io import fetch
 from ..site import REGIONS, InvalidRegionError, all_regions
@@ -84,7 +85,7 @@ class AtmosphericSpectrum:
         if (np.min(base_temperature) < min_base_temp) or (np.max(base_temperature) > max_base_temp):
             raise ValueError(f"Base temperature (in Kelvin) must be between {min_base_temp:.01f} and {max_base_temp:.01f}.")
 
-        return sp.interpolate.RegularGridInterpolator(
+        return jsp.interpolate.RegularGridInterpolator(
             points=self.points,
             values=getattr(self, f"_{quantity}"),
         )((base_temperature, pwv, elevation, nu))

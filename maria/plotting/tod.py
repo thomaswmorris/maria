@@ -206,8 +206,8 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
             "cbar": cbar,
             "info": boresight_info,
             "time": tod.time[frame_index] - time_offset,
-            "az": tod.boresight.az[frame_index].compute(),
-            "el": tod.boresight.el[frame_index].compute(),
+            "az": tod.boresight.az[frame_index],
+            "el": tod.boresight.el[frame_index],
             "data": band_qdata.value,
         }
 

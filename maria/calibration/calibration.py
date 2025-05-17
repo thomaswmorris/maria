@@ -129,7 +129,7 @@ class Calibration:
             raise ValueError(f"Cannot convert from {self.in_quantity} to {self.out_quantity}")
 
     def uchain(self):
-        middle_terms = [QUANTITIES[q]["default_units"] for q in self.qchain()[1:-1]]
+        middle_terms = [QUANTITIES[q]["default_unit"] for q in self.qchain()[1:-1]]
         return " -> ".join([self.in_units, *middle_terms, self.out_units])
 
     def function_chain(self):
