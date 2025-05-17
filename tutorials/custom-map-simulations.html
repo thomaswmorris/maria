@@ -234,7 +234,7 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Custom map simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="polarized-observations.html">Polarized observations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cluster-mustang-2.html">Simulating observations with MUSTANG-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mustang-cluster.html">Simulating observations with MUSTANG-2</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../supported-sites.html">Supported sites</a></li>
@@ -330,13 +330,13 @@
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│             n           FOV baseline        bands polarized
-│  array1  1356  5.953 arcmin      0 m  [f090,f150]     False
+│             n     FOV baseline        bands polarized
+│  array1  1356  5.953’      0 m  [f090,f150]     False
 │
 └ bands:
-      name   center   width    η         NEP   NET_RJ     NET_CMB          FWHM
-   0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK√s  49.13 uK√s  8.748 arcsec
-   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK√s    104 uK√s  5.249 arcsec
+      name   center   width    η         NEP   NET_RJ     NET_CMB    FWHM
+   0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK√s  49.13 uK√s  8.748”
+   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK√s    104 uK√s  5.249”
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -346,21 +346,21 @@ Instrument(1 array)
 <img alt="../_images/tutorials_custom-map-simulations_3_1.png" src="../_images/tutorials_custom-map-simulations_3_1.png" />
 </div>
 </div>
-<p>As something to observe, we can download a map and construct a <code class="docutils literal notranslate"><span class="pre">map</span></code>. We also define a plan to do a daisy scan centered on the center of the map.</p>
+<p>Here, the <code class="docutils literal notranslate"><span class="pre">fetch</span></code> function downloads a map to the path <code class="docutils literal notranslate"><span class="pre">map_filename</span></code>, but <code class="docutils literal notranslate"><span class="pre">map_filename</span></code> can be any <code class="docutils literal notranslate"><span class="pre">.h5</span></code> or <code class="docutils literal notranslate"><span class="pre">.fits</span></code> file of an image that corresponds to the <code class="docutils literal notranslate"><span class="pre">maria</span></code> map convention (see <a class="reference external" href="https://thomaswmorris.com/maria/usage/inputs/maps">Maps</a>).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch</span>
 
-<span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/tarantula_nebula.h5&quot;</span><span class="p">)</span>
+<span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/big_cluster.fits&quot;</span><span class="p">)</span>
 
 <span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
     <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
     <span class="n">nu</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
     <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mf">291.156</span><span class="p">,</span> <span class="o">-</span><span class="mf">31.23</span><span class="p">),</span>
-    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;uJy/pixel&quot;</span><span class="p">)</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
 <span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -372,7 +372,7 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/tarantula_nebula.h5: 100%|██████████| 514k/514k [00:00&lt;00:00, 26.3MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_cluster.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 153MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -381,20 +381,20 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/tarantul
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectedMap:
-  shape[stokes, nu, t, y, x]: (1, 1, 1, 251, 251)
-  stokes: I
+  shape(nu, y, x): (1, 1024, 1024)
+  stokes: naive
   nu: [150.] GHz
-  t: [1.74370329e+09] s
-  quantity: spectral_flux_density_per_pixel
-  units: uJy/pixel
-    min: 2.573e+00
-    max: 6.945e+02
+  t: naive
+  quantity: rayleigh_jeans_temperature
+  units: K_RJ
+    min: 2.014e-06
+    max: 1.548e-03
   center:
     ra: 19ʰ24ᵐ37.44ˢ
     dec: -31°13’48.00”
-  size[y, x]: (15 arcmin, 15 arcmin)
-  resolution[y, x]: (3.586 arcsec, 3.586 arcsec)
-  memory: 0.504 MB
+  size(y, x): (15’, 15’)
+  resolution(y, x): (0.8789”, 0.8789”)
+  memory: 8.389 MB
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -433,7 +433,7 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 123MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 168MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -450,8 +450,8 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightm
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Plan</span><span class="p">(</span>
     <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2024-08-06T03:00:00&quot;</span><span class="p">,</span>
     <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
-    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.08</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span>  <span class="c1"># in degrees</span>
-    <span class="n">duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>  <span class="c1"># in seconds</span>
+    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span>  <span class="c1"># in degrees</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>  <span class="c1"># in seconds</span>
     <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>  <span class="c1"># in Hz</span>
     <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mf">291.156</span><span class="p">,</span> <span class="o">-</span><span class="mf">31.23</span><span class="p">),</span>
     <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">)</span>
@@ -468,14 +468,14 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightm
 <div class="highlight"><pre>
 Plan:
   start_time: 2024-08-06 03:00:00.000 +00:00
-  duration: 600 s
+  duration: 900 s
   sample_rate: 50 Hz
   center:
     ra: 19ʰ24ᵐ37.44ˢ
     dec: -31°13’48.00”
   scan_pattern: daisy
-  scan_radius: 9.59 arcmin
-  scan_kwargs: {&#39;radius&#39;: 0.08, &#39;speed&#39;: 0.01}
+  scan_radius: 11.99’
+  scan_kwargs: {&#39;radius&#39;: 0.1, &#39;speed&#39;: 0.01}
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -507,12 +507,12 @@ Plan:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 141MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 143MB/s]
-Constructing atmosphere: 100%|██████████| 10/10 [00:29&lt;00:00,  2.97s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 204MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 197MB/s]
+Constructing atmosphere: 100%|██████████| 10/10 [00:39&lt;00:00,  3.99s/it]
 Generating CMB (nside=2048):   0%|          | 0/1 [00:00&lt;?, ?it/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/planck.csv: 293kB [00:00, 31.1MB/s]
-Generating CMB (nside=2048): 100%|██████████| 1/1 [00:12&lt;00:00, 12.23s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/planck.csv: 293kB [00:00, 68.6MB/s]
+Generating CMB (nside=2048): 100%|██████████| 1/1 [00:12&lt;00:00, 12.15s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -523,13 +523,13 @@ Generating CMB (nside=2048): 100%|██████████| 1/1 [00:12&lt;
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │             n           FOV baseline        bands polarized
-│ │  array1  1356  5.953 arcmin      0 m  [f090,f150]     False
+│ │             n     FOV baseline        bands polarized
+│ │  array1  1356  5.953’      0 m  [f090,f150]     False
 │ │
 │ └ bands:
-│       name   center   width    η         NEP   NET_RJ     NET_CMB          FWHM
-│    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK√s  49.13 uK√s  8.748 arcsec
-│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK√s    104 uK√s  5.249 arcsec
+│       name   center   width    η         NEP   NET_RJ     NET_CMB    FWHM
+│    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK√s  49.13 uK√s  8.748”
+│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK√s    104 uK√s  5.249”
 ├ Site:
 │   region: chajnantor
 │   location: 23°01’45.84”S 67°45’17.28”W
@@ -538,49 +538,49 @@ Simulation
 │   diurnal: True
 ├ Plan:
 │   start_time: 2024-08-06 03:00:00.000 +00:00
-│   duration: 600 s
+│   duration: 900 s
 │   sample_rate: 50 Hz
 │   center:
 │     ra: 19ʰ24ᵐ37.44ˢ
 │     dec: -31°13’48.00”
 │   scan_pattern: daisy
-│   scan_radius: 9.59 arcmin
-│   scan_kwargs: {&#39;radius&#39;: 0.08, &#39;speed&#39;: 0.01}
+│   scan_radius: 11.99’
+│   scan_kwargs: {&#39;radius&#39;: 0.1, &#39;speed&#39;: 0.01}
 ├ Atmosphere(10 processes with 10 layers):
 │ ├ spectrum:
 │ │   region: chajnantor
 │ └ weather:
 │     region: chajnantor
 │     altitude: 5.065 km
-│     time: Aug 5 23:04:59 -04:00
+│     time: Aug 5 23:07:29 -04:00
 │     pwv[mean, rms]: (0.5 mm, 15 um)
 ├ CMB:
-│   shape[stokes, nu, t, npix]: (3, 1, 1, 50331648)
+│   shape(stokes, nu, npix): (3, 1, 50331648)
 │   stokes: IQU
 │   nu: [148.] GHz
-│   t: [1.74698774e+09] s
+│   t: naive
 │   nside: 2048
 │   quantity: cmb_temperature_anisotropy
 │   units: K_CMB
-│     min: -5.411e-04
-│     max: 5.686e-04
-│   resolution: 1.718 arcmin
+│     min: -6.124e-04
+│     max: 5.884e-04
+│   resolution: 1.718’
 │   memory: 1.208 GB
 └ ProjectedMap:
-    shape[stokes, nu, t, y, x]: (1, 1, 1, 251, 251)
+    shape(stokes, nu, y, x): (1, 1, 1024, 1024)
     stokes: I
     nu: [150.] GHz
-    t: [1.74370329e+09] s
+    t: naive
     quantity: rayleigh_jeans_temperature
     units: K_RJ
-      min: 1.232e-05
-      max: 3.325e-03
+      min: 2.014e-06
+      max: 1.548e-03
     center:
       ra: 19ʰ24ᵐ37.44ˢ
       dec: -31°13’48.00”
-    size[y, x]: (15 arcmin, 15 arcmin)
-    resolution[y, x]: (3.586 arcsec, 3.586 arcsec)
-    memory: 0.504 MB
+    size(y, x): (15’, 15’)
+    resolution(y, x): (0.8789”, 0.8789”)
+    memory: 8.389 MB
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -599,12 +599,12 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 44.38it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:07&lt;00:00,  1.26it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:06&lt;00:00,  3.36s/it, band=f150]
-Sampling CMB: 100%|██████████| 2/2 [00:30&lt;00:00, 15.07s/it, band=f150, stokes=U]
-Sampling map: 100%|██████████| 2/2 [00:10&lt;00:00,  5.47s/it, band=f150, stokes=I]
-Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.48s/it, band=f150]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 27.84it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:13&lt;00:00,  1.37s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:10&lt;00:00,  5.25s/it, band=f150]
+Sampling CMB: 100%|██████████| 2/2 [00:30&lt;00:00, 15.26s/it, band=f150, stokes=U]
+Sampling map: 100%|██████████| 2/2 [00:17&lt;00:00,  8.98s/it, channel=[ 0. inf] Hz]
+Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.07s/it, band=f150]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -612,7 +612,7 @@ Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.4
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(1356, 30000), fields=[&#39;atmosphere&#39;, &#39;cmb&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:09:59.979 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-05-11T18:23:26.716151+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.527})
+TOD(shape=(1356, 45000), fields=[&#39;atmosphere&#39;, &#39;cmb&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-05-17T00:32:48.381192+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -641,7 +641,6 @@ TOD(shape=(1356, 30000), fields=[&#39;atmosphere&#39;, &#39;cmb&#39;, &#39;map&#
     <span class="p">},</span>
     <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-        <span class="s2">&quot;median_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
     <span class="p">},</span>
     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mK_RJ&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -657,10 +656,10 @@ TOD(shape=(1356, 30000), fields=[&#39;atmosphere&#39;, &#39;cmb&#39;, &#39;map&#
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 1/1 [00:15&lt;00:00, 15.25s/it, band=f090, stokes=I]
-2025-05-11 18:24:07.834 INFO: Ran mapper for band f090 in 21.77 s.
-Mapping band f150: 100%|██████████| 1/1 [00:15&lt;00:00, 15.32s/it, band=f150, stokes=I]
-2025-05-11 18:24:29.544 INFO: Ran mapper for band f150 in 21.71 s.
+Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  3.47it/s, band=f090, stokes=I]
+2025-05-17 00:33:07.552 INFO: Ran mapper for band f090 in 12.99 s.
+Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  3.54it/s, band=f150, stokes=I]
+2025-05-17 00:33:20.184 INFO: Ran mapper for band f150 in 12.63 s.
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
@@ -668,38 +667,23 @@ Mapping band f150: 100%|██████████| 1/1 [00:15&lt;00:00, 15.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output_map</span><span class="p">)</span>
-<span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-ProjectedMap:
-  shape[stokes, nu, t, y, x]: (1, 2, 1, 256, 256)
-  stokes: I
-  nu: [ 90. 150.] GHz
-  t: [1.74698787e+09] s
-  quantity: rayleigh_jeans_temperature
-  units: mK_RJ
-    min: -8.473e-01
-    max: 1.701e+00
-  center:
-    ra: 19ʰ24ᵐ37.44ˢ
-    dec: -31°13’48.00”
-  size[y, x]: (15 arcmin, 15 arcmin)
-  resolution[y, x]: (3.516 arcsec, 3.516 arcsec)
-  memory: 1.049 MB
-</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_12_1.png" src="../_images/tutorials_custom-map-simulations_12_1.png" />
+<img alt="../_images/tutorials_custom-map-simulations_12_0.png" src="../_images/tutorials_custom-map-simulations_12_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
 </div>
 </div>
 </section>

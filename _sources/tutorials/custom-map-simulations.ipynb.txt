@@ -67,7 +67,7 @@
    "id": "4",
    "metadata": {},
    "source": [
-    "As something to observe, we can download a map and construct a `map`. We also define a plan to do a daisy scan centered on the center of the map."
+    "Here, the `fetch` function downloads a map to the path `map_filename`, but `map_filename` can be any `.h5` or `.fits` file of an image that corresponds to the `maria` map convention (see [Maps](https://thomaswmorris.com/maria/usage/inputs/maps))."
    ]
   },
   {
@@ -79,14 +79,14 @@
    "source": [
     "from maria.io import fetch\n",
     "\n",
-    "map_filename = fetch(\"maps/tarantula_nebula.h5\")\n",
+    "map_filename = fetch(\"maps/big_cluster.fits\")\n",
     "\n",
     "input_map = maria.map.load(\n",
     "    filename=map_filename,\n",
     "    nu=150e9,\n",
     "    width=0.25,\n",
     "    center=(291.156, -31.23),\n",
-    "    units=\"uJy/pixel\")\n",
+    "    units=\"K_RJ\")\n",
     "\n",
     "print(input_map)\n",
     "input_map.to(\"K_RJ\").plot()"
@@ -115,8 +115,8 @@
     "plan = maria.Plan(\n",
     "    start_time=\"2024-08-06T03:00:00\",\n",
     "    scan_pattern=\"daisy\",\n",
-    "    scan_options={\"radius\": 0.08, \"speed\": 0.01},  # in degrees\n",
-    "    duration=600,  # in seconds\n",
+    "    scan_options={\"radius\": 0.1, \"speed\": 0.01},  # in degrees\n",
+    "    duration=900,  # in seconds\n",
     "    sample_rate=50,  # in Hz\n",
     "    scan_center=(291.156, -31.23),\n",
     "    frame=\"ra_dec\")\n",
@@ -179,7 +179,6 @@
     "    },\n",
     "    map_postprocessing={\n",
     "        \"gaussian_filter\": {\"sigma\": 1},\n",
-    "        \"median_filter\": {\"size\": 1},\n",
     "    },\n",
     "    units=\"mK_RJ\",\n",
     ")\n",
@@ -204,9 +203,16 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "print(output_map)\n",
     "output_map.plot()"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "13",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {
@@ -225,7 +231,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.12.8"
+   "version": "3.13.2"
   },
   "vscode": {
    "interpreter": {

@@ -233,7 +233,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/custom-map-simulations.html">Custom map simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/polarized-observations.html">Polarized observations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../tutorials/cluster-mustang-2.html">Simulating observations with MUSTANG-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/mustang-cluster.html">Simulating observations with MUSTANG-2</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../supported-sites.html">Supported sites</a></li>
@@ -282,9 +282,9 @@
 <span id="id1"></span><h1>Atmosphere<a class="headerlink" href="#atmosphere" title="Link to this heading">¶</a></h1>
 <p>To add in atmosphere to the simulation, we add in an atmospheric model.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="n">my_instrument</span><span class="p">,</span>
-                       <span class="n">site</span><span class="o">=</span><span class="n">my_site</span><span class="p">,</span>
-                       <span class="n">plan</span><span class="o">=</span><span class="n">my_plan</span><span class="p">,</span>
-                       <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">)</span>
+                    <span class="n">site</span><span class="o">=</span><span class="n">my_site</span><span class="p">,</span>
+                    <span class="n">plan</span><span class="o">=</span><span class="n">my_plan</span><span class="p">,</span>
+                    <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This two-dimensional model is a simplified approximation of atmospheric turbulence (see <a class="reference external" href="https://arxiv.org/abs/2111.01319">T. W. Morris et al. (2022)</a>) that lets us more efficiently  simulate atmospheric fluctuations at higher resolutions.
