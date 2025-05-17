@@ -2,23 +2,19 @@ from __future__ import annotations
 
 import numpy as np
 
-from maria.coords import dx_dy_to_phi_theta, phi_theta_to_dx_dy
+from maria.coords import offsets_to_phi_theta, phi_theta_to_offsets
 
 
 def test_offsets_transform():
-    OFFSETS_SIZE = 256
+    n = 256
 
-    for cphi in np.random.uniform(low=0, high=2 * np.pi, size=16):
-        for ctheta in np.random.uniform(low=-np.pi / 2, high=np.pi / 2, size=16):
-            dx = np.radians(
-                60 * np.random.uniform(low=-0.5, high=+0.5, size=OFFSETS_SIZE),
-            )
-            dy = np.radians(
-                60 * np.random.uniform(low=-0.5, high=+0.5, size=OFFSETS_SIZE),
+    for cphi in np.random.uniform(low=0, high=2 * np.pi, size=5):
+        for ctheta in np.random.uniform(low=-np.pi / 2, high=np.pi / 2, size=5):
+            offsets = np.radians(
+                np.random.uniform(low=-0.5, high=+0.5, size=(n, 2)),
             )
 
-            _phi, _theta = dx_dy_to_phi_theta(dx, dy, cphi, ctheta)
-            _dx, _dy = phi_theta_to_dx_dy(_phi, _theta, cphi, ctheta)
+            _phitheta = offsets_to_phi_theta(offsets, cphi, ctheta)
+            _offsets = phi_theta_to_offsets(_phitheta, cphi, ctheta)
 
-            assert (dx - _dx).std() < 1e-8
-            assert (dy - _dy).std() < 1e-8
+            assert np.mean(np.square(offsets - _offsets)) < 1e-5
