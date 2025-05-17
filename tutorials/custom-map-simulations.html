@@ -370,9 +370,17 @@ Instrument(1 array)
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Response [200]&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_cluster.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 153MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/big_cluster.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 142MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -397,11 +405,19 @@ ProjectedMap:
   memory: 8.389 MB
 </pre></div></div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_5_2.png" src="../_images/tutorials_custom-map-simulations_5_2.png" />
+<img alt="../_images/tutorials_custom-map-simulations_5_4.png" src="../_images/tutorials_custom-map-simulations_5_4.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -426,6 +442,7 @@ Site:
   altitude: 5.065 km
   seasonal: True
   diurnal: True
+&lt;Response [200]&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -433,7 +450,7 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 168MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 147MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -505,14 +522,53 @@ Plan:
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Response [200]&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 204MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 197MB/s]
-Constructing atmosphere: 100%|██████████| 10/10 [00:39&lt;00:00,  3.99s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 206MB/s]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Response [200]&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 146MB/s]
+Constructing atmosphere: 100%|██████████| 10/10 [00:42&lt;00:00,  4.26s/it]
 Generating CMB (nside=2048):   0%|          | 0/1 [00:00&lt;?, ?it/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/planck.csv: 293kB [00:00, 68.6MB/s]
-Generating CMB (nside=2048): 100%|██████████| 1/1 [00:12&lt;00:00, 12.15s/it]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Response [200]&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/planck.csv: 293kB [00:00, 62.8MB/s]
+Generating CMB (nside=2048): 100%|██████████| 1/1 [00:12&lt;00:00, 12.32s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -562,8 +618,8 @@ Simulation
 │   nside: 2048
 │   quantity: cmb_temperature_anisotropy
 │   units: K_CMB
-│     min: -6.124e-04
-│     max: 5.884e-04
+│     min: -5.687e-04
+│     max: 5.687e-04
 │   resolution: 1.718’
 │   memory: 1.208 GB
 └ ProjectedMap:
@@ -599,12 +655,12 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 27.84it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:13&lt;00:00,  1.37s/it]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:10&lt;00:00,  5.25s/it, band=f150]
-Sampling CMB: 100%|██████████| 2/2 [00:30&lt;00:00, 15.26s/it, band=f150, stokes=U]
-Sampling map: 100%|██████████| 2/2 [00:17&lt;00:00,  8.98s/it, channel=[ 0. inf] Hz]
-Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.07s/it, band=f150]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 27.45it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:15&lt;00:00,  1.57s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:11&lt;00:00,  5.85s/it, band=f150]
+Sampling CMB: 100%|██████████| 2/2 [00:33&lt;00:00, 16.79s/it, band=f150, stokes=U]
+Sampling map: 100%|██████████| 2/2 [00:20&lt;00:00, 10.29s/it, channel=[ 0. inf] Hz]
+Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.19s/it, band=f150]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -612,7 +668,7 @@ Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(1356, 45000), fields=[&#39;atmosphere&#39;, &#39;cmb&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-05-17T00:32:48.381192+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
+TOD(shape=(1356, 45000), fields=[&#39;atmosphere&#39;, &#39;cmb&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-05-17T02:07:13.976005+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -656,10 +712,10 @@ TOD(shape=(1356, 45000), fields=[&#39;atmosphere&#39;, &#39;cmb&#39;, &#39;map&#
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  3.47it/s, band=f090, stokes=I]
-2025-05-17 00:33:07.552 INFO: Ran mapper for band f090 in 12.99 s.
-Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  3.54it/s, band=f150, stokes=I]
-2025-05-17 00:33:20.184 INFO: Ran mapper for band f150 in 12.63 s.
+Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  3.22it/s, band=f090, stokes=I]
+2025-05-17 02:07:35.817 INFO: Ran mapper for band f090 in 14.82 s.
+Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  3.26it/s, band=f150, stokes=I]
+2025-05-17 02:07:50.475 INFO: Ran mapper for band f150 in 14.65 s.
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
