@@ -3,7 +3,9 @@ import os
 import shutil
 import time as ttime
 
+import numpy as np
 import requests
+from requests import HTTPError
 from tqdm import tqdm
 
 from ..utils.io import test_file
@@ -66,9 +68,10 @@ def download_from_url(
 
     try:
         with requests.get(source_url, stream=True) as r:
+            print(r)
             r.raise_for_status()
+
             total_size_bytes = int(r.headers.get("content-length", 0))
-            # logger.info(f"Caching data from {source_url}")
             with tqdm(
                 total=total_size_bytes,
                 unit="B",
@@ -80,11 +83,12 @@ def download_from_url(
                         f.write(chunk)
                         pbar.update(len(chunk))
 
-    except Exception as error:
-        logger.warning(f"Encountered error while downloading {source_url}: {repr(error)}")
+    except HTTPError as error:
+        if error.response.status_code == 404:
+            raise error
+        return f"Encountered error while downloading {source_url}: {repr(error)}"
 
-    finally:
-        return cache_status(cache_path, max_age=max_age, refresh=False)
+    return cache_status(cache_path, max_age=max_age, refresh=False)
 
 
 def fetch(
@@ -122,11 +126,9 @@ def fetch(
         status = download_from_url(source_url, cache_path=cache_path, max_age=max_age, **download_kwargs)
         if status == "ok":
             return cache_path
-        if status == "missing":
-            raise FileNotFoundError(f"{source_path} does not exist")
         attempt += 1
         logger.warning(f"Could not download {source_url} on try {attempt} (status = {status})")
-        ttime.sleep(1e0)
+        ttime.sleep(2e0)
 
     if stale_cache_path:
         logger.warning(f"Could not download {source_url}, using stale cache at {stale_cache_path}")
