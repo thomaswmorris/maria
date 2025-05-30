@@ -11,4 +11,4 @@ class CMB(HEALPixMap):
         nu: float = None,
         units: str = "K_CMB",
     ):
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, units=units, frame=frame)
+        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, z=1100.0, units=units, frame=frame)
