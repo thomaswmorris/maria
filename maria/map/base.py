@@ -42,11 +42,14 @@ class Map:
         self,
         data: float,
         weight: float,
-        stokes: Iterable[str],
-        nu: list[float],
-        t: list[float],
+        stokes: str,
+        nu: Iterable[float],
+        t: Iterable[float],
+        z: Iterable[float],
+        beam: tuple[float, float, float],  # noqa
         map_dims: dict,
         units: str = "K_RJ",
+        degrees: bool = True,  # noqa
         dtype: type = np.float32,
     ):
         self.data = da.asarray(data).astype(dtype)
@@ -77,11 +80,18 @@ class Map:
         else:
             self.t = np.array([])
 
+        if z is not None:
+            self.z = np.atleast_1d(z)
+            slice_dims["z"] = len(self.z)
+        else:
+            self.z = np.array([])
+
         self.dims = {**slice_dims, **map_dims}
 
-        parse_units(units)
+        self.data *= np.ones(list(self.dims.values()))
+        self.weight *= np.ones(list(self.dims.values()))
 
-        self.units = units
+        self.units = parse_units(units)["units"]
 
         # for i, (dim, n) in enumerate(slice_dims.items()):
         #     if self.data.shape[i] != n:
@@ -97,6 +107,10 @@ class Map:
             raise ValueError(
                 f"Inputs imply shape {self.dims_string}={implied_shape} for map data, but data has shape {self.data.shape}"
             )
+
+    @property
+    def ndim(self):
+        return len(self.dims)
 
     @property
     def dims_string(self):
@@ -179,6 +193,10 @@ class Map:
         else:
             return self.x_res * self.y_res
 
+    @property
+    def beam_area(self):
+        return np.pi * self.beam[0] * self.beam[1]
+
     def to(self, units: str):
         if units == self.units:
             return self
@@ -204,6 +222,7 @@ class Map:
                     f"{self.units} -> {units}",
                     nu=nu,
                     pixel_area=self.pixel_area,
+                    beam_area=self.beam_area,
                 )
                 data[nu_index] = cal(data[nu_index])
 

@@ -367,7 +367,26 @@ spectral_flux_density_per_pixel:
     time: -3
   units:
     Jy/pixel:
+      aliases: [JY/PIXEL]
       long_name: janskies per pixel
       math_name: \text{Jy}/\text{pixel}
+      factor: 1.0
+      natural: True
+
+spectral_flux_density_per_beam:
+  long_name: Spectral flux density per beam
+  medium_name: Spectral flux density per beam
+  short_name: I_nu
+  math_name: I_\nu
+  default_unit: Jy/beam
+  default_prefix: ""
+  dimensions:
+    mass: 1
+    time: -3
+  units:
+    Jy/beam:
+      aliases: [JY/BEAM]
+      long_name: janskies per beam
+      math_name: \text{Jy}/\text{beam}
       factor: 1.0
       natural: True

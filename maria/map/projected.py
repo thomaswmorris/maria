@@ -1,7 +1,7 @@
 import copy
 import logging
 import os
-from typing import Callable
+from typing import Callable, Iterable
 
 import astropy as ap
 import dask.array as da
@@ -34,14 +34,16 @@ class ProjectedMap(Map):
         data: float,
         weight: float = None,
         stokes: float = None,
-        nu: float = None,
-        t: float = None,
+        nu: Iterable[float] = None,
+        t: Iterable[float] = None,
+        z: Iterable[float] = None,
         width: float = None,
         height: float = None,
         resolution: float = None,
         x_res: float = None,
         y_res: float = None,
         center: tuple[float, float] = (0.0, 0.0),
+        beam: tuple[float, float, float] = 0.0,
         frame: str = "ra_dec",
         degrees: bool = True,
         units: str = "K_RJ",
@@ -60,7 +62,19 @@ class ProjectedMap(Map):
 
         map_dims = {"y": data.shape[-2], "x": data.shape[-1]}
 
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, map_dims=map_dims, units=units, dtype=dtype)
+        super().__init__(
+            data=data,
+            weight=weight,
+            stokes=stokes,
+            nu=nu,
+            t=t,
+            z=z,
+            beam=beam,
+            map_dims=map_dims,
+            units=units,
+            degrees=degrees,
+            dtype=dtype,
+        )
 
         self.center = Quantity(tuple(center), ("deg" if degrees else "rad")).rad
         self.frame = frame
@@ -89,13 +103,30 @@ class ProjectedMap(Map):
                 # here height must not be None
                 x_res = y_res = height / self.n_y
 
-        self.x_res = np.radians(abs(x_res)) if degrees else x_res
+        self.x_res = np.radians(x_res) if degrees else x_res
         self.y_res = np.radians(y_res) if degrees else y_res
 
         if self.x_res < 0:
-            raise ValueError()
+            self.data, self.weight = self.data[::-1], self.weight[::-1]
+            self.x_res *= -1
         if self.y_res < 0:
-            raise ValueError()
+            self.data, self.weight = self.data[::-1, :], self.weight[::-1, :]
+            self.y_res *= -1
+
+        if not hasattr(beam, "__len__"):
+            beam = beam or self.resolution
+            beam = (beam, beam, 0)
+
+        if len(beam) != 3:
+            raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
+
+        self.beam = tuple(np.radians(beam) if degrees else beam)
+
+        if self.u["base_unit"] == "Jy/beam":
+            if not self.beam_area > 0:
+                raise ValueError(
+                    f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
+                )
 
     def pointing_matrix(self, coords: Coordinates):
         offsets = coords.offsets(center=self.center, frame=self.frame)
@@ -119,21 +150,21 @@ class ProjectedMap(Map):
         if "nu" in self.dims:
             header["RESTFREQ"] = self.nu.mean()
 
-        header["CDELT1"] = -np.degrees(self.x_res)  # degrees
+        header["CDELT1"] = np.degrees(self.x_res)  # degrees
         header["CDELT2"] = np.degrees(self.y_res)  # degrees
-
         header["CRPIX1"] = self.data.shape[-1] // 2
         header["CRPIX2"] = self.data.shape[-2] // 2
-        header["FRAME"] = self.frame
         header["BUNITS"] = self.units
 
         # specify x center
-        header["CTYPE1"] = self.frame_data["phi"].upper()
+        CTYPE1 = self.frame_data["FITS_phi"]
+        header["CTYPE1"] = f"{CTYPE1}{(5 - len(CTYPE1)) * '-'}SIN"
         header["CRVAL1"] = np.degrees(self.center[0])
         header["CUNIT1"] = "deg     "
 
         # center y center
-        header["CTYPE2"] = self.frame_data["theta"].upper()
+        CTYPE2 = self.frame_data["FITS_theta"]
+        header["CTYPE2"] = f"{CTYPE2}{(5 - len(CTYPE2)) * '-'}SIN"
         header["CRVAL2"] = np.degrees(self.center[1])
         header["CUNIT2"] = "deg     "
 
@@ -148,20 +179,24 @@ class ProjectedMap(Map):
         raise AttributeError(f"'ProjectedMap' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
-        if isinstance(key, tuple):
-            package = self.to("K_RJ").package()
-            package["data"] = package["data"][key]
-            package["weight"] = package["weight"][key]
+        if not hasattr(key, "__iter__"):
+            key = (key,)
 
-            stokes_slice, nu_slice, t_slice, y_slice, x_slice = unpack_implicit_slice(key)
+        explicit_slices = unpack_implicit_slice(key, ndims=self.ndim)
 
-            package["stokes"] = package["stokes"][stokes_slice]
-            package["nu"] = package["nu"][nu_slice]
-            package["t"] = package["t"][t_slice]
-            package["x_res"] *= x_slice.step or 1
-            package["y_res"] *= y_slice.step or 1
+        package = self.to("K_RJ").package()
+        package["data"] = package["data"][key]
+        package["weight"] = package["weight"][key]
 
-            return ProjectedMap(**package).to(self.units)
+        for axis, (dim, naxis) in enumerate(self.dims.items()):
+            if dim in "xy":
+                continue
+            package[dim] = package[dim][explicit_slices[axis]]
+
+        package["y_res"] *= explicit_slices[-2].step or 1
+        package["x_res"] *= explicit_slices[-1].step or 1
+
+        return ProjectedMap(**package).to(self.units)
 
     def downsample(self, reduce: tuple, func: Callable = np.mean):
         if reduce:
@@ -196,6 +231,7 @@ class ProjectedMap(Map):
   stokes: {self.stokes if "stokes" in self.dims else "naive"}
   nu: {Quantity(self.nu, "Hz") if "nu" in self.dims else "naive"}
   t: {Quantity(self.t, "s") if "t" in self.dims else "naive"}
+  z: {self.z if "z" in self.dims else "naive"}
   quantity: {self.u["quantity"]}
   units: {self.units}
     min: {np.nanmin(self.data).compute():.03e}
@@ -205,6 +241,7 @@ class ProjectedMap(Map):
     {ctheta_repr}
   size(y, x): ({Quantity(self.height, "rad")}, {Quantity(self.width, "rad")})
   resolution(y, x): ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})
+  beam(maj, min, psi): ({Quantity(self.beam[0], "rad")}, {Quantity(self.beam[1], "rad")}, {Quantity(self.beam[2], "rad")})
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
 
     def package(self):
@@ -221,6 +258,7 @@ class ProjectedMap(Map):
                 "units": self.units,
                 "x_res": np.degrees(self.x_res),
                 "y_res": np.degrees(self.y_res),
+                "beam": np.degrees(self.beam),
             }
         )
 
@@ -368,13 +406,12 @@ class ProjectedMap(Map):
             pad=0,
         )
 
-        label_parts = []
+        label = rf"${map_qdata.u['math_name']}$"
         if "stokes" in self.dims:
-            label_parts.append(f"Stokes {stokes}")
+            label += f" Stokes {stokes}"
         if "nu" in self.dims:
-            label_parts.append(f"{Quantity(self.nu[nu_index], 'Hz')}")
-        label_parts.append(rf"(${map_qdata.u['math_name']}$)")
-        cbar.set_label(" ".join(label_parts), fontsize=10)
+            label += f" at {Quantity(self.nu[nu_index], 'Hz')}"
+        cbar.set_label(label, fontsize=10)
         ax.tick_params(axis="x", bottom=True, top=False)
         ax.tick_params(axis="y", left=True, right=False, rotation=90)
         ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
@@ -476,9 +513,13 @@ class ProjectedMap(Map):
 
         m = self.to(self.u["base_unit"])
 
+        data = m.data[::-1, :]  # FITS counts from the bottom, while normal people count from the top
+        if self.frame in ["ra_dec", "galatic"]:
+            data = data[..., ::-1]
+
         fits.writeto(
             filename=filepath,
-            data=m.data,
+            data=data,
             header=m.header,
             overwrite=True,
         )
@@ -498,3 +539,4 @@ class ProjectedMap(Map):
             f.create_dataset("y_res", dtype=float, data=np.degrees(self.y_res))
             f.create_dataset("units", data=self.units)
             f.create_dataset("frame", data=self.frame)
+            f.create_dataset("beam", data=np.degrees(self.beam))

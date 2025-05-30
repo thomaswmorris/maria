@@ -16,12 +16,13 @@ units_entries = {}
 for q, q_config in QUANTITIES.items():
     for unit, unit_entry in q_config.pop("units").items():
         units_entries[unit] = {**unit_entry, "quantity": q, "quantity_default_unit": q_config["default_unit"]}
+        units_entries[unit]["aliases"] = [unit, *units_entries[unit].get("aliases", [])]
 
 UNITS = pd.DataFrame(units_entries).fillna("").T
 UNITS["factor"] = UNITS["factor"].astype(float)
 
 prefixes_phrase = r"|".join(PREFIXES.index)
-base_units_phrase = r"|".join(UNITS.index.values).replace("^", "\\^")
+base_units_phrase = r"|".join([alias for _, entry in UNITS.iterrows() for alias in entry.aliases]).replace("^", "\\^")
 units_pattern = re.compile(rf"^(?P<prefix>({prefixes_phrase}))(?P<base_unit>{base_units_phrase})$")  # noqa
 
 
@@ -32,9 +33,14 @@ def parse_units(u):
             f"Invalid units '{u}'. Valid units are a combination of an SI prefix "
             f"(one of {prefixes_phrase}) and a base unit (one of {base_units_phrase}).",
         )
+
     units_dict = match.groupdict()
     prefix = PREFIXES.loc[units_dict["prefix"]]
-    base_unit = UNITS.loc[units_dict["base_unit"]]
+    for _, entry in UNITS.iterrows():
+        if units_dict["base_unit"] in entry["aliases"]:
+            base_unit = entry
+            break
+
     units_dict["units"] = f"{prefix.name}{base_unit.name}"
     units_dict.update(base_unit.to_dict())
     units_dict["long_name"] = f"{prefix.long_name}{base_unit.long_name}"

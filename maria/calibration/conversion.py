@@ -194,3 +194,23 @@ def spectral_flux_density_per_pixel_to_spectral_radiance(E: float, pixel_area: f
     pixel_area: pixel area, in steradians
     """
     return E / pixel_area
+
+
+def spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel(
+    E: float, pixel_area: float, beam_area: float, **kwargs
+):
+    """
+    E: Spectral flux density per area, in Jy/sr
+    pixel_area: pixel area, in steradians
+    """
+    return E * pixel_area / beam_area
+
+
+def spectral_flux_density_per_pixel_to_spectral_flux_density_per_beam(
+    E: float, pixel_area: float, beam_area: float, **kwargs
+):
+    """
+    E: Spectral flux density per pixel, in Jy/pixel
+    pixel_area: pixel area, in steradians
+    """
+    return E * beam_area / pixel_area

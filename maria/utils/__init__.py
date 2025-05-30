@@ -59,6 +59,21 @@ def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, 
 #     return *X_list, (F - F.mean()) / F.std()
 
 
+def unpack_implicit_slice(key, ndims):
+    explicit_slices = []
+    for s in key:
+        if s == Ellipsis:
+            for _ in range(ndims + 1 - len(key)):
+                explicit_slices.append(slice(None, None, None))
+        else:
+            explicit_slices.append(s)
+
+    while len(explicit_slices) < ndims:
+        explicit_slices.append(slice(None, None, None))
+
+    return explicit_slices
+
+
 def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
     """
     Parameters

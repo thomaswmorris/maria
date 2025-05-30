@@ -11,7 +11,7 @@ here, this_filename = os.path.split(__file__)
 
 
 def test_map_sim():
-    map_filename = fetch("maps/cluster.fits", refresh=True)
+    map_filename = fetch("maps/cluster1.fits", refresh=True)
 
     f090 = Band(center=90e9, width=20e9, NET_RJ=5e-5)
     f150 = Band(center=150e9, width=30e9, NET_RJ=5e-5)
@@ -20,7 +20,7 @@ def test_map_sim():
 
     instrument = maria.get_instrument(array=array)
 
-    map_filename = fetch("maps/cluster.fits")
+    map_filename = fetch("maps/cluster1.fits")
 
     input_map = maria.map.load(filename=map_filename, nu=150e9, width=0.1, center=(150, 10))
 

@@ -37,8 +37,8 @@ def test_trivial_recover_original_map():
     f150 = Band(center=150e9, width=30e9)
     f220 = Band(center=220e9, width=30e9)
 
-    map_filename = fetch("maps/big_cluster.h5")
-    input_map = maria.map.load(filename=map_filename).to("K_RJ")[..., ::8, ::8]
+    map_filename = fetch("maps/cluster1.fits")
+    input_map = maria.map.load(filename=map_filename, nu=150e9).to("K_RJ")[..., ::8, ::8]
 
     input_map.data -= input_map.data.mean().compute()
     map_width = np.degrees(input_map.width)

@@ -17,7 +17,9 @@ from .conversion import (
     rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
     rayleigh_jeans_temperature_to_radiant_flux,
     rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
+    spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel,
     spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature,
+    spectral_flux_density_per_pixel_to_spectral_flux_density_per_beam,
     spectral_flux_density_per_pixel_to_spectral_radiance,
     spectral_radiance_to_spectral_flux_density_per_pixel,
 )
@@ -46,6 +48,17 @@ conversions["cmb_temperature_anisotropy"] = {
 conversions["spectral_flux_density_per_pixel"] = {
     "rayleigh_jeans_temperature": {"f": spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature, "linear": False},
     "spectral_radiance": {"f": spectral_flux_density_per_pixel_to_spectral_radiance, "linear": True},
+    "spectral_flux_density_per_beam": {
+        "f": spectral_flux_density_per_pixel_to_spectral_flux_density_per_beam,
+        "linear": True,
+    },
+}
+
+conversions["spectral_flux_density_per_beam"] = {
+    "spectral_flux_density_per_pixel": {
+        "f": spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel,
+        "linear": True,
+    },
 }
 
 conversions["spectral_radiance"] = {
@@ -97,7 +110,14 @@ def parse_calibration_signature(s: str):
     raise ValueError("Calibration must have signature 'units1 -> units2'.")
 
 
-KWARGS_UNITS = {"nu": "Hz", "pixel_area": "sr", "zenith_pwv": "mm", "base_temperature": "K", "elevation": "rad"}
+KWARGS_UNITS = {
+    "nu": "Hz",
+    "pixel_area": "sr",
+    "beam_area": "sr",
+    "zenith_pwv": "mm",
+    "base_temperature": "K",
+    "elevation": "rad",
+}
 
 
 class Calibration:
@@ -114,6 +134,7 @@ class Calibration:
                 "nu",
                 "polarized",
                 "pixel_area",
+                "beam_area",
                 "band",
                 "spectrum",
                 "zenith_pwv",

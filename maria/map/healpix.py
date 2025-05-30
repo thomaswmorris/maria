@@ -27,8 +27,11 @@ class HEALPixMap(Map):
         stokes: float = None,
         nu: float = None,
         t: float = None,
+        z: float = None,
+        beam: tuple[float, float, float] = None,
         frame: str = "ra_dec",
         units: str = "K_RJ",
+        degrees: bool = True,
         dtype: type = np.float32,
     ):
         if weight is not None:
@@ -39,13 +42,34 @@ class HEALPixMap(Map):
 
         map_dims = {"npix": data.shape[-1]}
 
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, map_dims=map_dims, units=units, dtype=dtype)
+        super().__init__(
+            data=data,
+            weight=weight,
+            stokes=stokes,
+            nu=nu,
+            t=t,
+            z=z,
+            beam=beam,
+            map_dims=map_dims,
+            units=units,
+            degrees=degrees,
+            dtype=dtype,
+        )
 
         if not hp.pixelfunc.isnpixok(self.npix):
             raise ValueError(f"Invalid pixel count (n={self.npix}).")
 
         self.nside = hp.pixelfunc.npix2nside(self.npix)
         self.frame = frame
+
+        if not hasattr(beam, "__len__"):
+            beam = beam or self.resolution
+            beam = (beam, beam, 0)
+
+        if len(beam) != 3:
+            raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
+
+        self.beam = tuple(np.radians(beam) if degrees else beam)
 
     def pointing_matrix(self, coords: Coordinates):
         idx = hp.ang2pix(
