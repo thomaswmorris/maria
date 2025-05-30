@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import numpy as np
 
 
-def unjitted_offsets_to_phi_theta(dX, cphi, ctheta):
+def unjitted_offsets_to_phi_theta(dX, cphi, ctheta, sign=-1):
     """
     A fast and well-conditioned method to convert from local dx/dy coordinates to phi/theta coordinates.
     """

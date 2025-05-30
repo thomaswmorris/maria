@@ -11,6 +11,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
+import pandas as pd
 from astropy.io import fits
 from astropy.wcs import WCS
 from skimage.measure import block_reduce
@@ -36,18 +37,21 @@ class ProjectedMap(Map):
         stokes: float = None,
         nu: float = None,
         t: float = None,
+        z: float = None,
         width: float = None,
         height: float = None,
         resolution: float = None,
-        x_res: float = None,
-        y_res: float = None,
+        cdelt1: float = None,
+        cdelt2: float = None,
         center: tuple[float, float] = (0.0, 0.0),
         frame: str = "ra_dec",
         degrees: bool = True,
         units: str = "K_RJ",
         dtype: type = np.float32,
     ):
-        # give it five dimensions
+        
+        cdelt1 = cdelt1 or cdelt1
+        cdelt2 = cdelt2 or cdelt2
 
         if data.ndim < 2:
             raise ValueError("'data' must be at least two-dimensional")
@@ -62,40 +66,52 @@ class ProjectedMap(Map):
 
         super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, t=t, map_dims=map_dims, units=units, dtype=dtype)
 
-        self.center = Quantity(tuple(center), ("deg" if degrees else "rad")).rad
         self.frame = frame
 
-        if all(x is None for x in [width, height, resolution, x_res, y_res]):
-            raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'x_res', or 'y_res'.")
+        if all(x is None for x in [width, height, resolution, cdelt1, cdelt2]):
+            raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'cdelt1', or 'cdelt2'.")
 
-        if x_res is not None:
-            y_res = y_res or x_res
-        elif y_res is not None:
-            x_res = x_res or y_res
+        if cdelt1 is not None:
+            cdelt2 = cdelt2 or cdelt1
+        elif cdelt2 is not None:
+            cdelt1 = cdelt1 or cdelt2
         elif resolution is not None:
             if not resolution > 0:
                 raise ValueError("'resolution' must be positive.")
-            x_res = y_res = resolution
+            cdelt1 = cdelt2 = resolution
         else:
             if width is not None:
                 if not width > 0:
                     raise ValueError("'width' must be positive.")
-                x_res = width / self.n_x
+                cdelt1 = width / self.n_x
                 if height is not None:
-                    y_res = height / self.n_y
+                    cdelt2 = height / self.n_y
                 else:
-                    y_res = x_res
+                    cdelt2 = cdelt1
             else:
                 # here height must not be None
-                x_res = y_res = height / self.n_y
+                cdelt1 = cdelt2 = height / self.n_y
 
-        self.x_res = np.radians(abs(x_res)) if degrees else x_res
-        self.y_res = np.radians(y_res) if degrees else y_res
+        cdelt1 = cdelt1 if degrees else np.radians(cdelt1)
+        cdelt2 = cdelt2 if degrees else np.radians(cdelt2)
 
-        if self.x_res < 0:
-            raise ValueError()
-        if self.y_res < 0:
-            raise ValueError()
+        self.cdict = {
+            "CTYPE": ["RA", "SIN"],
+            "CUNIT": 2 * ["deg" if degrees else "rad"],
+            "CDELT": [cdelt1, cdelt2],
+            "CRVAL": Quantity(tuple(center), ("deg" if degrees else "rad")).deg,
+            "CRPIX": [self.dims["x"] // 2, self.dims["y"] // 2],
+            "NAXIS": [self.dims["x"], self.dims["y"]]
+        }
+
+        self.c = pd.DataFrame(self.cdict, index=[1, 2])
+
+        # if self.cdelt2 < 0:
+        #     self.data, self.weight = self.data[::-1], self.weight[::-1]
+        #     self.cdelt2 *= -1
+        # if self.cdelt1 < 0:
+        #     self.data, self.weight = self.data[:, ::-1], self.weight[:, ::-1]
+        #     self.cdelt1 *= -1
 
     def pointing_matrix(self, coords: Coordinates):
         offsets = coords.offsets(center=self.center, frame=self.frame)
@@ -119,23 +135,22 @@ class ProjectedMap(Map):
         if "nu" in self.dims:
             header["RESTFREQ"] = self.nu.mean()
 
-        header["CDELT1"] = -np.degrees(self.x_res)  # degrees
-        header["CDELT2"] = np.degrees(self.y_res)  # degrees
+        header["CDELT1"] = np.degrees(self.cdelt1)  # degrees
+        header["CDELT2"] = np.degrees(self.cdelt2)  # degrees
 
         header["CRPIX1"] = self.data.shape[-1] // 2
         header["CRPIX2"] = self.data.shape[-2] // 2
-        header["FRAME"] = self.frame
         header["BUNITS"] = self.units
 
         # specify x center
-        header["CTYPE1"] = self.frame_data["phi"].upper()
+        header["CTYPE1"] = f"{self.frame_data["phi"].upper()}---SIN"
         header["CRVAL1"] = np.degrees(self.center[0])
-        header["CUNIT1"] = "deg     "
+        header["CUNIT1"] = "deg"
 
         # center y center
-        header["CTYPE2"] = self.frame_data["theta"].upper()
+        header["CTYPE2"] = f"{self.frame_data["theta"].upper()}--SIN"
         header["CRVAL2"] = np.degrees(self.center[1])
-        header["CUNIT2"] = "deg     "
+        header["CUNIT2"] = "deg"
 
         return header
 
@@ -148,20 +163,25 @@ class ProjectedMap(Map):
         raise AttributeError(f"'ProjectedMap' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
-        if isinstance(key, tuple):
-            package = self.to("K_RJ").package()
-            package["data"] = package["data"][key]
-            package["weight"] = package["weight"][key]
 
-            stokes_slice, nu_slice, t_slice, y_slice, x_slice = unpack_implicit_slice(key)
+        if not hasattr(key, "__iter__"):
+            key = (key, )
 
-            package["stokes"] = package["stokes"][stokes_slice]
-            package["nu"] = package["nu"][nu_slice]
-            package["t"] = package["t"][t_slice]
-            package["x_res"] *= x_slice.step or 1
-            package["y_res"] *= y_slice.step or 1
+        explicit_slices = unpack_implicit_slice(key, ndims=self.ndim)
 
-            return ProjectedMap(**package).to(self.units)
+        package = self.to("K_RJ").package()
+        package["data"] = package["data"][key]
+        package["weight"] = package["weight"][key]
+
+        for axis, (dim, naxis) in enumerate(self.dims.items()):
+            if dim in "xy":
+                continue
+            package[dim] = package[dim][explicit_slices[axis]]
+
+        package["cdelt2"] *= explicit_slices[-2].step or 1
+        package["cdelt1"] *= explicit_slices[-1].step or 1
+
+        return ProjectedMap(**package).to(self.units)
 
     def downsample(self, reduce: tuple, func: Callable = np.mean):
         if reduce:
@@ -176,8 +196,8 @@ class ProjectedMap(Map):
 
             package["nu"] = block_reduce(package["nu"], block_size=reduce[0])
             package["t"] = block_reduce(package["t"], block_size=reduce[1])
-            package["x_res"] *= self.n_x / new_n_x
-            package["y_res"] *= self.n_y / new_n_y
+            package["cdelt1"] *= self.n_x / new_n_x
+            package["cdelt2"] *= self.n_y / new_n_y
 
             return ProjectedMap(**package).to(self.units)
 
@@ -204,7 +224,7 @@ class ProjectedMap(Map):
     {cphi_repr}
     {ctheta_repr}
   size(y, x): ({Quantity(self.height, "rad")}, {Quantity(self.width, "rad")})
-  resolution(y, x): ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})
+  resolution(y, x): ({Quantity(self.cdelt2, "rad")}, {Quantity(self.cdelt1, "rad")})
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
 
     def package(self):
@@ -219,8 +239,8 @@ class ProjectedMap(Map):
                 "center": np.degrees(self.center),
                 "frame": self.frame,
                 "units": self.units,
-                "x_res": np.degrees(self.x_res),
-                "y_res": np.degrees(self.y_res),
+                "cdelt1": np.degrees(self.cdelt1),
+                "cdelt2": np.degrees(self.cdelt2),
             }
         )
 
@@ -232,20 +252,34 @@ class ProjectedMap(Map):
 
     @property
     def resolution(self):
-        if not np.isclose(self.x_res, self.y_res, rtol=1e-3):
+        if not np.isclose(self.cdelt1, self.cdelt2, rtol=1e-3):
             RuntimeError(
                 "Cannot return attribute 'resolution'; ProjectedMap has x-resolution"
-                f" {np.degrees(self.x_res):.02f}° and y-resolution {np.degrees(self.x_res):.02f}°."
+                f" {np.degrees(self.cdelt1):.02f}° and y-resolution {np.degrees(self.cdelt1):.02f}°."
             )
-        return self.x_res
+        return self.cdelt1
+    
+
 
     @property
+    def center(self):
+        return np.radians(self.cdict["CRVAL"])
+
+    @property
+    def cdelt1(self):
+        return np.radians(self.cdict["CDELT"][0])
+
+    @property
+    def cdelt2(self):
+        return np.radians(self.cdict["CDELT"][1])
+    
+    @property
     def width(self):
-        return self.x_res * self.n_x
+        return self.cdelt1 * self.n_x
 
     @property
     def height(self):
-        return self.y_res * self.n_y
+        return self.cdelt2 * self.n_y
 
     @property
     def n_y(self):
@@ -273,6 +307,14 @@ class ProjectedMap(Map):
     @property
     def y_side(self):
         return (self.y_bins[:-1] + self.y_bins[1:]) / 2
+    
+    @property
+    def x(self):
+        return self.x_side
+
+    @property
+    def y(self):
+        return self.y_side
 
     def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):
@@ -281,8 +323,8 @@ class ProjectedMap(Map):
         package = self.package()
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
-        x_sigma_pixels = sigma / self.x_res
-        y_sigma_pixels = sigma / self.y_res
+        x_sigma_pixels = sigma / self.cdelt1
+        y_sigma_pixels = sigma / self.cdelt2
         package["data"] = sp.ndimage.gaussian_filter(self.data, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
 
         return type(self)(**package)
@@ -392,7 +434,7 @@ class ProjectedMap(Map):
         cmap: str = "default",
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
-        filepath: str = None,
+        filename: str = None,
     ):
         X = np.r_[self.x_bins, self.y_bins]
         grid_u = Quantity(X, "rad").u
@@ -467,19 +509,22 @@ class ProjectedMap(Map):
                     cmap=cmap,
                 )
 
-                if filepath is not None:
-                    plt.savefig(filepath=filepath, dpi=256)
+                if filename is not None:
+                    plt.savefig(fname=filename, dpi=256)
 
     def to_fits(self, filepath):
         if self.dims.get("nu", np.nan) > 1:
-            raise RuntimeError("Cannot write multifrequency maps to FITS")
-
+            raise RuntimeError("Writing multifrequency to FITS is not supported")
+        
         m = self.to(self.u["base_unit"])
+        header = m.header
+        # header["CDELT1"] *= -1
+        header["CDELT2"] *= -1
 
         fits.writeto(
             filename=filepath,
-            data=m.data,
-            header=m.header,
+            data=m.data[..., ::-1], # flip the y-axis to follow FITS convention
+            header=header,
             overwrite=True,
         )
 
@@ -494,7 +539,7 @@ class ProjectedMap(Map):
                 if dim in self.dims:
                     f.create_dataset(dim, data=getattr(self, dim))
             f.create_dataset("center", dtype=float, data=np.degrees(self.center))
-            f.create_dataset("x_res", dtype=float, data=np.degrees(self.x_res))
-            f.create_dataset("y_res", dtype=float, data=np.degrees(self.y_res))
+            f.create_dataset("cdelt1", dtype=float, data=np.degrees(self.cdelt1))
+            f.create_dataset("cdelt2", dtype=float, data=np.degrees(self.cdelt2))
             f.create_dataset("units", data=self.units)
             f.create_dataset("frame", data=self.frame)

@@ -6,6 +6,7 @@ import time as ttime
 from copy import deepcopy
 
 import arrow
+import os
 import dask.array as da
 import numpy as np
 import pandas as pd
@@ -28,46 +29,8 @@ from .transforms import (
 
 logger = logging.getLogger("maria")
 
-
-frames = {
-    "az_el": {
-        "name": "az_el",
-        "astropy_name": "altaz",
-        "astropy_phi": "az",
-        "astropy_theta": "alt",
-        "phi": "az",
-        "theta": "el",
-        "phi_short_name": "Az.",
-        "theta_short_name": "El.",
-        "phi_long_name": "Azimuth",
-        "theta_long_name": "Elevation",
-    },
-    "ra_dec": {
-        "name": "ra_dec",
-        "astropy_name": "icrs",
-        "astropy_phi": "ra",
-        "astropy_theta": "dec",
-        "phi": "ra",
-        "theta": "dec",
-        "phi_short_name": "RA.",
-        "theta_short_name": "Dec.",
-        "phi_long_name": "Right ascension (J2000)",
-        "theta_long_name": "Declination (J2000)",
-    },
-    "galactic": {
-        "name": "galactic",
-        "astropy_name": "galactic",
-        "astropy_phi": "l",
-        "astropy_theta": "b",
-        "phi": "l",
-        "theta": "b",
-        "phi_short_name": "Gal. Lon.",
-        "theta_short_name": "Gal. Lat.",
-        "phi_long_name": "Galactic longitude",
-        "theta_long_name": "Galactic latitude",
-    },
-}
-
+here, this_filename = os.path.split(__file__)
+frames = pd.read_csv(f"{here}/frames.csv", index_col=0).T
 
 DEFAULT_EARTH_LOCATION = EarthLocation.from_geodetic(
     0.0,
@@ -136,7 +99,7 @@ class Coordinates:
         t_ordered_center_phi_theta = np.c_[get_center_phi_theta(self._phi, self._theta, keep_dims=keep_dims)]
 
         # (nt) t samples on which to explicitly compute the transformation from astropy
-        t_samples_min_res_seconds = 10
+        t_samples_min_res_seconds = 60
         t_samples_min = np.min(self.t) - 1e0
         t_samples_max = np.max(self.t) + 1e0
         n_t_samples = int(
@@ -160,7 +123,7 @@ class Coordinates:
         fid_offsets = np.radians([[-1.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
         psi = np.linspace(0, 2 * np.pi, 12 + 1)[:-1]
         fid_offsets = np.concatenate(
-            [r * np.c_[np.cos(psi), np.sin(psi)] for r in [1, 10, 30]],
+            [r * np.c_[np.cos(psi), np.sin(psi)] for r in np.radians([1, 30, 150])],
             axis=0,
         )
 
@@ -195,6 +158,10 @@ class Coordinates:
                 location=self.earth_location,
             ),
         }
+
+        logger.debug(
+            f"Computed SkyCoords for coordinates",
+        )  # noqa
 
         self.transforms = {}
         self.fid_points = {self.frame: phi_theta_to_xyz(self.fid_phi, self.fid_theta)}

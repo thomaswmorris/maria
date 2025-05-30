@@ -290,7 +290,7 @@ class Array:
         if "bands" in config:
             bands = BandList(config["bands"])
         elif "band" in config:
-            bands = BandList([Band(config["band"])])
+            bands = BandList([config["band"]])
         else:
             raise ValueError("You must specify 'band' or 'bands' to generate an array.")
 

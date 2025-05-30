@@ -1,0 +1,72 @@
+
+wafer-f042:
+  n: 1000
+  band: atlast/f042
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f092:
+  n: 1000
+  band: atlast/f092
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f151:
+  n: 1000
+  band: atlast/f151
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f217:
+  n: 1000
+  band: atlast/f217
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f288:
+  n: 1000
+  band: atlast/f288
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f350:
+  n: 1000
+  band: atlast/f350
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f403:
+  n: 1000
+  band: atlast/f403
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f654:
+  n: 1000
+  band: atlast/f654
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True
+
+wafer-f846:
+  n: 1000
+  band: atlast/f846
+  field_of_view: 2.
+  shape: hexagon
+  primary_size: 50
+  polarized: True

@@ -49,6 +49,10 @@ class Map:
         units: str = "K_RJ",
         dtype: type = np.float32,
     ):
+        
+        parse_units(units)
+        self.units = units
+
         self.data = da.asarray(data).astype(dtype)
         self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
         self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
@@ -79,25 +83,21 @@ class Map:
 
         self.dims = {**slice_dims, **map_dims}
 
-        parse_units(units)
+        if self.data.shape != self.shape:
+            logger.warning(f"Map data has shape {self.data.shape}")
+            try:
+                # if there is just a flat map, we are allowed to unsqueeze
+                self.data, self.weight, _ = np.broadcast_arrays(self.data, self.weight, np.ones(self.shape))
+            except:
+                raise ValueError(
+                    f"Could not broadcast data with shape {self.data.shape} with shape implies by inputs {self.shape}"
+                )
 
-        self.units = units
 
-        # for i, (dim, n) in enumerate(slice_dims.items()):
-        #     if self.data.shape[i] != n:
-        #         raise ValueError(
-        #             f"'{dim}' has length {n} but map has {dim} length {self.data.shape[i]}.",
-        #         )
-
-        implied_shape = tuple(list(self.dims.values()))
-        # if len(implied_shape) != self.data.ndim:
-        #     raise ValueError(f"Inputs imply rank {len(self.dims)} for map data, but data has rank {self.data.ndim}")
-
-        if implied_shape != self.data.shape:
-            raise ValueError(
-                f"Inputs imply shape {self.dims_string}={implied_shape} for map data, but data has shape {self.data.shape}"
-            )
-
+    @property
+    def ndim(self):
+        return len(self.dims)
+    
     @property
     def dims_string(self):
         return f"({', '.join(self.dims.keys())})"
@@ -105,6 +105,10 @@ class Map:
     @property
     def dims_list(self):
         return list(self.dims.keys())
+    
+    @property
+    def shape(self):
+        return list(self.dims.values())
 
     @property
     def nu_bins(self):
@@ -147,10 +151,9 @@ class Map:
                     package["data"] = package["data"].squeeze(i)
                     package["weight"] = package["weight"].squeeze(i)
                     package.pop(name)
-                    return type(self)(**package)
                 else:
-                    raise ValueError(f"Cannot squeeze dimension '{dim}' with length {n} > 1")
-        raise ValueError(f"{self.__class__.__name__} has no dimension '{dim}'")
+                    logger.debug(f"Cannot squeeze dimension '{dim}' with length {n} > 1")
+        return type(self)(**package)
 
     def unsqueeze(self, dim, value=None):
         if dim not in SLICE_DIMS:

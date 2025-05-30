@@ -68,9 +68,7 @@ def download_from_url(
 
     try:
         with requests.get(source_url, stream=True) as r:
-            print(r)
             r.raise_for_status()
-
             total_size_bytes = int(r.headers.get("content-length", 0))
             with tqdm(
                 total=total_size_bytes,

@@ -8,4 +8,4 @@ MUSTANG-2:
     bands: [m2/f093]
     bath_temp: 100.e-3 # in K
     primary_size: 100 # in meters
-  documentation: https://www.atlast.uio.no/
+  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/

@@ -2,11 +2,14 @@
 AtLAST:
   aliases: ["atlast"]
   description: Atacama Large Aperture Submillimeter Telescope
-  array:
-    primary_size: 50 # in meters
-    n: 217
-    field_of_view: 0.07
-    shape: hexagon
-    bath_temp: 100.e-3 # in K
-    bands: [atlast/f027, atlast/f039, atlast/f093, atlast/f150, atlast/f225, atlast/f280]
+  arrays:
+  - atlast/wafer-f042
+  - atlast/wafer-f092
+  - atlast/wafer-f151
+  - atlast/wafer-f217
+  - atlast/wafer-f288
+  - atlast/wafer-f350
+  - atlast/wafer-f403
+  - atlast/wafer-f654
+  - atlast/wafer-f846
   documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/

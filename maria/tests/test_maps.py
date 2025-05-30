@@ -32,6 +32,11 @@ def test_maps(map_path):
     m.plot()
 
 
+def test_save_map_plot():
+    m = maria.map.load(fetch("maps/einstein.h5"))
+    m.plot(filename="/tmp/test-plot.pdf")
+
+
 def test_trivial_recover_original_map():
     f090 = Band(center=90e9, width=30e9)
     f150 = Band(center=150e9, width=30e9)
@@ -104,3 +109,11 @@ def test_time_ordered_map_sim():
     sim = maria.Simulation(plan=plan, map=input_map)
     tod = sim.run()
     tod.to("K_RJ").plot()
+
+
+def test_fits_io():
+    m1 = maria.map.load(fetch("maps/big_cluster.fits"))
+    m1.to_fits("/tmp/test.fits")
+    m2 = maria.map.load("/tmp/test.fits")
+
+    assert np.allclose(m1.data, m2.data).all().compute()

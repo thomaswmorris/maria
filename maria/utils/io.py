@@ -63,16 +63,16 @@ def test_file(path) -> bool:
     return True
 
 
-def unpack_implicit_slice(key):
+def unpack_implicit_slice(key, ndims):
     explicit_slices = []
     for s in key:
         if s == Ellipsis:
-            for _ in range(6 - len(key)):
+            for _ in range(ndims + 1 - len(key)):
                 explicit_slices.append(slice(None, None, None))
-        elif isinstance(s, slice):
+        else:
             explicit_slices.append(s)
 
-    while len(explicit_slices) < 5:
+    while len(explicit_slices) < ndims:
         explicit_slices.append(slice(None, None, None))
 
     return explicit_slices

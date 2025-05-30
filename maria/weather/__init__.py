@@ -12,7 +12,7 @@ from ..constants import g
 from ..io import DEFAULT_TIME_FORMAT, fetch
 from ..site import REGIONS, InvalidRegionError, all_regions
 from ..units import Quantity
-from ..utils import get_utc_day_hour, get_utc_year_day
+from ..utils import utc_day_hour, utc_year_day
 
 here, this_filename = os.path.split(__file__)
 
@@ -89,8 +89,8 @@ class Weather:
         self.time_zone = REGIONS.loc[self.region, "timezone"]
         self.local_time = self.time.to(self.time_zone)
 
-        self.utc_day_hour = get_utc_day_hour(self.time.timestamp())
-        self.utc_year_day = get_utc_year_day(self.time.timestamp())
+        self.utc_day_hour = utc_day_hour(self.time.timestamp())
+        self.utc_year_day = utc_year_day(self.time.timestamp())
 
         self.data = {}
 
