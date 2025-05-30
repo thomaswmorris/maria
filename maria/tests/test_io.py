@@ -12,8 +12,8 @@ from maria.io import fetch
 def test_change_cache_dir():
     try:
         maria.set_cache_dir("/tmp/maria-data-2")
-        fetch("maps/cluster.fits")
-        assert os.path.isfile(os.environ["MARIA_CACHE_DIR"] + "/maps/cluster.fits")
+        fetch("maps/cluster1.fits")
+        assert os.path.isfile(os.environ["MARIA_CACHE_DIR"] + "/maps/cluster1.fits")
         maria.set_cache_dir("/tmp/maria-data")
     except Exception:
         del os.environ["MARIA_CACHE_DIR"]

@@ -1,0 +1,4 @@
+,name,astropy_name,astropy_phi,astropy_theta,FITS_phi,FITS_theta,phi,theta,phi_short_name,theta_short_name,phi_long_name,theta_long_name
+az_el,az_el,altaz,az,alt,AZ,EL,az,el,Az.,El.,Azimuth,Elevation
+ra_dec,ra_dec,icrs,ra,dec,RA,DEC,ra,dec,RA.,Dec.,Right ascension (J2000),Declination (J2000)
+galactic,galactic,galactic,l,b,GLON,GLAT,l,b,Gal. Lon.,Gal. Lat.,Galactic longitude,Galactic latitude

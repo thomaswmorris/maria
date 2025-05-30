@@ -1,6 +1,6 @@
 f093:
   time_constant: 0
-  NEP: 3.e-17 # W / sqrt(s)
+  NEP: 1.5e-17 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.1
   gain_error: 5.e-2
