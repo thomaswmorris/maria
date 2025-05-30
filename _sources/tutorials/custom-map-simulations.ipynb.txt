@@ -50,10 +50,10 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "array = {\"field_of_view\": 0.1, \n",
+    "array = {\"field_of_view\": 0.5, \n",
     "         \"shape\": \"circle\", \n",
     "         \"beam_spacing\": 1.5,\n",
-    "         \"primary_size\": 100, \n",
+    "         \"primary_size\": 25, \n",
     "         \"bands\": [f090, f150]}\n",
     "\n",
     "instrument = maria.get_instrument(array=array)\n",
@@ -79,14 +79,13 @@
    "source": [
     "from maria.io import fetch\n",
     "\n",
-    "map_filename = fetch(\"maps/big_cluster.fits\")\n",
+    "map_filename = fetch(\"maps/cluster1.fits\")\n",
     "\n",
     "input_map = maria.map.load(\n",
     "    filename=map_filename,\n",
     "    nu=150e9,\n",
-    "    width=0.25,\n",
-    "    center=(291.156, -31.23),\n",
-    "    units=\"K_RJ\")\n",
+    "    center=(291.156, -31.23))\n",
+    "input_map.data *= 1e1\n",
     "\n",
     "print(input_map)\n",
     "input_map.to(\"K_RJ\").plot()"
@@ -115,7 +114,7 @@
     "plan = maria.Plan(\n",
     "    start_time=\"2024-08-06T03:00:00\",\n",
     "    scan_pattern=\"daisy\",\n",
-    "    scan_options={\"radius\": 0.1, \"speed\": 0.01},  # in degrees\n",
+    "    scan_options={\"radius\": 0.5, \"speed\": 0.1},  # in degrees\n",
     "    duration=900,  # in seconds\n",
     "    sample_rate=50,  # in Hz\n",
     "    scan_center=(291.156, -31.23),\n",
@@ -138,7 +137,6 @@
     "    site=site,\n",
     "    atmosphere=\"2d\",\n",
     "    atmosphere_kwargs={\"weather\": {\"pwv\": 0.5}},\n",
-    "    cmb=\"generate\",\n",
     "    map=input_map)\n",
     "\n",
     "print(sim)"
@@ -169,9 +167,9 @@
     "mapper = BinMapper(\n",
     "    center=(291.156, -31.23),\n",
     "    frame=\"ra_dec\",\n",
-    "    width=0.25,\n",
-    "    height=0.25,\n",
-    "    resolution=0.25 / 256,\n",
+    "    width=1.,\n",
+    "    height=1.,\n",
+    "    resolution=1. / 256,\n",
     "    tod_preprocessing={\n",
     "        \"window\": {\"name\": \"tukey\", \"kwargs\": {\"alpha\": 0.1}},\n",
     "        \"remove_spline\": {\"knot_spacing\": 30, \"remove_el_gradient\": True},\n",
@@ -203,16 +201,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "output_map.plot()"
+    "output_map.plot(nu_index=[0, 1])"
    ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "13",
-   "metadata": {},
-   "outputs": [],
-   "source": []
   }
  ],
  "metadata": {
