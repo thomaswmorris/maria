@@ -72,10 +72,3 @@ def test_tod_preprocessing_errors():
         assert False
     except TypeError:
         pass
-
-
-def test_write_tod_to_h5(): ...
-
-
-def test_write_tod_to_fits():
-    return True

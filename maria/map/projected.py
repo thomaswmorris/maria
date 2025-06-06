@@ -241,7 +241,7 @@ class ProjectedMap(Map):
     {ctheta_repr}
   size(y, x): ({Quantity(self.height, "rad")}, {Quantity(self.width, "rad")})
   resolution(y, x): ({Quantity(self.y_res, "rad")}, {Quantity(self.x_res, "rad")})
-  beam(maj, min, psi): ({Quantity(self.beam[0], "rad")}, {Quantity(self.beam[1], "rad")}, {Quantity(self.beam[2], "rad")})
+  beam(maj, min, rot): ({Quantity(self.beam[0], "rad")}, {Quantity(self.beam[1], "rad")}, {Quantity(self.beam[2], "rad")})
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
 
     def package(self):

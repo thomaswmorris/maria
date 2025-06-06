@@ -166,7 +166,7 @@ length:
   default_unit: m
   default_prefix: ""
   min_prefix_power: -30
-  max_prefix_power: 3
+  max_prefix_power: 0
   dimensions:
     time: 1
   units:
