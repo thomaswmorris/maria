@@ -301,7 +301,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/M51HA.fits: 100%|██████████| 1.06M/1.06M [00:00&lt;00:00, 66.3MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/M51HA.fits: 100%|██████████| 1.06M/1.06M [00:00&lt;00:00, 69.9MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -324,7 +324,7 @@ ProjectedMap:
     dec: 47°11’43.00”
   size(y, x): (4.267’, 4.267’)
   resolution(y, x): (0.5”, 0.5”)
-  beam(maj, min, psi): (3.36”, 3.181”, -89.2°)
+  beam(maj, min, rot): (3.36”, 3.181”, -89.2°)
   memory: 4.194 MB
 </pre></div></div>
 </div>
@@ -415,9 +415,9 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 195MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 169MB/s]
-Constructing atmosphere: 100%|██████████| 10/10 [00:04&lt;00:00,  2.38it/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 196MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 156MB/s]
+Constructing atmosphere: 100%|██████████| 10/10 [00:05&lt;00:00,  1.99it/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -440,7 +440,7 @@ Simulation
 ├ Site:
 │   region: green_bank
 │   location: 38°25’59.16”N 79°50’23.28”W
-│   altitude: 0.825 km
+│   altitude: 825 m
 │   seasonal: True
 │   diurnal: True
 ├ Plan:
@@ -458,7 +458,7 @@ Simulation
 │ │   region: green_bank
 │ └ weather:
 │     region: green_bank
-│     altitude: 0.825 km
+│     altitude: 825 m
 │     time: Feb 10 01:04:59 -05:00
 │     pwv[mean, rms]: (8.091 mm, 242.7 um)
 └ ProjectedMap:
@@ -476,7 +476,7 @@ Simulation
       dec: 47°11’43.00”
     size(y, x): (4.267’, 4.267’)
     resolution(y, x): (0.5”, 0.5”)
-    beam(maj, min, psi): (3.36”, 3.181”, -89.2°)
+    beam(maj, min, rot): (3.36”, 3.181”, -89.2°)
     memory: 4.194 MB
 </pre></div></div>
 </div>
@@ -494,11 +494,11 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 41.12it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:03&lt;00:00,  3.28it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.67s/it, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:02&lt;00:00,  2.41s/it, channel=[ 0. inf] Hz]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.79it/s, band=m2/f093]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 41.10it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:03&lt;00:00,  3.02it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.83s/it, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:02&lt;00:00,  2.58s/it, channel=[ 0. inf] Hz]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.57it/s, band=m2/f093]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -542,8 +542,8 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.7
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00, 24.56it/s, band=m2/f093, stokes=I]
-2025-05-30 18:52:07.444 INFO: Ran mapper for band m2/f093 in 2.847 s.
+Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00, 23.12it/s, band=m2/f093, stokes=I]
+2025-06-06 17:36:21.435 INFO: Ran mapper for band m2/f093 in 3.104 s.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
