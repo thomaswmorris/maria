@@ -150,7 +150,7 @@ class ProjectedMap(Map):
         if "nu" in self.dims:
             header["RESTFREQ"] = self.nu.mean()
 
-        header["CDELT1"] = np.degrees(self.x_res)  # degrees
+        header["CDELT1"] = -1 * np.degrees(self.x_res)  # degrees
         header["CDELT2"] = np.degrees(self.y_res)  # degrees
         header["CRPIX1"] = self.data.shape[-1] // 2
         header["CRPIX2"] = self.data.shape[-2] // 2

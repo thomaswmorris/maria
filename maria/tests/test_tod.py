@@ -5,7 +5,9 @@ import numpy as np
 
 from maria import Simulation
 from maria.coords import Coordinates, unjitted_offsets_to_phi_theta
+from maria.instrument import get_instrument
 from maria.noise import generate_noise_with_knee
+from maria.plan import get_plan
 from maria.tod.tod import TOD
 
 plt.close("all")
@@ -72,3 +74,19 @@ def test_tod_preprocessing_errors():
         assert False
     except TypeError:
         pass
+
+
+def test_tod_write_and_load():
+    plan = get_plan(
+        scan_pattern="daisy",  # scanning pattern
+        scan_options={"radius": 2 / 60, "speed": 0.5 / 60},  # in degrees
+        duration=600,  # integration time in seconds
+        sample_rate=50,  # in Hz
+        scan_center=(202.27211, 47.195277),  # position in the sky
+        frame="ra_dec",
+    )
+
+    sim = Simulation(get_instrument("MUSTANG-2"), plan=plan)
+    tod = sim.run()
+    tod.to_fits("/tmp/sim_tod.fits")
+    tod_loaded = TOD.from_fits("/tmp/sim_tod.fits", format="MUSTANG-2")
