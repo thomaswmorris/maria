@@ -45,3 +45,28 @@ TODs are by default in units of picowatts, but we can convert to any unit that i
 
     tod_in_rj_units = tod.to(units="mK_RJ")
     tod_in_cmb_units = tod.to(units="uK_CMB")
+
+
+
+=============
+Load and save
+=============
+
+We can output TODs to disk,
+.. code-block:: python
+
+    tod.to_fits('filename.fits')
+
+or if you rather work with hdf files,
+
+.. code-block:: python
+
+    tod.to_hdf('filename.hdf5')
+
+you can load fits files back with
+
+.. code-block:: python
+
+    tod = TOD.from_fits('filename.fits', format='MUSTANG-2')
+
+note, that you can also load in real MUSTANG-2 data with the same command. 
