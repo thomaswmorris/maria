@@ -410,7 +410,7 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5: 100%|██████████| 931k/931k [00:00&lt;00:00, 88.4MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5: 100%|██████████| 931k/931k [00:00&lt;00:00, 95.8MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -484,7 +484,7 @@ Plan:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Constructing atmosphere: 100%|██████████| 10/10 [00:39&lt;00:00,  3.96s/it]
+Constructing atmosphere: 100%|██████████| 10/10 [00:34&lt;00:00,  3.40s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -561,11 +561,11 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:01&lt;00:00,  8.09it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:08&lt;00:00,  1.11it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:06&lt;00:00,  3.07s/it, band=f150]
-Sampling map: 100%|██████████| 2/2 [00:11&lt;00:00,  5.89s/it, channel=[ 0. inf] Hz]
-Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.66it/s, band=f150]
+Generating turbulence: 100%|██████████| 10/10 [00:01&lt;00:00,  8.29it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:08&lt;00:00,  1.24it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:05&lt;00:00,  2.81s/it, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:10&lt;00:00,  5.38s/it, channel=[ 0. inf] Hz]
+Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.82it/s, band=f150]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -573,7 +573,7 @@ Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.6
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-06-06T17:37:47.456687+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
+TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-06-20T14:49:24.350165+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -621,10 +621,10 @@ TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 3/3 [00:00&lt;00:00,  7.10it/s, band=f090, stokes=U]
-2025-06-06 17:37:59.439 INFO: Ran mapper for band f090 in 7.548 s.
-Mapping band f150: 100%|██████████| 3/3 [00:00&lt;00:00,  7.21it/s, band=f150, stokes=U]
-2025-06-06 17:38:06.862 INFO: Ran mapper for band f150 in 7.419 s.
+Mapping band f090: 100%|██████████| 3/3 [00:00&lt;00:00,  7.51it/s, band=f090, stokes=U]
+2025-06-20 14:49:35.450 INFO: Ran mapper for band f090 in 6.908 s.
+Mapping band f150: 100%|██████████| 3/3 [00:00&lt;00:00,  9.22it/s, band=f150, stokes=U]
+2025-06-20 14:49:42.294 INFO: Ran mapper for band f150 in 6.84 s.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -640,8 +640,8 @@ ProjectedMap:
   z: naive
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -1.165e+02
-    max: 1.213e+02
+    min: -1.168e+02
+    max: 1.218e+02
   center:
     ra: 00ʰ00ᵐ0.00ˢ
     dec: -23°00’0.00”

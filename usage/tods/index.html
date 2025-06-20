@@ -309,6 +309,23 @@ The overall signal in the</p>
 </pre></div>
 </div>
 </section>
+<section id="load-and-save">
+<h2>Load and save<a class="headerlink" href="#load-and-save" title="Link to this heading">¶</a></h2>
+<p>We can output TODs to disk,
+.. code-block:: python</p>
+<blockquote>
+<div><p>tod.to_fits(‘filename.fits’)</p>
+</div></blockquote>
+<p>or if you rather work with hdf files,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="s1">&#39;filename.hdf5&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>you can load fits files back with</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">TOD</span><span class="o">.</span><span class="n">from_fits</span><span class="p">(</span><span class="s1">&#39;filename.fits&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>note, that you can also load in real MUSTANG-2 data with the same command.</p>
+</section>
 </section>
 
         </article>
@@ -369,6 +386,7 @@ The overall signal in the</p>
 <li><a class="reference internal" href="#">TODs</a><ul>
 <li><a class="reference internal" href="#components">Components</a></li>
 <li><a class="reference internal" href="#units">Units</a></li>
+<li><a class="reference internal" href="#load-and-save">Load and save</a></li>
 </ul>
 </li>
 </ul>
