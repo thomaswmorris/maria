@@ -29,11 +29,15 @@ angle:
     angle: 1
   units:
     rad:
+      aliases:
+      - radians
       long_name: Radian
       math_name: \text{rad}
       factor: 57.29577951308232
       natural: False
     deg:
+      aliases:
+      - degrees
       long_name: Degree
       math_name: \text{deg}
       factor: 1.0
@@ -367,7 +371,10 @@ spectral_flux_density_per_pixel:
     time: -3
   units:
     Jy/pixel:
-      aliases: [JY/PIXEL]
+      aliases:
+      - Jy/pix
+      - JY/PIXEL
+      - JY/PIX
       long_name: janskies per pixel
       math_name: \text{Jy}/\text{pixel}
       factor: 1.0
@@ -385,7 +392,8 @@ spectral_flux_density_per_beam:
     time: -3
   units:
     Jy/beam:
-      aliases: [JY/BEAM]
+      aliases:
+      - JY/BEAM
       long_name: janskies per beam
       math_name: \text{Jy}/\text{beam}
       factor: 1.0

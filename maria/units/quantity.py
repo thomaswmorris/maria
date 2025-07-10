@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from ..utils import deg_to_signed_dms, deg_to_signed_hms
 from .prefixes import PREFIXES
 
 here, this_filename = os.path.split(__file__)
@@ -56,14 +57,25 @@ class Quantity:
     A number (or numbers) with units representing a quantity with some dimensions.
     """
 
-    def __init__(self, value, units):
-        u = parse_units(units)
-        x = np.array(value) * u["factor"]  # the
+    def __init__(self, value, units, force_units=False):
+        self.u = parse_units(units)
 
-        # u = parse_units(u["default_unit"]) # the
+        if isinstance(value, type(self)):
+            self.value = value.to(units)
+        else:
+            try:
+                self.value = np.array(value).astype(float)
+            except Exception:
+                raise TypeError("'value' must be a number")
 
-        self.q = QUANTITIES[u["quantity"]]
-        natural_units = UNITS.loc[(UNITS.quantity == u["quantity"]) & (UNITS.natural)].sort_values("factor")
+        if not force_units:
+            self.humanize()
+
+    def humanize(self):
+        x = self.value * self.u["factor"]
+
+        self.q = QUANTITIES[self.u["quantity"]]
+        natural_units = UNITS.loc[(UNITS.quantity == self.u["quantity"]) & (UNITS.natural)].sort_values("factor")
 
         abs_x = np.abs(x)
         abs_fin_x = np.where((abs_x > 0) & np.isfinite(abs_x), abs_x, np.nan)
@@ -79,17 +91,20 @@ class Quantity:
             self.u = parse_units(f"{prefix}{unit.name}")
 
         else:
-            self.u = parse_units(u["quantity_default_unit"])
+            self.u = parse_units(self.u["quantity_default_unit"])
 
         self.value = x / self.u["factor"]
+
+    def pin(self, units):
+        return type(self)(value=self.to(units), units=units, force_units=True)
+
+    @property
+    def quantity(self) -> str:
+        return self.u["quantity"]
 
     @property
     def units(self) -> str:
         return self.u["units"]
-
-    # @property
-    # def human_units_math(self) -> str:
-    #     return parse_units(self.human_units)["math_name"]
 
     @property
     def min_prefix_power(self) -> bool:
@@ -98,6 +113,20 @@ class Quantity:
     @property
     def max_prefix_power(self) -> bool:
         return self.q.get("max_prefix_power", 30)
+
+    @property
+    def dms(self) -> str:
+        if self.quantity != "angle":
+            raise ValueError("'dms' is only for angles")
+        sign, d, m, s = deg_to_signed_dms(self.deg)
+        return f"{int(sign * d):>02}°{int(m):>02}’{s:.02f}”"
+
+    @property
+    def hms(self) -> str:
+        if self.quantity != "angle":
+            raise ValueError("'hms' is only for angles")
+        sign, h, m, s = deg_to_signed_hms(self.deg)
+        return f"{int(sign * h):>02}ʰ{int(m):>02}ᵐ{s:.02f}ˢ"
 
     def __repr__(self) -> str:
         u = self.u
@@ -114,6 +143,19 @@ class Quantity:
             raise ValueError(f"Cannot convert quantity '{self.u['quantity']}' to quantity '{u['quantity']}'.")
         return self.value * self.u["factor"] / u["factor"]
 
+    def mean(self):
+        return Quantity(np.mean(self.value), units=self.units)
+
+    def min(self):
+        return Quantity(np.min(self.value), units=self.units)
+
+    def max(self):
+        return Quantity(np.max(self.value), units=self.units)
+
+    @property
+    def shape(self):
+        return Quantity(np.shape(self.value), units=self.units)
+
     def __getattr__(self, attr):
         try:
             return self.to(attr)
@@ -124,14 +166,67 @@ class Quantity:
     def __getitem__(self, key):
         return Quantity(self.value[key], units=self.units)
 
-    def mean(self):
-        return Quantity(np.mean(self.value), units=self.u["units"])
-
-    def __add__(self, other):
-        return Quantity(self.value + getattr(other, self.units), units=self.units)
-
-    def __sub__(self, other):
-        return Quantity(self.value - getattr(other, self.units), units=self.units)
-
     def __format__(self, *args, **kwargs):
         return repr(self).__format__(*args, **kwargs)
+
+    def __float__(self):
+        return float(self.value)
+
+    def __len__(self):
+        return len(self.value)
+
+    def __array__(self, copy=True):
+        return np.array(self.value)
+
+    def __neg__(self):
+        return Quantity(-self.value, units=self.units)
+
+    def convert_other(self, other):
+        if isinstance(other, type(self)):
+            if self.quantity == other.quantity:
+                return other.to(self.units)
+            else:
+                raise TypeError(f"Cannot add quantity '{self.q['long_name']}' to quantity '{other.q['long_name']}'")
+        elif other == 0:
+            return type(self)(0, self.units)
+        raise TypeError(f"{self} and {other} are incompatible quantities")
+
+    def __eq__(self, other):
+        return self.value == self.convert_other(other)
+
+    def __lt__(self, other):
+        return self.value < self.convert_other(other)
+
+    def __gt__(self, other):
+        return self.value > self.convert_other(other)
+
+    def __le__(self, other):
+        return self.value <= self.convert_other(other)
+
+    def __ge__(self, other):
+        return self.value >= self.convert_other(other)
+
+    def __add__(self, other):
+        addend = self.convert_other(other)
+        return type(self)(self.value + addend, units=self.units)
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        return self + -other
+
+    def __rsub__(self, other):
+        return self.__sub__(other)
+
+    def __mul__(self, other):
+        return type(self)(self.value * other, units=self.units)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        return type(self)(self.value / other, units=self.units)
+
+    def __rtruediv__(self, other):
+        return self.__truediv__(other)

@@ -18,9 +18,9 @@ from matplotlib import pyplot as plt
 
 from .. import coords
 from ..coords import frames
-from ..io import DEFAULT_TIME_FORMAT
+from ..io import DEFAULT_TIME_FORMAT, repr_phi_theta
 from ..units import Quantity
-from ..utils import compute_diameter, read_yaml, repr_phi_theta
+from ..utils import compute_diameter, read_yaml
 from .patterns import get_scan_pattern_generator, scan_patterns
 
 here, this_filename = os.path.split(__file__)
@@ -243,7 +243,7 @@ class Plan:
         ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
         ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
 
-    def map_counts(self, instrument=None, x_bins=100, y_bins=100):
+    def map_counts(self, instrument=None, x_bins=64, y_bins=64):
         array_offsets = np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
 
         OFFSETS = self.scan_offsets.T[None] + array_offsets
@@ -266,7 +266,7 @@ class Plan:
 
         return x_bins, y_bins, bs[0]
 
-    def plot_counts(self, instrument=None, x_bins=100, y_bins=100):
+    def plot_counts(self, instrument=None, x_bins=64, y_bins=64):
         fig, ax = plt.subplots(1, 1, figsize=(5, 4))
 
         x, y, counts = self.map_counts(instrument=instrument, x_bins=x_bins, y_bins=y_bins)

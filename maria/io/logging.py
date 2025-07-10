@@ -18,3 +18,7 @@ def log_duration(ref_time, message, level="debug"):
     logger = logging.getLogger("maria")
     string = f"{message} in {humanize_time(ttime.monotonic() - ref_time)}."
     getattr(logger, level)(string)
+
+
+def leftpad(thing, n: int = 2, char=" "):
+    return "\n".join([n * char + line for line in str(thing).splitlines()])

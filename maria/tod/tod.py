@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from astropy.io import fits
+from astropy.time import Time
 from dask import array as da
 
 from ..array import Array, ArrayList
@@ -20,7 +21,7 @@ from ..band import get_band
 from ..coords import Coordinates
 from ..instrument import get_instrument
 from ..io import DEFAULT_TIME_FORMAT, humanize_time
-from ..plotting import tod_plot, twinkle_plot
+from ..plotting import plot_tod, twinkle_plot
 from ..site import get_site
 
 logger = logging.getLogger("maria")
@@ -290,7 +291,7 @@ class TOD:
             header["BMIN"] = (9.0, "arcsec")
             header["BPA"] = (0.0, "degrees")
             header["NDETS"] = self.dets.n
-            header["JDSTART"] = self.time[0]
+            header["JDSTART"] = Time(self.time[0], format="unix").jd
 
             header["SITELAT"] = (self.lat, "Site Latitude")
             header["SITELONG"] = (self.lon, "Site Longitude")
@@ -362,72 +363,76 @@ class TOD:
             ...
 
     @classmethod
-    def _from_mustang2(cls, fname: str, hdu: int = 1):
-        f = fits.open(fname)
-        raw = f[hdu].data
+    def _from_mustang2(cls, fname: str, index: int = 1):
+        with fits.open(fname) as f:
+            raw = f[index].data
 
-        det_uids, det_counts = np.unique(raw["PIXID"], return_counts=True)
+            det_uids, det_counts = np.unique(raw["PIXID"], return_counts=True)
 
-        if det_counts.std() > 0:
-            raise ValueError("Cannot reshape a ragged TOD.")
+            if det_counts.std() > 0:
+                raise ValueError("Cannot reshape a ragged TOD.")
 
-        n_dets = len(det_uids)
-        n_samp = det_counts.max()
+            n_dets = len(det_uids)
+            n_samp = det_counts.max()
 
-        data = {"data": raw["FNU"].astype("float32").reshape((n_dets, n_samp))}
+            data = {"data": raw["FNU"].astype("float32").reshape((n_dets, n_samp))}
 
-        ra = raw["dx"].astype(float).reshape((n_dets, n_samp))  # rad
-        dec = raw["dy"].astype(float).reshape((n_dets, n_samp))
-        t = f[hdu].header["JDSTART"] + raw["time"].astype(float).reshape((n_dets, n_samp)).mean(axis=0)
+            ra = raw["dx"].astype(float).reshape((n_dets, n_samp))  # rad
+            dec = raw["dy"].astype(float).reshape((n_dets, n_samp))
 
-        site = get_site("green_bank")
+            t = raw["time"].astype(float).reshape((n_dets, n_samp)).mean(axis=0)
 
-        boresight = Coordinates(
-            t=t,
-            phi=ra,
-            theta=dec,
-            earth_location=site.earth_location,
-            frame="ra_dec",
-        )
+            if "JDSTART" in f[index].header:
+                t += Time(f[index].header["JDSTART"], format="jd").unix
 
-        # building array class
-        dets_dict = {
-            "sky_x": ra[:, 0] - ra[:, 0].mean(),  # in ra_dec frame
-            "sky_y": dec[:, 0] - dec[:, 0].mean(),  # in ra_dec frame
-            "band_name": len(dec[:, 0]) * ["m2/f093"],
-        }
+            site = get_site("green_bank")
 
-        dets_df = pd.DataFrame(dets_dict)
-        _array = get_instrument("mustang-2").arrays[0]
+            boresight = Coordinates(
+                t=t,
+                phi=ra,
+                theta=dec,
+                earth_location=site.earth_location,
+                frame="ra_dec",
+            )
 
-        for col in _array.dets.columns:
-            if col in dets_df.columns:
-                continue
-            dets_df[col] = _array.dets.iloc[0][col]
+            # building array class
+            dets_dict = {
+                "sky_x": ra[:, 0] - ra[:, 0].mean(),  # in ra_dec frame
+                "sky_y": dec[:, 0] - dec[:, 0].mean(),  # in ra_dec frame
+                "band_name": len(dec[:, 0]) * ["m2/f093"],
+            }
 
-        a = Array(name="mustang2", dets=dets_df, bands=[get_band("m2/f093")])
+            dets_df = pd.DataFrame(dets_dict)
+            _array = get_instrument("mustang-2").arrays[0]
 
-        metadata = {
-            "atmosphere": False,
-            "altitude": float(site.altitude),
-            "region": site.region,
-            "Real_obs": True,
-            "base_temperature": f[hdu].header.get("TAMBIENT", None),
-        }
+            for col in _array.dets.columns:
+                if col in dets_df.columns:
+                    continue
+                dets_df[col] = _array.dets.iloc[0][col]
 
-        tod = TOD(
-            data=data,
-            dets=a,
-            coords=boresight,
-            units="K_RJ",
-            metadata=metadata,
-        )
+            a = Array(name="mustang2", dets=dets_df, bands=[get_band("m2/f093")])
 
-        gc.collect()
-        return tod
+            metadata = {
+                "atmosphere": False,
+                "altitude": float(site.altitude),
+                "region": site.region,
+                "Real_obs": True,
+                "base_temperature": f[index].header.get("TAMBIENT", None),
+            }
+
+            tod = TOD(
+                data=data,
+                dets=a,
+                coords=boresight,
+                units="K_RJ",
+                metadata=metadata,
+            )
+
+            gc.collect()
+            return tod
 
     def plot(self, detrend=True, mean=True, n_freq_bins: int = 256):
-        tod_plot(
+        plot_tod(
             self,
             detrend=detrend,
             n_freq_bins=n_freq_bins,

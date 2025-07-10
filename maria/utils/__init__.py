@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-# nothing in here should import from other maria module
+# nothing in here should import from other maria module (so no double dots)
 import jax
 import jax.numpy as jnp
 import numpy as np
 import scipy as sp
 
-from ..units.prefixes import *  # noqa
+# from ..units.prefixes import *  # noqa
 from .coords import *  # noqa
 from .io import *  # noqa
 from .linalg import *  # noqa

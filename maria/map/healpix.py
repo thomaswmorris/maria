@@ -42,6 +42,8 @@ class HEALPixMap(Map):
 
         map_dims = {"npix": data.shape[-1]}
 
+        beam = beam if beam is not None else 0.0
+
         super().__init__(
             data=data,
             weight=weight,

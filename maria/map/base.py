@@ -56,42 +56,58 @@ class Map:
         self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
         self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
 
-        slice_dims = {}
+        self.units = parse_units(units)["units"]
+
+        if not hasattr(beam, "__len__"):
+            beam = (beam, beam, 0)
+
+        if len(beam) != 3:
+            raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
+
+        beam = np.radians(beam) if degrees else beam
+
+        self.beam = (Quantity(beam[0], "rad"), Quantity(beam[1], "rad"), Quantity(beam[2], "rad"))
+
+        if self.u["base_unit"] == "Jy/beam":
+            if not self.beam_area > 0:
+                raise ValueError(
+                    f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
+                )
+
+        self.map_dims = map_dims
+
+        self.slice_dims = {}
         if stokes is not None:
             if stokes not in ["I", "IQU", "IQUV"]:
                 raise ValueError("'stokes' parameter must be either 'I', 'IQU', or 'IQUV'")
             self.stokes = stokes.upper()
-            slice_dims["stokes"] = len(self.stokes)
+            self.slice_dims["stokes"] = len(self.stokes)
         else:
             self.stokes = ""
 
         if nu is not None:
-            self.nu = np.atleast_1d(nu)
-            bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
+            self.nu = Quantity(np.atleast_1d(nu.Hz if isinstance(nu, Quantity) else nu), "Hz")
+            bad_freqs = list(self.nu[(self.nu.Hz < MARIA_MIN_NU) | (self.nu.Hz > MARIA_MAX_NU)])
             if bad_freqs:
                 raise FrequencyOutOfBoundsError(bad_freqs)
-            slice_dims["nu"] = len(self.nu)
+            self.slice_dims["nu"] = len(self.nu)
         else:
-            self.nu = np.array([])
+            self.nu = Quantity([], "Hz")
 
         if t is not None:
             self.t = np.atleast_1d(t)
-            slice_dims["t"] = len(self.t)
+            self.slice_dims["t"] = len(self.t)
         else:
             self.t = np.array([])
 
         if z is not None:
             self.z = np.atleast_1d(z)
-            slice_dims["z"] = len(self.z)
+            self.slice_dims["z"] = len(self.z)
         else:
             self.z = np.array([])
 
-        self.dims = {**slice_dims, **map_dims}
-
         self.data *= np.ones(list(self.dims.values()))
         self.weight *= np.ones(list(self.dims.values()))
-
-        self.units = parse_units(units)["units"]
 
         # for i, (dim, n) in enumerate(slice_dims.items()):
         #     if self.data.shape[i] != n:
@@ -109,6 +125,10 @@ class Map:
             )
 
     @property
+    def dims(self):
+        return {**self.slice_dims, **self.map_dims}
+
+    @property
     def ndim(self):
         return len(self.dims)
 
@@ -122,10 +142,7 @@ class Map:
 
     @property
     def nu_bins(self):
-        """
-        This might break in the year 3000.
-        """
-        return np.array([0, *(self.nu[1:] + self.nu[:-1]), 1e6])
+        return np.array([0, *(self.nu.Hz[1:] + self.nu.Hz[:-1]), 1e6])
 
     @property
     def nu_side(self):
@@ -153,18 +170,25 @@ class Map:
     # def weight(self):
     #     return self._weight if self._weight is not None else da.ones(shape=self.data.shape)
 
-    def squeeze(self, dim):
+    def squeeze(self, dims=None):
+        dims = np.atleast_1d(dims) if dims is not None else [dim for dim, n in self.slice_dims.items() if n == 1]
         package = self.package()
-        for i, (name, n) in enumerate(self.dims.items()):
-            if (name == dim) or (i == dim):
-                if n == 1:
-                    package["data"] = package["data"].squeeze(i)
-                    package["weight"] = package["weight"].squeeze(i)
-                    package.pop(name)
-                    return type(self)(**package)
-                else:
-                    raise ValueError(f"Cannot squeeze dimension '{dim}' with length {n} > 1")
-        raise ValueError(f"{self.__class__.__name__} has no dimension '{dim}'")
+        dim_indices_to_squeeze = []
+
+        for dim_index, name in enumerate(dims):
+            n = self.slice_dims.get(name)
+            if n is None:
+                raise ValueError(f"{self.__class__.__name__} has no dimension '{name}'")
+            if n != 1:
+                raise ValueError(f"Cannot squeeze dimension '{name}' with length {n} > 1")
+
+            dim_indices_to_squeeze.append(dim_index)
+            package.pop(name)
+
+        package["data"] = package["data"].squeeze(tuple(dim_indices_to_squeeze))
+        package["weight"] = package["weight"].squeeze(tuple(dim_indices_to_squeeze))
+
+        return type(self)(**package)
 
     def unsqueeze(self, dim, value=None):
         if dim not in SLICE_DIMS:
@@ -189,13 +213,16 @@ class Map:
     @property
     def pixel_area(self):
         if hasattr(self, "resolution"):
-            return self.resolution**2
+            return self.resolution.rad**2
         else:
-            return self.x_res * self.y_res
+            return self.x_res.rad * self.y_res.rad
 
     @property
     def beam_area(self):
-        return np.pi * self.beam[0] * self.beam[1]
+        """
+        Returns the beam area in steradians
+        """
+        return (np.pi / 4) * self.beam[0].radians * self.beam[1].radians
 
     def to(self, units: str):
         if units == self.units:
@@ -217,7 +244,7 @@ class Map:
                 )
 
             data = package["data"].swapaxes(0, self.dims_list.index("nu"))  # put the nu index in front
-            for nu_index, nu in enumerate(self.nu):
+            for nu_index, nu in enumerate(self.nu.Hz):
                 cal = Calibration(
                     f"{self.units} -> {units}",
                     nu=nu,
@@ -232,13 +259,13 @@ class Map:
         return type(self)(**package)
 
     def sample_nu(self, nu):
-        map_nu_interpolator = sp.interpolate.interp1d(self.nu, self.data, axis=1, kind="linear")
+        map_nu_interpolator = sp.interpolate.interp1d(self.nu.Hz, self.data, axis=1, kind="linear")
 
         nu_maps = []
         for nu in np.atleast_1d(nu):
-            if nu < self.nu[0]:
+            if nu < self.nu.Hz[0]:
                 nu_maps.append(self.data[:, 0])
-            elif not (nu < self.nu[-1]):  # this will include nan
+            elif not (nu < self.nu.Hz[-1]):  # this will include nan
                 nu_maps.append(self.data[:, -1])
             else:
                 nu_maps.append(map_nu_interpolator(nu))
@@ -247,5 +274,5 @@ class Map:
 
     @property
     def nu_bin_bounds(self):
-        nu_boundaries = [0, *(self.nu[:-1] + self.nu[1:]) / 2, np.inf]
+        nu_boundaries = [0, *(self.nu.Hz[:-1] + self.nu.Hz[1:]) / 2, np.inf]
         return [(nu1, nu2) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]

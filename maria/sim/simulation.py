@@ -72,40 +72,6 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
         self.start = arrow.get(self.boresight.t.min()).to("utc")
         self.end = arrow.get(self.boresight.t.max()).to("utc")
 
-        if atmosphere:
-            self.atmosphere_kwargs = DEFAULT_ATMOSPHERE_KWARGS.copy()
-            self.atmosphere_kwargs.update(atmosphere_kwargs)
-
-            # do some checks
-            el_min = np.atleast_1d(self.coords.el).min()
-            if el_min < np.radians(MIN_ELEVATION_WARN):
-                logger.warning(
-                    f"Some ArrayList come within {MIN_ELEVATION_WARN} degrees of the horizon"
-                    f"(el_min = {np.degrees(el_min):.01f}°)",
-                )
-            if el_min <= np.radians(MIN_ELEVATION_ERROR):
-                raise PointingError(
-                    f"Some ArrayList come within {MIN_ELEVATION_ERROR} degrees of the horizon"
-                    f"(el_min = {np.degrees(el_min):.01f}°)",
-                )
-
-            self.weather_kwargs = self.atmosphere_kwargs.pop("weather") if "weather" in self.atmosphere_kwargs else {}
-
-            self.atmosphere = Atmosphere(
-                model=atmosphere,
-                timestamp=self.plan.time.mean(),
-                region=self.site.region,
-                altitude=self.site.altitude,
-                weather_kwargs=self.weather_kwargs,
-                disable_progress_bars=self.disable_progress_bars,
-                **self.atmosphere_kwargs,
-            )
-
-            # give it the simulation, so that it knows about pointing, site, etc. (kind of cursed)
-            self.atmosphere.initialize(self)
-
-            logger.debug(f"Initialized atmosphere simulation in {humanize_time(ttime.monotonic() - sim_start_s)}.")
-
         cmb_start_s = ttime.monotonic()
 
         if cmb:
@@ -166,10 +132,55 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
             pass
         logger.debug(f"Initialized noise simulation in {humanize_time(ttime.monotonic() - noise_start_s)}.")
 
+        if atmosphere:
+            atmosphere_init_start_s = ttime.monotonic()
+
+            self.atmosphere_kwargs = DEFAULT_ATMOSPHERE_KWARGS.copy()
+            self.atmosphere_kwargs.update(atmosphere_kwargs)
+
+            # do some checks
+            el_min = np.atleast_1d(self.coords.el).min()
+            if el_min < np.radians(MIN_ELEVATION_WARN):
+                logger.warning(
+                    f"Some ArrayList come within {MIN_ELEVATION_WARN} degrees of the horizon"
+                    f"(el_min = {np.degrees(el_min):.01f}°)",
+                )
+            if el_min <= np.radians(MIN_ELEVATION_ERROR):
+                raise PointingError(
+                    f"Some ArrayList come within {MIN_ELEVATION_ERROR} degrees of the horizon"
+                    f"(el_min = {np.degrees(el_min):.01f}°)",
+                )
+
+            self.weather_kwargs = self.atmosphere_kwargs.pop("weather") if "weather" in self.atmosphere_kwargs else {}
+
+            self.atmosphere = Atmosphere(
+                model=atmosphere,
+                timestamp=self.plan.time.mean(),
+                region=self.site.region,
+                altitude=self.site.altitude,
+                weather_kwargs=self.weather_kwargs,
+                disable_progress_bars=self.disable_progress_bars,
+                **self.atmosphere_kwargs,
+            )
+
+            # give it the simulation, so that it knows about pointing, site, etc. (kind of cursed)
+            self.atmosphere.initialize(self)
+
+            logger.debug(
+                f"Initialized atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_init_start_s)}."
+            )
+
         logger.debug(f"Initialized simulation in {humanize_time(ttime.monotonic() - sim_start_s)}.")
 
     def _run(self):
         if hasattr(self, "atmosphere"):
+            if not self.atmosphere._initialized:
+                atmosphere_init_start_s = ttime.monotonic()
+                self.atmosphere.initialize(self)
+                logger.debug(
+                    f"Initialized atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_init_start_s)}."
+                )
+
             atmosphere_sim_start_s = ttime.monotonic()
             self._simulate_atmosphere()
             self._compute_atmospheric_emission()

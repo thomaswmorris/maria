@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import logging
 import warnings
 from itertools import cycle
 
+import arrow
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,19 +13,22 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
-from ..beam import compute_angular_fwhm
-from ..units import Quantity
-from ..utils.signal import detrend as detrend_signal
-from ..utils.signal import remove_slope
+from maria.beam import compute_angular_fwhm
+from maria.units import Quantity, parse_units
+from maria.utils.signal import detrend as detrend_signal
+
+logger = logging.getLogger("maria")
+
+FIELD_LABELS = {"atmosphere": "atm."}
 
 
-def tod_plot(
+def plot_tod(
     tod,
     detrend: bool = True,
     n_freq_bins: int = 1024,
-    max_dets: int = 100,
+    max_dets: int = 1,
     lw: float = 1e0,
-    fontsize: float = 8,
+    fontsize: float = 10,
 ):
     fig, axes = plt.subplots(
         ncols=2,
@@ -35,7 +40,7 @@ def tod_plot(
     axes = np.atleast_2d(axes)
     gs = axes[0, 0].get_gridspec()
 
-    plt.subplots_adjust(top=0.99, bottom=0.01, hspace=0, wspace=0.02)
+    plt.subplots_adjust(top=0.99, bottom=0.01, hspace=0, wspace=0.025)
 
     for ax in axes[:, -1]:
         ax.remove()
@@ -47,26 +52,46 @@ def tod_plot(
     tod_ubands = np.unique(tod.dets.band_name)
     power_spectra = np.zeros((len(tod_ubands), len(tod.fields), n_freq_bins - 1))
 
+    tod_u = parse_units(tod.units)
+
     for field_index, field in enumerate(tod.fields):
         data = tod.data[field]
 
         tod_ax = axes[field_index, 0]
+        field_label = FIELD_LABELS.get(field, field)
+
+        field_plot_data = {}
+
+        for band_index, band_name in enumerate(tod_ubands):
+            band_mask = tod.dets.band_name == band_name
+
+            field_plot_data[band_name] = data[band_mask]
+
+            if band_mask.sum() > max_dets:
+                field_plot_data[band_name] = field_plot_data[band_name][
+                    np.linspace(0, band_mask.sum() - 1, max_dets).astype(int)
+                ]
+
+            if detrend:
+                field_plot_data[band_name] = detrend_signal(field_plot_data[band_name], order=1)
+
+        max_abs_signal = Quantity(
+            [np.abs(field_plot_data[band_name]).max().compute() for band_name in tod_ubands], units=tod.units
+        ).max()
+        field_u = max_abs_signal.u
+        logger.debug(
+            f"inferring units '{max_abs_signal.u['units']}' for field '{field}' from max abs signal '{max_abs_signal}'"
+        )
 
         for band_index, band_name in enumerate(tod_ubands):
             color = next(colors)
 
             band_mask = tod.dets.band_name == band_name
-            signal = data[band_mask]
+            f, ps = sp.signal.periodogram(
+                detrend_signal(tod.data[field][band_mask].compute(), order=1), fs=tod.fs, window="hann"
+            )
 
-            if band_mask.sum() > max_dets:
-                signal = signal[np.random.choice(np.arange(len(signal)), max_dets, replace=False)]
-
-            if detrend:
-                signal = detrend_signal(signal, order=1)
-
-            f, ps = sp.signal.periodogram(remove_slope(signal.compute()), fs=tod.fs, window="tukey")
-
-            f_bins = np.geomspace(f[1], f[-1], n_freq_bins)
+            f_bins = np.geomspace(0.999 * f[1], 1.001 * f[-1], n_freq_bins)
             f_mids = np.sqrt(f_bins[1:] * f_bins[:-1])
 
             binned_ps = sp.stats.binned_statistic(
@@ -83,43 +108,45 @@ def tod_plot(
             ps_ax.plot(
                 f_mids[use],
                 binned_ps[use],
-                lw=lw,
+                lw=5e-1,
                 color=color,
             )
             tod_ax.plot(
                 tod.time,
-                signal.mean(axis=0),
-                lw=lw,
+                Quantity(field_plot_data[band_name].T, units=tod.units).to(field_u["units"]),
+                lw=5e-1,
                 color=color,
+                zorder=-band_index,
             )
 
-            handles.append(Patch(color=color, label=f"{field} ({band_name})"))
+            handles.append(Patch(color=color, label=f"{field_label} ({band_name}, $n_\\text{{det}} = {band_mask.sum()}$)"))
 
-        tod_ax.set_xlim(tod.time.min(), tod.time.max())
+        tod_ax.set_xlim(tod.time.min(), tod.time.max() + 1e-1)
+        tod_ax.set_ylabel(f"{field_label} [${field_u['math_name']}$]", fontsize=fontsize)
 
-        label = tod_ax.text(
-            0.01,
-            0.99,
-            f"{field} [{tod.units}]",
-            fontsize=fontsize,
-            ha="left",
-            va="top",
-            transform=tod_ax.transAxes,
-        )
-        label.set_bbox(dict(facecolor="white", alpha=0.8))
+        if field_index == 0:
+            time_label_ax = tod_ax.twiny()
 
-    tod_ax.set_xlabel("Time [s]", fontsize=fontsize)
+    tod_ax.set_xlabel("Timestamp [s]", fontsize=fontsize)
+
+    time_label_ticks = np.linspace(tod.time.min(), tod.time.max(), 3)
+    time_label_ticks -= time_label_ticks % 60
+    time_label_ax.set_xticks(np.unique(time_label_ticks))
+    time_label_ax.set_xticklabels([arrow.get(t).strftime("%Y-%m-%d\n%H:%M:%S") for t in time_label_ax.get_xticks()])
+    time_label_ax.set_xlim(tod.time.min(), tod.time.max() + 1e-1)
 
     ps_ax.yaxis.tick_right()
     ps_ax.yaxis.set_label_position("right")
     ps_ax.set_xlabel("Frequency [Hz]", fontsize=fontsize)
-    ps_ax.set_ylabel(f"[{tod.units}$^2$/Hz]", fontsize=fontsize)
-    ps_ax.legend(handles=handles, loc="upper right", fontsize=fontsize)
+    ps_ax.set_ylabel(f"Power spectral density [${tod_u['math_name']}^2$/Hz]", fontsize=fontsize)
+    ps_ax.legend(handles=handles, loc="upper right", fontsize=0.8 * fontsize)
     ps_ax.loglog()
     ps_ax.set_xlim(f_mids.min(), f_mids.max())
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
+
+        # I want to see at least the top order of magnitude of all fields
         minimum_dominant_ps = np.nanmin(np.nanmax(power_spectra, axis=1))
         minimum_maximum_ps = np.nanmin(np.nanmax(power_spectra, axis=2))
 

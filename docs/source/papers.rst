@@ -13,4 +13,5 @@ Methods
 Usage
 -----
 
-* [`link <https://www.arxiv.org/abs/2403.00909>`_] L. di Mascolo, et al., “Atacama Large Aperture Submillimeter Telescope (AtLAST) Science: Resolving the Hot and Ionized Universe through the Sunyaev-Zeldovich effect” *arXiv preprint arXiv:2403.00909* (2024)
+* [`link <https://open-research-europe.ec.europa.eu/articles/4-113/v2>`_] L. di Mascolo, et al., “Atacama Large Aperture Submillimeter Telescope (AtLAST) Science: Resolving the Hot and Ionized Universe through the Sunyaev-Zeldovich effect” *Open Research Europe* **4** (2025) 113
+* [`link <https://www.arxiv.org/abs/2505.13145>`_] M. Kirkaune, et al., “Observing the Sun with the Atacama Large Aperture Submillimeter Telescope (AtLAST): Forecasting Full-disk Observations” *arXiv preprint arXiv:2505.13145* (2025)

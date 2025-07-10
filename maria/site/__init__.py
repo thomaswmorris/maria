@@ -11,9 +11,9 @@ import pandas as pd
 from astropy.coordinates import EarthLocation
 from matplotlib import pyplot as plt
 
-from ..io import fetch
+from ..io import fetch, repr_lat_lon
 from ..units import Quantity
-from ..utils import read_yaml, repr_lat_lon
+from ..utils import read_yaml
 
 here, this_filename = os.path.split(__file__)
 
@@ -202,14 +202,3 @@ class Site:
   diurnal: {self.diurnal}"""
 
         return s
-
-        # parts = {
-        #     "location": f"({repr_lat_lon(self.latitude, self.longitude)})",
-        #     "region": self.region,
-        #     "altitude": f"{self.altitude}m",
-        #     "seasonal": self.seasonal,
-        #     "diurnal": self.diurnal,
-        #     "weather_quantiles": self.weather_quantiles,
-        # }
-
-        # return rf"Site({', '.join([f'{k}={v}' for k, v in parts.items()])})"

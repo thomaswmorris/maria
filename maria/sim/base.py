@@ -151,10 +151,8 @@ class BaseSimulation:
     def _run(self):
         raise NotImplementedError()
 
-    def run(self):
+    def run(self, units: str = "K_RJ"):
         self.loading = {}
-
-        # Simulate all the junk
         self._run()
 
         metadata = {
@@ -179,7 +177,7 @@ class BaseSimulation:
 
         gc.collect()
 
-        return tod
+        return tod.to(units)
 
     def plot_counts(self, x_bins=100, y_bins=100):
         self.plan.plot_counts(instrument=self.instrument, x_bins=x_bins, y_bins=y_bins)

@@ -16,8 +16,7 @@ from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from scipy.interpolate import interp1d
 
-from ..io import DEFAULT_TIME_FORMAT, humanize_time
-from ..utils import repr_lat_lon
+from ..io import DEFAULT_TIME_FORMAT, humanize_time, repr_lat_lon
 from .transforms import (
     get_center_phi_theta,
     offsets_to_phi_theta,
