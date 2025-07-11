@@ -4,12 +4,13 @@ from .constants import MARIA_MAX_NU, MARIA_MIN_NU
 from .units import Quantity
 
 
-class PointingError(BaseException):
-    pass
+class PointingError(Exception): ...
 
 
-class ConfigurationError(Exception):
-    pass
+class ShapeError(Exception): ...
+
+
+class ConfigurationError(Exception): ...
 
 
 class FrequencyOutOfBoundsError(Exception):
