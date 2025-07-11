@@ -79,11 +79,11 @@ class CMBMixin:
 
             pW_per_K_CMB = (P[..., 1] - P[..., 0]) / eps
 
-            flat_band_pixel_index = hp.ang2pix(
-                nside=self.cmb.nside,
-                phi=self.coords.l[band_mask],
-                theta=np.pi / 2 - self.coords.b[band_mask],
-            ).ravel()
+            # flat_band_pixel_index = hp.ang2pix(
+            #     nside=self.cmb.nside,
+            #     phi=self.coords.l[band_mask],
+            #     theta=np.pi / 2 - self.coords.b[band_mask],
+            # ).ravel()
 
             band_coords = self.coords[band_mask]
 

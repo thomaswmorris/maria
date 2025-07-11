@@ -431,11 +431,12 @@ class TOD:
             gc.collect()
             return tod
 
-    def plot(self, detrend=True, mean=True, n_freq_bins: int = 256):
+    def plot(self, detrend=True, max_dets: int = 1, n_freq_bins: int = 1024):
         plot_tod(
             self,
             detrend=detrend,
             n_freq_bins=n_freq_bins,
+            max_dets=max_dets,
         )
 
     def twinkle(self, filename=None, **kwargs):

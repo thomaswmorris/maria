@@ -40,31 +40,33 @@ test_bands = np.random.choice(a=all_bands, size=n_tests)
 
 
 @pytest.mark.parametrize(
-    "region,band",
+    "region,band_name",
     zip(test_regions, test_bands),
 )
-def test_cmb_atmosphere_reversability(region, band):
-    band = maria.get_band(band)
-
+def test_cmb_atmosphere_reversability(region, band_name):
     eps = 1e-4
-    n = 100
+    kwargs_shape = (5, 7, 9)  # a random shape to confuse things
 
-    s = AtmosphericSpectrum(region=region)
+    band = maria.get_band(band_name)
+    polarized = np.random.choice([True, False])
+    spectrum = AtmosphericSpectrum(region=region)
 
     calibration_kwargs = {
-        "spectrum": s,
-        "zenith_pwv": np.random.uniform(size=n, low=0, high=10),
+        "spectrum": spectrum,
+        "zenith_pwv": np.random.uniform(size=kwargs_shape, low=0, high=50),
         "base_temperature": np.random.uniform(
-            size=n,
-            low=s.side_base_temperature.min(),
-            high=s.side_base_temperature.max(),
+            size=kwargs_shape,
+            low=spectrum.side_base_temperature.min(),
+            high=spectrum.side_base_temperature.max(),
         ),
-        "elevation": np.radians(np.random.uniform(size=n, low=10, high=90)),
+        "elevation": np.radians(np.random.uniform(size=kwargs_shape, low=10, high=90)),
+        "polarized": polarized,
     }
 
-    P_lo = Calibration("K_b -> pW", band=band, **calibration_kwargs)(T_CMB - eps / 2)
-    P_hi = Calibration("K_b -> pW", band=band, **calibration_kwargs)(T_CMB + eps / 2)
+    # calibration_kwargs = {}
 
-    T = Calibration("pW -> K_CMB", band=band, **calibration_kwargs)(P_hi - P_lo)
+    P_lo = Calibration("K_b -> fW", band=band, **calibration_kwargs)(T_CMB - eps / 2)
+    P_hi = Calibration("K_b -> fW", band=band, **calibration_kwargs)(T_CMB + eps / 2)
+    T = Calibration("fW -> K_CMB", band=band, **calibration_kwargs)(P_hi - P_lo)
 
-    assert np.allclose(T, eps, rtol=1e-3)
+    assert np.allclose(T, eps, rtol=1e-6)

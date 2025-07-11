@@ -36,13 +36,13 @@ conversions["radiant_flux"] = {
 }
 conversions["rayleigh_jeans_temperature"] = {
     "radiant_flux": {"f": rayleigh_jeans_temperature_to_radiant_flux, "linear": True},
-    "cmb_temperature_anisotropy": {"f": rayleigh_jeans_temperature_to_cmb_temperature_anisotropy, "linear": False},
+    # "cmb_temperature_anisotropy": {"f": rayleigh_jeans_temperature_to_cmb_temperature_anisotropy, "linear": False},
     "spectral_flux_density_per_pixel": {"f": rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel, "linear": False},
 }
 
 conversions["cmb_temperature_anisotropy"] = {
     "radiant_flux": {"f": cmb_temperature_anisotropy_to_radiant_flux, "linear": True},
-    "rayleigh_jeans_temperature": {"f": cmb_temperature_anisotropy_to_rayleigh_jeans_temperature, "linear": False},
+    # "rayleigh_jeans_temperature": {"f": cmb_temperature_anisotropy_to_rayleigh_jeans_temperature, "linear": False},
 }
 
 conversions["spectral_flux_density_per_pixel"] = {
