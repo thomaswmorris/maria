@@ -371,7 +371,7 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 162MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 48.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -434,7 +434,7 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 191MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 27.8MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -451,8 +451,8 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightm
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Plan</span><span class="p">(</span>
     <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2024-08-06T03:00:00&quot;</span><span class="p">,</span>
     <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
-    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span>  <span class="c1"># in degrees</span>
-    <span class="n">duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>  <span class="c1"># in seconds</span>
+    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>  <span class="c1"># in degrees</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>  <span class="c1"># in seconds</span>
     <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>  <span class="c1"># in Hz</span>
     <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mf">291.156</span><span class="p">,</span> <span class="o">-</span><span class="mf">31.23</span><span class="p">),</span>
     <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">)</span>
@@ -469,14 +469,14 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightm
 <div class="highlight"><pre>
 Plan:
   start_time: 2024-08-06 03:00:00.000 +00:00
-  duration: 900 s
+  duration: 1200 s
   sample_rate: 50 Hz
   center:
     ra: 19ʰ24ᵐ37.44ˢ
     dec: -31°13’48.00”
   scan_pattern: daisy
-  scan_radius: 0.9989°
-  scan_kwargs: {&#39;radius&#39;: 0.5, &#39;speed&#39;: 0.1}
+  scan_radius: 0.6°
+  scan_kwargs: {&#39;radius&#39;: 0.3, &#39;speed&#39;: 0.05}
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -507,9 +507,9 @@ Plan:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 185MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 164MB/s]
-Constructing atmosphere: 100%|██████████| 10/10 [00:58&lt;00:00,  5.81s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 62.7MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 45.6MB/s]
+Constructing atmosphere: 100%|██████████| 10/10 [01:17&lt;00:00,  7.79s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -535,21 +535,21 @@ Simulation
 │   diurnal: True
 ├ Plan:
 │   start_time: 2024-08-06 03:00:00.000 +00:00
-│   duration: 900 s
+│   duration: 1200 s
 │   sample_rate: 50 Hz
 │   center:
 │     ra: 19ʰ24ᵐ37.44ˢ
 │     dec: -31°13’48.00”
 │   scan_pattern: daisy
-│   scan_radius: 0.9989°
-│   scan_kwargs: {&#39;radius&#39;: 0.5, &#39;speed&#39;: 0.1}
+│   scan_radius: 0.6°
+│   scan_kwargs: {&#39;radius&#39;: 0.3, &#39;speed&#39;: 0.05}
 ├ Atmosphere(10 processes with 10 layers):
 │ ├ spectrum:
 │ │   region: chajnantor
 │ └ weather:
 │     region: chajnantor
 │     altitude: 5065 m
-│     time: Aug 5 23:07:29 -04:00
+│     time: Aug 5 23:09:59 -04:00
 │     pwv[mean, rms]: (0.5 mm, 15 um)
 └ ProjectedMap:
     shape(stokes, nu, y, x): (1, 1, 1024, 1024)
@@ -586,11 +586,11 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 13.20it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:21&lt;00:00,  2.13s/it]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:15&lt;00:00,  7.84s/it, band=f150]
-Sampling map: 100%|██████████| 2/2 [00:28&lt;00:00, 14.40s/it, channel=[ 0. inf] Hz]
-Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.53s/it, band=f150]
+Generating turbulence: 100%|██████████| 10/10 [00:01&lt;00:00,  9.86it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:33&lt;00:00,  3.40s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:25&lt;00:00, 12.54s/it, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:53&lt;00:00, 26.77s/it, channel=[ 0. inf] Hz]
+Generating noise: 100%|██████████| 2/2 [00:04&lt;00:00,  2.47s/it, band=f150]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -598,7 +598,7 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.5
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(2116, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;pW&#39;, start=2024-08-06 03:14:59.979 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-06-20T14:46:53.364164+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.523})
+TOD(shape=(2116, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-06 03:19:59.978 +00:00, duration=1200.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-07-11T03:08:12.881304+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.519})
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -642,10 +642,10 @@ TOD(shape=(2116, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  2.46it/s, band=f090, stokes=I]
-2025-06-20 14:47:19.140 INFO: Ran mapper for band f090 in 20.25 s.
-Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  2.43it/s, band=f150, stokes=I]
-2025-06-20 14:47:38.143 INFO: Ran mapper for band f150 in 19 s.
+Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  1.76it/s, band=f090, stokes=I]
+2025-07-11 03:10:08.514 INFO: Ran mapper for band f090 in 17.96 s.
+Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  1.69it/s, band=f150, stokes=I]
+2025-07-11 03:10:25.622 INFO: Ran mapper for band f150 in 17.1 s.
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
