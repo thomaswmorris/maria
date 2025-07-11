@@ -12,7 +12,7 @@ def test_noise_levels():
         site="green_bank",
         noise=True,
     )
-    tod = sim.run()
+    tod = sim.run().to("pW")
 
     target_error = 1e12 * sim.instrument.dets.NEP / np.sqrt(sim.plan.duration)
 
