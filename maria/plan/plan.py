@@ -231,10 +231,37 @@ class Plan:
 
             ax = fig.add_subplot(122)
 
+            start_ha = "right" if az[0] > az.mean() else "left"
+            start_xytext = (10 if start_ha == "left" else -10, 0)
+
+            end_ha = "right" if az[-1] > az.mean() else "left"
+            end_xytext = (10 if end_ha == "left" else -10, 0)
+
+            annotate_kwargs = dict(
+                va="center",
+                xycoords="data",
+                textcoords="offset points",
+                bbox={"boxstyle": "round,pad=0.3", "fc": "w", "ec": "k", "alpha": 0.5, "lw": 1},
+            )
+
             ax.scatter(az[0].deg, el[0].deg, color="g", marker="+")
-            ax.annotate(xy=(az[0].deg, el[0].deg), text="start", c="g", ha="left", va="bottom")
             ax.scatter(az[-1].deg, el[-1].deg, color="r", marker="+")
-            ax.annotate(xy=(az[-1].deg, el[-1].deg), text="end", c="r", ha="left", va="bottom")
+            ax.annotate(
+                xy=(az[0].deg, el[0].deg),
+                xytext=start_xytext,
+                text=f"START ({self.repr_start_time})",
+                c="g",
+                ha=start_ha,
+                **annotate_kwargs,
+            )
+            ax.annotate(
+                xy=(az[-1].deg, el[-1].deg),
+                xytext=end_xytext,
+                text=f"END ({self.repr_end_time})",
+                c="r",
+                ha=end_ha,
+                **annotate_kwargs,
+            )
 
             ax.plot(az.deg, el.deg, lw=5e-1)
 
@@ -281,6 +308,14 @@ class Plan:
         cbar = fig.colorbar(heatmap, location="right")
         cbar.set_label("counts")
 
+    @property
+    def repr_start_time(self):
+        return self.start_time.format(DEFAULT_TIME_FORMAT)
+
+    @property
+    def repr_end_time(self):
+        return self.end_time.format(DEFAULT_TIME_FORMAT)
+
     def __repr__(self):
         cphi_repr, ctheta_repr = repr_phi_theta(*self.scan_center.rad, frame=self.frame)
 
@@ -305,8 +340,8 @@ class Plan:
 
         return f"""Plan:
   duration: {self.duration}
-    start: {self.start_time.format(DEFAULT_TIME_FORMAT)}
-    end:   {self.end_time.format(DEFAULT_TIME_FORMAT)}
+    start: {self.repr_start_time}
+    end:   {self.repr_end_time}
   location: {location_string}
   sample_rate: {self.sample_rate}
   {center_string}

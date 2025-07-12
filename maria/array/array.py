@@ -545,11 +545,14 @@ class Array:
         focal_ax.legend(handles=legend_handles, fontsize=8)
 
         band_ax.set_xlabel(rf"$\nu$ [${nu.u['math_name']}$]")
-        band_ax.set_ylabel(rf"$\tau(\nu)$")
+        band_ax.set_ylabel(rf"Passband response")
         band_ax.legend(handles=band_legend_handles, fontsize=8)
 
         band_ax.plot([nu_min, nu_max], [0, 0], c="k", lw=0.5, ls=":")
         band_ax.set_xlim(nu_min, nu_max)
+
+        band_ax.yaxis.tick_right()
+        band_ax.yaxis.set_label_position("right")
 
         xls, yls = focal_ax.get_xlim(), focal_ax.get_ylim()
         cen_x, cen_y = np.mean(xls), np.mean(yls)
