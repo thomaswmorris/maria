@@ -31,7 +31,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria import Planner\n",
+    "from maria import Planner \n",
     "\n",
     "planner = Planner(target=input_map, site=\"green_bank\", el_bounds=(60, 90))\n",
     "plan = planner.generate_plan(total_duration=900, sample_rate=100)\n",

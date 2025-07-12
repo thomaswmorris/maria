@@ -301,7 +301,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits: 100%|██████████| 2.00M/2.00M [00:00&lt;00:00, 62.0MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits: 100%|██████████| 2.00M/2.00M [00:00&lt;00:00, 178MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -356,8 +356,8 @@ ProjectedMap:
 <div class="highlight"><pre>
 Plan:
   duration: 900 s
-    start: 2025-07-12 16:25:04.648 +00:00
-    end:   2025-07-12 16:40:04.648 +00:00
+    start: 2025-07-13 13:36:25.236 +00:00
+    end:   2025-07-13 13:51:25.236 +00:00
   location:
     lat: 38°25’59.16” N
     lon: 79°50’23.28” W
@@ -366,10 +366,10 @@ Plan:
   center:
     ra:  05ʰ34ᵐ31.80ˢ
     dec: 22°01’3.00”
-    az(mean): 222.6°
-    el(mean): 69.09°
+    az(mean): 118.6°
+    el(mean): 62.22°
   scan_pattern: daisy
-  scan_radius: 8.82’
+  scan_radius: 8.817’
   scan_kwargs: {&#39;radius&#39;: np.float64(0.07358333333333249)}
 </pre></div></div>
 </div>
@@ -436,10 +436,9 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 128MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 159MB/s]
-Constructing atmosphere:  70%|███████   | 7/10 [00:04&lt;00:02,  1.46it/s]2025-07-12 16:25:20.638 WARNING: A large covariance matrix (n_side=1748) will be generated; inverting these matrices is very expensive.
-Constructing atmosphere: 100%|██████████| 10/10 [00:07&lt;00:00,  1.32it/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 214MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 219MB/s]
+Constructing atmosphere: 100%|██████████| 10/10 [00:07&lt;00:00,  1.35it/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -469,8 +468,8 @@ Simulation
 │   diurnal: True
 ├ Plan:
 │   duration: 900 s
-│     start: 2025-07-12 16:25:04.648 +00:00
-│     end:   2025-07-12 16:40:04.648 +00:00
+│     start: 2025-07-13 13:36:25.236 +00:00
+│     end:   2025-07-13 13:51:25.236 +00:00
 │   location:
 │     lat: 38°25’59.16” N
 │     lon: 79°50’23.28” W
@@ -479,10 +478,10 @@ Simulation
 │   center:
 │     ra:  05ʰ34ᵐ31.80ˢ
 │     dec: 22°01’3.00”
-│     az(mean): 222.6°
-│     el(mean): 69.09°
+│     az(mean): 118.6°
+│     el(mean): 62.22°
 │   scan_pattern: daisy
-│   scan_radius: 8.82’
+│   scan_radius: 8.817’
 │   scan_kwargs: {&#39;radius&#39;: np.float64(0.07358333333333249)}
 ├ Atmosphere(10 processes with 10 layers):
 │ ├ spectrum:
@@ -490,8 +489,8 @@ Simulation
 │ └ weather:
 │     region: green_bank
 │     altitude: 825 m
-│     time: Jul 12 12:32:34 -04:00
-│     pwv[mean, rms]: (28.83 mm, 0.865 mm)
+│     time: Jul 13 09:43:55 -04:00
+│     pwv[mean, rms]: (28.44 mm, 0.8531 mm)
 └ ProjectedMap:
     shape(stokes, nu, y, x): (1, 1, 500, 500)
     stokes: I
@@ -525,11 +524,11 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 34.43it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:03&lt;00:00,  2.78it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:03&lt;00:00,  3.85s/it, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:06&lt;00:00,  6.24s/it, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.22it/s, band=m2/f093]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 66.87it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:03&lt;00:00,  2.89it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:03&lt;00:00,  3.52s/it, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:05&lt;00:00,  5.97s/it, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.23it/s, band=m2/f093]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -573,8 +572,8 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.2
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00,  4.95it/s, band=m2/f093, stokes=I]
-2025-07-12 16:25:58.459 INFO: Ran mapper for band m2/f093 in 5.091 s.
+Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00,  5.13it/s, band=m2/f093, stokes=I]
+2025-07-12 17:57:17.602 INFO: Ran mapper for band m2/f093 in 4.963 s.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
