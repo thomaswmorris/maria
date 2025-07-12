@@ -71,7 +71,7 @@ def generate_layers(
 
     weather = sim.atmosphere.weather
 
-    weather_values = weather(altitude=sim.site.altitude + h_centers)
+    weather_values = weather(altitude=sim.site.altitude.m + h_centers)
 
     layers = pd.DataFrame(weather_values)
     layers.insert(0, "process_index", process_index)
@@ -84,7 +84,7 @@ def generate_layers(
     h_boundaries = [0, *(layers.h.values[:-1] + layers.h.values[1:]) / 2, 1e5]
 
     for layer_index, (h1, h2) in enumerate(zip(h_boundaries[:-1], h_boundaries[1:])):
-        dummy_h = sim.site.altitude + np.linspace(h1, h2, 1024)
+        dummy_h = sim.site.altitude.m + np.linspace(h1, h2, 1024)
         h = weather.altitude
         w = weather.absolute_humidity
         total_water = np.trapezoid(np.interp(dummy_h, h, w), x=dummy_h)

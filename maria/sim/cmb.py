@@ -40,12 +40,12 @@ class CMBMixin:
             # the CMB is not a Rayleigh-Jeans source, so we do the power integrals below
             test_T_b = np.array([T_CMB, T_CMB + eps])
             test_T_RJ = inverse_rayleigh_jeans_spectrum(
-                planck_spectrum(T_b=test_T_b, nu=band.nu[:, None]), nu=band.nu[:, None]
+                planck_spectrum(T_b=test_T_b, nu=band.nu.Hz[:, None]), nu=band.nu.Hz[:, None]
             )
 
             if hasattr(self, "atmosphere"):
                 opacity = sp.interpolate.interp1d(self.atmosphere.spectrum.side_nu, self.atmosphere.spectrum._opacity)(
-                    band.nu
+                    band.nu.Hz
                 )
 
                 # the 1e12 is for picowatts
@@ -53,8 +53,8 @@ class CMBMixin:
                     1e12
                     * k_B
                     * np.trapezoid(
-                        test_T_RJ[None, None, None] * (np.exp(-opacity) * band.passband(band.nu))[..., None],
-                        x=band.nu,
+                        test_T_RJ[None, None, None] * (np.exp(-opacity) * band.passband(band.nu.Hz))[..., None],
+                        x=band.nu.Hz,
                         axis=-2,
                     )
                 )
@@ -69,8 +69,8 @@ class CMBMixin:
                     1e12
                     * k_B
                     * np.trapezoid(
-                        test_T_RJ * band.passband(band.nu[:, None]),
-                        x=band.nu,
+                        test_T_RJ * band.passband(band.nu.Hz[:, None]),
+                        x=band.nu.Hz,
                         axis=-2,
                     )
                 )

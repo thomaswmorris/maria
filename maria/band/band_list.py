@@ -28,17 +28,17 @@ class BandList(Sequence):
 
     @property
     def nu_min(self):
-        return min([b.nu.min() for b in self.bands])
+        return min([band.nu.min() for band in self.bands])
 
     @property
     def nu_max(self):
-        return max([b.nu.max() for b in self.bands])
+        return max([band.nu.max() for band in self.bands])
 
     def plot(self):
         for band in self.bands:
             fig, ax = plt.subplots(1, 1)
-            ax.plot(band.nu, band.tau, label=band.name)
-
+            ax.plot(band.nu.Hz, band.tau, label=band.name)
+        ax.set_xlim(self.nu_min.Hz, self.nu_max.Hz)
         ax.set_xlabel(r"$\nu$ [GHz]")
         ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
         ax.legend()

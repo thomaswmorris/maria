@@ -39,10 +39,12 @@ class BaseMapper:
         calibrate: bool,
         tods: Sequence[TOD],
     ):
-        self.resolution = np.radians(resolution) if degrees else resolution
-        self.center = np.radians(center) if degrees else center
-        self.width = np.radians(width) if degrees else width
-        self.height = np.radians(height) if degrees else height
+        angle_units = "degrees" if degrees else "radians"
+
+        self.resolution = Quantity(resolution, angle_units)
+        self.center = Quantity(center, angle_units)
+        self.width = Quantity(width, angle_units)
+        self.height = Quantity(height, angle_units)
         self.degrees = degrees
         self.calibrate = calibrate
         self.frame = frame

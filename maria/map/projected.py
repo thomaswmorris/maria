@@ -107,8 +107,8 @@ class ProjectedMap(Map):
                 # here height must not be None
                 x_res = y_res = height / self.n_y
 
-        self.x_res = Quantity(x_res if degrees else np.degrees(x_res), "deg")
-        self.y_res = Quantity(y_res if degrees else np.degrees(y_res), "deg")
+        self.x_res = Quantity(x_res, "deg" if degrees else "rad")
+        self.y_res = Quantity(y_res, "deg" if degrees else "rad")
 
         if self.x_res.deg < 0:
             self.data, self.weight = self.data[::-1], self.weight[::-1]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .constants import MARIA_MAX_NU, MARIA_MIN_NU
+from .constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ
 from .units import Quantity
 
 
@@ -15,8 +15,8 @@ class ConfigurationError(Exception): ...
 
 class FrequencyOutOfBoundsError(Exception):
     def __init__(self, nu=None, center_and_width=None):
-        qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
-        qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
+        qmin_nu = Quantity(MARIA_MIN_NU_HZ, units="Hz")
+        qmax_nu = Quantity(MARIA_MAX_NU_HZ, units="Hz")
 
         if nu:
             super().__init__(

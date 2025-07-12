@@ -100,11 +100,12 @@ class Array:
         self.bands = BandList([band for band in bands if band.name in self.dets.band_name.values])
         self.config = config
 
-        for band_attr, det_attr in {
-            "center": "band_center",
-            "width": "band_width",
-        }.items():
-            self.dets.loc[:, det_attr] = getattr(self, band_attr)
+        # for band_attr, det_attr in {
+        #     "center": "band_center",
+        #     "width": "band_width",
+        # }.items():
+
+        # self.dets.loc[:, "band_center"] = getattr(self, band_attr.Hz)
 
     def split(self):
         array_list = []
@@ -197,14 +198,27 @@ class Array:
         """
         Angular beam width (in radians) as a function of depth (in meters)
         """
-        nu = self.band_center  # in GHz
-        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=nu)
+        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=self.band_center)
 
     def physical_fwhm(self, z):
         """
         Physical beam width (in meters) as a function of depth (in meters)
         """
         return z * self.angular_fwhm(z)
+
+    @property
+    def band_center(self):
+        values = np.zeros(shape=self.n, dtype=float)
+        for band in self.bands:
+            values[self.band_name == band.name] = band.center.Hz
+        return values
+
+    @property
+    def band_width(self):
+        values = np.zeros(shape=self.n, dtype=float)
+        for band in self.bands:
+            values[self.band_name == band.name] = band.width.Hz
+        return values
 
     def passband(self, nu):
         _nu = np.atleast_1d(nu)
@@ -296,7 +310,7 @@ class Array:
 
         max_resolution = max(
             [
-                compute_angular_fwhm(primary_size, z=np.inf, nu=band.center)
+                compute_angular_fwhm(primary_size, z=np.inf, nu=band.center.Hz)
                 for band in bands
                 for primary_size in primary_sizes
             ]
@@ -467,10 +481,10 @@ class Array:
         focal_plane_units = Quantity(self.offsets, "rad").units
         resolution_units = Quantity(self.fwhm, "rad").units
 
-        qnu_min, qnu_max = self.bands.nu_min, self.bands.nu_max
+        nu_min, nu_max = self.bands.nu_min, self.bands.nu_max
 
-        qnu = Quantity(np.linspace(self.bands.nu_min, self.bands.nu_max, 1024), "Hz")
-        qnu_min, qnu_max = qnu.value.min(), qnu.value.max()
+        nu = Quantity(np.linspace(self.bands.nu_min.Hz, self.bands.nu_max.Hz, 1024), "Hz")
+        nu_min, nu_max = nu.value.min(), nu.value.max()
 
         for ia, array in enumerate(self.split()):
             for ib, band in enumerate(array.bands):
@@ -507,7 +521,7 @@ class Array:
                     ),
                 )
 
-                band_ax.plot(qnu.value, band.passband(qnu.Hz), color=c)
+                band_ax.plot(nu.value, band.passband(nu.Hz), color=c)
 
                 legend_handles.append(
                     Patch(
@@ -530,12 +544,12 @@ class Array:
         focal_ax.set_ylabel(rf"$\theta_y$ offset [{focal_plane_units}]")
         focal_ax.legend(handles=legend_handles, fontsize=8)
 
-        band_ax.set_xlabel(rf"$\nu$ [${qnu.u['math_name']}$]")
+        band_ax.set_xlabel(rf"$\nu$ [${nu.u['math_name']}$]")
         band_ax.set_ylabel(rf"$\tau(\nu)$")
         band_ax.legend(handles=band_legend_handles, fontsize=8)
 
-        band_ax.plot([qnu_min, qnu_max], [0, 0], c="k", lw=0.5, ls=":")
-        band_ax.set_xlim(qnu_min, qnu_max)
+        band_ax.plot([nu_min, nu_max], [0, 0], c="k", lw=0.5, ls=":")
+        band_ax.set_xlim(nu_min, nu_max)
 
         xls, yls = focal_ax.get_xlim(), focal_ax.get_ylim()
         cen_x, cen_y = np.mean(xls), np.mean(yls)

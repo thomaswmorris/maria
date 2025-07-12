@@ -414,7 +414,7 @@ class TOD:
 
             metadata = {
                 "atmosphere": False,
-                "altitude": float(site.altitude),
+                "altitude": float(site.altitude.m),
                 "region": site.region,
                 "Real_obs": True,
                 "base_temperature": f[index].header.get("TAMBIENT", None),

@@ -14,7 +14,7 @@ from jax import scipy as jsp
 
 from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
-from ..constants import MARIA_MAX_NU, MARIA_MIN_NU, c
+from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c
 from ..errors import FrequencyOutOfBoundsError
 from ..units import Quantity
 from ..utils import flatten_config, read_yaml
@@ -112,13 +112,14 @@ class Band:
             )
 
         if auto:
-            self.nu, self.tau = generate_passband(center, width, shape, samples=1024)
+            nu, self.tau = generate_passband(center, width, shape, samples=1024)
+            self.nu = Quantity(nu, "Hz")
 
         if manual:
             tau_max = np.max(tau)
             efficiency *= tau_max
 
-            self.nu = np.array(nu)
+            self.nu = Quantity(nu, "Hz")
             self.tau = np.array(tau) / tau_max
 
             if (self.nu.ndim != 1) or (self.tau.ndim != 1) or (self.nu.shape != self.tau.shape):
@@ -126,20 +127,18 @@ class Band:
                     f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape}).",
                 )
 
-        bad_freqs = list(self.nu[(self.nu < MARIA_MIN_NU) | (self.nu > MARIA_MAX_NU)])
+        bad_freqs = list(self.nu[(self.nu.Hz < MARIA_MIN_NU_HZ) | (self.nu.Hz > MARIA_MAX_NU_HZ)])
         if bad_freqs:
-            qmin_nu = Quantity(MARIA_MIN_NU, units="Hz")
-            qmax_nu = Quantity(MARIA_MAX_NU, units="Hz")
             if nu is None:
                 raise FrequencyOutOfBoundsError(center_and_width=(center, width))
             else:
-                raise FrequencyOutOfBoundsError(nu=nu)
+                raise FrequencyOutOfBoundsError(nu=bad_freqs)
 
         # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
         self.name = name or f"f{10 ** (np.log10(self.center) % 3):>03.0f}"
         self.shape = shape
         self.efficiency = efficiency
-        self.NEP_per_loading = NEP_per_loading
+        self.NEP_per_loading = Quantity(NEP_per_loading, "W√s")
         self.knee = knee
         self.time_constant = time_constant
         self.gain_error = gain_error
@@ -162,44 +161,41 @@ class Band:
             )
             NET_RJ = sensitivity
 
-        if (NEP is None) and (NET_RJ is None) and (NET_CMB is None):
+        if NEP is not None:
+            self.NEP = Quantity(NEP, "W√s")
+        elif NET_RJ is not None:
+            self.NET_RJ = NET_RJ
+        elif NET_CMB is not None:
+            self.NET_CMB = NET_CMB
+        else:
             logger.warning(f"No noise level specified for band {self.name}, assuming a sensitivity of 50 uK_RJ√s.")
             self.NET_RJ = 50e-6
-
-        else:
-            if NEP is not None:
-                self.NEP = NEP
-            elif NET_RJ is not None:
-                self.NET_RJ = NET_RJ
-            elif NET_CMB is not None:
-                self.NET_CMB = NET_CMB
 
         self.transmission_integral_grids = {}
 
     @property
     def center(self):
-        return np.round(np.sum(self.nu * self.tau) / np.sum(self.tau), 2)
+        return Quantity(np.round(np.sum(self.nu.Hz * self.tau) / np.sum(self.tau), 2), "Hz")
 
     @property
     def width(self):
-        return np.round(self.fwhm, 2)
-
-    @property
-    def fwhm(self):
         crossovers = np.where((self.tau[1:] > 0.5) != (self.tau[:-1] > 0.5))[0]
-        return np.ptp(
-            [sp.interpolate.interp1d(self.tau[[i, i + 1]], self.nu[[i, i + 1]])(0.5) for i in crossovers],
+        return Quantity(
+            np.ptp(
+                [sp.interpolate.interp1d(self.tau[[i, i + 1]], self.nu.Hz[[i, i + 1]])(0.5) for i in crossovers],
+            ),
+            "Hz",
         )
 
     def summary(self):
         filling = {
             "name": self.name,
-            "center": Quantity(self.center, "Hz"),
-            "width": Quantity(self.width, "Hz"),
+            "center": self.center,
+            "width": self.width,
             "η": self.efficiency,
-            "NEP": Quantity(self.NEP, "W√s"),
-            "NET_RJ": Quantity(self.NET_RJ, "K√s"),
-            "NET_CMB": Quantity(self.NET_CMB, "K√s"),
+            "NEP": self.NEP,
+            "NET_RJ": self.NET_RJ,
+            "NET_CMB": self.NET_CMB,
         }
 
         summary = pd.Series(filling)
@@ -208,49 +204,35 @@ class Band:
     def __repr__(self):
         return f"Band({', '.join([f'{index}={entry}' for index, entry in self.summary().items()])})"
 
-    #     def __repr__(self):
-    #         return f"""{self.__class__.__name__}:
-    #   name: {self.name}
-    #   center: {Quantity(self.center, 'Hz')}
-    #   width: {Quantity(self.width, 'Hz')}
-    #   efficiency: {self.efficiency}
-    #   NEP: {Quantity(self.NEP, "W√s")}
-    #   NET_RJ: {Quantity(self.NET_RJ, "K√s")}
-    #   NET_CMB: {Quantity(self.NET_CMB, "K√s")}
-    # """
     def plot(self):
         fig, ax = plt.subplots(1, 1)
-
-        qnu = Quantity(self.nu, "Hz")
-
-        ax.plot(qnu.value, self.tau, label=self.name)
-
-        ax.set_xlim(qnu.value.min(), qnu.value.max())
-        ax.set_xlabel(rf"$\nu$ [${qnu.u['math_name']}$]")
+        ax.plot(self.nu.Hz, self.tau, label=self.name)
+        ax.set_xlim(self.nu.Hz.min(), self.nu.Hz.max())
+        ax.set_xlabel(rf"$\nu$ [${self.nu.u['math_name']}$]")
         ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
         ax.legend()
 
     @property
     def NET_RJ(self):
-        return self.cal("W -> K_RJ", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP).item()
+        return Quantity(self.cal("W -> K_RJ", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP.to("W√s")), "K√s")
 
     @NET_RJ.setter
     def NET_RJ(self, value):
-        self.NEP = self.cal("K_RJ -> W", spectrum=self.spectrum, **self.spectrum_kwargs)(value).item()
+        self.NEP = Quantity(self.cal("K_RJ -> W", spectrum=self.spectrum, **self.spectrum_kwargs)(value), "W√s")
 
     @property
     def NET_CMB(self):
-        return self.cal("W -> K_CMB", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP).item()
+        return Quantity(self.cal("W -> K_CMB", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP.to("W√s")), "K√s")
 
     @NET_CMB.setter
     def NET_CMB(self, value):
-        self.NEP = self.cal("K_CMB -> W", spectrum=self.spectrum, **self.spectrum_kwargs)(value).item()
+        self.NEP = Quantity(self.cal("K_CMB -> W", spectrum=self.spectrum, **self.spectrum_kwargs)(value), "W√s")
 
     def compute_nu_integral(
         self,
         spectrum: AtmosphericSpectrum = None,
-        nu_min: float = 0,
-        nu_max: float = np.inf,
+        nu_min_Hz: float = 0,
+        nu_max_Hz: float = np.inf,
         **kwargs,
     ):
         """
@@ -258,11 +240,11 @@ class Band:
         """
 
         if spectrum is None:
-            nu = self.nu[(self.nu >= nu_min) & (self.nu < nu_max)]
+            nu = self.nu.Hz[(self.nu.Hz >= nu_min_Hz) & (self.nu.Hz < nu_max_Hz)]
             return np.trapezoid(y=self.passband(nu), x=nu, axis=-1)
 
         else:
-            nu = spectrum.side_nu[(spectrum.side_nu >= nu_min) & (spectrum.side_nu < nu_max)]
+            nu = spectrum.side_nu[(spectrum.side_nu >= nu_min_Hz) & (spectrum.side_nu < nu_max_Hz)]
             integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=nu, axis=-1)
             xi = (kwargs["base_temperature"], kwargs["zenith_pwv"], kwargs["elevation"])
             return np.array(jsp.interpolate.RegularGridInterpolator(points=spectrum.points[:3], values=integral_grid)(xi))
@@ -291,7 +273,7 @@ class Band:
 
     def passband(self, nu):
         return self.efficiency * sp.interpolate.interp1d(
-            self.nu,
+            self.nu.Hz,
             self.tau,
             bounds_error=False,
             fill_value=0,

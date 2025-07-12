@@ -9,8 +9,8 @@ import numpy as np
 import scipy as sp
 
 from ..calibration import Calibration
-from ..constants import MARIA_MAX_NU, MARIA_MIN_NU
-from ..errors import FrequencyOutOfBoundsError
+from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ
+from ..errors import FrequencyOutOfBoundsError, ShapeError
 from ..units import Quantity, parse_units
 
 logger = logging.getLogger("maria")
@@ -86,8 +86,12 @@ class Map:
             self.stokes = ""
 
         if nu is not None:
-            self.nu = Quantity(np.atleast_1d(nu.Hz if isinstance(nu, Quantity) else nu), "Hz")
-            bad_freqs = list(self.nu[(self.nu.Hz < MARIA_MIN_NU) | (self.nu.Hz > MARIA_MAX_NU)])
+            self.nu = Quantity(nu, "Hz")
+            if self.nu.ndim == 0:
+                self.nu = Quantity([self.nu.Hz], "Hz")
+            if self.nu.ndim > 1:
+                raise ShapeError("'nu' can be at most one-dimensional")
+            bad_freqs = list(self.nu[(self.nu.Hz < MARIA_MIN_NU_HZ) | (self.nu.Hz > MARIA_MAX_NU_HZ)])
             if bad_freqs:
                 raise FrequencyOutOfBoundsError(bad_freqs)
             self.slice_dims["nu"] = len(self.nu)
@@ -275,4 +279,4 @@ class Map:
     @property
     def nu_bin_bounds(self):
         nu_boundaries = [0, *(self.nu.Hz[:-1] + self.nu.Hz[1:]) / 2, np.inf]
-        return [(nu1, nu2) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]
+        return [(Quantity(nu1, "Hz"), Quantity(nu2, "Hz")) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]

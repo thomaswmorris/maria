@@ -36,7 +36,7 @@ SITE_DISPLAY_COLUMNS = [
 site_data = pd.DataFrame(SITE_CONFIGS).T.sort_values("region")
 all_sites = list(site_data.index.values)
 
-REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude"]
+REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude", "timezone"]
 REGIONS = pd.read_csv(f"{here}/regions.csv", index_col=0)
 all_regions = list(REGIONS.index.values)
 
@@ -66,9 +66,9 @@ class InvalidSiteError(Exception):
 def get_location(site_name):
     site = get_site(site_name)
     return EarthLocation.from_geodetic(
-        lon=site.longitude,
-        lat=site.latitude,
-        height=site.altitude,
+        lon=site.longitude.deg,
+        lat=site.latitude.deg,
+        height=site.altitude.m,
     )
 
 
@@ -94,22 +94,22 @@ class Site:
         self,
         description: str = "",
         region: str = "princeton",
-        altitude: float = None,  # in meters
         seasonal: bool = True,
         diurnal: bool = True,
         latitude: float = None,  # in degrees
         longitude: float = None,  # in degrees
+        altitude: float = None,  # in meters
         weather_quantiles: dict = {},
         documentation: str = "",
         instruments: list = [],
     ):
         self.description = description
         self.region = region
-        self.altitude = altitude
         self.seasonal = seasonal
         self.diurnal = diurnal
-        self.latitude = latitude
-        self.longitude = longitude
+        self.latitude = Quantity(latitude, "deg")
+        self.longitude = Quantity(longitude, "deg")
+        self.altitude = Quantity(altitude, "m")
         self.weather_quantiles = weather_quantiles
         self.documentation = documentation
         self.instruments = instruments
@@ -193,11 +193,18 @@ class Site:
             ax.set_facecolor("gray")
             ax.set_rasterized(True)
 
+    @property
+    def location(self):
+        return (self.longitude, self.latitude, self.altitude)
+
     def __repr__(self):
+        repr_lat, repr_lon = repr_lat_lon(self.latitude.degrees, self.longitude.degrees)
         s = f"""Site:
   region: {self.region}
-  location: {repr_lat_lon(self.latitude, self.longitude)}
-  altitude: {Quantity(self.altitude, "m")}
+  location:
+    lat: {repr_lat}
+    lon: {repr_lon}
+    alt: {self.altitude}
   seasonal: {self.seasonal}
   diurnal: {self.diurnal}"""
 

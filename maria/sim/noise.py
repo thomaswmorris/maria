@@ -26,7 +26,9 @@ class NoiseMixin:
 
             band_mask = self.instrument.dets.band_name == band.name
 
-            self.total_NEP = band.NEP + band.NEP_per_loading * sum([d[band_mask].compute() for d in self.loading.values()])
+            self.total_NEP = band.NEP.to("W√s") + band.NEP_per_loading.to("W√s") * sum(
+                [d[band_mask].compute() for d in self.loading.values()]
+            )
 
             noise_loading[band_mask] = (
                 1e12

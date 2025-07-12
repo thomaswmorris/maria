@@ -104,12 +104,12 @@ def brightness_temperature_to_radiant_flux_explicit(
         integral = sp.interpolate.RegularGridInterpolator(points, integral_samples)(xi)
 
     else:
-        shaped_nu = np.expand_dims(band.nu, -1)
+        shaped_nu = np.expand_dims(band.nu.Hz, -1)
         sample_T_RJ = inverse_rayleigh_jeans_spectrum(
             planck_spectrum(T_b=shaped_T_b, nu=shaped_nu),
             nu=shaped_nu,
         )
-        integral = np.trapezoid(y=sample_T_RJ * band.passband(shaped_nu), x=band.nu, axis=-2)
+        integral = np.trapezoid(y=sample_T_RJ * band.passband(shaped_nu), x=band.nu.Hz, axis=-2)
 
     return (0.5 if polarized else 1.0) * k_B * integral
 
@@ -176,10 +176,10 @@ def T_RJ_per_T_CMB(
     """
     test_T_b = T_CMB + np.array([[-eps / 2], [+eps / 2]])
     T_RJ = inverse_rayleigh_jeans_spectrum(
-        planck_spectrum(T_b=test_T_b, nu=band.nu),
-        nu=band.nu,
+        planck_spectrum(T_b=test_T_b, nu=band.nu.Hz),
+        nu=band.nu.Hz,
     )
-    P = k_B * np.trapezoid(T_RJ * band.passband(band.nu), x=band.nu, axis=-1)
+    P = k_B * np.trapezoid(T_RJ * band.passband(band.nu.Hz), x=band.nu.Hz, axis=-1)
     return radiant_flux_to_rayleigh_jeans_temperature((P[1] - P[0]) / eps, spectrum=None, band=band)
 
 

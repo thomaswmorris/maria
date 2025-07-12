@@ -133,3 +133,14 @@ def detrend(D, order=3):
 
 def remove_slope(D):
     return D - np.linspace(D[..., 0], D[..., -1], D.shape[-1]).T
+
+
+def grouper(iterable, min_length=60):
+    prev_value = False
+    for index, this_value in enumerate(iterable):
+        if this_value and not prev_value:
+            start = index
+        elif prev_value and not this_value:
+            if index - start >= min_length:
+                yield (start, index)
+        prev_value = this_value

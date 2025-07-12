@@ -60,13 +60,14 @@ class Quantity:
     def __init__(self, value, units, force_units=False):
         self.u = parse_units(units)
 
-        if isinstance(value, type(self)):
-            self.value = value.to(units)
-        else:
-            try:
-                self.value = np.array(value).astype(float)
-            except Exception:
-                raise TypeError("'value' must be a number")
+        if isinstance(value, Quantity):
+            value = value.to(units)
+        if np.ndim(value) == 1:
+            value = np.array([x.to(units) if isinstance(x, Quantity) else x for x in value])
+        try:
+            self.value = np.array(value).astype(float)
+        except Exception:
+            raise TypeError("'value' must be a number")
 
         if not force_units:
             self.humanize()
@@ -96,7 +97,7 @@ class Quantity:
         self.value = x / self.u["factor"]
 
     def pin(self, units):
-        return type(self)(value=self.to(units), units=units, force_units=True)
+        return Quantity(value=self.to(units), units=units, force_units=True)
 
     @property
     def quantity(self) -> str:
@@ -154,7 +155,15 @@ class Quantity:
 
     @property
     def shape(self):
-        return Quantity(np.shape(self.value), units=self.units)
+        return np.shape(self.value)
+
+    @property
+    def size(self):
+        return np.size(self.value)
+
+    @property
+    def ndim(self):
+        return np.ndim(self.value)
 
     def __getattr__(self, attr):
         try:
@@ -169,6 +178,9 @@ class Quantity:
     def __format__(self, *args, **kwargs):
         return repr(self).__format__(*args, **kwargs)
 
+    def __round__(self, ndigits=0):
+        return Quantity(self.value.round(), self.currency)
+
     def __float__(self):
         return float(self.value)
 
@@ -182,13 +194,13 @@ class Quantity:
         return Quantity(-self.value, units=self.units)
 
     def convert_other(self, other):
-        if isinstance(other, type(self)):
+        if isinstance(other, Quantity):
             if self.quantity == other.quantity:
                 return other.to(self.units)
             else:
                 raise TypeError(f"Cannot add quantity '{self.q['long_name']}' to quantity '{other.q['long_name']}'")
-        elif other == 0:
-            return type(self)(0, self.units)
+        elif np.all(other == 0):
+            return Quantity(np.zeros(np.shape(other)), self.units)
         raise TypeError(f"{self} and {other} are incompatible quantities")
 
     def __eq__(self, other):
@@ -208,7 +220,7 @@ class Quantity:
 
     def __add__(self, other):
         addend = self.convert_other(other)
-        return type(self)(self.value + addend, units=self.units)
+        return Quantity(self.value + addend, units=self.units)
 
     def __radd__(self, other):
         return self.__add__(other)
@@ -220,13 +232,19 @@ class Quantity:
         return self.__sub__(other)
 
     def __mul__(self, other):
-        return type(self)(self.value * other, units=self.units)
+        if isinstance(other, Quantity):
+            raise TypeError("Multiplying quantities is not supported.")
+        return Quantity(self.value * other, units=self.units)
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        return type(self)(self.value / other, units=self.units)
+        if isinstance(other, Quantity):
+            if self.quantity == other.quantity:
+                return self.value / other.to(self.units)
+        else:
+            return Quantity(self.value / other, units=self.units)
 
     def __rtruediv__(self, other):
-        return self.__truediv__(other)
+        return self.convert_other(other) / self.value

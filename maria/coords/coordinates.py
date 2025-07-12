@@ -17,6 +17,8 @@ from astropy.time import Time
 from scipy.interpolate import interp1d
 
 from ..io import DEFAULT_TIME_FORMAT, humanize_time, repr_lat_lon
+from ..units import Quantity
+from ..utils import get_utc_day_hour, get_utc_year_day
 from .transforms import (
     get_center_phi_theta,
     offsets_to_phi_theta,
@@ -258,6 +260,14 @@ class Coordinates:
         return clone
 
     @property
+    def day_hour(self):
+        return np.array(list(map(get_utc_day_hour, self.t)))
+
+    @property
+    def year_day(self):
+        return np.array(list(map(get_utc_year_day, self.t)))
+
+    @property
     def timestep(self):
         if len(self.t):
             return np.mean(np.gradient(self.t))
@@ -377,4 +387,23 @@ class Coordinates:
 
         date_string = arrow.get(np.mean(self.t)).to("utc").format(DEFAULT_TIME_FORMAT)
 
-        return f"Coordinates(shape={self.shape}, earth_location=({repr_lat_lon(lat, lon)}), time='{date_string} UTC')"
+        return f"Coordinates(shape={self.shape}, earth_location={repr_lat_lon(lat, lon)}, time='{date_string} UTC')"
+
+    @property
+    def longitude(self):
+        return Quantity(self.earth_location.lon.deg, "deg")
+
+    @property
+    def latitude(self):
+        return Quantity(self.earth_location.lat.deg, "deg")
+
+    def __repr__(self):
+        repr_lat, repr_lon = repr_lat_lon(self.latitude.degrees, self.longitude.degrees)
+        return f"""Coordinates:
+  shape: {self.shape}
+  location:
+    lat: {repr_lat}
+    lon: {repr_lon}
+  time:
+    min: {arrow.get(self.t.min()).format(DEFAULT_TIME_FORMAT)}
+    max: {arrow.get(self.t.max()).format(DEFAULT_TIME_FORMAT)}"""

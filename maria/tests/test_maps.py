@@ -34,14 +34,14 @@ def test_maps(map_path):
 
 def test_trivial_recover_original_map():
     f090 = Band(center=90e9, width=30e9)
-    f150 = Band(center=150e9, width=30e9)
-    f220 = Band(center=220e9, width=30e9)
+    f150 = Band(center=150e9, width=40e9)
+    f220 = Band(center=220e9, width=50e9)
 
     map_filename = fetch("maps/cluster1.fits")
     input_map = maria.map.load(filename=map_filename, nu=150e9).to("K_RJ")[..., ::8, ::8]
 
     input_map.data -= input_map.data.mean().compute()
-    map_width = np.degrees(input_map.width)
+    map_width = input_map.width.degrees
 
     array = {
         "field_of_view": map_width / 2,
@@ -57,7 +57,7 @@ def test_trivial_recover_original_map():
         scan_options={"radius": map_width / 4, "speed": map_width / 10},  # in degrees
         duration=60,  # in seconds
         sample_rate=50,  # in Hz
-        scan_center=np.degrees(input_map.center),
+        scan_center=input_map.center,
         jitter=0,
         frame="ra_dec",
     )

@@ -87,6 +87,9 @@ class BaseSimulation:
         logger.debug(f"Initialized instrument in {humanize_time(ttime.monotonic() - start_init_s)}.")
         instrument_init_s = ttime.monotonic()
 
+        # if not isinstance(plan, list):
+        #     plan = [plan]
+
         if isinstance(plan, Plan):
             self.plan = plan
         else:
@@ -101,7 +104,7 @@ class BaseSimulation:
             self.site = get_site(site_name=site, **parsed_sim_kwargs["site"])
         else:
             raise ValueError(
-                "The passed site must be either a Site object or a string.",
+                "'site' must be either a Site object or a string.",
             )
 
         logger.debug(f"Initialized site in {humanize_time(ttime.monotonic() - plan_init_s)}.")
@@ -158,7 +161,7 @@ class BaseSimulation:
         metadata = {
             "atmosphere": False,
             "sim_time": arrow.now(),
-            "altitude": float(self.site.altitude),
+            "altitude": float(self.site.altitude.m),
             "region": self.site.region,
         }
 

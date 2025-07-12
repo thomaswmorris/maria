@@ -54,7 +54,7 @@ class MapMixin:
             band_fwhm = compute_angular_fwhm(
                 fwhm_0=self.instrument.dets.primary_size.mean(),
                 z=np.inf,
-                nu=band.center,
+                nu=band.center.Hz,
             )
 
             # ideally we would do this for each nu bin, but that's slow
@@ -62,7 +62,7 @@ class MapMixin:
 
             for channel_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
                 channel_map = smoothed_map.data[:, channel_index]
-                qchannel = Quantity([nu_min, nu_max], "Hz")
+                qchannel = (nu_min, nu_max)
                 channel_string = f"{qchannel}"
 
                 bands_pbar.set_postfix(channel=channel_string)
@@ -80,7 +80,9 @@ class MapMixin:
                 )
 
                 calibration_s = ttime.monotonic()
-                pW_per_K_RJ = 1e12 * k_B * band.compute_nu_integral(nu_min=nu_min, nu_max=nu_max, **spectrum_kwargs)
+                pW_per_K_RJ = (
+                    1e12 * k_B * band.compute_nu_integral(nu_min_Hz=nu_min.Hz, nu_max_Hz=nu_max.Hz, **spectrum_kwargs)
+                )
                 logger.debug(
                     f"Computed K_RJ -> pW calibration for band {band.name}, channel {channel_string} in "
                     f"{humanize_time(ttime.monotonic() - calibration_s)}"

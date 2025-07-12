@@ -28,20 +28,6 @@ def unwrap_angle(angle):
     return np.angle(np.exp(1j * (angle - cntr_angle))) + cntr_angle
 
 
-def grouper(iterable, tol=1):
-    prev = None
-    group = []
-    for item in iterable:
-        if prev is None or item - prev <= tol:
-            group.append(item)
-        else:
-            yield group
-            group = [item]
-        prev = item
-    if group:
-        yield group
-
-
 def downsample(DATA, rate, axis=-1, method="triangle"):
     if method == "flat":
         _DATA = np.swapaxes(DATA, 0, axis)

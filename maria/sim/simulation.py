@@ -219,9 +219,10 @@ class Simulation(BaseSimulation, AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin
 
         trees = []
         attrs = [attr for attr in ["atmosphere", "cmb", "map"] if getattr(self, attr, None)]
-        for attr in attrs[:-1]:
-            trees.append("├ " + getattr(self, attr).__repr__().replace("\n", "\n│ "))
-        trees.append("└ " + getattr(self, attrs[-1]).__repr__().replace("\n", "\n  "))
+        if attrs:
+            for attr in attrs[:-1]:
+                trees.append("├ " + getattr(self, attr).__repr__().replace("\n", "\n│ "))
+            trees.append("└ " + getattr(self, attrs[-1]).__repr__().replace("\n", "\n  "))
 
         trees_string = "\n".join(trees)
 
