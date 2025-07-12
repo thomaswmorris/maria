@@ -1,6 +1,7 @@
 maps/30dor.fits
 maps/3c288.fits
 maps/M51HA.fits
+maps/crab_nebula.fits
 maps/cluster1.fits
 maps/cluster2.fits
 maps/cluster3.fits
