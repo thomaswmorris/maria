@@ -16,7 +16,7 @@ class Planner:
         az_bounds: tuple = (0.0, 360.0),
         el_bounds: tuple = (30.0, 90.0),
         hour_bounds: tuple = (0.0, 24.0),
-        max_lookahead: float = 86400.0,
+        max_lookahead: float = 2 * 86400.0,
         start_time: float = arrow.get(),
     ):
         if isinstance(site, Site):
