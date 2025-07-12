@@ -21,6 +21,7 @@ A map is represented by a ``Map`` object. We can load some pre-defined ones with
                                frame="ra_dec",
                                units="Jy/pixel")
 
+    print(input_map)
     input_map.to(units="uK_RJ").plot()
 
 

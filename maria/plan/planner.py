@@ -82,6 +82,10 @@ class Planner:
     def generate_plans(self, total_duration: float, chunk_duration: float = None, **plan_kwargs):
         chunks = self.generate_obs_intervals(total_duration=total_duration, chunk_duration=chunk_duration)
 
+        scan_options = {"radius": self.target.width.degrees / 2}
+        scan_options.update(plan_kwargs.get("scan_options", {}))
+        plan_kwargs["scan_options"] = scan_options
+
         return [
             Plan(
                 scan_center=self.target.center,

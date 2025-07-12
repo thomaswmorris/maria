@@ -54,7 +54,7 @@ class Plan:
         description: str = "",
         start_time: str | int = "2024-02-10T06:00:00",
         duration: float = 60.0,
-        sample_rate: float = 20.0,
+        sample_rate: float = 50.0,
         frame: str = "ra_dec",
         degrees: bool = True,
         jitter: float = 0,
@@ -67,8 +67,8 @@ class Plan:
     ):
         self.description = description
         self.start_time = start_time
-        self.duration = duration
-        self.sample_rate = sample_rate
+        self.duration = Quantity(duration, "s")
+        self.sample_rate = Quantity(sample_rate, "Hz")
         self.frame = frame
         self.degrees = degrees
         self.jitter = jitter
@@ -89,7 +89,7 @@ class Plan:
             self.earth_location = None
 
         if not self.sample_rate > 0:
-            raise ValueError("Parameter 'sample_rate' must be greater than zero!")
+            raise ValueError("'sample_rate' must be greater than zero")
 
         # for k, v in PLAN_CONFIGS[self.scan_pattern]["scan_options"].items():
         #     if k not in self.scan_options.keys():
@@ -101,7 +101,7 @@ class Plan:
 
         self.time_min = self.start_time.timestamp()
         self.time_max = self.end_time.timestamp()
-        self.dt = 1 / self.sample_rate
+        self.dt = 1 / self.sample_rate.Hz
 
         self.time = np.arange(self.time_min, self.time_max, self.dt)
         self.n_time = len(self.time)
@@ -173,16 +173,19 @@ class Plan:
 
     @property
     def end_time(self):
-        return self.start_time.shift(seconds=self.duration)
+        return self.start_time.shift(seconds=self.duration.s)
 
     @property
     def frame_data(self):
         return frames[self.frame]
 
-    def plot(self):
-        q_offsets = Quantity(self.scan_offsets, units="rad")
+    @property
+    def naive(self):
+        return self.earth_location is None
 
-        frame = coords.frames[self.frame]
+    def plot(self, plot_az_el: bool = None):
+        two_panel = plot_az_el if plot_az_el is not None else (self.frame != "az_el" and not self.naive)
+        q_offsets = Quantity(self.scan_offsets, units="rad")
         header = fits.header.Header()
         header["CDELT1"] = -q_offsets.u["factor"]
         header["CDELT2"] = q_offsets.u["factor"]
@@ -198,8 +201,8 @@ class Plan:
 
         wcs = WCS(header)
 
-        fig = plt.figure(figsize=(5, 5), dpi=256, constrained_layout=True)
-        ax = fig.add_subplot(projection=wcs)
+        fig = plt.figure(figsize=(5, 5) if self.naive else (10, 5), dpi=256, constrained_layout=True)
+        ax = fig.add_subplot(111 if two_panel is None else 121, projection=wcs)
 
         cphi_repr, ctheta_repr = repr_phi_theta(*self.scan_center.rad, frame=self.frame)
 
@@ -212,12 +215,34 @@ class Plan:
 
         ax.tick_params(axis="x", bottom=True, top=False)
         ax.tick_params(axis="y", left=True, right=False, rotation=90)
+
         ax2 = ax.secondary_xaxis("top")
-        ay2 = ax.secondary_yaxis("right")
         ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.u['math_name']}$]")
-        ay2.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.u['math_name']}$]")
         ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
         ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
+
+        if not two_panel:
+            ay2 = ax.secondary_yaxis("right")
+            ay2.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.u['math_name']}$]")
+
+        if two_panel:
+            az = Quantity(self.coords.az, "rad")
+            el = Quantity(self.coords.el, "rad")
+
+            ax = fig.add_subplot(122)
+
+            ax.scatter(az[0].deg, el[0].deg, color="g", marker="+")
+            ax.annotate(xy=(az[0].deg, el[0].deg), text="start", c="g", ha="left", va="bottom")
+            ax.scatter(az[-1].deg, el[-1].deg, color="r", marker="+")
+            ax.annotate(xy=(az[-1].deg, el[-1].deg), text="end", c="r", ha="left", va="bottom")
+
+            ax.plot(az.deg, el.deg, lw=5e-1)
+
+            ax.set_xlabel("Azimuth [degrees]")
+            ax.set_ylabel("Elevation [degrees]")
+
+            ax.yaxis.tick_right()
+            ax.yaxis.set_label_position("right")
 
     def map_counts(self, instrument=None, x_bins=64, y_bins=64):
         array_offsets = np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
@@ -263,7 +288,7 @@ class Plan:
     {cphi_repr}
     {ctheta_repr}"""
 
-        if self.earth_location is not None:
+        if not self.naive:
             repr_lat, repr_lon = repr_lat_lon(self.latitude.degrees, self.longitude.degrees)
             location_string = f"""
     lat: {repr_lat}
@@ -279,11 +304,11 @@ class Plan:
             location_string = f"naive"
 
         return f"""Plan:
-  duration: {Quantity(self.duration, "s")}
+  duration: {self.duration}
     start: {self.start_time.format(DEFAULT_TIME_FORMAT)}
     end:   {self.end_time.format(DEFAULT_TIME_FORMAT)}
   location: {location_string}
-  sample_rate: {Quantity(self.sample_rate, "Hz")}
+  sample_rate: {self.sample_rate}
   {center_string}
   scan_pattern: {self.scan_pattern}
   scan_radius: {Quantity(compute_diameter(self.scan_offsets.T), "rad")}

@@ -13,7 +13,7 @@ from .io import fetch, set_cache_dir  # noqa
 from .map import all_maps  # noqa
 from .plan import Plan, Planner, all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
-from .site import Site, all_regions, all_sites, get_site  # noqa
+from .site import Site, all_regions, all_sites, get_site, site_data  # noqa
 
 logging.getLogger("jax._src.xla_bridge").setLevel(logging.ERROR)
 

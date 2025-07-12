@@ -35,7 +35,7 @@ class NoiseMixin:
                 * self.total_NEP
                 * generate_noise_with_knee(
                     shape=(band_mask.sum(), self.plan.n_time),
-                    sample_rate=self.plan.sample_rate,
+                    sample_rate=self.plan.sample_rate.Hz,
                     knee=band.knee,
                 )
             )

@@ -184,6 +184,9 @@ class Quantity:
     def __float__(self):
         return float(self.value)
 
+    def __bool__(self):
+        return True
+
     def __len__(self):
         return len(self.value)
 

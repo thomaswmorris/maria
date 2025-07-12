@@ -342,10 +342,20 @@ class ProjectedMap(Map):
             d, w = d[stokes_index], w[stokes_index]
 
         if "nu" in self.dims:
-            d, w = d[nu_index], w[nu_index]
+            try:
+                d, w = d[nu_index], w[nu_index]
+            except IndexError:
+                raise IndexError(
+                    f"nu_index={nu_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
+                )
 
         if "t" in self.dims:
-            d, w = d[t_index], w[t_index]
+            try:
+                d, w = d[t_index], w[t_index]
+            except IndexError:
+                raise IndexError(
+                    f"t_index={t_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
+                )
 
         if cmap == "default":
             cmap = "CMRmap" if stokes == "I" else "cmb"

@@ -99,15 +99,16 @@ class Coordinates:
         t_ordered_center_phi_theta = np.c_[get_center_phi_theta(self._phi, self._theta, keep_dims=keep_dims)]
 
         # (nt) t samples on which to explicitly compute the transformation from astropy
-        t_samples_min_res_seconds = 10
+        t_samples_min_res_seconds = 60
         t_samples_min = np.min(self.t) - 1e0
         t_samples_max = np.max(self.t) + 1e0
         n_t_samples = int(
             np.maximum(
-                2,
+                3,
                 (t_samples_max - t_samples_min) / t_samples_min_res_seconds,
             ),
         )
+
         self.fid_t = np.linspace(t_samples_min, t_samples_max, n_t_samples)
 
         sample_indices = interp1d(
@@ -172,7 +173,7 @@ class Coordinates:
         )  # noqa
 
     def compute_transform(self, frame):
-        ref_time = ttime.monotonic()
+        compute_transform_start_s = ttime.monotonic()
 
         if frame not in frames:
             raise ValueError(f"Cannot compute transform for invalid frame '{frame}'.")
@@ -204,7 +205,7 @@ class Coordinates:
         transform_stack = interp1d(
             self.fid_t,
             self.transforms[frame],
-            kind="linear",
+            kind="quadratic",
             bounds_error=False,
             fill_value="extrapolate",
             axis=0,
@@ -219,9 +220,9 @@ class Coordinates:
 
         self.computed_frames.append(frame)
 
-        duration_s = ttime.monotonic() - ref_time
+        duration = ttime.monotonic() - compute_transform_start_s
         logger.debug(
-            f"Computed transform to frame '{frame}' for {self} in {humanize_time(duration_s)}.",
+            f"Computed transform to frame '{frame}' for {self} in {humanize_time(duration)}.",
         )  # noqa
 
     @property

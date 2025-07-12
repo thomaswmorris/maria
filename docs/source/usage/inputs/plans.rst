@@ -7,19 +7,34 @@ Plans
 Overview
 --------
 
+How an instrument observes is represented as a ``Plan``. Because it can be difficult to tell when a given source will be far enough above the horizon to observe, the easiest way to generate a plan is with a ``Planner``.
 
-The observing site is represented by a ``Plan``. For example:
+++++++++
+Planners
+++++++++
+
+We can generate plans with the ``Planner`` as
 
 .. plot:: 
    :include-source: True
 
     import maria
+    from maria import Planner
 
-    daisy_scan = maria.get_plan("daisy_2deg_3min")
-    daisy_scan.plot()
+    input_map = maria.map.load(maria.io.fetch("maps/crab_nebula.fits")) # load an example map
 
-.. hint:: To see all available pre-defined sites, run ``print(maria.all_plans)``.
+    planner = Planner(target=input_map, 
+                      site="green_bank", 
+                      el_bounds=(60, 90)) # make a planner
 
+    plan = planner.generate_plan(total_duration=600, # in seconds
+                                 scan_options={"radius": input_map.width.deg / 3}, # in degrees
+                                 sample_rate=50) # in Hz
+
+    plan.plot()
+
+
+Passing parameters to ``generate_plan`` will be passed to the ``Plan``.
 
 +++++++++++++++++
 Customizing Plans
