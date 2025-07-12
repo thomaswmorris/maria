@@ -303,15 +303,16 @@
     <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">60e-6</span><span class="p">,</span>
     <span class="n">knee</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
     <span class="n">gain_error</span><span class="o">=</span><span class="mf">5e-2</span><span class="p">)</span>
-</pre></div>
+<br/></pre></div>
 </div>
 </div>
+<p>We next define an array config, which specifies how detectors will be distributed on the focal plane. In this case, we supply our two bands as the <code class="docutils literal notranslate"><span class="pre">bands</span></code> argument, which will generate an array of multichroic detectors (for monochroic detectors, we would supply e.g. <code class="docutils literal notranslate"><span class="pre">&quot;bands&quot;:</span> <span class="pre">[f090]</span></code>). The resolution of each detector is determined by frequency of the band and the <code class="docutils literal notranslate"><span class="pre">primary_size</span></code> parameter. The number of detectors is determined by filling up the specified <code class="docutils literal notranslate"><span class="pre">field_of_view</span></code> with detector
+beams, with a relative spacing determined by the <code class="docutils literal notranslate"><span class="pre">beam_spacing</span></code> parameter.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-         <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;circle&quot;</span><span class="p">,</span>
          <span class="s2">&quot;beam_spacing&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
          <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
          <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f090</span><span class="p">,</span> <span class="n">f150</span><span class="p">]}</span>
@@ -331,7 +332,7 @@
 Instrument(1 array)
 ├ arrays:
 │             n     FOV baseline        bands polarized
-│  array1  2116  29.85’      0 m  [f090,f150]     False
+│  array1  1798  29.74’      0 m  [f090,f150]     False
 │
 └ bands:
       name   center   width    η         NEP   NET_RJ     NET_CMB     FWHM
@@ -343,70 +344,12 @@ Instrument(1 array)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_3_1.png" src="../_images/tutorials_custom-map-simulations_3_1.png" />
+<img alt="../_images/tutorials_custom-map-simulations_4_1.png" src="../_images/tutorials_custom-map-simulations_4_1.png" />
 </div>
 </div>
-<p>Here, the <code class="docutils literal notranslate"><span class="pre">fetch</span></code> function downloads a map to the path <code class="docutils literal notranslate"><span class="pre">map_filename</span></code>, but <code class="docutils literal notranslate"><span class="pre">map_filename</span></code> can be any <code class="docutils literal notranslate"><span class="pre">.h5</span></code> or <code class="docutils literal notranslate"><span class="pre">.fits</span></code> file of an image that corresponds to the <code class="docutils literal notranslate"><span class="pre">maria</span></code> map convention (see <a class="reference external" href="https://thomaswmorris.com/maria/usage/inputs/maps">Maps</a>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Site</span></code> defines the observing location, as well as the weather conditions. <code class="docutils literal notranslate"><span class="pre">maria</span></code> knows about a bunch of astronomical observing sites (to see them, run <code class="docutils literal notranslate"><span class="pre">print(maria.site_data)</span></code>); we can instantiate them using the <code class="docutils literal notranslate"><span class="pre">get_site</span></code> function. We can modify the site by passing kwargs to the <code class="docutils literal notranslate"><span class="pre">get_site</span></code> function, like changing its <code class="docutils literal notranslate"><span class="pre">altitude</span></code> (which will affect the vertical profile of different atmospheric parameters).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch</span>
-
-<span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster1.fits&quot;</span><span class="p">)</span>
-
-<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
-    <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
-    <span class="n">nu</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span>
-    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mf">291.156</span><span class="p">,</span> <span class="o">-</span><span class="mf">31.23</span><span class="p">))</span>
-<span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">1e1</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
-<span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 48.4MB/s]
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-ProjectedMap:
-  shape(nu, y, x): (1, 1024, 1024)
-  stokes: naive
-  nu: [150.] GHz
-  t: naive
-  z: naive
-  quantity: spectral_flux_density_per_pixel
-  units: Jy/pixel
-    min: -3.845e-05
-    max: -5.005e-08
-  center:
-    ra: 19ʰ24ᵐ37.44ˢ
-    dec: -31°13’48.00”
-  size(y, x): (1°, 1°)
-  resolution(y, x): (3.516”, 3.516”)
-  beam(maj, min, rot): (0°, 0°, 0°)
-  memory: 16.78 MB
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_5_2.png" src="../_images/tutorials_custom-map-simulations_5_2.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">site</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">5065</span><span class="p">)</span>
@@ -423,8 +366,10 @@ ProjectedMap:
 <div class="highlight"><pre>
 Site:
   region: chajnantor
-  location: 23°01’45.84”S 67°45’17.28”W
-  altitude: 5065 m
+  location:
+    lat: 23°01’45.84” S
+    lon: 67°45’17.28” W
+    alt: 5065 m
   seasonal: True
   diurnal: True
 </pre></div></div>
@@ -434,7 +379,7 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 27.8MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 137MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -444,18 +389,81 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightm
 <img alt="../_images/tutorials_custom-map-simulations_6_2.png" src="../_images/tutorials_custom-map-simulations_6_2.png" />
 </div>
 </div>
+<p>Here the <code class="docutils literal notranslate"><span class="pre">fetch</span></code> function downloads a map to the path <code class="docutils literal notranslate"><span class="pre">map_filename</span></code>, but <code class="docutils literal notranslate"><span class="pre">map_filename</span></code> can be any <code class="docutils literal notranslate"><span class="pre">.h5</span></code> or <code class="docutils literal notranslate"><span class="pre">.fits</span></code> file of an image that corresponds to the <code class="docutils literal notranslate"><span class="pre">maria</span></code> map convention (see <a class="reference external" href="https://thomaswmorris.com/maria/usage/inputs/maps">Maps</a>). Additional kwargs added to the <code class="docutils literal notranslate"><span class="pre">maria.map.load</span></code> overwrite the metadata of the loaded map.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch</span>
+
+<span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster1.fits&quot;</span><span class="p">)</span>
+
+<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
+    <span class="n">nu</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span>
+    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mf">291.156</span><span class="p">,</span> <span class="o">-</span><span class="mf">31.23</span><span class="p">))</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">2e1</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 94.9MB/s]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ProjectedMap:
+  shape(nu, y, x): (1, 1024, 1024)
+  stokes: naive
+  nu: [150.] GHz
+  t: naive
+  z: naive
+  quantity: spectral_flux_density_per_pixel
+  units: Jy/pixel
+    min: -7.691e-05
+    max: -1.001e-07
+  center:
+    ra:  19ʰ24ᵐ37.44ˢ
+    dec: -31°13’48.00”
+  size(y, x): (1°, 1°)
+  resolution(y, x): (3.516”, 3.516”)
+  beam(maj, min, rot): (0°, 0°, 0°)
+  memory: 16.78 MB
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_custom-map-simulations_8_2.png" src="../_images/tutorials_custom-map-simulations_8_2.png" />
+</div>
+</div>
+<p>We plan an observation using the <code class="docutils literal notranslate"><span class="pre">Planner</span></code>, which ensures that a given <code class="docutils literal notranslate"><span class="pre">target</span></code> as seen by a given <code class="docutils literal notranslate"><span class="pre">site</span></code> will be high enough above the horizon.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Plan</span><span class="p">(</span>
-    <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2024-08-06T03:00:00&quot;</span><span class="p">,</span>
-    <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
-    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>  <span class="c1"># in degrees</span>
-    <span class="n">duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>  <span class="c1"># in seconds</span>
-    <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>  <span class="c1"># in Hz</span>
-    <span class="n">scan_center</span><span class="o">=</span><span class="p">(</span><span class="mf">291.156</span><span class="p">,</span> <span class="o">-</span><span class="mf">31.23</span><span class="p">),</span>
-    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Planner</span>
+
+<span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2024-08-06T03:00:00&quot;</span><span class="p">,</span>
+                  <span class="n">target</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
+                  <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">,</span>
+                  <span class="n">el_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">90</span><span class="p">))</span>
+
+<span class="n">plan</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plan</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>  <span class="c1"># in seconds</span>
+                             <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
+                             <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span> <span class="o">/</span> <span class="mi">3</span><span class="p">},</span>
+                             <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -468,22 +476,29 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightm
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Plan:
-  start_time: 2024-08-06 03:00:00.000 +00:00
   duration: 1200 s
+    start: 2024-08-06 03:00:00.000 +00:00
+    end:   2024-08-06 03:20:00.000 +00:00
+  location:
+    lat: 23°01’45.84” S
+    lon: 67°45’17.28” W
+    alt: 5065 m
   sample_rate: 50 Hz
   center:
-    ra: 19ʰ24ᵐ37.44ˢ
+    ra:  19ʰ24ᵐ37.44ˢ
     dec: -31°13’48.00”
+    az(mean): 198.9°
+    el(mean): 81.24°
   scan_pattern: daisy
-  scan_radius: 0.6°
-  scan_kwargs: {&#39;radius&#39;: 0.3, &#39;speed&#39;: 0.05}
+  scan_radius: 0.666°
+  scan_kwargs: {&#39;radius&#39;: np.float64(0.3333333333333333)}
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_7_1.png" src="../_images/tutorials_custom-map-simulations_7_1.png" />
+<img alt="../_images/tutorials_custom-map-simulations_10_1.png" src="../_images/tutorials_custom-map-simulations_10_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -507,9 +522,9 @@ Plan:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 62.7MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 45.6MB/s]
-Constructing atmosphere: 100%|██████████| 10/10 [01:17&lt;00:00,  7.79s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 145MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 144MB/s]
+Constructing atmosphere: 100%|██████████| 10/10 [00:48&lt;00:00,  4.89s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -521,7 +536,7 @@ Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
 │ │             n     FOV baseline        bands polarized
-│ │  array1  2116  29.85’      0 m  [f090,f150]     False
+│ │  array1  1798  29.74’      0 m  [f090,f150]     False
 │ │
 │ └ bands:
 │       name   center   width    η         NEP   NET_RJ     NET_CMB     FWHM
@@ -529,20 +544,29 @@ Simulation
 │    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK√s    104 uK√s      21”
 ├ Site:
 │   region: chajnantor
-│   location: 23°01’45.84”S 67°45’17.28”W
-│   altitude: 5065 m
+│   location:
+│     lat: 23°01’45.84” S
+│     lon: 67°45’17.28” W
+│     alt: 5065 m
 │   seasonal: True
 │   diurnal: True
 ├ Plan:
-│   start_time: 2024-08-06 03:00:00.000 +00:00
 │   duration: 1200 s
+│     start: 2024-08-06 03:00:00.000 +00:00
+│     end:   2024-08-06 03:20:00.000 +00:00
+│   location:
+│     lat: 23°01’45.84” S
+│     lon: 67°45’17.28” W
+│     alt: 5065 m
 │   sample_rate: 50 Hz
 │   center:
-│     ra: 19ʰ24ᵐ37.44ˢ
+│     ra:  19ʰ24ᵐ37.44ˢ
 │     dec: -31°13’48.00”
+│     az(mean): 198.9°
+│     el(mean): 81.24°
 │   scan_pattern: daisy
-│   scan_radius: 0.6°
-│   scan_kwargs: {&#39;radius&#39;: 0.3, &#39;speed&#39;: 0.05}
+│   scan_radius: 0.666°
+│   scan_kwargs: {&#39;radius&#39;: np.float64(0.3333333333333333)}
 ├ Atmosphere(10 processes with 10 layers):
 │ ├ spectrum:
 │ │   region: chajnantor
@@ -559,10 +583,10 @@ Simulation
     z: naive
     quantity: rayleigh_jeans_temperature
     units: K_RJ
-      min: -1.915e-04
-      max: -2.492e-07
+      min: -3.830e-04
+      max: -4.984e-07
     center:
-      ra: 19ʰ24ᵐ37.44ˢ
+      ra:  19ʰ24ᵐ37.44ˢ
       dec: -31°13’48.00”
     size(y, x): (1°, 1°)
     resolution(y, x): (3.516”, 3.516”)
@@ -570,6 +594,7 @@ Simulation
     memory: 16.78 MB
 </pre></div></div>
 </div>
+<p>We run the simulation, which spits out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> object (which stands for time-ordered data). We can then plot the <code class="docutils literal notranslate"><span class="pre">TOD</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -586,11 +611,11 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:01&lt;00:00,  9.86it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:33&lt;00:00,  3.40s/it]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:25&lt;00:00, 12.54s/it, band=f150]
-Sampling map: 100%|██████████| 2/2 [00:53&lt;00:00, 26.77s/it, channel=[ 0. inf] Hz]
-Generating noise: 100%|██████████| 2/2 [00:04&lt;00:00,  2.47s/it, band=f150]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 10.00it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:24&lt;00:00,  2.48s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:18&lt;00:00,  9.07s/it, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:34&lt;00:00, 17.20s/it, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.82s/it, band=f150]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -598,16 +623,17 @@ Generating noise: 100%|██████████| 2/2 [00:04&lt;00:00,  2.4
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(2116, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-06 03:19:59.978 +00:00, duration=1200.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-07-11T03:08:12.881304+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.519})
+TOD(shape=(1798, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-06 03:19:59.978 +00:00, duration=1200.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-07-12T16:23:18.836140+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.519})
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_9_2.png" src="../_images/tutorials_custom-map-simulations_9_2.png" />
+<img alt="../_images/tutorials_custom-map-simulations_13_2.png" src="../_images/tutorials_custom-map-simulations_13_2.png" />
 </div>
 </div>
+<p>We can then map the <code class="docutils literal notranslate"><span class="pre">TOD</span></code> using the built-in mapper.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -615,11 +641,11 @@ TOD(shape=(2116, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
-    <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mf">291.156</span><span class="p">,</span> <span class="o">-</span><span class="mf">31.23</span><span class="p">),</span>
+    <span class="n">center</span><span class="o">=</span><span class="n">input_map</span><span class="o">.</span><span class="n">center</span><span class="p">,</span>
     <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
-    <span class="n">resolution</span><span class="o">=</span><span class="mf">1.</span> <span class="o">/</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">input_map</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="n">input_map</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mi">256</span><span class="p">,</span>
     <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tukey&quot;</span><span class="p">,</span> <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
         <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
@@ -642,10 +668,10 @@ TOD(shape=(2116, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  1.76it/s, band=f090, stokes=I]
-2025-07-11 03:10:08.514 INFO: Ran mapper for band f090 in 17.96 s.
-Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  1.69it/s, band=f150, stokes=I]
-2025-07-11 03:10:25.622 INFO: Ran mapper for band f150 in 17.1 s.
+Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  1.99it/s, band=f090, stokes=I]
+2025-07-12 16:24:44.300 INFO: Ran mapper for band f090 in 13.69 s.
+Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  2.04it/s, band=f150, stokes=I]
+2025-07-12 16:24:57.917 INFO: Ran mapper for band f150 in 13.61 s.
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
@@ -661,7 +687,7 @@ Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  1.
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_12_0.png" src="../_images/tutorials_custom-map-simulations_12_0.png" />
+<img alt="../_images/tutorials_custom-map-simulations_17_0.png" src="../_images/tutorials_custom-map-simulations_17_0.png" />
 </div>
 </div>
 </section>

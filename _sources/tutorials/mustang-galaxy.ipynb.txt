@@ -19,10 +19,10 @@
     "import maria\n",
     "from maria.io import fetch\n",
     "\n",
-    "input_map = maria.map.load(fetch(\"maps/M51HA.fits\"), nu=93e9)\n",
+    "input_map = maria.map.load(fetch(\"maps/crab_nebula.fits\"), nu=93e9)\n",
     "\n",
-    "print(input_map)\n",
-    "input_map.to(\"K_RJ\").plot()"
+    "input_map.plot()\n",
+    "print(input_map)"
    ]
   },
   {
@@ -31,16 +31,13 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "plan = maria.get_plan(\n",
-    "    scan_pattern=\"daisy\",  # scanning pattern\n",
-    "    scan_options={\"radius\": 2 / 60, \"speed\": 0.5 / 60},  # in degrees\n",
-    "    duration=600,  # integration time in seconds\n",
-    "    sample_rate=50,  # in Hz\n",
-    "    scan_center=(202.27211, 47.195277),  # position in the sky\n",
-    "    frame=\"ra_dec\",\n",
-    ")\n",
+    "from maria import Planner\n",
     "\n",
-    "plan.plot()"
+    "planner = Planner(target=input_map, site=\"green_bank\", el_bounds=(60, 90))\n",
+    "plan = planner.generate_plan(total_duration=900, sample_rate=100)\n",
+    "\n",
+    "plan.plot()\n",
+    "print(plan)"
    ]
   },
   {
@@ -90,11 +87,11 @@
     "from maria.mappers import BinMapper\n",
     "\n",
     "mapper = BinMapper(\n",
-    "    center=(202.27211, 47.195277),\n",
+    "    center=input_map.center,\n",
     "    frame=\"ra_dec\",\n",
-    "    width=6 / 60,\n",
-    "    height=6 / 60,\n",
-    "    resolution=0.03 / 60,\n",
+    "    width=10 / 60,\n",
+    "    height=10 / 60,\n",
+    "    resolution=0.05 / 60,\n",
     "    tod_preprocessing={\n",
     "        \"window\": {\"name\": \"hamming\"},\n",
     "        \"remove_modes\": {\"modes_to_remove\": [0]},\n",

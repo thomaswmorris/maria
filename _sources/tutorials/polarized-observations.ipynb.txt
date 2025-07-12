@@ -102,17 +102,14 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "plan = maria.Plan(\n",
-    "    start_time=\"2024-08-06T03:00:00\",\n",
-    "    scan_pattern=\"daisy\",\n",
-    "    scan_options={\"radius\": 0.5, \"speed\": 0.1},  # in degrees\n",
-    "    duration=900,  # in seconds\n",
-    "    sample_rate=50,  # in Hz\n",
-    "    scan_center=(0, -23),\n",
-    "    frame=\"ra_dec\")\n",
+    "from maria import Planner\n",
     "\n",
-    "print(plan)\n",
-    "plan.plot()"
+    "planner = Planner(target=input_map, site=\"llano_de_chajnantor\", el_bounds=(60, 90))\n",
+    "plan = planner.generate_plan(total_duration=900,  # in seconds\n",
+    "                             sample_rate=50)  # in Hz\n",
+    "\n",
+    "plan.plot()\n",
+    "print(plan)"
    ]
   },
   {

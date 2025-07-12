@@ -40,18 +40,25 @@
     "    width=30e9, \n",
     "    NET_RJ=60e-6, \n",
     "    knee=1e0, \n",
-    "    gain_error=5e-2)"
+    "    gain_error=5e-2)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3",
+   "metadata": {},
+   "source": [
+    "We next define an array config, which specifies how detectors will be distributed on the focal plane. In this case, we supply our two bands as the `bands` argument, which will generate an array of multichroic detectors (for monochroic detectors, we would supply e.g. `\"bands\": [f090]`). The resolution of each detector is determined by frequency of the band and the `primary_size` parameter. The number of detectors is determined by filling up the specified `field_of_view` with detector beams, with a relative spacing determined by the `beam_spacing` parameter."
    ]
   },
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "3",
+   "id": "4",
    "metadata": {},
    "outputs": [],
    "source": [
     "array = {\"field_of_view\": 0.5, \n",
-    "         \"shape\": \"circle\", \n",
     "         \"beam_spacing\": 1.5,\n",
     "         \"primary_size\": 25, \n",
     "         \"bands\": [f090, f150]}\n",
@@ -64,31 +71,10 @@
   },
   {
    "cell_type": "markdown",
-   "id": "4",
-   "metadata": {},
-   "source": [
-    "Here, the `fetch` function downloads a map to the path `map_filename`, but `map_filename` can be any `.h5` or `.fits` file of an image that corresponds to the `maria` map convention (see [Maps](https://thomaswmorris.com/maria/usage/inputs/maps))."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
    "id": "5",
    "metadata": {},
-   "outputs": [],
    "source": [
-    "from maria.io import fetch\n",
-    "\n",
-    "map_filename = fetch(\"maps/cluster1.fits\")\n",
-    "\n",
-    "input_map = maria.map.load(\n",
-    "    filename=map_filename,\n",
-    "    nu=150e9,\n",
-    "    center=(291.156, -31.23))\n",
-    "input_map.data *= 1e1\n",
-    "\n",
-    "print(input_map)\n",
-    "input_map.to(\"K_RJ\").plot()"
+    "The `Site` defines the observing location, as well as the weather conditions. ``maria`` knows about a bunch of astronomical observing sites (to see them, run `print(maria.site_data)`); we can instantiate them using the `get_site` function. We can modify the site by passing kwargs to the ``get_site`` function, like changing its `altitude` (which will affect the vertical profile of different atmospheric parameters). "
    ]
   },
   {
@@ -105,20 +91,60 @@
    ]
   },
   {
+   "cell_type": "markdown",
+   "id": "7",
+   "metadata": {},
+   "source": [
+    "Here the `fetch` function downloads a map to the path `map_filename`, but `map_filename` can be any `.h5` or `.fits` file of an image that corresponds to the `maria` map convention (see [Maps](https://thomaswmorris.com/maria/usage/inputs/maps)). Additional kwargs added to the `maria.map.load` overwrite the metadata of the loaded map."
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": null,
-   "id": "7",
+   "id": "8",
    "metadata": {},
    "outputs": [],
    "source": [
-    "plan = maria.Plan(\n",
-    "    start_time=\"2024-08-06T03:00:00\",\n",
-    "    scan_pattern=\"daisy\",\n",
-    "    scan_options={\"radius\": 0.3, \"speed\": 0.05},  # in degrees\n",
-    "    duration=1200,  # in seconds\n",
-    "    sample_rate=50,  # in Hz\n",
-    "    scan_center=(291.156, -31.23),\n",
-    "    frame=\"ra_dec\")\n",
+    "from maria.io import fetch\n",
+    "\n",
+    "map_filename = fetch(\"maps/cluster1.fits\")\n",
+    "\n",
+    "input_map = maria.map.load(\n",
+    "    filename=map_filename,\n",
+    "    nu=150e9,\n",
+    "    center=(291.156, -31.23))\n",
+    "input_map.data *= 2e1 \n",
+    "\n",
+    "print(input_map)\n",
+    "input_map.to(\"K_RJ\").plot()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9",
+   "metadata": {},
+   "source": [
+    "We plan an observation using the `Planner`, which ensures that a given `target` as seen by a given `site` will be high enough above the horizon."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "10",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from maria import Planner\n",
+    "\n",
+    "planner = Planner(start_time=\"2024-08-06T03:00:00\",\n",
+    "                  target=input_map, \n",
+    "                  site=site, \n",
+    "                  el_bounds=(40, 90))\n",
+    "\n",
+    "plan = planner.generate_plan(total_duration=1200,  # in seconds\n",
+    "                             scan_pattern=\"daisy\",\n",
+    "                             scan_options={\"radius\": input_map.width.deg / 3},\n",
+    "                             sample_rate=50)\n",
     "\n",
     "print(plan)\n",
     "plan.plot()"
@@ -127,7 +153,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "8",
+   "id": "11",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -143,9 +169,17 @@
    ]
   },
   {
+   "cell_type": "markdown",
+   "id": "12",
+   "metadata": {},
+   "source": [
+    "We run the simulation, which spits out a `TOD` object (which stands for time-ordered data). We can then plot the `TOD`:"
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": null,
-   "id": "9",
+   "id": "13",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -156,20 +190,28 @@
    ]
   },
   {
+   "cell_type": "markdown",
+   "id": "14",
+   "metadata": {},
+   "source": [
+    "We can then map the `TOD` using the built-in mapper."
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": null,
-   "id": "10",
+   "id": "15",
    "metadata": {},
    "outputs": [],
    "source": [
     "from maria.mappers import BinMapper\n",
     "\n",
     "mapper = BinMapper(\n",
-    "    center=(291.156, -31.23),\n",
+    "    center=input_map.center,\n",
     "    frame=\"ra_dec\",\n",
-    "    width=1.,\n",
-    "    height=1.,\n",
-    "    resolution=1. / 256,\n",
+    "    width=input_map.width,\n",
+    "    height=input_map.height,\n",
+    "    resolution=input_map.width / 256,\n",
     "    tod_preprocessing={\n",
     "        \"window\": {\"name\": \"tukey\", \"kwargs\": {\"alpha\": 0.1}},\n",
     "        \"remove_spline\": {\"knot_spacing\": 30, \"remove_el_gradient\": True},\n",
@@ -188,7 +230,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "11",
+   "id": "16",
    "metadata": {},
    "source": [
     "We can see the recovered map with"
@@ -197,7 +239,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "12",
+   "id": "17",
    "metadata": {},
    "outputs": [],
    "source": [

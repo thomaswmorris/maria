@@ -282,21 +282,32 @@
 <span id="id1"></span><h1>Plans<a class="headerlink" href="#plans" title="Link to this heading">¶</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
-<p>The observing site is represented by a <code class="docutils literal notranslate"><span class="pre">Plan</span></code>. For example:</p>
+<p>How an instrument observes is represented as a <code class="docutils literal notranslate"><span class="pre">Plan</span></code>. Because it can be difficult to tell when a given source will be far enough above the horizon to observe, the easiest way to generate a plan is with a <code class="docutils literal notranslate"><span class="pre">Planner</span></code>.</p>
+<section id="planners">
+<h3>Planners<a class="headerlink" href="#planners" title="Link to this heading">¶</a></h3>
+<p>We can generate plans with the <code class="docutils literal notranslate"><span class="pre">Planner</span></code> as</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Planner</span>
 
-<span class="n">daisy_scan</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_plan</span><span class="p">(</span><span class="s2">&quot;daisy_2deg_3min&quot;</span><span class="p">)</span>
-<span class="n">daisy_scan</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">maria</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/crab_nebula.fits&quot;</span><span class="p">))</span> <span class="c1"># load an example map</span>
+
+<span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
+                  <span class="n">site</span><span class="o">=</span><span class="s2">&quot;green_bank&quot;</span><span class="p">,</span>
+                  <span class="n">el_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">90</span><span class="p">))</span> <span class="c1"># make a planner</span>
+
+<span class="n">plan</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plan</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="c1"># in seconds</span>
+                             <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span> <span class="o">/</span> <span class="mi">3</span><span class="p">},</span> <span class="c1"># in degrees</span>
+                             <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span> <span class="c1"># in Hz</span>
+
+<span class="n">plan</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>(<a class="reference download internal" download="" href="../../_downloads/acf591c25fad5ca5ffa0c90d0bef7a90/plans-1.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../../_downloads/a0eeb3b665222924a6c91ae6c9fe293a/plans-1.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../../_downloads/b3880d5b1ac71aa9c2e6c81a0270b8c2/plans-1.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../../_downloads/9fbf28fcd0a0dde068033263c089a1c2/plans-1.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="../../_images/plans-1.png" class="plot-directive" src="../../_images/plans-1.png" />
 </figure>
-<div class="admonition hint">
-<p class="admonition-title">Hint</p>
-<p>To see all available pre-defined sites, run <code class="docutils literal notranslate"><span class="pre">print(maria.all_plans)</span></code>.</p>
-</div>
+<p>Passing parameters to <code class="docutils literal notranslate"><span class="pre">generate_plan</span></code> will be passed to the <code class="docutils literal notranslate"><span class="pre">Plan</span></code>.</p>
+</section>
 <section id="customizing-plans">
 <h3>Customizing Plans<a class="headerlink" href="#customizing-plans" title="Link to this heading">¶</a></h3>
 <p>A 60-second zenith stare would be instantiated as</p>
@@ -379,6 +390,7 @@
             <ul>
 <li><a class="reference internal" href="#">Plans</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#planners">Planners</a></li>
 <li><a class="reference internal" href="#customizing-plans">Customizing Plans</a></li>
 </ul>
 </li>

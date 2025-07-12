@@ -9,4 +9,5 @@ input_map = maria.map.load(filename=map_filename,
                            frame="ra_dec",
                            units="Jy/pixel")
 
+print(input_map)
 input_map.to(units="uK_RJ").plot()
