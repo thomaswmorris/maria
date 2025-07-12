@@ -14,7 +14,7 @@ def test_noise_levels():
     )
     tod = sim.run().to("pW")
 
-    target_error = 1e12 * sim.instrument.dets.NEP / np.sqrt(sim.plan.duration)
+    target_error = sim.instrument.bands[0].NEP.to("pW√s") / np.sqrt(sim.plan.duration.s)
 
     # this is should be distributed as a zero-mean unit-variance Gaussian
     scaled_residuals = tod.noise.compute().mean(axis=1) / target_error
