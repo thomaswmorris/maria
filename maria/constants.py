@@ -16,5 +16,5 @@ k_B = 1.380649e-23
 # CMB temperature (K)
 T_CMB = 2.72548
 
-MARIA_MIN_NU = 1e6  # 1 MHz
-MARIA_MAX_NU = 15e12  # 150 THz
+MARIA_MIN_NU_HZ = 1e6  # 1 MHz
+MARIA_MAX_NU_HZ = 15e12  # 150 THz
