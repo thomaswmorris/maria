@@ -13,12 +13,19 @@ def repr_lat_lon(lat, lon):
     return lat_repr, lon_repr
 
 
-def repr_phi_theta(phi, theta, frame):
+def repr_phi_theta(phi, theta, frame, join=None):
     qphi = Quantity(phi, "rad")
     qtheta = Quantity(theta, "rad")
     if frame == "az_el":
-        return (f"az: {qphi.deg:.02f}°", f"el: {qtheta.deg:.02f}°")
-    if frame == "ra_dec":
-        return (f"ra:  {qphi.hms}", f"dec: {qtheta.dms}")
-    if frame == "galactic":
-        return (f"l: {qphi.deg:.02f}°", f"b: {qtheta.deg:.02f}°")
+        res = (f"az: {qphi.deg:.02f}°", f"el: {qtheta.deg:.02f}°")
+    elif frame == "ra_dec":
+        res = (f"ra:  {qphi.hms}", f"dec: {qtheta.dms}")
+    elif frame == "galactic":
+        res = (f"l: {qphi.deg:.02f}°", f"b: {qtheta.deg:.02f}°")
+    else:
+        raise ValueError(f"Invalid frame '{frame}'")
+
+    if join is not None:
+        res = join.join(res)
+
+    return res

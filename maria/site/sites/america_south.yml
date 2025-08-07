@@ -4,6 +4,7 @@ cerro_chajnantor:
   - CCAT
   - TAO
   region: chajnantor
+  timezone: America/Santiago
   latitude: -22.9862
   longitude: -67.7422
   altitude: 5600
@@ -16,6 +17,7 @@ cerro_toco:
   - POLARBEAR
   - SO
   region: chajnantor
+  timezone: America/Santiago
   latitude: -22.9586
   longitude: -67.7878
   altitude: 5190
@@ -27,6 +29,7 @@ llano_de_chajnantor:
   - ALMA
   - APEX
   region: chajnantor
+  timezone: America/Santiago
   latitude: -23.0294
   longitude: -67.7548
   altitude: 5064
