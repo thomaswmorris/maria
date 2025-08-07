@@ -22,8 +22,8 @@ def test_spectrum_from_cache(region_name):
 def test_atmosphere_2d():
     sim = Simulation(
         instrument="MUSTANG-2",
-        plan="one_minute_zenith_stare",
+        plans="one_minute_zenith_stare",
         site="green_bank",
         atmosphere="2d",
     )
-    tod = sim.run()  # noqa
+    tods = sim.run()  # noqa

@@ -1,5 +1,6 @@
 meerkat:
   description: Meerkat National Park
+  timezone: Africa/Johannesburg
   instruments:
   - HERA
   - HIRAX
@@ -12,6 +13,7 @@ meerkat:
 
 teide:
   description: Teide Observatory
+  timezone: Atlantic/Canary
   instruments:
   - QUIJOTE
   region: teide

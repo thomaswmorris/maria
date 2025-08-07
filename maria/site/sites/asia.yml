@@ -3,6 +3,7 @@ qitai:
   instruments:
   - QRT
   region: qitai
+  timezone: Asia/Urumqi
   latitude: 43.6011
   longitude: 89.6825
   altitude: 1800
@@ -14,6 +15,7 @@ alicpt:
   instruments:
   - AliCPT
   region: ngari
+  timezone: Asia/Shanghai
   latitude: 32.311
   longitude: 80.031
   altitude: 5176

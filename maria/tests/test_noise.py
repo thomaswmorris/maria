@@ -8,13 +8,13 @@ from maria import Simulation
 def test_noise_levels():
     sim = Simulation(
         instrument="MUSTANG-2",
-        plan="one_minute_zenith_stare",
+        plans="one_minute_zenith_stare",
         site="green_bank",
         noise=True,
     )
-    tod = sim.run().to("pW")
+    tod = sim.run()[0].to("pW")
 
-    target_error = sim.instrument.bands[0].NEP.to("pW√s") / np.sqrt(sim.plan.duration.s)
+    target_error = sim.instrument.bands[0].NEP.to("pW√s") / np.sqrt(sim.plans.duration.s)
 
     # this is should be distributed as a zero-mean unit-variance Gaussian
     scaled_residuals = tod.noise.compute().mean(axis=1) / target_error
