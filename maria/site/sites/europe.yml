@@ -3,6 +3,7 @@ effelsberg:
   instruments:
   - ERT
   region: effelsberg
+  timezone: Europe/Berlin
   latitude: 50.5247
   longitude: 6.8828
   altitude: 319
