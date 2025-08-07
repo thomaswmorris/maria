@@ -1,5 +1,7 @@
+import logging
 import os
 import re
+from functools import cached_property
 
 import numpy as np
 import pandas as pd
@@ -9,111 +11,297 @@ from ..utils import deg_to_signed_dms, deg_to_signed_hms
 from .prefixes import PREFIXES
 
 here, this_filename = os.path.split(__file__)
+logger = logging.getLogger("maria")
 
+PREFIXES = pd.read_csv(f"{here}/prefixes.csv", index_col=0)
+PREFIXES.loc[""] = "", "", "", 0, 1e0
+PREFIXES.sort_values("factor", ascending=True, inplace=True)
+PREFIXES.loc[:, "primary"] = np.log10(PREFIXES.factor.values) % 3 == 0
+
+dim_entries = {}
+QUANTITY_DIM_BASIS = []
 with open(f"{here}/quantities.yml") as f:
-    QUANTITIES = yaml.safe_load(f)
+    unit_entries = {}
+    for quantity, q in yaml.safe_load(f).items():
+        QUANTITY_DIM_BASIS.append(f"{q['base_unit_prefix']}{q['base_unit']}")
+        dim_entries[quantity] = q["recipe"]
+        for unit, config in q["units"].items():
+            config["quantity"] = quantity
+            # config["quantity_base_unit"] = q["base_unit"]
+            # config["quantity_base_unit_prefix"] = q["base_unit_prefix"]
+            config["aliases"] = set([unit, config["long_name"], *config.get("aliases", [])])
+        unit_entries.update(q["units"])
 
-units_entries = {}
-for q, q_config in QUANTITIES.items():
-    for unit, unit_entry in q_config.pop("units").items():
-        units_entries[unit] = {**unit_entry, "quantity": q, "quantity_default_unit": q_config["default_unit"]}
-        units_entries[unit]["aliases"] = [unit, *units_entries[unit].get("aliases", [])]
-
-UNITS = pd.DataFrame(units_entries).fillna("").T
+DIMENSIONS = pd.DataFrame(dim_entries).sort_index().T.fillna(0)
+UNITS = pd.DataFrame(unit_entries).T
+UNITS["human"] = UNITS["human"].astype(bool).fillna(True)
+UNITS["symbol"] = UNITS["symbol"].fillna("")
 UNITS["factor"] = UNITS["factor"].astype(float)
 
 prefixes_phrase = r"|".join(PREFIXES.index)
 base_units_phrase = r"|".join([alias for _, entry in UNITS.iterrows() for alias in entry.aliases]).replace("^", "\\^")
-units_pattern = re.compile(rf"^(?P<prefix>({prefixes_phrase}))(?P<base_unit>{base_units_phrase})$")  # noqa
+units_pattern = re.compile(rf"^(?P<prefix>({prefixes_phrase}))(?P<raw_unit>{base_units_phrase})(\^(?P<power>.*))?$")  # noqa
 
 
-def parse_units(u):
-    match = units_pattern.search(u)
+def parse_units(units):
+    match = units_pattern.search(units)
     if match is None:
         raise ValueError(
-            f"Invalid units '{u}'. Valid units are a combination of an SI prefix "
+            f"Invalid units '{units}'. Valid units are a combination of an SI prefix "
             f"(one of {prefixes_phrase}) and a base unit (one of {base_units_phrase}).",
         )
 
-    units_dict = match.groupdict()
-    prefix = PREFIXES.loc[units_dict["prefix"]]
+    u = match.groupdict()
     for _, entry in UNITS.iterrows():
-        if units_dict["base_unit"] in entry["aliases"]:
-            base_unit = entry
+        if u["raw_unit"] in entry.aliases:
+            u["raw_unit"] = entry.name
             break
 
-    units_dict["units"] = f"{prefix.name}{base_unit.name}"
-    units_dict.update(base_unit.to_dict())
-    units_dict["long_name"] = f"{prefix.long_name}{base_unit.long_name}"
-    units_dict["math_name"] = f"{prefix.symbol_latex}{base_unit.math_name}"
-    units_dict["factor"] = base_unit.factor * prefix.factor
-    if not units_dict["symbol"]:
-        units_dict.pop("symbol")
-    return units_dict
+    u.update(UNITS.loc[u["raw_unit"]])
+    prefix = PREFIXES.loc[u["prefix"]]
+    u["units"] = f"{prefix.name}{u['raw_unit']}"
+    u["long_name"] = f"{prefix.long_name}{u['long_name']}"
+    u["math_name"] = f"{prefix.symbol_latex}{u['math_name']}"
+    u["factor"] *= prefix.factor
+    if not u["symbol"]:
+        u.pop("symbol")
+    return u
+
+
+def get_factor_and_base_units_vector(units):
+    factor = 1
+    base_units_vector = np.zeros(len(DIMENSIONS.columns))
+
+    for subunit in units.split(" "):
+        u = parse_units(subunit)
+        u.update(UNITS.loc[u["raw_unit"]])
+        u["power"] = float(u["power"]) if u["power"] else 1.0
+        base_units_vector += u["power"] * np.array(DIMENSIONS.loc[u["quantity"]])
+        factor *= (u["factor"] * PREFIXES.loc[u["prefix"], "factor"]) ** u["power"]
+
+    return factor, pd.Series(base_units_vector, index=DIMENSIONS.columns)
+
+
+def repr_power(thing, power):
+    if power == 0:
+        return None
+    if power == 1:
+        pow_string = ""
+    elif power == int(power):
+        pow_string = f"^{int(power)}"
+    else:
+        pow_string = f"^{power}"
+    return f"{thing}{pow_string}"
 
 
 class Quantity:
-    """
-    A number (or numbers) with units representing a quantity with some dimensions.
-    """
-
-    def __init__(self, value, units, force_units=False):
-        self.u = parse_units(units)
+    def __new__(cls, value: float, units: str | pd.Series):
+        self = super().__new__(cls)
 
         if isinstance(value, Quantity):
-            value = value.to(units)
-        if np.ndim(value) == 1:
-            value = np.array([x.to(units) if isinstance(x, Quantity) else x for x in value])
-        try:
-            self.value = np.array(value).astype(float)
-        except Exception:
-            raise TypeError("'value' must be a number")
-
-        if not force_units:
-            self.humanize()
-
-    def humanize(self):
-        x = self.value * self.u["factor"]
-
-        self.q = QUANTITIES[self.u["quantity"]]
-        natural_units = UNITS.loc[(UNITS.quantity == self.u["quantity"]) & (UNITS.natural)].sort_values("factor")
-
-        abs_x = np.abs(x)
-        abs_fin_x = np.where((abs_x > 0) & np.isfinite(abs_x), abs_x, np.nan)
-
-        if (abs_fin_x > 0).any():
-            fid_x = 2 * np.nanquantile(abs_fin_x, q=0.99)
-            unit_index = np.digitize(fid_x, [0, *natural_units.factor.values[1:], np.inf]) - 1
-            unit = natural_units.iloc[unit_index]
-
-            power = 3 * (np.log10(fid_x / unit.factor) // 3)
-            power = np.clip(power, a_min=self.min_prefix_power, a_max=self.max_prefix_power)
-            prefix = PREFIXES.set_index("power").loc[power].symbol
-            self.u = parse_units(f"{prefix}{unit.name}")
+            self.base_units_value = value.base_units_value
+            self.base_units_vector = value.base_units_vector
 
         else:
-            self.u = parse_units(self.u["quantity_default_unit"])
+            if isinstance(units, pd.Series):
+                self.base_units_value = np.array(value).astype(float)
+                self.base_units_vector = units
 
-        self.value = x / self.u["factor"]
+            else:
+                factor, base_units_vector = get_factor_and_base_units_vector(units)
+                if np.ndim(value) == 1:
+                    unique_quantities = np.unique([x.quantity for x in value if isinstance(x, Quantity)])
+                    if len(unique_quantities) > 1:
+                        raise ValueError("'value' contains Quantities of more than one dimension vector")
+                    self.base_units_value = factor * np.array([x.to(units) if isinstance(x, Quantity) else x for x in value])
+                    self.base_units_vector = base_units_vector
 
-    def pin(self, units):
-        return Quantity(value=self.to(units), units=units, force_units=True)
+                elif isinstance(units, str):
+                    self.base_units_value = factor * np.array(value).astype(float)
+                    self.base_units_vector = base_units_vector
 
-    @property
-    def quantity(self) -> str:
+                else:
+                    raise ValueError("'units' must be a string")
+
+        if (self.base_units_vector == 0).all():
+            return self.base_units_value
+        return self
+
+    @cached_property
+    def quantity(self):
         return self.u["quantity"]
 
-    @property
-    def units(self) -> str:
-        return self.u["units"]
+    @cached_property
+    def u(self):
+        if not self.composite():
+            return parse_units(self.units)
+        return {
+            "prefix": "",
+            "raw_units": self.base_units,
+            "power": None,
+            "factor": 1e0,
+            "long_name": "jansky",
+            "math_name": f"\\text{{{self.base_units}}}",
+            "min_prefix_power": 0,
+            "max_prefix_power": 0,
+            "human": True,
+            "quantity": self.base_units,
+            "aliases": {},
+            "symbol": "",
+            "units": self.base_units,
+        }
+
+    def to(self, units):
+        factor, base_units_vector = get_factor_and_base_units_vector(units)
+        if (base_units_vector == self.base_units_vector).all():
+            return self.base_units_value / factor
+        else:
+            raise ValueError()
+
+    def composite(self):
+        quantity_units = self.known_compatible_units()
+        return len(quantity_units) == 0
+
+    @cached_property
+    def quantity(self):
+        qmask = (self.base_units_vector == DIMENSIONS).all(axis=1)
+        if qmask.sum() > 0:
+            return DIMENSIONS.loc[qmask].iloc[0].name
+        else:
+            return self.base_units
+
+    def known_compatible_units(self):
+        return UNITS.loc[UNITS.quantity == self.quantity]
+
+    @cached_property
+    def base_units(self):
+        if not hasattr(self, "_base_units"):
+            unit_parts = []
+            for unit, power in self.base_units_vector.items():
+                part = repr_power(unit, power)
+                if part is not None:
+                    unit_parts.append(part)
+            self._base_units = " ".join(unit_parts)
+        return self._base_units
+
+    def pin(self, units, inplace=False):
+        if inplace:
+            self.pinned_units = units
+        else:
+            pinned_quantity = type(self)(self.base_units_value, self.base_units)
+            pinned_quantity.pin(units, inplace=True)
+            return pinned_quantity
+
+    @cached_property
+    def value(self):
+        return self.to(self.units)
+
+    @cached_property
+    def units(self):
+        if hasattr(self, "pinned_units"):
+            return self.pinned_units
+
+        abs_value = np.abs(self.base_units_value)
+        abs_finite_value = np.where((abs_value > 0) & np.isfinite(abs_value), abs_value, np.nan)
+
+        if (abs_finite_value > 0).any():
+            fid_x = 2 * np.nanquantile(abs_finite_value, q=0.99)
+
+            # all the named units that work for these dimensions
+            raw_quantity_units = self.known_compatible_units()
+            raw_quantity_units = raw_quantity_units.loc[raw_quantity_units.human]
+
+            if len(raw_quantity_units) > 0:
+                prefixed_quantity_units = pd.DataFrame(columns=["value"])
+                for unit, unit_entry in raw_quantity_units.iterrows():
+                    prefix_mask = (
+                        (PREFIXES.power % 3 == 0)
+                        & (unit_entry.min_prefix_power <= PREFIXES.power)
+                        & (PREFIXES.power <= unit_entry.max_prefix_power)
+                    )
+                    for prefix, prefix_entry in PREFIXES.loc[prefix_mask].iterrows():
+                        prefixed_quantity_units.loc[f"{prefix}{unit}"] = fid_x / (prefix_entry.factor * unit_entry.factor)
+
+                ideal_mask = (prefixed_quantity_units.value > 0.5) & (prefixed_quantity_units.value < 500)
+                if ideal_mask.sum() > 0:
+                    repr_units = prefixed_quantity_units.loc[ideal_mask].sort_values("value").iloc[0].name
+                else:
+                    score = np.abs(np.log(prefixed_quantity_units.value / 16))
+                    repr_units = prefixed_quantity_units.iloc[score.argmin()].name
+                return repr_units
+
+        return self.base_units
+
+    def __repr__(self) -> str:
+        if not hasattr(self, "value"):
+            if not self.composite():
+                self.units = self.compute_human_units()
+                self.value = self.to(self.units)
+            else:
+                self.units = self.base_units
+                self.value = self.base_units_value
+
+        if self.quantity == "time":
+            if self.s > 3600:
+                return self.timestring
+        value_repr = f"{self.value:.04g}" if np.isscalar(self.value) else self.value
+        return f"{value_repr}{UNITS['symbol'].get(self.units) or f' {self.units}'}"
+
+    def __neg__(self):
+        return type(self)(-self.base_units_value, units=self.base_units_vector)
+
+    def __add__(self, other):
+        if (self.base_units_vector == other.base_units_vector).all():
+            return type(self)(self.base_units_value + other.base_units_value, units=self.base_units_vector)
+        else:
+            raise RuntimeError(f"Cannot add units {self} and {other}")
+
+    def __sub__(self, other):
+        return self + -other
+
+    def __mul__(self, other):
+        if isinstance(other, Quantity):
+            return type(self)(
+                self.base_units_value * other.base_units_value, units=self.base_units_vector + other.base_units_vector
+            )
+        else:
+            return type(self)(self.base_units_value * other, units=self.base_units_vector)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        if isinstance(other, Quantity):
+            return type(self)(
+                self.base_units_value / other.base_units_value, units=self.base_units_vector - other.base_units_vector
+            )
+        else:
+            return type(self)(self.base_units_value / other, units=self.base_units_vector)
+
+    def __rtruediv__(self, other):
+        return other * (self**-1)
+
+    def __pow__(self, power):
+        return type(self)(self.base_units_value**power, units=self.base_units_vector * power)
+
+    def __copy__(self):
+        return Quantity(self.base_units_value, self.base_units_vector)
+
+    def __deepcopy__(self, memo):
+        return self.__copy__()
 
     @property
-    def min_prefix_power(self) -> bool:
-        return self.q.get("min_prefix_power", -30)
-
-    @property
-    def max_prefix_power(self) -> bool:
-        return self.q.get("max_prefix_power", 30)
+    def timestring(self) -> str:
+        if self.quantity != "time":
+            raise ValueError("'timestring' is only for times")
+        parts = []
+        t = self.seconds
+        for k, v in {"y": 365 * 86400, "d": 86400, "h": 3600, "m": 60}.items():
+            if t > v:
+                parts.append(f"{int(t // v)}{k}")
+                t = t % v
+        parts.append(f"{t:.03f}s")
+        return " ".join(parts)
 
     @property
     def dms(self) -> str:
@@ -129,41 +317,26 @@ class Quantity:
         sign, h, m, s = deg_to_signed_hms(self.deg)
         return f"{int(sign * h):>02}ʰ{int(m):>02}ᵐ{s:.02f}ˢ"
 
-    def __repr__(self) -> str:
-        u = self.u
-        if (u["prefix"] == "") and ("symbol" in u):
-            units_string = u["symbol"]
-        else:
-            units_string = f" {self.units}"
-        value_repr = f"{self.value:.04g}" if np.isscalar(self.value) else self.value
-        return f"{value_repr}{units_string}"
+    def mean(self, axis=None, *args, **kwargs):
+        return Quantity(np.mean(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
 
-    def to(self, units) -> float:
-        u = parse_units(units)
-        if u["quantity"] != self.u["quantity"]:
-            raise ValueError(f"Cannot convert quantity '{self.u['quantity']}' to quantity '{u['quantity']}'.")
-        return self.value * self.u["factor"] / u["factor"]
+    def min(self, axis=None, *args, **kwargs):
+        return Quantity(np.min(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
 
-    def mean(self):
-        return Quantity(np.mean(self.value), units=self.units)
-
-    def min(self):
-        return Quantity(np.min(self.value), units=self.units)
-
-    def max(self):
-        return Quantity(np.max(self.value), units=self.units)
+    def max(self, axis=None, *args, **kwargs):
+        return Quantity(np.max(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
 
     @property
     def shape(self):
-        return np.shape(self.value)
+        return np.shape(self.base_units_value)
 
     @property
     def size(self):
-        return np.size(self.value)
+        return np.size(self.base_units_value)
 
     @property
     def ndim(self):
-        return np.ndim(self.value)
+        return np.ndim(self.base_units_value)
 
     def __getattr__(self, attr):
         try:
@@ -173,81 +346,44 @@ class Quantity:
         raise AttributeError(f"'Quantity' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
-        return Quantity(self.value[key], units=self.units)
+        return Quantity(self.base_units_value[key], units=self.base_units)
 
     def __format__(self, *args, **kwargs):
         return repr(self).__format__(*args, **kwargs)
 
-    def __round__(self, ndigits=0):
-        return Quantity(self.value.round(), self.currency)
-
-    def __float__(self):
-        return float(self.value)
+    # def __float__(self):
+    #     return float(self.base_units_value)
 
     def __bool__(self):
-        return True
+        return self.size > 0
 
     def __len__(self):
-        return len(self.value)
-
-    def __array__(self, copy=True):
-        return np.array(self.value)
+        return len(self.base_units_value)
 
     def __neg__(self):
-        return Quantity(-self.value, units=self.units)
+        return Quantity(-self.base_units_value, units=self.base_units)
 
     def convert_other(self, other):
         if isinstance(other, Quantity):
-            if self.quantity == other.quantity:
-                return other.to(self.units)
+            if (self.base_units_vector == other.base_units_vector).all():
+                return other.to(self.base_units)
             else:
-                raise TypeError(f"Cannot add quantity '{self.q['long_name']}' to quantity '{other.q['long_name']}'")
+                raise TypeError(f"Cannot combine quantities '{self.quantity}' to quantity '{other.quantity}'")
         elif np.all(other == 0):
-            return Quantity(np.zeros(np.shape(other)), self.units)
+            return other
         raise TypeError(f"{self} and {other} are incompatible quantities")
 
     def __eq__(self, other):
-        return self.value == self.convert_other(other)
+        return self.base_units_value == self.convert_other(other)
 
     def __lt__(self, other):
-        return self.value < self.convert_other(other)
+        return self.base_units_value < self.convert_other(other)
 
     def __gt__(self, other):
-        return self.value > self.convert_other(other)
+        return self.base_units_value > self.convert_other(other)
 
     def __le__(self, other):
-        return self.value <= self.convert_other(other)
+        return self.base_units_value <= self.convert_other(other)
 
     def __ge__(self, other):
-        return self.value >= self.convert_other(other)
-
-    def __add__(self, other):
-        addend = self.convert_other(other)
-        return Quantity(self.value + addend, units=self.units)
-
-    def __radd__(self, other):
-        return self.__add__(other)
-
-    def __sub__(self, other):
-        return self + -other
-
-    def __rsub__(self, other):
-        return self.__sub__(other)
-
-    def __mul__(self, other):
-        if isinstance(other, Quantity):
-            raise TypeError("Multiplying quantities is not supported.")
-        return Quantity(self.value * other, units=self.units)
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-    def __truediv__(self, other):
-        if isinstance(other, Quantity):
-            if self.quantity == other.quantity:
-                return self.value / other.to(self.units)
-        else:
-            return Quantity(self.value / other, units=self.units)
-
-    def __rtruediv__(self, other):
-        return self.convert_other(other) / self.value
+        return self.base_units_value >= self.convert_other(other)

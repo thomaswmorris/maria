@@ -12,25 +12,25 @@ def test_generate_cmb(nside):
 
 
 def test_cmb_calibration():
-    plan = maria.Plan(
+    plan = maria.Plan.generate(
         scan_pattern="daisy",
         scan_options={"radius": 10, "speed": 1},  # in degrees
         duration=120,  # in seconds
         sample_rate=50,  # in Hz
-        scan_center=(150, 10),
+        scan_center=(150, 50),
         jitter=0,
-        frame="ra_dec",
+        frame="az_el",
     )
 
     sim = maria.Simulation(
         instrument="test/1deg",
-        plan=plan,
+        plans=plan,
         site="cerro_toco",
         cmb="generate",
         noise=False,
     )
 
-    tod = sim.run().to("uK_CMB")
+    tod = sim.run()[0].to("uK_CMB")
 
     tod.to("uK_CMB").signal.std(axis=1).compute()
 

@@ -135,12 +135,27 @@ def remove_slope(D):
     return D - np.linspace(D[..., 0], D[..., -1], D.shape[-1]).T
 
 
-def grouper(iterable, min_length=60):
+def grouper(iterable, min_length=1, max_length=np.inf, overlap=False):
+    start = np.inf
     prev_value = False
     for index, this_value in enumerate(iterable):
-        if this_value and not prev_value:
-            start = index
-        elif prev_value and not this_value:
-            if index - start >= min_length:
-                yield (start, index)
+        if this_value:
+            if not prev_value:
+                start = index
+            if prev_value:
+                if index - start >= max_length:
+                    yield (start, index)
+                    start = index
+        if not this_value:
+            if prev_value:
+                if index - start >= min_length:
+                    yield (start, index)
         prev_value = this_value
+
+    if prev_value:
+        yield (start, index + 1)
+
+
+# print(list(grouper([True, True, False, True, True])))
+# print(list(grouper([False, True, True, True, True, True, False, True, True], max_length=10, overlap=True)))
+# print(list(grouper([False, True, True, True, True, True, False, True, True], max_length=10, overlap=False)))

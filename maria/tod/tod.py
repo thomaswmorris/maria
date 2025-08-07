@@ -16,13 +16,13 @@ from astropy.time import Time
 from dask import array as da
 
 from ..array import Array, ArrayList
-from ..atmosphere import AtmosphericSpectrum
 from ..band import get_band
 from ..coords import Coordinates
 from ..instrument import get_instrument
 from ..io import DEFAULT_TIME_FORMAT, humanize_time
 from ..plotting import plot_tod, twinkle_plot
 from ..site import get_site
+from ..spectrum import AtmosphericSpectrum
 
 logger = logging.getLogger("maria")
 

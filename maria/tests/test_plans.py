@@ -9,7 +9,7 @@ from maria.plan import scan_patterns
 
 @pytest.mark.parametrize("scan_pattern", scan_patterns.index)
 def test_pattern(scan_pattern):
-    plan = maria.Plan(scan_pattern=scan_pattern)
+    plan = maria.Plan.generate(scan_pattern=scan_pattern)
     print(plan)
 
     plan.plot()
@@ -18,7 +18,7 @@ def test_pattern(scan_pattern):
 
 @pytest.mark.parametrize("scan_pattern", scan_patterns.index)
 def test_pattern_speed(scan_pattern):
-    #     plan = maria.Plan(scan_pattern=scan_pattern)
+    #     plan = maria.Plan.generate(scan_pattern=scan_pattern)
     #     print(plan)
 
     #     plan.plot()

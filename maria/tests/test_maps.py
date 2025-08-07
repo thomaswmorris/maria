@@ -27,7 +27,7 @@ def test_maps(map_path):
     new_m = maria.map.load("/tmp/test.h5").to(m.units)  # noqa
 
     assert np.allclose(new_m.data, m.data)
-    assert np.allclose(new_m.resolution, m.resolution)
+    assert np.allclose(new_m.resolution.arcsec, m.resolution.arcsec)
 
     m.plot()
 
@@ -52,25 +52,21 @@ def test_trivial_recover_original_map():
 
     instrument = maria.get_instrument(array=array)
 
-    plan = maria.Plan(
-        scan_pattern="daisy",
-        scan_options={"radius": map_width / 4, "speed": map_width / 10},  # in degrees
-        duration=60,  # in seconds
-        sample_rate=50,  # in Hz
-        scan_center=input_map.center,
-        jitter=0,
-        frame="ra_dec",
+    planner = maria.Planner(target=input_map, site="cerro_toco", constraints={"el": (40, 90)})
+
+    plans = planner.generate_plans(
+        total_duration=60, sample_rate=50, scan_pattern="daisy", scan_options={"radius": input_map.width.deg / 3}
     )
 
     sim = maria.Simulation(
         instrument,
-        plan=plan,
+        plans=plans,
         map=input_map,
         site="cerro_toco",
         noise=False,
     )
 
-    tod = sim.run()
+    tods = sim.run()
 
     mapper = BinMapper(
         center=input_map.center,
@@ -80,7 +76,7 @@ def test_trivial_recover_original_map():
         degrees=False,
     )
 
-    mapper.add_tods(tod)
+    mapper.add_tods(tods)
     output_map = mapper.run()
 
     m0 = input_map.data[0, 0, 0].compute()
@@ -95,12 +91,12 @@ def test_trivial_recover_original_map():
 def test_time_ordered_map_sim():
     time_evolving_sun_path = fetch("maps/sun.h5")
     input_map = maria.map.load(filename=time_evolving_sun_path, nu=100e9, t=1.7e9 + np.linspace(0, 180, 16))
-    plan = maria.Plan(
+    plan = maria.Plan.generate(
         start_time=1.7e9,
         duration=180,
-        scan_center=np.degrees(input_map.center),
+        scan_center=(input_map.center),
         scan_options={"radius": 0.25},
     )
-    sim = maria.Simulation(plan=plan, map=input_map)
-    tod = sim.run()
-    tod.to("K_RJ").plot()
+    sim = maria.Simulation(instrument="test/1deg", site="cerro_toco", plans=plan, map=input_map)
+    tods = sim.run()
+    tods[0].to("K_RJ").plot()

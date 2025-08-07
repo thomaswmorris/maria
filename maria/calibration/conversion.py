@@ -137,7 +137,7 @@ def rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel(T_RJ: float, n
     nu: frequency, in Hz
     res: resolution, in radians
     """
-    return 1e26 * rayleigh_jeans_spectrum(T_RJ=T_RJ, nu=nu) * pixel_area
+    return rayleigh_jeans_spectrum(T_RJ=T_RJ, nu=nu) * pixel_area
 
 
 def spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature(E: float, nu: float, pixel_area: float, **kwargs):
@@ -146,7 +146,7 @@ def spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature(E: float, nu: 
     nu: frequency, in Hz
     res: resolution, in radians
     """
-    I_nu = 1e-26 * E / pixel_area
+    I_nu = E / pixel_area
     return inverse_rayleigh_jeans_spectrum(I_nu=I_nu, nu=nu)
 
 

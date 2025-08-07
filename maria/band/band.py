@@ -12,10 +12,10 @@ import pandas as pd
 import scipy as sp
 from jax import scipy as jsp
 
-from ..atmosphere import AtmosphericSpectrum
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c
 from ..errors import FrequencyOutOfBoundsError
+from ..spectrum import AtmosphericSpectrum
 from ..units import Quantity
 from ..utils import flatten_config, read_yaml
 
@@ -127,7 +127,7 @@ class Band:
                     f"'nu' and 'tau' have mismatched shapes ({self.nu.shape} and {self.tau.shape}).",
                 )
 
-        bad_freqs = list(self.nu[(self.nu.Hz < MARIA_MIN_NU_HZ) | (self.nu.Hz > MARIA_MAX_NU_HZ)])
+        bad_freqs = self.nu[(self.nu.Hz < MARIA_MIN_NU_HZ) | (self.nu.Hz > MARIA_MAX_NU_HZ)]
         if bad_freqs:
             if nu is None:
                 raise FrequencyOutOfBoundsError(center_and_width=(center, width))
@@ -135,7 +135,7 @@ class Band:
                 raise FrequencyOutOfBoundsError(nu=bad_freqs)
 
         # this turns e.g. 56MHz to "f056" and 150GHz to "f150"
-        self.name = name or f"f{10 ** (np.log10(self.center) % 3):>03.0f}"
+        self.name = name or f"f{10 ** (np.log10(self.center.Hz) % 3):>03.0f}"
         self.shape = shape
         self.efficiency = efficiency
         self.NEP_per_loading = Quantity(NEP_per_loading, "W√s")
@@ -214,7 +214,7 @@ class Band:
 
     @property
     def NET_RJ(self):
-        return Quantity(self.cal("W -> K_RJ", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP.to("W√s")), "K√s")
+        return Quantity(self.cal("W -> K_RJ", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP.to("W√s")), "K_RJ√s")
 
     @NET_RJ.setter
     def NET_RJ(self, value):
@@ -222,7 +222,9 @@ class Band:
 
     @property
     def NET_CMB(self):
-        return Quantity(self.cal("W -> K_CMB", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP.to("W√s")), "K√s")
+        return Quantity(
+            self.cal("W -> K_CMB", spectrum=self.spectrum, **self.spectrum_kwargs)(self.NEP.to("W√s")), "K_CMB√s"
+        )
 
     @NET_CMB.setter
     def NET_CMB(self, value):
@@ -284,7 +286,7 @@ class Band:
         """
         Return the wavelength of the center, in meters.
         """
-        return c / self.center
+        return c / self.center.Hz
 
     def cal(self, signature: str, **kwargs) -> float:
         return Calibration(

@@ -54,8 +54,8 @@ class BinMapper(BaseMapper):
         self.n_x = int(np.maximum(1, self.width / self.resolution))
         self.n_y = int(np.maximum(1, self.height / self.resolution))
 
-        self.x_bins = np.linspace(-0.5 * self.width, 0.5 * self.width, self.n_x + 1)
-        self.y_bins = np.linspace(0.5 * self.height, -0.5 * self.height, self.n_y + 1)
+        self.x_bins = np.linspace(-0.5 * self.width.radians, 0.5 * self.width.radians, self.n_x + 1)
+        self.y_bins = np.linspace(0.5 * self.height.radians, -0.5 * self.height.radians, self.n_y + 1)
 
     def _run(self, band):
         """

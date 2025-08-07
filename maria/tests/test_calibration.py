@@ -5,9 +5,9 @@ import pytest
 
 import maria
 from maria import all_bands, all_regions
-from maria.atmosphere import AtmosphericSpectrum
 from maria.calibration import Calibration
 from maria.constants import T_CMB
+from maria.spectrum import AtmosphericSpectrum
 
 
 def test_brightness_temperature_to_spectral_flux_density_per_pixel():

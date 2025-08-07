@@ -9,6 +9,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
+from ..cmb import CMB, DEFAULT_CMB_KWARGS, generate_cmb, get_cmb
 from ..constants import T_CMB, k_B
 from ..functions.radiometry import (
     inverse_planck_spectrum,
@@ -17,25 +18,42 @@ from ..functions.radiometry import (
     rayleigh_jeans_spectrum,
 )  # noqa
 from ..io import humanize_time
+from .observation import Observation
 
 logger = logging.getLogger("maria")
 
 
 class CMBMixin:
-    def _simulate_cmb_emission(self, eps: float = 1e-6):
-        cmb_loading = np.zeros(self.shape, dtype=self.dtype)
+    def _init_cmb(self, cmb: str | CMB, **cmb_kwargs):
+        self.cmb_kwargs = DEFAULT_CMB_KWARGS.copy()
+        self.cmb_kwargs.update(cmb_kwargs)
+
+        if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
+            for _ in tqdm(
+                range(1),
+                desc=f"Generating CMB (nside={self.cmb_kwargs['nside']})",
+                disable=self.disable_progress_bars,
+            ):
+                self.cmb = generate_cmb(**self.cmb_kwargs)
+        elif cmb in ["real", "planck"]:
+            self.cmb = get_cmb(**self.cmb_kwargs)
+        else:
+            raise ValueError(f"Invalid value for cmb '{cmb}'.")
+
+    def _compute_cmb_loading(self, obs: Observation, eps: float = 1e-6):
+        cmb_loading = np.zeros(obs.shape, dtype=self.dtype)
 
         bands_pbar = tqdm(
-            self.instrument.bands,
+            obs.instrument.bands,
             desc="Sampling CMB",
             disable=self.disable_progress_bars,
         )
 
-        stokes_weight = self.instrument.dets.stokes_weight()
+        stokes_weight = obs.instrument.dets.stokes_weight()
 
         for band in bands_pbar:
             bands_pbar.set_postfix(band=band.name)
-            band_mask = self.instrument.dets.band_name == band.name
+            band_mask = obs.instrument.dets.band_name == band.name
 
             # the CMB is not a Rayleigh-Jeans source, so we do the power integrals below
             test_T_b = np.array([T_CMB, T_CMB + eps])
@@ -43,8 +61,8 @@ class CMBMixin:
                 planck_spectrum(T_b=test_T_b, nu=band.nu.Hz[:, None]), nu=band.nu.Hz[:, None]
             )
 
-            if hasattr(self, "atmosphere"):
-                opacity = sp.interpolate.interp1d(self.atmosphere.spectrum.side_nu, self.atmosphere.spectrum._opacity)(
+            if hasattr(obs, "atmosphere"):
+                opacity = sp.interpolate.interp1d(obs.atmosphere.spectrum.side_nu, obs.atmosphere.spectrum._opacity)(
                     band.nu.Hz
                 )
 
@@ -60,9 +78,9 @@ class CMBMixin:
                 )
 
                 P = sp.interpolate.RegularGridInterpolator(
-                    self.atmosphere.spectrum.points[:3],
+                    obs.atmosphere.spectrum.points[:3],
                     det_power_grid,
-                )((self.atmosphere.weather.temperature[0], self.zenith_scaled_pwv[band_mask], self.coords.el[band_mask]))
+                )((obs.atmosphere.weather.temperature[0], obs.zenith_scaled_pwv[band_mask], obs.coords.el[band_mask]))
 
             else:
                 P = (
@@ -80,12 +98,12 @@ class CMBMixin:
             pW_per_K_CMB = (P[..., 1] - P[..., 0]) / eps
 
             # flat_band_pixel_index = hp.ang2pix(
-            #     nside=self.cmb.nside,
-            #     phi=self.coords.l[band_mask],
-            #     theta=np.pi / 2 - self.coords.b[band_mask],
+            #     nside=obs.cmb.nside,
+            #     phi=obs.coords.l[band_mask],
+            #     theta=np.pi / 2 - obs.coords.b[band_mask],
             # ).ravel()
 
-            band_coords = self.coords[band_mask]
+            band_coords = obs.coords[band_mask]
 
             pointing_s = ttime.monotonic()
             pmat = self.cmb.pointing_matrix(band_coords)
@@ -114,5 +132,4 @@ class CMBMixin:
                     f"in {humanize_time(ttime.monotonic() - cmb_stokes_s)}"
                 )
 
-        self.loading["cmb"] = da.asarray(cmb_loading, dtype=self.dtype)
-        del cmb_loading
+        return da.asarray(cmb_loading, dtype=self.dtype)

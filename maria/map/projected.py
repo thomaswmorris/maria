@@ -507,7 +507,7 @@ class ProjectedMap(Map):
         if self.dims.get("nu", np.nan) > 1:
             raise RuntimeError("Cannot write multifrequency maps to FITS")
 
-        m = self.to(self.u["base_unit"])
+        m = self  # .to(self.u["base_unit"])
 
         data = m.data[::-1, :]  # FITS counts from the bottom, while normal people count from the top
         if self.frame in ["ra_dec", "galatic"]:

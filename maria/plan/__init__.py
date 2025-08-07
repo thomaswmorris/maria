@@ -24,6 +24,7 @@ from ..units import Quantity
 from ..utils import compute_diameter, read_yaml
 from .patterns import get_scan_pattern_generator, scan_patterns
 from .plan import Plan
+from .plan_list import PlanList  # noqa
 from .planner import Planner  # noqa
 
 here, this_filename = os.path.split(__file__)
@@ -68,7 +69,7 @@ def get_plan_config(plan_name="one_minute_zenith_stare", **kwargs):
 
 def get_plan(plan_name="one_minute_zenith_stare", **kwargs):
     plan_config = get_plan_config(plan_name, **kwargs)
-    return Plan(**plan_config)
+    return Plan.generate(**plan_config)
 
 
 PLAN_FIELDS = {

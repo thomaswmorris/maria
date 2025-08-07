@@ -28,7 +28,7 @@ test_sites = np.random.choice(a=all_sites, size=n_sims)
 def test_pipeline(instrument, site):
     site = maria.get_site(site)
 
-    plan = maria.Plan(
+    plan = maria.Plan.generate(
         start_time="2024-08-06T09:00:00",
         scan_pattern="daisy",
         scan_options={"radius": 0.5, "speed": 0.1},  # in degrees
@@ -41,12 +41,12 @@ def test_pipeline(instrument, site):
     sim = Simulation(
         instrument=instrument,
         site=site,
-        plan=plan,
+        plans=[plan],
         atmosphere="2d",
         cmb="generate",
     )
 
-    tod = sim.run()
+    tod = sim.run()[0]
 
     for field in ["atmosphere", "cmb"]:
         if np.isnan(tod.data[field]).any():

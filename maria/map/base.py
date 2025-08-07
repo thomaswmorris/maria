@@ -68,7 +68,7 @@ class Map:
 
         self.beam = (Quantity(beam[0], "rad"), Quantity(beam[1], "rad"), Quantity(beam[2], "rad"))
 
-        if self.u["base_unit"] == "Jy/beam":
+        if self.u["quantity"] == "spectral_flux_density_per_beam":
             if not self.beam_area > 0:
                 raise ValueError(
                     f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"

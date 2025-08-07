@@ -86,13 +86,13 @@ class ArrayList:
         """
         Angular beam width (in radians) as a function of depth (in meters)
         """
-        return compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=self.band_center)
+        return Quantity(compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=self.band_center), "rad")
 
     def physical_fwhm(self, z):
         """
         Physical beam width (in meters) as a function of depth (in meters)
         """
-        return z * self.angular_fwhm(z)
+        return Quantity(z * self.angular_fwhm(z).rad)
 
     def mask(self, **kwargs):
         return np.concatenate([array.mask(**kwargs) for array in self.arrays], axis=0)

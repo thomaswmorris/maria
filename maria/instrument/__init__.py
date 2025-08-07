@@ -142,13 +142,13 @@ class Instrument:
         arrays: ArrayList | list | dict,
         description: str = "An instrument.",
         documentation: str = "",
-        vel_limit: float = 1e2,  # in deg/s
+        az_vel_limit: float = 1e2,  # in deg/s
         acc_limit: float = 1e2,  # in deg/s^2
     ):
         """
         Parameters
         ----------
-        vel_limit : type
+        az_vel_limit : type
             The maximum angular speed of the array.
         """
 
@@ -195,7 +195,7 @@ class Instrument:
         self.arrays = ArrayList(arrays)
         self.description = description
         self.documentation = documentation
-        self.vel_limit = vel_limit
+        self.az_vel_limit = az_vel_limit
         self.acc_limit = acc_limit
 
         # self.primary_size = float(self.dets.primary_size.max())
@@ -266,7 +266,7 @@ class Instrument:
         return np.exp(np.log(0.5) * np.abs(r / fwhm) ** 8)
 
     @property
-    def n_dets(self):
+    def n(self):
         return self.dets.n
 
     # def angular_beam_filter(self, z, res, beam_profile=None, buffer=1):  # noqa F401

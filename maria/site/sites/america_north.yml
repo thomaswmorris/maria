@@ -1,16 +1,18 @@
 green_bank:
   description: Green Bank Observatory
-  instruments:
-  - MUSTANG-2
   region: green_bank
+  timezone: America/New_York
   latitude: 38.4331
   longitude: -79.8398
   altitude: 825
   documentation: https://greenbankobservatory.org
+  instruments:
+  - MUSTANG-2
 
 hoagie_haven:
   description: Hoagie Haven
   region: princeton
+  timezone: America/New_York
   latitude: 40.3522
   longitude: -74.6519
   altitude: 62
@@ -18,13 +20,14 @@ hoagie_haven:
 
 pituffik:
   description: Pituffik Space Base
-  instruments:
-  - Greenland Telescope
   region: thule
+  timezone: America/Nuuk
   latitude: 76.531111
   longitude: -68.703056
   altitude: 76
   documentation: https://www.petersonschriever.spaceforce.mil/Pituffik-SB-Greenland/
+  instruments:
+  - Greenland Telescope
 
 sierra_negra:
   description: Sierra Negra

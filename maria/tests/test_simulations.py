@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 import maria
-from maria import Simulation, all_instruments
+from maria import Planner, Simulation, all_instruments
+from maria.io import fetch
 from maria.mappers import BinMapper
 from maria.utils import read_yaml
 
@@ -14,7 +15,7 @@ here, this_filename = os.path.split(__file__)
 
 
 def test_polarized_map_sim():
-    plan = maria.Plan(
+    plan = maria.Plan.generate(
         start_time="2024-08-06T09:00:00",
         scan_pattern="daisy",
         scan_options={"radius": 0.5, "speed": 0.1},  # in degrees
@@ -24,16 +25,23 @@ def test_polarized_map_sim():
         frame="az_el",
     )
 
+    einstein = maria.map.load(fetch("maps/einstein.h5"))
+    planner = Planner(target=einstein, site="llano_de_chajnantor", constraints={"el": (60, 90)})
+    plans = planner.generate_plans(total_duration=900, sample_rate=50)  # in Hz
+
+    plans[0].plot()
+    print(plans)
+
     sim = Simulation(
         instrument="test/1deg",
         site="llano_de_chajnantor",
-        plan=plan,
+        plans=plans,
         atmosphere="2d",
         cmb="generate",
-        map="maps/einstein.h5",
+        map=einstein,
     )
 
-    tod = sim.run()
+    tod = sim.run()[0]
 
     for field in ["atmosphere", "cmb"]:
         if np.isnan(tod.data[field]).any():

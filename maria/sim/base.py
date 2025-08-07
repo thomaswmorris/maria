@@ -11,7 +11,7 @@ import numpy as np
 from ..coords import Coordinates
 from ..instrument import Instrument, get_instrument
 from ..io import humanize_time
-from ..plan import Plan, get_plan
+from ..plan import Plan, PlanList, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
 from ..utils import read_yaml
@@ -95,6 +95,8 @@ class BaseSimulation:
         else:
             self.plan = get_plan(plan_name=plan, **parsed_sim_kwargs["plan"])
 
+        self.plans = PlanList([plan])
+
         logger.debug(f"Initialized plan in {humanize_time(ttime.monotonic() - instrument_init_s)}.")
         plan_init_s = ttime.monotonic()
 
@@ -149,21 +151,26 @@ class BaseSimulation:
 
     @property
     def shape(self):
-        return (self.instrument.n_dets, self.plan.n_time)
+        return (self.instrument.n, self.plan.n)
 
     def _run(self):
         raise NotImplementedError()
 
     def run(self, units: str = "K_RJ"):
-        self.loading = {}
-        self._run()
+        group_index_list = self.plans.plan_groups()
 
-        metadata = {
-            "atmosphere": False,
-            "sim_time": arrow.now(),
-            "altitude": float(self.site.altitude.m),
-            "region": self.site.region,
-        }
+        for plan, plan_index in zip(self.plans.group_plans(), group_index_list):
+            logger.info(f"Simulating TODs {plan_index}")
+
+            self.loading = {}
+            self._run()
+
+            metadata = {
+                "atmosphere": False,
+                "sim_time": arrow.now(),
+                "altitude": float(self.site.altitude.m),
+                "region": self.site.region,
+            }
 
         if hasattr(self, "atmosphere"):
             metadata["atmosphere"] = True

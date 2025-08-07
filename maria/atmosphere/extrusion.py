@@ -9,6 +9,11 @@ import pandas as pd
 import scipy as sp
 from pandas import DataFrame
 
+from ..coords import Coordinates
+from ..instrument import Instrument
+from ..site import Site
+from ..weather import Weather
+
 logger = logging.getLogger("maria")
 
 
@@ -20,7 +25,10 @@ COV_MAT_JITTER = 1e-6
 
 
 def generate_layers(
-    sim,
+    instrument: Instrument,
+    boresight: Coordinates,
+    weather: Weather,
+    site: Site,
     mode: str = "2d",
     angular: bool = True,
     max_height: float = 2e3,  # in meters
@@ -28,6 +36,7 @@ def generate_layers(
     min_res_per_beam: float = None,
     min_res_per_fov: float = None,
     layer_spacing: float = 500,
+    pwv_rms_frac: float = 3e-2,
 ) -> DataFrame:
     """
     Generate atmospheric layers.
@@ -38,17 +47,17 @@ def generate_layers(
     min_res_per_beam = min_res_per_beam or MIN_RES_PER_BEAM[mode]
     min_res_per_fov = min_res_per_fov or MIN_RES_PER_FOV[mode]
 
-    min_el = sim.boresight.el.min()
+    min_el = boresight.el.min()
 
     h_samples = np.arange(0, max_height + 1e0, 1e-1)
 
     z_samples = h_samples / np.sin(min_el)
 
-    fov = sim.instrument.dets.field_of_view.rad
-    fwhm = sim.instrument.dets.one_detector_from_each_band().physical_fwhm(z_samples[:, None] + 1e-16).min(axis=1)
+    fov = instrument.dets.field_of_view
+    fwhm = instrument.dets.one_detector_from_each_band().physical_fwhm(z_samples[:, None] + 1e-16).min(axis=1)
     r1 = min_res * np.ones(len(z_samples))
-    r2 = min_res_per_beam * fwhm
-    r3 = min_res_per_fov * z_samples * fov
+    r2 = min_res_per_beam * fwhm.m
+    r3 = min_res_per_fov * z_samples * fov.rad
     res_samples = np.minimum(1e3, np.maximum.reduce([r1, r2, r3]))
 
     def res_func(h):
@@ -69,9 +78,7 @@ def generate_layers(
 
     h_centers = (h_boundaries[1:] + h_boundaries[:-1]) / 2
 
-    weather = sim.atmosphere.weather
-
-    weather_values = weather(altitude=sim.site.altitude.m + h_centers)
+    weather_values = weather(altitude=site.altitude.m + h_centers)
 
     layers = pd.DataFrame(weather_values)
     layers.insert(0, "process_index", process_index)
@@ -84,7 +91,7 @@ def generate_layers(
     h_boundaries = [0, *(layers.h.values[:-1] + layers.h.values[1:]) / 2, 1e5]
 
     for layer_index, (h1, h2) in enumerate(zip(h_boundaries[:-1], h_boundaries[1:])):
-        dummy_h = sim.site.altitude.m + np.linspace(h1, h2, 1024)
+        dummy_h = site.altitude.m + np.linspace(h1, h2, 1024)
         h = weather.altitude
         w = weather.absolute_humidity
         total_water = np.trapezoid(np.interp(dummy_h, h, w), x=dummy_h)
@@ -94,7 +101,7 @@ def generate_layers(
         return np.exp(-h / h_0) * h**alpha
 
     rel_var = boundary_layer_profile(layers.h.values) ** 2
-    pwv_var = (weather.pwv * sim.atmosphere.pwv_rms_frac) ** 2 * rel_var / sum(rel_var)
+    pwv_var = (weather.pwv * pwv_rms_frac) ** 2 * rel_var / sum(rel_var)
     layers.loc[:, "pwv_rms"] = np.sqrt(pwv_var)
 
     if angular:

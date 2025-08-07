@@ -1,400 +1,428 @@
-temperature:
-  long_name: temperature
-  medium_name: temperature
-  short_name: T
-  math_name: T
-  default_unit: K
-  default_prefix: ""
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    temperature: 1
-  units:
-    K:
-      long_name: kelvin
-      math_name: \text{K}
-      factor: 1.0
-      natural: True
-
-
-angle:
-  long_name: Angle
-  medium_name: Angle
-  short_name: theta
-  math_name: \theta
-  default_unit: deg
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    angle: 1
-  units:
-    rad:
-      aliases:
-      - radians
-      long_name: Radian
-      math_name: \text{rad}
-      factor: 57.29577951308232
-      natural: False
-    deg:
-      aliases:
-      - degrees
-      long_name: Degree
-      math_name: \text{deg}
-      factor: 1.0
-      natural: True
-      symbol: °
-    arcmin:
-      long_name: Arcminute
-      math_name: \text{arcmin}
-      factor: 0.016666666666666666
-      natural: True
-      symbol: ’
-    arcsec:
-      long_name: Arcsecond
-      math_name: \text{arcsec}
-      factor: 0.0002777777777777778
-      natural: True
-      symbol: ”
-
-solid_angle:
-  long_name: Solid angle
-  medium_name: Solid angle
-  short_name: Omega
-  math_name: \Omega
-  default_unit: sr
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    angle: 1
-  units:
-    sr:
-      long_name: steradian
-      math_name: \text{sr}
-      factor: 1.0
-      natural: True
-    deg^2:
-      long_name: square degree
-      math_name: \text{deg}^2
-      factor: 3.04617e-4
-      natural: False
-
-time:
-  long_name: Time
-  medium_name: Time
-  short_name: t
-  math_name: t
-  default_unit: s
-  default_prefix: ""
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    time: 1
-  units:
-    s:
-      long_name: second
-      math_name: \text{s}
-      factor: 1.0
-      natural: True
-    min:
-      long_name: minute
-      math_name: \text{min}
-      factor: 60.
-      natural: False
-    hour:
-      long_name: hour
-      math_name: \text{hour}
-      factor: 3600.
-      natural: False
-    day:
-      long_name: days
-      math_name: \text{day}
-      factor: 86400.
-      natural: False
-    week:
-      long_name: week
-      math_name: \text{week}
-      factor: 604800.
-      natural: False
-    year:
-      long_name: year
-      math_name: \text{year}
-      factor: 31556926.
-      natural: False
-
-
-information:
-  long_name: Information
-  medium_name: Information
-  short_name: S
-  math_name: S
-  default_unit: B
-  min_prefix_power: 0
-  max_prefix_power: 30
-  dimensions:
-    angle: 1
-  units:
-    b:
-      long_name: Bit
-      math_name: \text{bit}
-      factor: 1
-      natural: False
-    B:
-      long_name: Byte
-      math_name: \text{byte}
-      factor: 8
-      natural: True
-
 mass:
   long_name: mass
-  medium_name: mass
   short_name: m
   math_name: m
-  default_unit: g
-  default_prefix: k
+  base_unit: g
+  base_unit_prefix: k
   min_prefix_power: -30
-  max_prefix_power: 3
-  dimensions:
-    mass: 1
+  max_prefix_power: 0
+  recipe:
+    kg: 1
   units:
     g:
+      factor: 1e-3
       long_name: grams
       math_name: \text{g}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 3
+      human: False
 
 length:
   long_name: length
-  medium_name: length
   short_name: x
   math_name: x
-  default_unit: m
-  default_prefix: ""
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    time: 1
+  base_unit: m
+  base_unit_prefix: ""
+  recipe:
+    m: 1
   units:
     m:
+      factor: 1
       long_name: meters
       math_name: \text{m}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 3
+      human: False
 
+angle:
+  long_name: angle
+  short_name: theta
+  math_name: \theta
+  base_unit: rad
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+  recipe:
+    rad: 1
+  units:
+    rad:
+      factor: 1
+      long_name: radians
+      math_name: \text{rad}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    deg:
+      factor: 1.7453292519943295e-02
+      long_name: degrees
+      math_name: \text{deg}
+      symbol: °
+      min_prefix_power: 0
+      max_prefix_power: 0
+    arcmin:
+      factor: 2.9088820867e-04
+      long_name: arcminutes
+      math_name: \text{arcmin}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      symbol: ’
+    arcsec:
+      factor: 4.8481368111e-06
+      long_name: arcseconds
+      math_name: \text{arcsec}
+      min_prefix_power: -30
+      max_prefix_power: 0
+      symbol: ”
 
+time:
+  long_name: time
+  short_name: t
+  math_name: t
+  base_unit: s
+  base_unit_prefix: ""
+  recipe:
+    s: 1
+  units:
+    s:
+      factor: 1
+      long_name: seconds
+      math_name: \text{s}
+      min_prefix_power: -30
+      max_prefix_power: 0
+    min:
+      factor: 60
+      long_name: minutes
+      math_name: \text{min}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    hr:
+      factor: 3600
+      long_name: hours
+      math_name: \text{hrs}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    day:
+      factor: 86400
+      long_name: days
+      math_name: \text{days}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    year:
+      factor: 31536000
+      long_name: years
+      math_name: \text{years}
+      min_prefix_power: 0
+      max_prefix_power: 30
+      human: False
 
 frequency:
   long_name: frequency
-  medium_name: frequency
   short_name: nu
   math_name: \nu
-  default_unit: Hz
-  default_prefix: ""
-  min_prefix_power: 0
-  max_prefix_power: 30
-  dimensions:
-    frequency: 1
+  base_unit: Hz
+  base_unit_prefix: ""
+  recipe:
+    Hz: 1
   units:
     Hz:
+      factor: 1
       long_name: hertz
       math_name: \text{Hz}
-      factor: 1.0
-      natural: True
+      min_prefix_power: 0
+      max_prefix_power: 12
+
+energy:
+  long_name: energy
+  short_name: E
+  math_name: E
+  base_unit: J
+  base_unit_prefix: ""
+  recipe:
+    kg: 1
+    m: 2
+    s: -2
+  units:
+    J:
+      factor: 1
+      long_name: joules
+      math_name: \text{J}
+      min_prefix_power: -30
+      max_prefix_power: 30
+    erg:
+      factor: 1e-7
+      long_name: ergs
+      math_name: \text{erg}
+      min_prefix_power: -30
+      max_prefix_power: 30
+
+radiant_flux:
+  long_name: radiant_flux
+  short_name: P
+  math_name: P
+  base_unit: W
+  base_unit_prefix: ""
+  recipe:
+    kg: 1
+    m: 2
+    s: -3
+  units:
+    W:
+      factor: 1
+      long_name: watts
+      math_name: \text{W}
+      min_prefix_power: -30
+      max_prefix_power: 30
+
+solid_angle:
+  long_name: solid angle
+  short_name: Omega
+  math_name: \Omega
+  base_unit: sr
+  base_unit_prefix: ""
+  recipe:
+    rad: 2
+  units:
+    sr:
+      factor: 1
+      long_name: steradian
+      math_name: \text{sr}
+      min_prefix_power: 0
+      max_prefix_power: 0
+    deg²:
+      factor: 0.00030461741978670857
+      long_name: square degree
+      math_name: \text{deg}^2
+      min_prefix_power: 0
+      max_prefix_power: 0
+
+information:
+  long_name: Information
+  short_name: S
+  math_name: S
+  base_unit: b
+  base_unit_prefix: ""
+  recipe:
+    b: 1
+  units:
+    b:
+      factor: 1
+      long_name: Bit
+      math_name: \text{bit}
+      min_prefix_power: 0
+      max_prefix_power: 30
+      human: False
+    B:
+      factor: 1
+      long_name: Byte
+      math_name: \text{byte}
+      min_prefix_power: 0
+      max_prefix_power: 30
+
 
 noise_equivalent_power:
   long_name: noise equivalent power
-  medium_name: noise equivalent power
   short_name: NEP
   math_name: \text{NEP}
-  default_unit: W√s
-  default_prefix: ""
-  dimensions:
-    mass: 1
-    length: 2
-    time: -2.5
+  base_unit: W√s
+  base_unit_prefix: ""
+  recipe:
+    kg: 1
+    m: 2
+    s: -2.5
   units:
     W√s:
+      factor: 1
       long_name: watts per square root hertz
       math_name: \text{W}\sqrt{\text{s}}
-      factor: 1.0
-      natural: True
-
-
-noise_equivalent_temperature:
-  long_name: noise equivalent temperature
-  medium_name: noise equivalent temperature
-  short_name: NET
-  math_name: \text{NET}
-  default_unit: K√s
-  default_prefix: ""
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    temperature: 1
-    time: 0.5
-  units:
-    K√s:
-      long_name: kelvin per square root hertz
-      math_name: \text{K}\sqrt{\text{s}}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 30
 
 rayleigh_jeans_temperature:
   long_name: Rayleigh-Jeans temperature
-  medium_name: R-J temp.
   short_name: T_RJ
   math_name: T_\text{RJ}
-  default_unit: K_RJ
-  default_prefix: ""
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    temperature: 1
+  base_unit: K_RJ
+  base_unit_prefix: ""
+  recipe:
+    K_RJ: 1
   units:
     K_RJ:
+      factor: 1
       long_name: kelvin Rayleigh-Jeans
       math_name: \text{K}_\text{RJ}
-      factor: 1.0
-      natural: True
-    F_RJ:
-      long_name: fahrenheit Rayleigh-Jeans
-      math_name: \text{F}_\text{RJ}
-      factor: 1.8
-      natural: False
+      min_prefix_power: -30
+      max_prefix_power: 0
 
-brightness_temperature:
-  long_name: Brightness temperature
-  medium_name: Brightness temperature
-  short_name: T_b
-  math_name: T_b
-  default_unit: K_b
-  default_prefix: ""
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    temperature: 1
+noise_equivalent_rayleigh_jeans_temperature:
+  long_name: noise equivalent Rayleigh-Jeans temperature
+  short_name: NET_RJ
+  math_name: \text{NET}_\text{RJ}
+  base_unit: K_RJ√s
+  base_unit_prefix: ""
+  recipe:
+    K_RJ: 1
+    time: 0.5
   units:
-    K_b:
-      long_name: K_b
-      math_name: \text{K}_\text{b}
-      factor: 1.0
-      natural: True
-  
+    K_RJ√s:
+      factor: 1
+      long_name: kelvin Rayleigh-Jeans per square root hertz
+      math_name: \text{K}_\text{RJ}\sqrt{\text{s}}
+      human: True
+      min_prefix_power: -30
+      max_prefix_power: 0
 
 cmb_temperature_anisotropy:
   long_name: CMB temperature anisotropy
-  medium_name: CMB temperature anisotropy
   short_name: T_CMB
-  math_name: T_{CMB}
-  default_unit: K_CMB
-  default_prefix: u
-  min_prefix_power: -30
-  max_prefix_power: 0
-  dimensions:
-    temperature: 1
+  math_name: \delta \text{T}_\text{CMB}
+  base_unit: K_CMB
+  base_unit_prefix: "u"
+  recipe:
+    K_CMB: 1
   units:
     K_CMB:
-      long_name: K_CMB
+      factor: 1
+      long_name: kelvin CMB
       math_name: \text{K}_\text{CMB}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 0
 
-radiant_flux:
-  long_name: Radiant Flux
-  medium_name: Radiant Flux
-  short_name: P
-  math_name: P
-  default_unit: W
-  default_prefix: p # pico
-  dimensions:
-    mass: 1
-    length: 2
-    time: -3
+noise_equivalent_cmb_temperature_anisotropy:
+  long_name: noise equivalent CMB temperature anisotropy
+  short_name: NET_CMB
+  math_name: \text{NET}_\text{CMB}
+  base_unit: K_CMB√s
+  base_unit_prefix: ""
+  recipe:
+    K_CMB: 1
+    s: 0.5
   units:
-    W:
-      long_name: Watts
-      math_name: \text{W}
-      factor: 1.0
-      natural: True
+    K_CMB√s:
+      factor: 1
+      long_name: kelvin CMB per square root hertz
+      math_name: \text{K}_\text{CMB}\sqrt{\text{s}}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+brightness_temperature:
+  long_name: brightness temperature
+  short_name: T_b
+  math_name: \text{T_b}
+  base_unit: K_b
+  base_unit_prefix: ""
+  recipe:
+    K_b: 1
+  units:
+    K_b:
+      factor: 1
+      long_name: kelvin
+      math_name: \text{K}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+
+
+# radiant_flux:
+#   long_name: Radiant Flux
+#   medium_name: Radiant Flux
+#   short_name: P
+#   math_name: P
+#   base_unit: W
+#   base_unit_prefix: p # pico
+#   recipe:
+#     mass: 1
+#     length: 2
+#     time: -3
+#   units:
+#     W:
+#       long_name: Watts
+#       math_name: \text{W}
+#       factor: 1.0
+#       human: True
 
 spectral_flux_density:
-  long_name: Spectral flux density
-  medium_name: Spectral flux density
+  long_name: spectral flux density
   short_name: E_e,nu
   math_name: E_{e,\nu}
-  default_unit: Jy
-  default_prefix: ""
   base_unit: Jy
-  base_unit_latex: \text{Jy}
-  SI: J s^-1 m^-2 Hz^-1
-  dimensions:
-    mass: 1
-    time: -3
+  base_unit_prefix: ""
+  recipe:
+    kg: 1
+    s: -2
+    Hz: -1
   units:
     Jy:
-      long_name: janskies
+      factor: 1e-26
+      long_name: jansky
       math_name: \text{Jy}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 30
+      human: True
 
 spectral_radiance:
-  long_name: Spectral radiance
-  medium_name: Spectral radiance
+  long_name: spectral radiance
   short_name: L
   math_name: L
-  default_unit: Jy/sr
-  default_prefix: ""
-  dimensions:
-    mass: 1
-    time: -3
-    angle: -2
+  base_unit: Jy/sr
+  base_unit_prefix: ""
+  recipe:
+    kg: 1
+    s: -2
+    Hz: -1
+    rad: -2
   units:
-    W/sr/m^2/Hz:
-      long_name: watts per steradian per square meter per hertz
-      math_name: \text{Jy}/\text{sr}
-      factor: 1.0e-26
-      natural: True
     Jy/sr:
+      factor: 1e-26
       long_name: janskies per steradian
       math_name: \text{Jy}/\text{sr}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 30
 
 spectral_flux_density_per_pixel:
-  long_name: Spectral flux density per pixel
-  medium_name: Spectral flux density per pixel
+  long_name: spectral flux density per pixel
   short_name: I_nu
   math_name: I_\nu
-  default_unit: Jy/pixel
-  default_prefix: ""
-  dimensions:
-    mass: 1
-    time: -3
+  base_unit: Jy/pixel
+  base_unit_prefix: ""
+  recipe:
+    kg: 1
+    s: -2
+    Hz: -1
+    pixel: -1
   units:
     Jy/pixel:
+      factor: 1e-26
       aliases:
       - Jy/pix
       - JY/PIXEL
       - JY/PIX
       long_name: janskies per pixel
       math_name: \text{Jy}/\text{pixel}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 30
+      human: True
 
 spectral_flux_density_per_beam:
-  long_name: Spectral flux density per beam
-  medium_name: Spectral flux density per beam
+  long_name: spectral flux density per beam
   short_name: I_nu
   math_name: I_\nu
-  default_unit: Jy/beam
-  default_prefix: ""
-  dimensions:
-    mass: 1
-    time: -3
+  base_unit: Jy/beam
+  base_unit_prefix: ""
+  recipe:
+    kg: 1
+    s: -2
+    Hz: -1
+    beam: -1
   units:
     Jy/beam:
+      factor: 1e-26
       aliases:
       - JY/BEAM
       long_name: janskies per beam
       math_name: \text{Jy}/\text{beam}
-      factor: 1.0
-      natural: True
+      min_prefix_power: -30
+      max_prefix_power: 30
+      human: True

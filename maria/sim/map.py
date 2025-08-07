@@ -4,6 +4,7 @@ import logging
 import os
 import time as ttime
 
+import arrow
 import dask.array as da
 import numpy as np
 import scipy as sp
@@ -13,7 +14,8 @@ from tqdm import tqdm
 
 from ..beam import compute_angular_fwhm
 from ..constants import k_B
-from ..io import humanize_time
+from ..io import DEFAULT_TIME_FORMAT, fetch, humanize_time
+from ..map import HEALPixMap, Map, ProjectedMap, load
 from ..units import Quantity
 
 here, this_filename = os.path.split(__file__)
@@ -27,34 +29,69 @@ class MapMixin:
     TODO: add errors
     """
 
+    def _init_map(self, map: str | ProjectedMap | HEALPixMap, **map_kwargs):
+        if isinstance(map, str):
+            map = load(fetch(map), **map_kwargs)
+        elif not isinstance(map, Map):
+            raise ValueError("")
+
+        # the map can be frequency-naive if it is already in K_RJ
+        self.map = map.to(units="K_RJ")
+
+        if "stokes" not in self.map.dims:
+            self.map = self.map.unsqueeze("stokes")
+
+        if "nu" not in self.map.dims:
+            self.map = self.map.unsqueeze("nu")
+
+        if "t" in self.map.dims:
+            if self.map.dims["t"] > 1:
+                map_start = arrow.get(self.map.t.min()).to("utc")
+                map_end = arrow.get(self.map.t.max()).to("utc")
+                if map_start > self.min_time:
+                    logger.warning(
+                        f"Beginning of map ({map_start.format(DEFAULT_TIME_FORMAT)}) is after the "
+                        f"beginning of the simulation ({self.start_time.format(DEFAULT_TIME_FORMAT)}).",
+                    )
+                if map_end < self.max_time:
+                    logger.warning(
+                        f"End of map ({map_end.format(DEFAULT_TIME_FORMAT)}) is before the "
+                        f"end of the simulation ({self.end_time.format(DEFAULT_TIME_FORMAT)}).",
+                    )
+            else:
+                self.map = self.map.squeeze("t")
+
     def _run(self, **kwargs):
         self._sample_maps(**kwargs)
 
-    def _sample_maps(self):
-        map_loading = np.zeros(self.coords.shape, dtype=self.dtype)
+    def _sample_maps(self, obs):
+        map_loading = np.zeros(obs.coords.shape, dtype=self.dtype)
 
-        stokes_weights = self.instrument.dets.stokes_weight()
+        stokes_weights = obs.instrument.dets.stokes_weight()
 
         bands_pbar = tqdm(
-            self.instrument.dets.bands,
+            obs.instrument.dets.bands,
             desc="Sampling map",
             disable=self.disable_progress_bars,
         )
         for band in bands_pbar:
             bands_pbar.set_postfix(band=band.name)
 
-            band_mask = self.instrument.dets.band_name == band.name
+            band_mask = obs.instrument.dets.band_name == band.name
 
-            band_coords = self.coords[band_mask]
+            band_coords = obs.coords[band_mask]
 
             pointing_s = ttime.monotonic()
             pmat = self.map.pointing_matrix(band_coords)
             logger.debug(f"Computed pointing matrix for band {band.name} in {humanize_time(ttime.monotonic() - pointing_s)}")
 
-            band_fwhm = compute_angular_fwhm(
-                fwhm_0=self.instrument.dets.primary_size.mean(),
-                z=np.inf,
-                nu=band.center.Hz,
+            band_fwhm = Quantity(
+                compute_angular_fwhm(
+                    fwhm_0=obs.instrument.dets.primary_size.mean(),
+                    z=np.inf,
+                    nu=band.center.Hz,
+                ),
+                "rad",
             )
 
             # ideally we would do this for each nu bin, but that's slow
@@ -69,13 +106,13 @@ class MapMixin:
 
                 spectrum_kwargs = (
                     {
-                        "spectrum": self.atmosphere.spectrum,
+                        "spectrum": obs.atmosphere.spectrum,
                         # "zenith_pwv": self.zenith_scaled_pwv[band_mask].compute(),
-                        "zenith_pwv": self.zenith_scaled_pwv[band_mask].mean().compute(),
-                        "base_temperature": self.atmosphere.weather.temperature[0],
-                        "elevation": self.coords.el[band_mask],
+                        "zenith_pwv": obs.zenith_scaled_pwv[band_mask].mean().compute(),
+                        "base_temperature": obs.atmosphere.weather.temperature[0],
+                        "elevation": obs.coords.el[band_mask],
                     }
-                    if hasattr(self, "atmosphere")
+                    if hasattr(obs, "atmosphere")
                     else {}
                 )
 
@@ -123,5 +160,5 @@ class MapMixin:
             if map_loading[band_mask].sum() == 0:
                 logger.warning(f"No load from map for band {band.name}")
 
-        self.loading["map"] = da.asarray(map_loading, dtype=self.dtype)
+        obs.loading["map"] = da.asarray(map_loading, dtype=self.dtype)
         del map_loading

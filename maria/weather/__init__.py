@@ -64,11 +64,16 @@ class Weather:
         source: str = "era5",
         refresh_cache: bool = False,
     ):
+        self.data = {}
+
         if region not in all_regions:
-            raise InvalidRegionError(self.region)
+            raise InvalidRegionError(region)
+
+        if altitude is None:
+            altitude = REGIONS.loc[region, "altitude"]
 
         self.region = region
-        self.base_altitude = altitude
+        self.base_altitude = Quantity(altitude, "m").m
         self.quantiles = quantiles
         self.override = override
         self.source = source
@@ -82,17 +87,11 @@ class Weather:
             refresh=refresh_cache,
         )
 
-        if self.base_altitude is None:
-            self.base_altitude = REGIONS.loc[self.region, "altitude"]
-
-        self.base_altitude = np.round(self.base_altitude, 0)
         self.time_zone = REGIONS.loc[self.region, "timezone"]
         self.local_time = self.time.to(self.time_zone)
 
         self.utc_day_hour = get_utc_day_hour(self.time.timestamp())
         self.utc_year_day = get_utc_year_day(self.time.timestamp())
-
-        self.data = {}
 
         self.region_quantiles = {}
 

@@ -26,24 +26,21 @@ def test_map_sim():
 
     input_map.data *= 1e3
 
-    plan = maria.get_plan(
-        scan_pattern="daisy",
-        scan_options={"radius": 0.025, "speed": 0.005},  # in degrees
-        duration=60,  # in seconds
-        sample_rate=50,  # in Hz
-        scan_center=(150, 10),
-        frame="ra_dec",
+    planner = maria.Planner(target=input_map, site="cerro_toco", constraints={"el": (45, 90)})
+
+    plans = planner.generate_plans(
+        total_duration=60, sample_rate=50, scan_pattern="daisy", scan_options={"radius": input_map.width.deg / 3}
     )
 
     sim = maria.Simulation(
         instrument,
-        plan=plan,
+        plans=plans,
         site="llano_de_chajnantor",
         map=input_map,
         atmosphere="2d",
     )
 
-    tod = sim.run()
+    tods = sim.run()
 
     mapper = BinMapper(
         center=(150.01, 10.01),
@@ -62,7 +59,7 @@ def test_map_sim():
             "gaussian_filter": {"sigma": 1},
             "median_filter": {"size": 1},
         },
-        tods=[tod],
+        tods=tods,
     )
 
     output_map = mapper.run()

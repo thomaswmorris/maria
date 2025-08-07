@@ -1,0 +1,90 @@
+mass:
+  long_name: mass
+  short_name: m
+  math_name: m
+  base_unit: g
+  base_unit_prefix: k
+  min_prefix_power: -30
+  max_prefix_power: 3
+
+length:
+  long_name: length
+  short_name: x
+  math_name: x
+  base_unit: m
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+
+temperature:
+  long_name: temperature
+  short_name: T
+  math_name: T
+  base_unit: K
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+
+angle:
+  long_name: angle
+  short_name: theta
+  math_name: \theta
+  base_unit: rad
+  base_unit_prefix: ""
+  min_prefix_power: 0
+  max_prefix_power: 0
+
+rayleigh_jeans_temperature:
+  long_name: Rayleigh-Jeans temperature
+  short_name: T_RJ
+  math_name: T_\text{RJ}
+  base_unit: K_RJ
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+
+cmb_temperature_anisotropy:
+  long_name: CMB temperature anisotropy
+  medium_name: CMB temperature anisotropy
+  short_name: T_CMB
+  math_name: T_{CMB}
+  base_unit: K_CMB
+  base_unit_prefix: u
+  min_prefix_power: -30
+  max_prefix_power: 0
+
+frequency:
+  long_name: frequency
+  short_name: nu
+  math_name: \nu
+  base_unit: Hz
+  base_unit_prefix: ""
+  min_prefix_power: 0
+  max_prefix_power: 30
+
+time:
+  long_name: time
+  short_name: t
+  math_name: t
+  base_unit: s
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+
+pixel:
+  long_name: pixel
+  short_name: pix
+  math_name: \text{pix}
+  base_unit: pix
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 30
+
+beam:
+  long_name: beam
+  short_name: beam
+  math_name: \text{beam}
+  base_unit: beam
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 30

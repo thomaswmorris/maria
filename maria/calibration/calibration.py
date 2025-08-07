@@ -3,9 +3,9 @@ import os
 import pandas as pd
 import yaml
 
-from ..atmosphere import AtmosphericSpectrum
 from ..io import leftpad
-from ..units import QUANTITIES, Quantity, parse_units
+from ..spectrum import AtmosphericSpectrum
+from ..units import DIMENSIONS, Quantity, parse_units
 from .conversion import (
     brightness_temperature_to_radiant_flux,
     cmb_temperature_anisotropy_to_radiant_flux,
@@ -67,7 +67,7 @@ conversions["spectral_radiance"] = {
 
 quantities = list(conversions.keys())
 for q in quantities:
-    conversions[q][q] = identity
+    conversions[q][q] = {"f": identity, "linear": True}
 
 
 walks_dict = {}
@@ -98,12 +98,12 @@ calibration_chains = pd.DataFrame(paths_dict)
 
 
 def parse_calibration_signature(s: str):
-    res = {}
     for sep in ["->"]:
         if s.count(sep) == 1:
             if sep is not None:
                 items = [u.strip() for u in s.split(sep)]
                 if len(items) == 2:
+                    res = {}
                     for io, u in zip(["in", "out"], items):
                         res[io] = parse_units(u)
         return res
@@ -150,7 +150,8 @@ class Calibration:
             raise ValueError(f"Cannot convert from {self.in_quantity} to {self.out_quantity}")
 
     def uchain(self):
-        middle_terms = [QUANTITIES[q]["default_unit"] for q in self.qchain()[1:-1]]
+        # middle_terms = [QUANTITIES[q]["default_unit"] for q in self.qchain()[1:-1]]
+        middle_terms = [q for q in self.qchain()[1:-1]]
         return " -> ".join([self.in_units, *middle_terms, self.out_units])
 
     def function_chain(self):
@@ -162,15 +163,17 @@ class Calibration:
         return all([conversions[q2][q1]["linear"] for q1, q2 in zip(qchain[:-1], qchain[1:])])
 
     def __call__(self, x) -> float:
-        if self.config.loc["quantity", "in"] == self.config.loc["quantity", "out"]:
-            return x * self.in_factor / self.out_factor
+        y = Quantity(x, self.in_units).base_units_value
 
-        y = x * self.in_factor
+        # if self.config.loc["quantity", "in"] == self.config.loc["quantity", "out"]:
+        #     return x * self.in_factor / self.out_factor
+
+        # y = x * self.in_factor
 
         for f in self.function_chain():
             y = f(y, **self.kwargs)
 
-        return y / self.out_factor
+        return Quantity(y, DIMENSIONS.loc[self.qchain()[-1]]).to(self.out_units)
 
     @property
     def in_units(self) -> float:

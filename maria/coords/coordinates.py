@@ -48,13 +48,13 @@ class Coordinates:
 
     def __init__(
         self,
+        phi: float = 0.0,
+        theta: float = 0.0,
+        r: float = 0.0,
+        t: float = DEFAULT_TIMESTAMP,
         x: float = 0.0,
         y: float = 0.0,
         z: float = 0.0,
-        r: float = 0.0,
-        phi: float = 0.0,
-        theta: float = 0.0,
-        t: float = DEFAULT_TIMESTAMP,
         earth_location: EarthLocation = DEFAULT_EARTH_LOCATION,
         frame: str = "az_el",
         dtype: type = np.float64,
@@ -109,7 +109,10 @@ class Coordinates:
             ),
         )
 
-        self.fid_t = np.linspace(t_samples_min, t_samples_max, n_t_samples)
+        if 3 <= self.t.size < n_t_samples:
+            self.fid_t = self.t
+        else:
+            self.fid_t = np.linspace(t_samples_min, t_samples_max, n_t_samples)
 
         sample_indices = interp1d(
             self.shaped_t,
