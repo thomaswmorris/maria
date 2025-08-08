@@ -5,15 +5,15 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Polarized observations" href="polarized-observations.html" /><link rel="prev" title="Tutorials" href="../tutorials.html" />
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+    <!-- Generated with Sphinx 8.1.3 and Furo 2025.07.19 -->
         <title>Custom map simulations - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=25af2a20" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
 
@@ -193,7 +193,6 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
-  
   <span class="sidebar-brand-text">maria</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
@@ -331,13 +330,13 @@ beams, with a relative spacing determined by the <code class="docutils literal n
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│             n     FOV baseline        bands polarized
-│  array1  1798  29.74’      0 m  [f090,f150]     False
+│             n      FOV baseline        bands polarized
+│  array1  1798  0.4957°      0 m  [f090,f150]     False
 │
 └ bands:
-      name   center   width    η         NEP   NET_RJ     NET_CMB     FWHM
-   0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK√s  49.13 uK√s  0.5832’
-   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK√s    104 uK√s      21”
+      name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
+   0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  0.5832’
+   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  0.3499’
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -366,10 +365,11 @@ Instrument(1 array)
 <div class="highlight"><pre>
 Site:
   region: chajnantor
+  timezone: America/Santiago
   location:
-    lat: 23°01’45.84” S
-    lon: 67°45’17.28” W
-    alt: 5065 m
+    longitude: 67°45’17.28” W
+    latitude:  23°01’45.84” S
+    altitude: 5065 m
   seasonal: True
   diurnal: True
 </pre></div></div>
@@ -379,7 +379,7 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 207MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 211MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -414,7 +414,7 @@ Downloading https://github.com/thomaswmorris/maria-data/raw/master/world_heightm
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 177MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 186MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -437,7 +437,7 @@ ProjectedMap:
     dec: -31°13’48.00”
   size(y, x): (1°, 1°)
   resolution(y, x): (3.516”, 3.516”)
-  beam(maj, min, rot): (0°, 0°, 0°)
+  beam(maj, min, rot): (0 rad, 0 rad, 0 rad)
   memory: 16.78 MB
 </pre></div></div>
 </div>
@@ -458,15 +458,16 @@ ProjectedMap:
 <span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2024-08-06T03:00:00&quot;</span><span class="p">,</span>
                   <span class="n">target</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
                   <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">,</span>
-                  <span class="n">el_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">90</span><span class="p">))</span>
+                  <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;el&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">70</span><span class="p">,</span> <span class="mi">90</span><span class="p">)})</span>
 
-<span class="n">plan</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plan</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>  <span class="c1"># in seconds</span>
-                             <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
-                             <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span> <span class="o">/</span> <span class="mi">3</span><span class="p">},</span>
-                             <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>  <span class="c1"># in seconds</span>
+                               <span class="n">max_chunk_duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>  <span class="c1"># in seconds</span>
+                               <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;daisy&quot;</span><span class="p">,</span>
+                               <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span> <span class="o">/</span> <span class="mi">3</span><span class="p">},</span>
+                               <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plans</span><span class="p">)</span>
+<span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -475,23 +476,16 @@ ProjectedMap:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Plan:
-  duration: 1200 s
-    start: 2024-08-06 03:00:00.000 +00:00
-    end:   2024-08-06 03:20:00.000 +00:00
-  location:
-    lat: 23°01’45.84” S
-    lon: 67°45’17.28” W
-    alt: 5065 m
-  sample_rate: 50 Hz
-  center:
-    ra:  19ʰ24ᵐ37.44ˢ
-    dec: -31°13’48.00”
-    az(mean): 198.9°
-    el(mean): 81.24°
-  scan_pattern: daisy
-  scan_radius: 0.666°
-  scan_kwargs: {&#39;radius&#39;: np.float64(0.3333333333333333)}
+PlanList(2 plans, 1200 s):
+                           start_time duration     target(ra,dec)  \
+chunk
+0      2024-08-07 01:31:15.000 +00:00    600 s  (291.2°, -31.23°)
+1      2024-08-07 01:41:52.500 +00:00    600 s  (291.2°, -31.23°)
+
+          center(az,el)
+chunk
+0      (119.7°, 71.13°)
+1      (122.6°, 73.22°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -505,38 +499,9 @@ Plan:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">textcoords</span><span class="o">=</span><span class="s2">&quot;axes fraction&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;boxstyle&quot;</span><span class="p">:</span> <span class="s2">&quot;round,pad=0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;fc&quot;</span><span class="p">:</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;ec&quot;</span><span class="p">:</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;lw&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Text(0.1, 0.1, &#39;abc&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_11_1.png" src="../_images/tutorials_custom-map-simulations_11_1.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
     <span class="n">instrument</span><span class="p">,</span>
-    <span class="n">plan</span><span class="o">=</span><span class="n">plan</span><span class="p">,</span>
+    <span class="n">plans</span><span class="o">=</span><span class="n">plans</span><span class="p">,</span>
     <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">,</span>
     <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
     <span class="n">atmosphere_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;weather&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;pwv&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}},</span>
@@ -551,9 +516,8 @@ Text(0.1, 0.1, &#39;abc&#39;)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 186MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 158MB/s]
-Constructing atmosphere: 100%|██████████| 10/10 [00:46&lt;00:00,  4.64s/it]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/chajnantor.h5: 100%|██████████| 14.3M/14.3M [00:00&lt;00:00, 167MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5: 100%|██████████| 8.00M/8.00M [00:00&lt;00:00, 193MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -564,46 +528,33 @@ Constructing atmosphere: 100%|██████████| 10/10 [00:46&lt;00
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │             n     FOV baseline        bands polarized
-│ │  array1  1798  29.74’      0 m  [f090,f150]     False
+│ │             n      FOV baseline        bands polarized
+│ │  array1  1798  0.4957°      0 m  [f090,f150]     False
 │ │
 │ └ bands:
-│       name   center   width    η         NEP   NET_RJ     NET_CMB     FWHM
-│    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK√s  49.13 uK√s  0.5832’
-│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK√s    104 uK√s      21”
+│       name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
+│    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  0.5832’
+│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  0.3499’
 ├ Site:
 │   region: chajnantor
+│   timezone: America/Santiago
 │   location:
-│     lat: 23°01’45.84” S
-│     lon: 67°45’17.28” W
-│     alt: 5065 m
+│     longitude: 67°45’17.28” W
+│     latitude:  23°01’45.84” S
+│     altitude: 5065 m
 │   seasonal: True
 │   diurnal: True
-├ Plan:
-│   duration: 1200 s
-│     start: 2024-08-06 03:00:00.000 +00:00
-│     end:   2024-08-06 03:20:00.000 +00:00
-│   location:
-│     lat: 23°01’45.84” S
-│     lon: 67°45’17.28” W
-│     alt: 5065 m
-│   sample_rate: 50 Hz
-│   center:
-│     ra:  19ʰ24ᵐ37.44ˢ
-│     dec: -31°13’48.00”
-│     az(mean): 198.9°
-│     el(mean): 81.24°
-│   scan_pattern: daisy
-│   scan_radius: 0.666°
-│   scan_kwargs: {&#39;radius&#39;: np.float64(0.3333333333333333)}
-├ Atmosphere(10 processes with 10 layers):
-│ ├ spectrum:
-│ │   region: chajnantor
-│ └ weather:
-│     region: chajnantor
-│     altitude: 5065 m
-│     time: Aug 5 23:09:59 -04:00
-│     pwv[mean, rms]: (0.5 mm, 15 um)
+├ PlanList(2 plans, 1200 s):
+│                            start_time duration     target(ra,dec)  \
+│ chunk
+│ 0      2024-08-07 01:31:15.000 +00:00    600 s  (291.2°, -31.23°)
+│ 1      2024-08-07 01:41:52.500 +00:00    600 s  (291.2°, -31.23°)
+│
+│           center(az,el)
+│ chunk
+│ 0      (119.7°, 71.13°)
+│ 1      (122.6°, 73.22°)
+├ &#39;2d&#39;
 └ ProjectedMap:
     shape(stokes, nu, y, x): (1, 1, 1024, 1024)
     stokes: I
@@ -619,19 +570,19 @@ Simulation
       dec: -31°13’48.00”
     size(y, x): (1°, 1°)
     resolution(y, x): (3.516”, 3.516”)
-    beam(maj, min, rot): (0°, 0°, 0°)
+    beam(maj, min, rot): (0 rad, 0 rad, 0 rad)
     memory: 16.78 MB
 </pre></div></div>
 </div>
 <p>We run the simulation, which spits out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> object (which stands for time-ordered data). We can then plot the <code class="docutils literal notranslate"><span class="pre">TOD</span></code>:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">tod</span><span class="p">)</span>
-<span class="n">tod</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tods</span><span class="p">)</span>
+<span class="n">tods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -640,11 +591,22 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 10.25it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:23&lt;00:00,  2.34s/it]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:17&lt;00:00,  8.68s/it, band=f150]
-Sampling map: 100%|██████████| 2/2 [00:33&lt;00:00, 16.81s/it, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.78s/it, band=f150]
+2025-08-08 23:49:34.321 INFO: Simulating observation 1 of 2
+Constructing atmosphere: 100%|██████████| 10/10 [00:27&lt;00:00,  2.79s/it]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 16.53it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:13&lt;00:00,  1.37s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:02&lt;00:00,  1.32s/it, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:18&lt;00:00,  9.34s/it, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.05it/s, band=f150]
+2025-08-08 23:51:13.187 INFO: Simulated observation 1 of 2 in 98.86 s
+2025-08-08 23:51:13.188 INFO: Simulating observation 2 of 2
+Constructing atmosphere: 100%|██████████| 10/10 [00:28&lt;00:00,  2.82s/it]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 16.76it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:11&lt;00:00,  1.12s/it]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:01&lt;00:00,  1.35it/s, band=f150]
+Sampling map: 100%|██████████| 2/2 [00:19&lt;00:00,  9.56s/it, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.19it/s, band=f150]
+2025-08-08 23:52:48.557 INFO: Simulated observation 2 of 2 in 95.36 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -652,19 +614,19 @@ Generating noise: 100%|██████████| 2/2 [00:03&lt;00:00,  1.7
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TOD(shape=(1798, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-06 03:19:59.978 +00:00, duration=1200.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-07-12T17:54:43.094920+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.519})
+[TOD(shape=(1798, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:41:14.979 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-08-08T23:50:43.418424+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.7}), TOD(shape=(1798, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:51:52.479 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-08-08T23:52:18.356057+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.925, &#39;base_temperature&#39;: 272.683})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_14_2.png" src="../_images/tutorials_custom-map-simulations_14_2.png" />
+<img alt="../_images/tutorials_custom-map-simulations_13_2.png" src="../_images/tutorials_custom-map-simulations_13_2.png" />
 </div>
 </div>
 <p>We can then map the <code class="docutils literal notranslate"><span class="pre">TOD</span></code> using the built-in mapper.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
@@ -686,7 +648,7 @@ TOD(shape=(1798, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise
     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mK_RJ&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">mapper</span><span class="o">.</span><span class="n">add_tods</span><span class="p">(</span><span class="n">tod</span><span class="p">)</span>
+<span class="n">mapper</span><span class="o">.</span><span class="n">add_tods</span><span class="p">(</span><span class="n">tods</span><span class="p">)</span>
 
 <span class="n">output_map</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
@@ -697,15 +659,17 @@ TOD(shape=(1798, 60000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  2.01it/s, band=f090, stokes=I]
-2025-07-12 17:56:05.475 INFO: Ran mapper for band f090 in 13.8 s.
-Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  2.01it/s, band=f150, stokes=I]
-2025-07-12 17:56:18.748 INFO: Ran mapper for band f150 in 13.27 s.
+Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  3.92it/s, band=f090, stokes=I]
+Mapping band f090: 100%|██████████| 1/1 [00:00&lt;00:00,  3.92it/s, band=f090, stokes=I]
+2025-08-08 23:53:10.477 INFO: Ran mapper for band f090 in 15.48 s.
+Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  3.94it/s, band=f150, stokes=I]
+Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  3.95it/s, band=f150, stokes=I]
+2025-08-08 23:53:25.677 INFO: Ran mapper for band f150 in 15.19 s.
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nu_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
@@ -716,7 +680,7 @@ Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  2.
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_18_0.png" src="../_images/tutorials_custom-map-simulations_18_0.png" />
+<img alt="../_images/tutorials_custom-map-simulations_17_0.png" src="../_images/tutorials_custom-map-simulations_17_0.png" />
 </div>
 </div>
 </section>
@@ -773,7 +737,7 @@ Mapping band f150: 100%|██████████| 1/1 [00:00&lt;00:00,  2.
 </div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

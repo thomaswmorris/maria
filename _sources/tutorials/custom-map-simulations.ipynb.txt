@@ -139,15 +139,16 @@
     "planner = Planner(start_time=\"2024-08-06T03:00:00\",\n",
     "                  target=input_map, \n",
     "                  site=site, \n",
-    "                  el_bounds=(40, 90))\n",
+    "                  constraints={\"el\": (70, 90)})\n",
     "\n",
-    "plan = planner.generate_plan(total_duration=1200,  # in seconds\n",
-    "                             scan_pattern=\"daisy\",\n",
-    "                             scan_options={\"radius\": input_map.width.deg / 3},\n",
-    "                             sample_rate=50)\n",
+    "plans = planner.generate_plans(total_duration=1200,  # in seconds\n",
+    "                               max_chunk_duration=600,  # in seconds\n",
+    "                               scan_pattern=\"daisy\",\n",
+    "                               scan_options={\"radius\": input_map.width.deg / 3},\n",
+    "                               sample_rate=50)\n",
     "\n",
-    "print(plan)\n",
-    "plan.plot()"
+    "print(plans)\n",
+    "plans[0].plot()"
    ]
   },
   {
@@ -157,24 +158,9 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "import matplotlib.pyplot as plt\n",
-    "\n",
-    "plt.scatter(0,0)\n",
-    "plt.scatter(2,2)\n",
-    "\n",
-    "plt.annotate(xy=(0, 0), xycoords='data', xytext=(0.1, 0.1), textcoords=\"axes fraction\", text=\"abc\", bbox={\"boxstyle\": \"round,pad=0.3\", \"fc\": \"w\", \"ec\": \"k\", \"alpha\": 0.5, \"lw\": 1}, )"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "12",
-   "metadata": {},
-   "outputs": [],
-   "source": [
     "sim = maria.Simulation(\n",
     "    instrument,\n",
-    "    plan=plan,\n",
+    "    plans=plans,\n",
     "    site=site,\n",
     "    atmosphere=\"2d\",\n",
     "    atmosphere_kwargs={\"weather\": {\"pwv\": 0.5}},\n",
@@ -185,7 +171,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "13",
+   "id": "12",
    "metadata": {},
    "source": [
     "We run the simulation, which spits out a `TOD` object (which stands for time-ordered data). We can then plot the `TOD`:"
@@ -194,19 +180,19 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "14",
+   "id": "13",
    "metadata": {},
    "outputs": [],
    "source": [
-    "tod = sim.run()\n",
+    "tods = sim.run()\n",
     "\n",
-    "print(tod)\n",
-    "tod.plot()"
+    "print(tods)\n",
+    "tods[0].plot()"
    ]
   },
   {
    "cell_type": "markdown",
-   "id": "15",
+   "id": "14",
    "metadata": {},
    "source": [
     "We can then map the `TOD` using the built-in mapper."
@@ -215,7 +201,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "16",
+   "id": "15",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -238,14 +224,14 @@
     "    units=\"mK_RJ\",\n",
     ")\n",
     "\n",
-    "mapper.add_tods(tod)\n",
+    "mapper.add_tods(tods)\n",
     "\n",
     "output_map = mapper.run()"
    ]
   },
   {
    "cell_type": "markdown",
-   "id": "17",
+   "id": "16",
    "metadata": {},
    "source": [
     "We can see the recovered map with"
@@ -254,7 +240,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "18",
+   "id": "17",
    "metadata": {},
    "outputs": [],
    "source": [
