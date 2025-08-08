@@ -18,7 +18,7 @@ from skimage.measure import block_reduce
 from ..coords import Coordinates, frames
 from ..io import repr_phi_theta
 from ..units import Quantity
-from ..utils import compute_pointing_matrix, unpack_implicit_slice
+from ..utils import compute_pointing_matrix_sparse_indices, unpack_implicit_slice
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -120,14 +120,22 @@ class ProjectedMap(Map):
         if all(x is None for x in [width, height, resolution, x_res, y_res]):
             raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'x_res', or 'y_res'.")
 
-    def pointing_matrix(self, coords: Coordinates):
+    def _pointing_matrix_sparse_indices(self, coords: Coordinates):
         offsets = coords.offsets(center=(self.center[0].rad, self.center[1].rad), frame=self.frame)
+
         if "t" in self.dims:
-            return compute_pointing_matrix(
+            return compute_pointing_matrix_sparse_indices(
                 points=(offsets[..., 0], offsets[..., 1], coords._t), bins=(self.x_bins, self.y_bins[::-1], self.t_bins)
             )
         else:
-            return compute_pointing_matrix(points=(offsets[..., 0], offsets[..., 1]), bins=(self.x_bins, self.y_bins[::-1]))
+            return compute_pointing_matrix_sparse_indices(
+                points=(offsets[..., 0], offsets[..., 1]), bins=(self.x_bins, self.y_bins[::-1])
+            )
+
+    def pointing_matrix(self, coords: Coordinates):
+        idx, cum_npix = self._pointing_matrix_sparse_indices(coords)
+        nsamps = len(idx)
+        return sp.sparse.csc_array((np.ones(nsamps, dtype=np.uint8), (idx, np.arange(nsamps))), shape=(cum_npix, nsamps))
 
     @property
     def header(self):

@@ -76,40 +76,46 @@ def decompose(data, k: int = None):
     return a[:, mode_sort], b[mode_sort]
 
 
-def spline(x: float, y: float, spacing: float, order: int = 3):
-    # this has shape (n_basis, len(x))
-    B = bspline_basis(x, spacing=spacing, order=order)
+def bspline_knots(t, spacing, order):
+    tmin = t.min()
+    tmax = t.max()
+    n_bins = int(np.maximum((tmax - tmin) // spacing, 1))  # how many bins straddle the data?
+    n_basis = n_bins + order + 1
 
-    A = B @ B.T
-
-
-def bspline_basis(x, spacing, order=3):
-    k = np.arange(np.min(x), np.max(x), spacing)
-    if not len(k) > 0:
-        k = np.array([np.mean(x)])
-    k += x.mean() - k.mean()
-    t = np.r_[
+    k = spacing * np.arange(n_bins, dtype=float)  # so that it straddles the whole domain
+    k += float(tmax + tmin) / 2 - k.mean()
+    k = np.r_[
         k[0] + spacing * np.arange(-order - 1, 0),
         k,
         k[-1] + spacing * np.arange(1, order + 2),
-    ]
+    ]  # pad the edges
 
-    B = np.zeros((order + 1, len(t) + 1, len(x)))
-    B[0, np.digitize(x, t) - 1, np.arange(len(x))] = 1
+    return k
 
-    for i in range(1, order + 1):
-        for j in range(len(t) - (order + 1)):
-            B[i, j] = B[i - 1, j] * (x - t[j]) / (t[j + i] - t[j]) + B[i - 1, j + 1] * (t[j + i + 1] - x) / (
-                t[j + i + 1] - t[j + 1]
+
+def bspline_basis_from_knots(t, k, order):
+    n_basis = len(k) - order - 1
+    B = np.zeros((len(k) + 1, order + 1, len(t)))
+    B[np.digitize(t, k) - 1, 0, np.arange(len(t))] = 1
+
+    for p in range(1, order + 1):
+        for i in range(len(k) - p - 1):
+            B[i, p] = B[i, p - 1] * (t - k[i]) / (k[i + p] - k[i]) + B[i + 1, p - 1] * (k[i + p + 1] - t) / (
+                k[i + p + 1] - k[i + 1]
             )
 
-    basis = B[-1]  # .reshape(-1, len(x))
-    basis = basis[basis.sum(axis=-1) > 0]
+    return B[:n_basis, -1]
 
-    total_weight_per_mode = basis.sum(axis=1)
-    basis = basis[total_weight_per_mode > 0.1 * total_weight_per_mode.max()]
 
-    return basis / basis.sum(axis=0)
+def bspline_basis(t, spacing, order):
+    k = bspline_knots(t, spacing, order)
+    return bspline_basis_from_knots(t, k, order)
+
+
+def fit_bspline(y, x, spacing, order=3):
+    B = bspline_basis(x, spacing=spacing, order=order)
+    A = y @ (np.linalg.inv(B @ B.T) @ B).T
+    return A @ B
 
 
 def cross_basis(X: list, spacing: list, order: list):

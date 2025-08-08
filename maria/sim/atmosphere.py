@@ -25,7 +25,7 @@ class AtmosphereMixin:
         # which we use to compute emission and opacity
         obs.atmosphere.simulate_pwv(instrument=obs.instrument)
 
-        # update to the sim resolution
+        # upsample to the sim resolution
         obs.zenith_scaled_pwv = da.from_array(
             sp.interpolate.interp1d(
                 obs.atmosphere.coords.t,
@@ -36,7 +36,7 @@ class AtmosphereMixin:
         )
 
     def _compute_atmospheric_loading(self, obs):
-        atmosphere_loading = np.zeros(obs.zenith_scaled_pwv.shape, dtype=self.dtype)
+        atmosphere_loading = np.zeros(obs.atmosphere.zenith_scaled_pwv.shape, dtype=self.dtype)
 
         bands_pbar = tqdm(
             obs.instrument.dets.bands,
@@ -69,8 +69,8 @@ class AtmosphereMixin:
             atmosphere_loading[band_index] = band_power_interpolator(
                 (
                     obs.atmosphere.weather.temperature[0],
-                    obs.zenith_scaled_pwv[band_index].compute(),
-                    obs.coords.el[band_index].clip(max=np.pi / 2),
+                    obs.atmosphere.zenith_scaled_pwv[band_index],
+                    obs.atmosphere.coords.el[band_index].clip(max=np.pi / 2),
                 ),
             )
 
@@ -78,4 +78,14 @@ class AtmosphereMixin:
                 f"Computed atmospheric emission for band {band.name} in {humanize_time(ttime.monotonic() - emission_s)}."
             )
 
-        return da.asarray(atmosphere_loading, dtype=self.dtype)
+        # upsample to the sim resolution
+        return da.asarray(
+            sp.interpolate.interp1d(
+                obs.atmosphere.coords.t,
+                atmosphere_loading,
+                kind="quadratic",
+                bounds_error=False,
+                fill_value="extrapolate",
+            )(obs.coords.t),
+            dtype=self.dtype,
+        )

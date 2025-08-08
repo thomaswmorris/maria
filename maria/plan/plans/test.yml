@@ -1,11 +1,11 @@
-one_minute_zenith_stare:
+ten_second_zenith_stare:
   description: A stare.
-  duration: 60
+  duration: 10
   scan_pattern: stare
   frame: az_el
   scan_center: [0, 90]
   degrees: True
-  sample_rate: 20
+  sample_rate: 50
   scan_options: {}
 
 five_second_stare:

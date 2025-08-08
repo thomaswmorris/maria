@@ -35,7 +35,10 @@ class PlanList:
 
             entries.append(entry)
 
-        return pd.DataFrame(entries)
+        s = pd.DataFrame(entries)
+        s.index.name = "chunk"
+
+        return s
 
     @property
     def duration(self):

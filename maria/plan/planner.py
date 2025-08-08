@@ -111,7 +111,11 @@ class Planner:
 
         return chunks
 
-    def generate_plans(self, total_duration: float, max_chunk_duration: float = 600, **plan_kwargs):
+    def generate_plans(
+        self, total_duration: float, max_chunk_duration: float = 600, scan_options: Mapping = {}, **plan_kwargs
+    ):
+        scan_options["radius"] = scan_options.get("radius", self.target.width.deg / 2)
+
         chunks = self.generate_obs_intervals(total_duration=total_duration, max_chunk_duration=max_chunk_duration)
         total_duration_of_chunks = sum([chunk["duration"] for chunk in chunks])
 
@@ -135,8 +139,9 @@ class Planner:
                 scan_center=self.target.center,
                 frame=self.target.frame,
                 site=self.site,
-                **chunk,
+                scan_options=scan_options,
                 **plan_kwargs,
+                **chunk,
             )
             for chunk in chunks
         ]

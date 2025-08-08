@@ -36,7 +36,12 @@ def test_tod_functions():
 
 
 def test_tod_preprocessing_with_config():
-    sim = Simulation()
+    sim = Simulation(
+        instrument="MUSTANG-2",
+        plans="ten_second_zenith_stare",
+        site="green_bank",
+        noise=True,
+    )
 
     tod = sim.run()[0]
 
@@ -57,7 +62,12 @@ def test_tod_preprocessing_with_config():
 
 
 def test_tod_preprocessing_with_kwargs():
-    sim = Simulation()
+    sim = Simulation(
+        instrument="MUSTANG-2",
+        plans="ten_second_zenith_stare",
+        site="green_bank",
+        noise=True,
+    )
 
     tod = sim.run()[0]
 
@@ -65,7 +75,12 @@ def test_tod_preprocessing_with_kwargs():
 
 
 def test_tod_preprocessing_errors():
-    sim = Simulation()
+    sim = Simulation(
+        instrument="MUSTANG-2",
+        plans="ten_second_zenith_stare",
+        site="green_bank",
+        noise=True,
+    )
 
     tod = sim.run()[0]
 
@@ -86,7 +101,7 @@ def test_tod_write_and_load():
         frame="ra_dec",
     )
 
-    sim = Simulation(get_instrument("MUSTANG-2"), plans=plan)
+    sim = Simulation(get_instrument("MUSTANG-2"), plans=plan, site="green_bank")
     tod = sim.run()[0]
     tod.to_fits("/tmp/sim_tod.fits")
     tod_loaded = TOD.from_fits("/tmp/sim_tod.fits", format="MUSTANG-2")

@@ -21,7 +21,7 @@ def regular_digitization(x, bins):
     return ((x - (bins.min() - dx)) / dx).astype(int).clip(min=0, max=len(bins))
 
 
-def compute_pointing_matrix(points, bins):
+def compute_pointing_matrix_sparse_indices(points, bins):
     if not all([all(np.gradient(b) > 0) for b in bins]):
         raise ValueError(f"Each set of bins must be strictly increasing")
 
@@ -31,8 +31,7 @@ def compute_pointing_matrix(points, bins):
         idx += cum_npix * regular_digitization(x.ravel(), b)
         cum_npix *= len(b) + 1
 
-    nsamps = len(idx)
-    return sp.sparse.csc_array((np.ones(nsamps, dtype=np.uint8), (idx, np.arange(nsamps))), shape=(cum_npix, nsamps))
+    return idx, cum_npix
 
 
 def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, beta: float = 8 / 3):

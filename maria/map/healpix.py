@@ -9,7 +9,6 @@ import scipy as sp
 
 from ..coords import Coordinates, frames
 from ..units import Quantity
-from ..utils import compute_pointing_matrix
 from .base import Map
 
 here, this_filename = os.path.split(__file__)

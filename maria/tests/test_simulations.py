@@ -15,19 +15,9 @@ here, this_filename = os.path.split(__file__)
 
 
 def test_polarized_map_sim():
-    plan = maria.Plan.generate(
-        start_time="2024-08-06T09:00:00",
-        scan_pattern="daisy",
-        scan_options={"radius": 0.5, "speed": 0.1},  # in degrees
-        duration=5,  # in seconds
-        sample_rate=20,  # in Hz
-        scan_center=(31, 62),
-        frame="az_el",
-    )
-
     einstein = maria.map.load(fetch("maps/einstein.h5"))
     planner = Planner(target=einstein, site="llano_de_chajnantor", constraints={"el": (60, 90)})
-    plans = planner.generate_plans(total_duration=900, sample_rate=50)  # in Hz
+    plans = planner.generate_plans(total_duration=10, sample_rate=50)  # in Hz
 
     plans[0].plot()
     print(plans)

@@ -26,7 +26,7 @@ def test_units_ops():
 
     assert deg * deg == sqdeg
     assert rad * rad == sr
-    assert rad / deg == np.radians(1)
+    assert rad / deg == np.degrees(1)
     assert J / s == W
 
 

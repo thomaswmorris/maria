@@ -19,19 +19,19 @@ PREFIXES.sort_values("factor", ascending=True, inplace=True)
 PREFIXES.loc[:, "primary"] = np.log10(PREFIXES.factor.values) % 3 == 0
 
 dim_entries = {}
-QUANTITY_DIM_BASIS = []
+quantity_entries = {}
 with open(f"{here}/quantities.yml") as f:
     unit_entries = {}
     for quantity, q in yaml.safe_load(f).items():
-        QUANTITY_DIM_BASIS.append(f"{q['base_unit_prefix']}{q['base_unit']}")
-        dim_entries[quantity] = q["recipe"]
-        for unit, config in q["units"].items():
+        q_units = q.pop("units")
+        for unit, config in q_units.items():
             config["quantity"] = quantity
-            # config["quantity_base_unit"] = q["base_unit"]
-            # config["quantity_base_unit_prefix"] = q["base_unit_prefix"]
             config["aliases"] = set([unit, config["long_name"], *config.get("aliases", [])])
-        unit_entries.update(q["units"])
+        unit_entries.update(q_units)
+        dim_entries[quantity] = q["recipe"]
+        quantity_entries[quantity] = q
 
+QUANTITIES = pd.DataFrame(quantity_entries).T
 DIMENSIONS = pd.DataFrame(dim_entries).sort_index().T.fillna(0)
 UNITS = pd.DataFrame(unit_entries).T
 UNITS["human"] = UNITS["human"].astype(bool).fillna(True)
@@ -130,6 +130,10 @@ class Quantity:
     @cached_property
     def quantity(self):
         return self.u["quantity"]
+
+    @cached_property
+    def q(self):
+        return QUANTITIES.loc[self.quantity].to_dict()
 
     @cached_property
     def u(self):

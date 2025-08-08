@@ -58,7 +58,7 @@ class UnsupportedPlanError(Exception):
         )
 
 
-def get_plan_config(plan_name="one_minute_zenith_stare", **kwargs):
+def get_plan_config(plan_name="ten_second_zenith_stare", **kwargs):
     if plan_name not in PLAN_CONFIGS.keys():
         raise UnsupportedPlanError(plan_name)
     plan_config = PLAN_CONFIGS[plan_name].copy()
@@ -67,7 +67,7 @@ def get_plan_config(plan_name="one_minute_zenith_stare", **kwargs):
     return plan_config
 
 
-def get_plan(plan_name="one_minute_zenith_stare", **kwargs):
+def get_plan(plan_name="ten_second_zenith_stare", **kwargs):
     plan_config = get_plan_config(plan_name, **kwargs)
     return Plan.generate(**plan_config)
 

@@ -51,7 +51,7 @@ def daisy(
     time,
     radius=1.0,
     speed=None,
-    petals=10 / np.pi,
+    petals=7 / np.pi,
     miss_factor=0.15,
     miss_freq=np.sqrt(2),
 ):  # noqa
