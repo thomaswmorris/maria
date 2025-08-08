@@ -8,7 +8,7 @@ from maria import Simulation
 def test_noise_levels():
     sim = Simulation(
         instrument="MUSTANG-2",
-        plans="one_minute_zenith_stare",
+        plans="ten_second_zenith_stare",
         site="green_bank",
         noise=True,
     )
