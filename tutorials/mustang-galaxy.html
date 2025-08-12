@@ -300,7 +300,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits: 100%|██████████| 2.00M/2.00M [00:00&lt;00:00, 155MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits: 100%|██████████| 2.00M/2.00M [00:00&lt;00:00, 25.6MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -356,13 +356,13 @@ ProjectedMap:
 PlanList(2 plans, 900 s):
                            start_time duration    target(ra,dec)  \
 chunk
-0      2025-08-09 11:45:25.596 +00:00    600 s  (83.63°, 22.02°)
-1      2025-08-09 11:56:03.096 +00:00    300 s  (83.64°, 22.02°)
+0      2025-08-12 13:18:02.456 +00:00    600 s  (83.63°, 22.02°)
+1      2025-08-12 13:28:39.956 +00:00    300 s  (83.63°, 22.01°)
 
           center(az,el)
 chunk
-0      (116.2°, 60.95°)
-1      (118.9°, 62.36°)
+0      (173.9°, 73.53°)
+1       (180.6°, 73.6°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -428,8 +428,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 199MB/s]
-Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 202MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v2/green_bank.h5: 100%|██████████| 11.1M/11.1M [00:00&lt;00:00, 85.9MB/s]
+Downloading https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 94.7MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -461,13 +461,13 @@ Simulation
 ├ PlanList(2 plans, 900 s):
 │                            start_time duration    target(ra,dec)  \
 │ chunk
-│ 0      2025-08-09 11:45:25.596 +00:00    600 s  (83.63°, 22.02°)
-│ 1      2025-08-09 11:56:03.096 +00:00    300 s  (83.64°, 22.02°)
+│ 0      2025-08-12 13:18:02.456 +00:00    600 s  (83.63°, 22.02°)
+│ 1      2025-08-12 13:28:39.956 +00:00    300 s  (83.63°, 22.01°)
 │
 │           center(az,el)
 │ chunk
-│ 0      (116.2°, 60.95°)
-│ 1      (118.9°, 62.36°)
+│ 0      (173.9°, 73.53°)
+│ 1       (180.6°, 73.6°)
 ├ &#39;2d&#39;
 └ ProjectedMap:
     shape(stokes, nu, y, x): (1, 1, 500, 500)
@@ -502,22 +502,22 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-08-08 23:53:42.536 INFO: Simulating observation 1 of 2
+2025-08-12 13:18:12.628 INFO: Simulating observation 1 of 2
 Constructing atmosphere: 100%|██████████| 10/10 [00:05&lt;00:00,  1.93it/s]
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 51.36it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:03&lt;00:00,  2.89it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.14it/s, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:05&lt;00:00,  5.21s/it, channel=(0 Hz, inf Hz)]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 48.76it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:03&lt;00:00,  2.78it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.13it/s, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:05&lt;00:00,  5.22s/it, channel=(0 Hz, inf Hz)]
 Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.49it/s, band=m2/f093]
-2025-08-08 23:54:07.510 INFO: Simulated observation 1 of 2 in 24.96 s
-2025-08-08 23:54:07.511 INFO: Simulating observation 2 of 2
-Constructing atmosphere: 100%|██████████| 10/10 [00:02&lt;00:00,  4.10it/s]
-Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 61.75it/s]
-Sampling turbulence: 100%|██████████| 10/10 [00:02&lt;00:00,  3.41it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.58it/s, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:03&lt;00:00,  3.12s/it, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.55it/s, band=m2/f093]
-2025-08-08 23:54:21.750 INFO: Simulated observation 2 of 2 in 14.23 s
+2025-08-12 13:18:37.625 INFO: Simulated observation 1 of 2 in 24.99 s
+2025-08-12 13:18:37.625 INFO: Simulating observation 2 of 2
+Constructing atmosphere: 100%|██████████| 10/10 [00:02&lt;00:00,  3.86it/s]
+Generating turbulence: 100%|██████████| 10/10 [00:00&lt;00:00, 61.82it/s]
+Sampling turbulence: 100%|██████████| 10/10 [00:02&lt;00:00,  3.38it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.56it/s, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:03&lt;00:00,  3.15s/it, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.59it/s, band=m2/f093]
+2025-08-12 13:18:52.117 INFO: Simulated observation 2 of 2 in 14.48 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -535,7 +535,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.5
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
     <span class="n">center</span><span class="o">=</span><span class="n">input_map</span><span class="o">.</span><span class="n">center</span><span class="p">,</span>
-    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra_dec&quot;</span><span class="p">,</span>
+    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">10</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">10</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span>
     <span class="n">resolution</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span>
@@ -561,9 +561,9 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  2.5
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00,  8.65it/s, band=m2/f093, stokes=I]
-Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00, 19.55it/s, band=m2/f093, stokes=I]
-2025-08-08 23:54:29.842 INFO: Ran mapper for band m2/f093 in 5.543 s.
+Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00,  7.43it/s, band=m2/f093, stokes=I]
+Mapping band m2/f093: 100%|██████████| 1/1 [00:00&lt;00:00, 20.11it/s, band=m2/f093, stokes=I]
+2025-08-12 13:19:00.341 INFO: Ran mapper for band m2/f093 in 5.652 s.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">

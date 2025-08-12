@@ -166,7 +166,7 @@
     "mapper = BinMapper(\n",
     "    center=(0, -23),\n",
     "    stokes=\"IQU\",\n",
-    "    frame=\"ra_dec\",\n",
+    "    frame=\"ra/dec\",\n",
     "    width=1.0,\n",
     "    height=1.0,\n",
     "    resolution=1.0 / 256,\n",

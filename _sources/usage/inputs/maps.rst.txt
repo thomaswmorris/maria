@@ -18,7 +18,7 @@ A map is represented by a ``Map`` object. We can load some pre-defined ones with
                                nu=150e9, # in Hz
                                resolution=1/1024,
                                center=(150, 10),
-                               frame="ra_dec",
+                               frame="ra/dec",
                                units="Jy/pixel")
 
     print(input_map)
