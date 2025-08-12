@@ -2,7 +2,7 @@ stare:
   description: A stare.
   duration: 30
   scan_pattern: stare
-  frame: az_el
+  frame: az/el
   scan_center: [130, 45]
   degrees: True
   sample_rate: 20
@@ -14,7 +14,7 @@ back_and_forth:
   duration: 30
   scan_pattern: back_and_forth
   scan_center: [45, 45]
-  frame: az_el
+  frame: az/el
   degrees: True
   sample_rate: 20
   scan_options:
@@ -23,7 +23,7 @@ back_and_forth:
 
 # double_circle:
 #   description: 'A double circle scan.'
-#   frame: ra_dec
+#   frame: ra/dec
 #   duration: 60
 #   sample_rate: 50
 #   scan_pattern: double_circle
