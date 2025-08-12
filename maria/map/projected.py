@@ -430,7 +430,7 @@ class ProjectedMap(Map):
         cmap: str = "default",
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
-        filepath: str = None,
+        filename: str = None,
     ):
         X = np.r_[self.x_bins, self.y_bins]
         grid_u = Quantity(X, "rad").u
@@ -504,10 +504,10 @@ class ProjectedMap(Map):
                     cmap=cmap,
                 )
 
-                if filepath is not None:
-                    plt.savefig(filepath=filepath, dpi=256)
+                if filename is not None:
+                    plt.savefig(filename=filename, dpi=256)
 
-    def to_fits(self, filepath):
+    def to_fits(self, filename):
         if self.dims.get("nu", np.nan) > 1:
             raise RuntimeError("Cannot write multifrequency maps to FITS")
 
@@ -518,7 +518,7 @@ class ProjectedMap(Map):
             data = data[..., ::-1]
 
         fits.writeto(
-            filename=filepath,
+            filename=filename,
             data=data,
             header=m.header,
             overwrite=True,
