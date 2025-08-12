@@ -1,6 +1,10 @@
+import os
+
 from maria.utils.io import read_yaml
 
-FRAMES = read_yaml("/Users/tom/maria/src/maria/coords/frame.yml")
+here, this_filename = os.path.split(__file__)
+
+FRAMES = read_yaml(f"{here}/frame.yml")
 
 
 def parse_frame(frame):
