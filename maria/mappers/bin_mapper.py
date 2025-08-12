@@ -25,7 +25,7 @@ class BinMapper(BaseMapper):
         width: float = 1,
         height: float = None,
         resolution: float = 0.01,
-        frame: str = "ra_dec",
+        frame: str = "ra/dec",
         units: str = "K_RJ",
         degrees: bool = True,
         calibrate: bool = False,
@@ -68,7 +68,7 @@ class BinMapper(BaseMapper):
             data=np.zeros((self.n_y, self.n_x)),
             width=self.width,
             center=self.center,
-            frame=self.frame,
+            frame=self.frame.name,
             degrees=False,
         )
 

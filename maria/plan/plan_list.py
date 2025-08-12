@@ -27,11 +27,11 @@ class PlanList:
                 "start_time": p.start_time.format(DEFAULT_TIME_FORMAT),
                 "duration": p.duration,
                 # "site": "" if not p.naive else p.site,
-                f"target({p.frame_data['phi']},{p.frame_data['theta']})": c,
+                f"target({p.frame.phi_name},{p.frame.theta_name})": c,
             }
 
-            if not p.naive and not p.frame == "az_el":
-                entry["center(az,el)"] = str(p.center(frame="az_el"))
+            if not p.naive and not p.frame == "az/el":
+                entry["center(az,el)"] = str(p.center(frame="az/el"))
 
             entries.append(entry)
 

@@ -19,6 +19,7 @@ from scipy.interpolate import interp1d
 from ..io import DEFAULT_TIME_FORMAT, humanize_time, repr_lat_lon
 from ..units import Quantity
 from ..utils import get_utc_day_hour, get_utc_year_day
+from .frame import FRAMES, Frame
 from .transforms import (
     get_center_phi_theta,
     offsets_to_phi_theta,
@@ -56,11 +57,11 @@ class Coordinates:
         y: float = 0.0,
         z: float = 0.0,
         earth_location: EarthLocation = DEFAULT_EARTH_LOCATION,
-        frame: str = "az_el",
+        frame: str = "az/el",
         dtype: type = np.float64,
     ):
         self.earth_location = earth_location
-        self.frame = frame
+        self.frame = Frame(frame)
         self.dtype = dtype
 
         if isinstance(t, str):
@@ -76,8 +77,8 @@ class Coordinates:
             # setattr(self, f"_{attr}", da.asarray(value))
             setattr(self, f"_{attr}", value)
 
-        setattr(self, frames[self.frame]["phi"], self._phi)
-        setattr(self, frames[self.frame]["theta"], self._theta)
+        setattr(self, self.frame.phi_name, self._phi)
+        setattr(self, self.frame.theta_name, self._theta)
 
         if hasattr(t, "__len__"):
             for axis in range(len(self.t.shape) - 1):
@@ -85,7 +86,7 @@ class Coordinates:
                     raise ValueError("Only the last axis can vary in time.")
 
         self.initialized = False
-        self.computed_frames = [frame]
+        self.computed_frames = [self.frame.name]
 
     def initialize(self):
         """
@@ -108,6 +109,8 @@ class Coordinates:
                 (t_samples_max - t_samples_min) / t_samples_min_res_seconds,
             ),
         )
+
+        n_t_samples = np.minimum(n_t_samples, 10000)
 
         if 3 <= self.t.size < n_t_samples:
             self.fid_t = self.t
@@ -151,22 +154,22 @@ class Coordinates:
         # )
 
         self.fid_skycoords = {
-            self.frame: SkyCoord(
+            self.frame.name: SkyCoord(
                 self.fid_phi * u.rad,
                 self.fid_theta * u.rad,
                 obstime=Time(
                     self.fid_t[:, None],
                     format="unix",
                 ),
-                frame=frames[self.frame]["astropy_name"],
+                frame=frames[self.frame.name]["astropy_name"],
                 location=self.earth_location,
             ),
         }
 
         self.transforms = {}
-        self.fid_points = {self.frame: phi_theta_to_xyz(self.fid_phi, self.fid_theta)}
-        self.A = self.fid_points[self.frame]
-        self.AT = np.swapaxes(self.fid_points[self.frame], -2, -1)
+        self.fid_points = {self.frame.name: phi_theta_to_xyz(self.fid_phi, self.fid_theta)}
+        self.A = self.fid_points[self.frame.name]
+        self.AT = np.swapaxes(self.fid_points[self.frame.name], -2, -1)
 
         self.initialized = True
 
@@ -178,36 +181,35 @@ class Coordinates:
     def compute_transform(self, frame):
         compute_transform_start_s = ttime.monotonic()
 
-        if frame not in frames:
-            raise ValueError(f"Cannot compute transform for invalid frame '{frame}'.")
-
-        config = frames[frame]
+        frame = Frame(frame)
 
         if not self.initialized:
             self.initialize()
 
-        self.fid_skycoords[frame] = getattr(
-            self.fid_skycoords[self.frame],
-            config["astropy_name"],
+        self.fid_skycoords[frame.name] = getattr(
+            self.fid_skycoords[self.frame.name],
+            frame.astropy_name,
         )
 
         frame_fid_phi = getattr(
-            self.fid_skycoords[frame],
-            frames[frame]["astropy_phi"],
+            self.fid_skycoords[frame.name],
+            frame.astropy_phi,
         ).rad
         frame_fid_theta = getattr(
-            self.fid_skycoords[frame],
-            frames[frame]["astropy_theta"],
+            self.fid_skycoords[frame.name],
+            frame.astropy_theta,
         ).rad
 
-        self.fid_points[frame] = phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
+        self.fid_points[frame.name] = phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
 
         # voodoo!
-        self.transforms[frame] = np.linalg.inv(self.AT @ self.A) @ self.AT @ phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
+        self.transforms[frame.name] = (
+            np.linalg.inv(self.AT @ self.A) @ self.AT @ phi_theta_to_xyz(frame_fid_phi, frame_fid_theta)
+        )
 
         transform_stack = interp1d(
             self.fid_t,
-            self.transforms[frame],
+            self.transforms[frame.name],
             kind="quadratic",
             bounds_error=False,
             fill_value="extrapolate",
@@ -218,14 +220,14 @@ class Coordinates:
             (np.expand_dims(self.compute_points(), -2) @ transform_stack).squeeze(),
         )
 
-        setattr(self, frames[frame]["phi"], frame_phi)
-        setattr(self, frames[frame]["theta"], frame_theta)
+        setattr(self, frame.phi_name, frame_phi)
+        setattr(self, frame.theta_name, frame_theta)
 
-        self.computed_frames.append(frame)
+        self.computed_frames.append(frame.name)
 
         duration = ttime.monotonic() - compute_transform_start_s
         logger.debug(
-            f"Computed transform to frame '{frame}' for {self} in {humanize_time(duration)}.",
+            f"Computed transform to frame '{frame.name}' for {self} in {humanize_time(duration)}.",
         )  # noqa
 
     @property
@@ -247,9 +249,9 @@ class Coordinates:
         if attr in ["x", "y", "z", "r", "phi", "theta"]:
             return getattr(self, f"_{attr}")
 
-        for frame, config in frames.items():
-            if attr in [config["phi"], config["theta"]]:
-                self.compute_transform(frame=frame)
+        for frame_name, config in FRAMES.items():
+            if attr in [config["phi"]["name"], config["theta"]["name"]]:
+                self.compute_transform(frame=frame_name)
                 return getattr(self, attr)
 
         raise AttributeError(f"'Coordinates' object has no attribute '{attr}'")
@@ -257,7 +259,7 @@ class Coordinates:
     def __getitem__(self, key):
         clone = deepcopy(self)
         attrs = ["_x", "_y", "_z", "_r", "_phi", "_theta", "_t"]
-        attrs.extend([frames[frame][angle] for frame in self.computed_frames for angle in ["phi", "theta"]])
+        attrs.extend([frames[frame][c] for frame in self.computed_frames for c in ["phi", "theta"]])
         for attr in attrs:
             setattr(clone, attr, getattr(clone, attr)[key])
 
@@ -292,7 +294,7 @@ class Coordinates:
             phi=ds_phi,
             theta=ds_theta,
             earth_location=self.earth_location,
-            frame=self.frame,
+            frame=self.frame.name,
             dtype=self.dtype,
         )
 
@@ -304,7 +306,7 @@ class Coordinates:
             phi=cphi,
             theta=ctheta,
             earth_location=self.earth_location,
-            frame=self.frame,
+            frame=self.frame.name,
             dtype=self.dtype,
         )
 
@@ -323,9 +325,11 @@ class Coordinates:
     def xyz(self):
         return np.concatenate([self.x[..., None], self.y[..., None], self.z[..., None]], axis=-1)
 
-    def project(self, z, frame="az_el"):
-        phi = getattr(self, frames[frame]["phi"])
-        theta = getattr(self, frames[frame]["theta"])
+    def project(self, z, frame="az/el"):
+        frame = Frame(frame)
+
+        phi = getattr(self, frame.phi_name)
+        theta = getattr(self, frame.theta_name)
 
         tan_theta = np.tan(theta)[..., None]
         p = (z - self.z)[..., None] * np.concatenate(
@@ -343,26 +347,28 @@ class Coordinates:
         return phi_theta_to_xyz(self._phi, self._theta)
 
     def center(self, frame=None):
-        frame = frame or self.frame
+        frame = Frame(frame or self.frame)
         return np.array(
             get_center_phi_theta(
-                getattr(self, frames[frame]["phi"]),
-                getattr(self, frames[frame]["theta"]),
+                getattr(self, frame.phi_name),
+                getattr(self, frame.theta_name),
             )
         )
 
-    def broadcast(self, offsets, frame, axis=0):
+    def broadcast(self, offsets, frame="az/el"):
         phi_theta = unjitted_offsets_to_phi_theta(offsets[..., None, :], self.az, self.el)
         return Coordinates(
             t=self.t,
             phi=phi_theta[..., 0],
             theta=phi_theta[..., 1],
             earth_location=self.earth_location,
-            frame="az_el",
+            frame="az/el",
         )
 
     def offsets(self, frame, center="auto", units="radians", compute: bool = False):
         offsets_s = ttime.monotonic()
+
+        frame = Frame(frame)
 
         if compute:
             return self.offsets(frame=frame, center=center, units=units, compute=False)
@@ -370,18 +376,18 @@ class Coordinates:
         if isinstance(center, str):
             if center == "auto":
                 center = self.center(frame=frame)
-        if frame == "az_el":
+        if frame.name == "az/el":
             X = phi_theta_to_offsets(np.stack([self.az, self.el], axis=-1), *center)
-        elif frame == "ra_dec":
+        elif frame.name == "ra/dec":
             X = phi_theta_to_offsets(np.stack([self.ra, self.dec], axis=-1), *center)
-        elif frame == "galactic":
+        elif frame.name == "galactic":
             X = phi_theta_to_offsets(np.stack([self.l, self.b], axis=-1), *center)
 
         logger.debug(f"Computed offsets for {self} in {humanize_time(ttime.monotonic() - offsets_s)}")
 
         return X
 
-    def spread(self, frame="ra_dec"):
+    def spread(self, frame="ra/dec"):
         dX = self.offsets(frame=frame)
         return dX.std(axis=list(range(1, dX.ndim)))
 

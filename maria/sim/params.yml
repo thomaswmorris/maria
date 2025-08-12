@@ -17,7 +17,7 @@ plan: # defaults to a 45 degree stare due north
   plan_description: ''
   start_time: 2022-02-10T06:00:00
   duration: 60 # in seconds
-  pointing_frame: az_el
+  pointing_frame: az/el
   degrees: True
   sample_rate: 20
   scan_pattern: daisy
@@ -48,7 +48,7 @@ noise:
 
 map:
   map_file: ''
-  map_frame: ra_dec
+  map_frame: ra/dec
   map_center: [10, 4.5]
   map_res: 0.5
   map_inbright:

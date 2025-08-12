@@ -125,6 +125,7 @@ class Quantity:
 
         if (self.base_units_vector == 0).all():
             return self.base_units_value
+
         return self
 
     @cached_property
@@ -324,11 +325,20 @@ class Quantity:
     def mean(self, axis=None, *args, **kwargs):
         return Quantity(np.mean(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
 
+    def median(self, axis=None, *args, **kwargs):
+        return Quantity(np.median(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+
     def min(self, axis=None, *args, **kwargs):
         return Quantity(np.min(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
 
     def max(self, axis=None, *args, **kwargs):
         return Quantity(np.max(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+
+    def std(self, axis=None, *args, **kwargs):
+        return Quantity(np.std(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+
+    def ptp(self, axis=None, *args, **kwargs):
+        return Quantity(np.ptp(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
 
     @property
     def shape(self):

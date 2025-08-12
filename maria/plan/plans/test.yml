@@ -2,7 +2,7 @@ ten_second_zenith_stare:
   description: A stare.
   duration: 10
   scan_pattern: stare
-  frame: az_el
+  frame: az/el
   scan_center: [0, 90]
   degrees: True
   sample_rate: 50
@@ -12,7 +12,7 @@ five_second_stare:
   description: A short stare
   duration: 5
   scan_pattern: stare
-  frame: az_el
+  frame: az/el
   scan_center: [60, 45]
   degrees: True
   sample_rate: 25
@@ -21,7 +21,7 @@ five_second_stare:
 daisy_2deg_3min:
   description: A daisy scan.
   duration: 180
-  frame: ra_dec
+  frame: ra/dec
   degrees: True
   scan_pattern: daisy
   scan_center: [150., 10]
@@ -39,7 +39,7 @@ back_and_forth_10deg_45el:
   duration: 60
   scan_pattern: back_and_forth
   scan_center: [45, 45]
-  frame: az_el
+  frame: az/el
   degrees: True
   sample_rate: 20
   scan_options:
@@ -48,7 +48,7 @@ back_and_forth_10deg_45el:
 
 # double_circle:
 #   description: 'A double circle scan.'
-#   frame: ra_dec
+#   frame: ra/dec
 #   duration: 60
 #   sample_rate: 50
 #   scan_pattern: double_circle

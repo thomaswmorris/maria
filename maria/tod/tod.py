@@ -285,8 +285,8 @@ class TOD:
         if format.lower() == "mustang-2":
             header = fits.header.Header()
 
-            header["AZIM"] = (self.coords.center("az_el")[0], "radians")
-            header["ELEV"] = (self.coords.center("az_el")[1], "radians")
+            header["AZIM"] = (self.coords.center("az/el")[0], "radians")
+            header["ELEV"] = (self.coords.center("az/el")[1], "radians")
             header["BMAJ"] = (9.0, "arcsec")
             header["BMIN"] = (9.0, "arcsec")
             header["BPA"] = (0.0, "degrees")
@@ -392,13 +392,13 @@ class TOD:
                 phi=ra,
                 theta=dec,
                 earth_location=site.earth_location,
-                frame="ra_dec",
+                frame="ra/dec",
             )
 
             # building array class
             dets_dict = {
-                "sky_x": ra[:, 0] - ra[:, 0].mean(),  # in ra_dec frame
-                "sky_y": dec[:, 0] - dec[:, 0].mean(),  # in ra_dec frame
+                "sky_x": ra[:, 0] - ra[:, 0].mean(),  # in ra/dec frame
+                "sky_y": dec[:, 0] - dec[:, 0].mean(),  # in ra/dec frame
                 "band_name": len(dec[:, 0]) * ["m2/f093"],
             }
 

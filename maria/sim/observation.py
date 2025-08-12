@@ -60,7 +60,7 @@ class Observation:
         # this can be expensive sometimes
         self.coords = self.boresight.broadcast(
             self.instrument.dets.offsets,
-            frame="az_el",
+            frame="az/el",
         )
 
         # do some checks

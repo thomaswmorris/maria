@@ -42,7 +42,7 @@ def test_polarized_map_sim():
     mapper = BinMapper(
         center=(0, -23),
         stokes="IQUV",
-        frame="ra_dec",
+        frame="ra/dec",
         width=1,
         height=1,
         resolution=1 / 256,

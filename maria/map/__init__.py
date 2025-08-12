@@ -170,14 +170,14 @@ def read_fits(filename: str, index: int = 0):
             logger.debug(f"Using frame '{frame_name}'")
 
     if "frame" not in metadata:
-        metadata["frame"] = "ra_dec"
-        logger.warning(f"Could not infer coordinate system from FITS header; assuming frame 'ra_dec'")
+        metadata["frame"] = "ra/dec"
+        logger.warning(f"Could not infer coordinate system from FITS header; assuming frame 'ra/dec'")
 
     metadata["center"] = (center.get("x"), center.get("y"))
     metadata["degrees"] = "deg" in units
     metadata["beam"] = beam
 
-    if metadata["frame"] in ["ra_dec", "galactic"]:
+    if metadata["frame"] in ["ra/dec", "galactic"]:
         data = data[..., ::-1]
 
     return data, metadata

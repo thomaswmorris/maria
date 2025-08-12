@@ -16,9 +16,9 @@ def repr_lat_lon(lat, lon):
 def repr_phi_theta(phi, theta, frame, join=None):
     qphi = Quantity(phi, "rad")
     qtheta = Quantity(theta, "rad")
-    if frame == "az_el":
+    if frame == "az/el":
         res = (f"az: {qphi.deg:.02f}°", f"el: {qtheta.deg:.02f}°")
-    elif frame == "ra_dec":
+    elif frame == "ra/dec":
         res = (f"ra:  {qphi.hms}", f"dec: {qtheta.dms}")
     elif frame == "galactic":
         res = (f"l: {qphi.deg:.02f}°", f"b: {qtheta.deg:.02f}°")

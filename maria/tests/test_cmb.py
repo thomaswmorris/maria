@@ -19,7 +19,7 @@ def test_cmb_calibration():
         sample_rate=50,  # in Hz
         scan_center=(150, 50),
         jitter=0,
-        frame="az_el",
+        frame="az/el",
     )
 
     sim = maria.Simulation(

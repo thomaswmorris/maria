@@ -15,7 +15,7 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from skimage.measure import block_reduce
 
-from ..coords import Coordinates, frames
+from ..coords import FRAMES, Coordinates, Frame
 from ..io import repr_phi_theta
 from ..units import Quantity
 from ..utils import compute_pointing_matrix_sparse_indices, unpack_implicit_slice
@@ -45,7 +45,7 @@ class ProjectedMap(Map):
         y_res: float = None,
         center: tuple[float, float] = (0.0, 0.0),
         beam: tuple[float, float, float] = 0.0,
-        frame: str = "ra_dec",
+        frame: str = "ra/dec",
         degrees: bool = True,
         units: str = "K_RJ",
         dtype: type = np.float32,
@@ -69,7 +69,7 @@ class ProjectedMap(Map):
         except Exception:
             raise ValueError("'center' must be a two-tuple of numbers")
 
-        self.frame = frame
+        self.frame = Frame(frame)
         beam = beam if beam is not None else 0.0
 
         super().__init__(
@@ -121,7 +121,7 @@ class ProjectedMap(Map):
             raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'x_res', or 'y_res'.")
 
     def _pointing_matrix_sparse_indices(self, coords: Coordinates):
-        offsets = coords.offsets(center=(self.center[0].rad, self.center[1].rad), frame=self.frame)
+        offsets = coords.offsets(center=(self.center[0].rad, self.center[1].rad), frame=self.frame.name)
 
         if "t" in self.dims:
             return compute_pointing_matrix_sparse_indices(
@@ -157,13 +157,13 @@ class ProjectedMap(Map):
         header["BUNITS"] = self.units
 
         # specify x center
-        CTYPE1 = self.frame_data["FITS_phi"]
+        CTYPE1 = self.frame.fits_phi
         header["CTYPE1"] = f"{CTYPE1}{(5 - len(CTYPE1)) * '-'}SIN"
         header["CRVAL1"] = self.center[0].deg
         header["CUNIT1"] = "deg     "
 
         # center y center
-        CTYPE2 = self.frame_data["FITS_theta"]
+        CTYPE2 = self.frame.fits_theta
         header["CTYPE2"] = f"{CTYPE2}{(5 - len(CTYPE2)) * '-'}SIN"
         header["CRVAL2"] = self.center[1].deg
         header["CUNIT2"] = "deg     "
@@ -217,15 +217,11 @@ class ProjectedMap(Map):
             return ProjectedMap(**package).to(self.units)
 
     @property
-    def frame_data(self):
-        return frames[self.frame]
-
-    @property
     def points(self):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
     def __repr__(self):
-        cphi_repr, ctheta_repr = repr_phi_theta(self.center[0].radians, self.center[1].radians, frame=self.frame)
+        cphi_repr, ctheta_repr = repr_phi_theta(self.center[0].radians, self.center[1].radians, frame=self.frame.name)
         return f"""{self.__class__.__name__}:
   shape{self.dims_string}: {self.data.shape}
   stokes: {self.stokes if "stokes" in self.dims else "naive"}
@@ -254,7 +250,7 @@ class ProjectedMap(Map):
                 "nu": self.nu.Hz,
                 "t": self.t,
                 "center": (self.center[0].deg, self.center[1].deg),
-                "frame": self.frame,
+                "frame": self.frame.name,
                 "units": self.units,
                 "x_res": self.x_res.deg,
                 "y_res": self.y_res.deg,
@@ -419,8 +415,8 @@ class ProjectedMap(Map):
         cbar.set_label(label, fontsize=10)
         ax.tick_params(axis="x", bottom=True, top=False)
         ax.tick_params(axis="y", left=True, right=False, rotation=90)
-        ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
-        ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
+        ax.set_xlabel(rf"{self.frame.phi_long_name}")
+        ax.set_ylabel(rf"{self.frame.theta_long_name}")
 
         ax.set_aspect("equal")
 
@@ -518,7 +514,7 @@ class ProjectedMap(Map):
         m = self  # .to(self.u["base_unit"])
 
         data = m.data[::-1, :]  # FITS counts from the bottom, while normal people count from the top
-        if self.frame in ["ra_dec", "galatic"]:
+        if self.frame.name in ["ra/dec", "galatic"]:
             data = data[..., ::-1]
 
         fits.writeto(
@@ -544,5 +540,5 @@ class ProjectedMap(Map):
             f.create_dataset("x_res", dtype=float, data=self.x_res.deg)
             f.create_dataset("y_res", dtype=float, data=self.y_res.deg)
             f.create_dataset("units", data=self.units)
-            f.create_dataset("frame", data=self.frame)
+            f.create_dataset("frame", data=self.frame.name)
             f.create_dataset("beam", data=(self.beam[0].deg, self.beam[1].deg, self.beam[2].deg))

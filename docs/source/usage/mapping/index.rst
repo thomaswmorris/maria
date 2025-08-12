@@ -11,7 +11,7 @@ We can map a ``TOD`` (or several of them) with a ``Mapper``. The simplest possib
     from maria.mappers import BinMapper
 
     mapper = BinMapper(center=(150, 10),
-                       frame="ra_dec",
+                       frame="ra/dec",
                        width=1e0,
                        height=1e0,
                        resolution=5e-3,

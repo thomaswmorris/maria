@@ -14,7 +14,7 @@ from astropy.wcs import WCS
 from matplotlib import pyplot as plt
 
 from .. import coords
-from ..coords import Coordinates, frames, get_center_phi_theta, phi_theta_to_offsets
+from ..coords import Coordinates, Frame, frames, get_center_phi_theta, phi_theta_to_offsets
 from ..io import DEFAULT_TIME_FORMAT, repr_lat_lon, repr_phi_theta
 from ..site import Site, get_site
 from ..units import Quantity
@@ -58,7 +58,7 @@ class Plan:
         start_time: str | int = None,
         duration: float = 60.0,
         sample_rate: float = 50.0,
-        frame: str = "ra_dec",
+        frame: str = "ra/dec",
         degrees: bool = True,
         jitter: float = 0,
         scan_center: tuple[float, float] = (0.0, 0.0),
@@ -153,7 +153,7 @@ class Plan:
         time: float,
         phi: float,
         theta: float,
-        frame: str = "ra_dec",
+        frame: str = "ra/dec",
         site: Site | str = None,
         latitude: float = None,  # in degrees
         longitude: float = None,  # in degrees
@@ -189,10 +189,10 @@ class Plan:
             earth_location=earth_location,
         )
 
-        if self.frame == "ra_dec":
+        if self.frame.name == "ra/dec":
             self.ra = self.phi = phi
             self.dec = self.theta = theta
-        elif self.frame == "az_el":
+        elif self.frame.name == "az/el":
             self.az = self.phi = phi
             self.el = self.theta = theta
         else:
@@ -235,29 +235,23 @@ class Plan:
         return self.start_time.shift(seconds=self.duration.s)
 
     @property
-    def frame_data(self):
-        return frames[self.frame]
-
-    @property
     def naive(self):
         return self.earth_location is None
 
     def center(self, frame: str = None):
-        frame = frame or self.frame
-        frame_data = frames[frame]
+        frame = Frame(frame or self.frame.name)
         cphi, ctheta = get_center_phi_theta(
-            phi=getattr(self.coords, frame_data["phi"]), theta=getattr(self.coords, frame_data["theta"])
+            phi=getattr(self.coords, frame.phi_name), theta=getattr(self.coords, frame.theta_name)
         )
         return (Quantity(cphi, "rad"), Quantity(ctheta, "rad"))
 
     def offsets(self, frame: str = None):
-        frame = frame or self.frame
-        center = self.center(frame=frame)
+        center = self.center(frame=frame or self.frame.name)
         phi_theta = np.stack([self.phi, self.theta], axis=-1)
         return phi_theta_to_offsets(phi_theta, float(center[0].rad), float(center[1].rad))
 
     def plot(self, plot_az_el: bool = None):
-        two_panel = plot_az_el if plot_az_el is not None else (self.frame != "az_el" and not self.naive)
+        two_panel = plot_az_el if plot_az_el is not None else (self.frame.name != "az/el" and not self.naive)
 
         q_offsets = Quantity(self.offsets(), "rad")
         center = self.center()
@@ -277,10 +271,10 @@ class Plan:
 
         wcs = WCS(header)
 
-        fig = plt.figure(figsize=(5, 5) if self.naive else (10, 5), dpi=256, constrained_layout=True)
+        fig = plt.figure(figsize=(10, 5) if two_panel else (5, 5), dpi=256, constrained_layout=True)
         ax = fig.add_subplot(111 if two_panel is None else 121, projection=wcs)
 
-        cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame)
+        cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame.name)
 
         ax.plot(q_offsets.value[:, 0], q_offsets.value[:, 1], lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=f"{cphi_repr}\n{ctheta_repr}")
@@ -294,8 +288,8 @@ class Plan:
 
         ax2 = ax.secondary_xaxis("top")
         ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.u['math_name']}$]")
-        ax.set_xlabel(rf"{self.frame_data['phi_long_name']}")
-        ax.set_ylabel(rf"{self.frame_data['theta_long_name']}")
+        ax.set_xlabel(rf"{self.frame.phi_long_name}")
+        ax.set_ylabel(rf"{self.frame.theta_long_name}")
 
         if not two_panel:
             ay2 = ax.secondary_yaxis("right")
@@ -393,10 +387,10 @@ class Plan:
         return self.end_time.format(DEFAULT_TIME_FORMAT)
 
     def __repr__(self):
-        c = self.center(frame=self.frame)
+        c = self.center(frame=self.frame.name)
         q_offsets = Quantity(self.offsets(), "rad")
 
-        cphi_repr, ctheta_repr = repr_phi_theta(c[0].rad, c[1].rad, frame=self.frame)
+        cphi_repr, ctheta_repr = repr_phi_theta(c[0].rad, c[1].rad, frame=self.frame.name)
         center_string = f"""center:
     {cphi_repr}
     {ctheta_repr}"""
@@ -407,8 +401,8 @@ class Plan:
     lat: {repr_lat}
     lon: {repr_lon}
     alt: {self.site.altitude}"""
-            if self.frame != "az_el":
-                caz, cel = self.center(frame="az_el")
+            if self.frame.name != "az/el":
+                caz, cel = self.center(frame="az/el")
                 center_string = f"""center:
     {cphi_repr}
     {ctheta_repr}
@@ -436,7 +430,7 @@ class Plan:
         phi = np.r_[self.phi, other.phi]
         theta = np.r_[self.theta, other.theta]
 
-        return Plan(time=time, phi=phi, theta=theta, frame=self.frame, site=self.site)
+        return Plan(time=time, phi=phi, theta=theta, frame=self.frame.name, site=self.site)
 
     def __radd__(self, other):
         return other.__add__(self)

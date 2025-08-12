@@ -1,0 +1,55 @@
+
+
+az/el:
+  aliases:
+  - altaz
+  - alt_az
+  - az/el
+  phi: 
+    name: az
+    long_name: Azimuth
+  theta: 
+    name: el
+    long_name: Elevation
+  fits:
+    phi: AZ
+    theta: EL
+  astropy:
+    name: altaz
+    phi: az
+    theta: alt
+
+ra/dec:
+  aliases:
+  - icrs
+  - ra_dec
+  phi: 
+    name: ra
+    long_name: Right ascension (J2000)
+  theta: 
+    name: dec
+    long_name: Declination (J2000)
+  fits:
+    phi: RA
+    theta: DEC
+  astropy:
+    name: icrs
+    phi: ra
+    theta: dec
+
+galactic:
+  aliases:
+  - l/b
+  phi: 
+    name: l
+    long_name: Galactic longitude
+  theta: 
+    name: b
+    long_name: Galactic latitude
+  fits:
+    phi: GLON
+    theta: GLAT
+  astropy:
+    name: galactic
+    phi: l
+    theta: b

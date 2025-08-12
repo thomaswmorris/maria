@@ -84,7 +84,7 @@ class TurbulentLayer:
 
         # compute the offset with respect to the center of the scan
         center_az, center_el = get_center_phi_theta(self.sim_az, self.sim_el)
-        offsets = self.boresight.offsets(frame="az_el", center=(center_az, center_el))
+        offsets = self.boresight.offsets(frame="az/el", center=(center_az, center_el))
 
         # the angular position of the boresight over time WRT the atmosphere
         # this has dimensions (2, time index)

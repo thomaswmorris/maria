@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
-from ..coords import Coordinates, frames
+from ..coords import FRAMES, Coordinates, Frame
 from ..units import Quantity
 from .base import Map
 
@@ -28,7 +28,7 @@ class HEALPixMap(Map):
         t: float = None,
         z: float = None,
         beam: tuple[float, float, float] = None,
-        frame: str = "ra_dec",
+        frame: str = "ra/dec",
         units: str = "K_RJ",
         degrees: bool = True,
         dtype: type = np.float32,
@@ -61,7 +61,7 @@ class HEALPixMap(Map):
             raise ValueError(f"Invalid pixel count (n={self.npix}).")
 
         self.nside = hp.pixelfunc.npix2nside(self.npix)
-        self.frame = frame
+        self.frame = Frame(frame)
 
         if not hasattr(beam, "__len__"):
             beam = beam or self.resolution
@@ -75,8 +75,8 @@ class HEALPixMap(Map):
     def pointing_matrix(self, coords: Coordinates):
         idx = hp.ang2pix(
             nside=self.nside,
-            phi=getattr(coords, frames[self.frame]["phi"]).ravel(),
-            theta=np.pi / 2 - getattr(coords, frames[self.frame]["theta"]).ravel(),
+            phi=getattr(coords, self.frame.phi_name).ravel(),
+            theta=np.pi / 2 - getattr(coords, self.frame.theta_name).ravel(),
         ).ravel()
 
         nsamps = len(idx)
@@ -93,7 +93,15 @@ class HEALPixMap(Map):
         return self.dims["npix"]
 
     def package(self):
-        return {k: getattr(self, k) for k in ["data", "weight", "stokes", "nu", "t", "frame", "units"]}
+        return {
+            "data": self.data,
+            "weight": self.weight,
+            "stokes": self.stokes,
+            "nu": self.nu,
+            "t": self.t,
+            "frame": self.frame.name,
+            "units": self.units,
+        }
 
     @property
     def X(self):
@@ -128,7 +136,9 @@ class HEALPixMap(Map):
             if self._weight is not None:
                 f.create_dataset("weight", dtype=float, data=self._weight)
 
-            for field in ["nu", "t", "frame", "units"]:
+            f.create_dataset("frame", data=self.frame.name)
+
+            for field in ["stokes", "nu", "t", "units"]:
                 f.create_dataset(field, data=getattr(self, field))
 
     def plot(self):
@@ -154,6 +164,7 @@ class HEALPixMap(Map):
   nu: {Quantity(self.nu, "Hz") if "nu" in self.dims else "naive"}
   t: {Quantity(self.t, "s") if "t" in self.dims else "naive"}
   nside: {self.nside}
+  frame: {self.frame.name}
   quantity: {self.u["quantity"]}
   units: {self.units}
     min: {np.nanmin(self.data).compute():.03e}

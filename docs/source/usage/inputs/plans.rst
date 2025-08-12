@@ -25,7 +25,9 @@ We can generate plans with the ``Planner`` as
 
     planner = Planner(target=input_map, 
                       site="green_bank", 
-                      el_bounds=(60, 90)) # make a planner
+                      constraints={"el": (70, 90), # in degrees
+                                   "min_sun_distance": 20, # in degrees
+                                   "hour": (14, 15)})
 
     plan = planner.generate_plan(total_duration=600, # in seconds
                                  scan_options={"radius": input_map.width.deg / 3}, # in degrees
@@ -48,7 +50,7 @@ A 60-second zenith stare would be instantiated as
                            scan_pattern="stare"
                            duration=60, # in seconds
                            sample_rate=20, # in Hz
-                           pointing_frame="az_el",
+                           pointing_frame="az/el",
                            scan_center=(0, 90)) # in degrees
 
 We might also do a daisy scan on some given point on the sky, which the telescope will track:
@@ -60,5 +62,5 @@ We might also do a daisy scan on some given point on the sky, which the telescop
                                     scan_options={"radius": 0.5, "speed": 0.1}, # in degrees
                                     duration=600, # in seconds
                                     sample_rate=50, # in Hz
-                                    frame="ra_dec"
+                                    frame="ra/dec"
                                     scan_center=(150, 10)) # in degrees

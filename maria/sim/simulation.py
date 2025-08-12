@@ -260,46 +260,6 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
     def plot_counts(self, x_bins=100, y_bins=100):
         self.plan.plot_counts(instrument=self.instrument, x_bins=x_bins, y_bins=y_bins)
 
-    def _run(self, plan):
-        if hasattr(self, "atmosphere"):
-            if not self.atmosphere._initialized:
-                atmosphere_init_start_s = ttime.monotonic()
-                self.atmosphere.initialize(self)
-                logger.debug(
-                    f"Initialized atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_init_start_s)}."
-                )
-
-            atmosphere_sim_start_s = ttime.monotonic()
-            self._simulate_atmosphere()
-            self._compute_atmospheric_emission()
-            logger.debug(f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}.")
-
-        if hasattr(self, "cmb"):
-            cmb_sim_start_s = ttime.monotonic()
-            self._compute_cmb_loading()
-            logger.debug(f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}.")
-
-        if hasattr(self, "map"):
-            map_sim_start_s = ttime.monotonic()
-            self._sample_maps()
-            logger.debug(f"Ran map simulation in {humanize_time(ttime.monotonic() - map_sim_start_s)}.")
-
-        # number of bands are lost here
-        if self.noise:
-            noise_sim_start_s = ttime.monotonic()
-            self._simulate_noise()
-            logger.debug(f"Ran noise simulation in {humanize_time(ttime.monotonic() - noise_sim_start_s)}.")
-
-        gain_error = np.exp(
-            self.instrument.dets.gain_error * np.random.standard_normal(size=self.instrument.dets.n),
-        )
-
-        for field in self.loading:
-            if field in ["noise"]:
-                continue
-
-            self.loading[field] *= gain_error[:, None]
-
     def __repr__(self):
         instrument_tree = "├ " + self.instrument.__repr__().replace("\n", "\n│ ")
         site_tree = "├ " + self.site.__repr__().replace("\n", "\n│ ")

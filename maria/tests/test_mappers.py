@@ -44,7 +44,7 @@ def test_map_sim():
 
     mapper = BinMapper(
         center=(150.01, 10.01),
-        frame="ra_dec",
+        frame="ra/dec",
         width=0.1,
         height=0.1,
         resolution=0.001,

@@ -142,7 +142,7 @@ class BaseSimulation:
         # this can be expensive sometimes
         self.coords = self.boresight.broadcast(
             self.instrument.dets.offsets,
-            frame="az_el",
+            frame="az/el",
         )
 
         logger.debug(f"Initialized coordinates in {humanize_time(ttime.monotonic() - boresight_init_s)}.")

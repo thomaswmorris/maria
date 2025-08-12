@@ -97,18 +97,18 @@ class Atmosphere:
         self.boresight = boresight.downsample(timestep=self.timestep)
         self.coords = self.boresight.broadcast(
             instrument.dets.offsets,
-            frame="az_el",
+            frame="az/el",
         )
 
         # this is a smaller version of the sim coords
         outer_coords = self.boresight.broadcast(
             instrument.dets.outer().offsets,
-            frame="az_el",
+            frame="az/el",
         )
 
         self.processes = {}
 
-        center = outer_coords.center(frame="az_el")
+        center = outer_coords.center(frame="az/el")
 
         for process_index in tqdm(
             sorted(np.unique(self.layers.process_index)),
@@ -157,7 +157,7 @@ class Atmosphere:
                 if layer.angular:
                     layer_x, layer_y = outer_coords.offsets(
                         center=center,
-                        frame="az_el",
+                        frame="az/el",
                     )
 
                 else:

@@ -35,7 +35,7 @@ def test_pipeline(instrument, site):
         duration=5,  # in seconds
         sample_rate=20,  # in Hz
         scan_center=(31, 62),
-        frame="az_el",
+        frame="az/el",
     )
 
     sim = Simulation(
@@ -57,7 +57,7 @@ def test_pipeline(instrument, site):
     mapper = BinMapper(
         center=(0, -23),
         stokes="IQUV",
-        frame="ra_dec",
+        frame="ra/dec",
         width=1,
         height=1,
         resolution=1 / 256,

@@ -9,6 +9,7 @@ from collections.abc import Sequence
 import numpy as np
 import scipy as sp
 
+from ..coords import FRAMES, Frame
 from ..instrument import BandList
 from ..io import humanize_time
 from ..map import ProjectedMap
@@ -47,7 +48,7 @@ class BaseMapper:
         self.height = Quantity(height, angle_units)
         self.degrees = degrees
         self.calibrate = calibrate
-        self.frame = frame
+        self.frame = Frame(frame)
         self.units = units
         self.stokes = stokes
 
@@ -136,6 +137,6 @@ class BaseMapper:
             resolution=self.resolution,
             center=self.center,
             degrees=False,
-            frame=self.frame,
+            frame=self.frame.name,
             units=self.units,
         )
