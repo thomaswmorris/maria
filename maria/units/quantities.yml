@@ -34,6 +34,60 @@ length:
       max_prefix_power: 3
       human: False
 
+velocity:
+  long_name: velocity
+  short_name: v
+  math_name: v
+  base_unit: m/s
+  base_unit_prefix: ""
+  recipe:
+    m: 1
+    s: -1
+  units:
+    m/s:
+      factor: 1
+      long_name: meters per second
+      math_name: \text{m}/\text{s}
+      min_prefix_power: -30
+      max_prefix_power: 3
+      human: False
+
+angular_velocity:
+  long_name: angular_velocity
+  short_name: ω
+  math_name: \omega
+  base_unit: rad/s
+  base_unit_prefix: ""
+  recipe:
+    rad: 1
+    s: -1
+  units:
+    rad/s:
+      factor: 1
+      long_name: radians per second
+      math_name: \text{rad}/\text{s}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    deg/s:
+      factor: 1.7453292519943295e-02
+      long_name: degrees per second
+      math_name: \text{deg}/\text{s}
+      min_prefix_power: 0
+      max_prefix_power: 0
+    arcmin/s:
+      factor: 2.9088820867e-04
+      long_name: arcminutes per second
+      math_name: \text{arcmin}/\text{s}
+      min_prefix_power: 0
+      max_prefix_power: 0
+    arcsec/s:
+      factor: 4.8481368111e-06
+      long_name: arcseconds per second
+      math_name: \text{arcsec}/\text{s}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
 angle:
   long_name: angle
   short_name: theta

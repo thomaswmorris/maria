@@ -43,15 +43,13 @@ class Atmosphere:
         spectrum_source: str = "am",
         pwv_rms_frac: float = 0.03,
         max_height: float = 5e3,
-        timestep: float = 1e-1,
+        timestep: float = None,
         disable_progress_bars: bool = False,
     ):
         if model not in SUPPORTED_MODELS_LIST:
             raise ValueError(
                 f"Invalid model '{model}'. Supported models are {SUPPORTED_MODELS_LIST}.",
             )
-
-        self.timestamp = timestamp
 
         self.spectrum = AtmosphericSpectrum(
             region=region,
@@ -93,6 +91,11 @@ class Atmosphere:
             angular=self.angular,
             max_height=self.max_height,
         )
+
+        if self.timestep is None:
+            min_fwhm = instrument.dets.angular_fwhm(z=self.max_height).min()
+            max_wind = Quantity((self.layers.wind_speed / self.layers.h).values, "rad/s").max()
+            self.timestep = (min_fwhm / max_wind).s
 
         self.boresight = boresight.downsample(timestep=self.timestep)
         self.coords = self.boresight.broadcast(
@@ -326,13 +329,26 @@ class Atmosphere:
                     p = layer.h * pp + translation
                     transformed_lpp = p @ process.transform
 
+                    # NOT JAX because linear interpolations leads to weird jagged things in Fourier space
+                    # y = sp.interpolate.RegularGridInterpolator(
+                    #     (
+                    #         process.extrusion,
+                    #         process.cross_section[layer_mask, 0],
+                    #     ),
+                    #     smoothed_layer_pwv,
+                    #     method="cubic",
+                    # )(transformed_lpp[..., :2])
+
                     y = jsp.interpolate.RegularGridInterpolator(
                         (
                             process.extrusion,
                             process.cross_section[layer_mask, 0],
                         ),
                         smoothed_layer_pwv,
+                        method="linear",
                     )(transformed_lpp[..., :2])
+
+                    # y = y
 
                     self.zenith_scaled_pwv += layer.pwv_rms * y
 

@@ -98,7 +98,7 @@ def test_tod_write_and_load():
         duration=600,  # integration time in seconds
         sample_rate=50,  # in Hz
         scan_center=(202.27211, 47.195277),  # position in the sky
-        frame="ra/dec",
+        frame="az/el",
     )
 
     sim = Simulation(get_instrument("MUSTANG-2"), plans=plan, site="green_bank")

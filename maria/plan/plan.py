@@ -198,6 +198,11 @@ class Plan:
         else:
             raise ValueError("Not a valid pointing frame!")
 
+        offsets = self.offsets()
+        self.scan_speed = Quantity(
+            np.sqrt(np.square(np.gradient(offsets, axis=0)).sum(axis=1)) / np.gradient(self.time), "rad/s"
+        )
+
     @property
     def n(self):
         return len(self.coords.t)
@@ -238,11 +243,14 @@ class Plan:
     def naive(self):
         return self.earth_location is None
 
-    def center(self, frame: str = None):
+    def center(self, frame: str = None, center: tuple[float, float] = None):
         frame = Frame(frame or self.frame.name)
-        cphi, ctheta = get_center_phi_theta(
-            phi=getattr(self.coords, frame.phi_name), theta=getattr(self.coords, frame.theta_name)
-        )
+        if center is not None:
+            cphi, ctheta = center
+        else:
+            cphi, ctheta = get_center_phi_theta(
+                phi=getattr(self.coords, frame.phi_name), theta=getattr(self.coords, frame.theta_name)
+            )
         return (Quantity(cphi, "rad"), Quantity(ctheta, "rad"))
 
     def offsets(self, frame: str = None):
@@ -418,7 +426,8 @@ class Plan:
   location: {location_string}
   sample_rate: {self.sample_rate}
   {center_string}
-  scan_radius: {Quantity(compute_diameter(q_offsets.rad), "rad")}"""
+  scan_radius: {Quantity(compute_diameter(q_offsets.rad), "rad")}
+  scan_speed(mean): {self.scan_speed.mean()}"""
 
     def __add__(self, other):
         if not isinstance(other, type(self)):

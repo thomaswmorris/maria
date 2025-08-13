@@ -247,7 +247,7 @@ class Quantity:
                 self.value = self.base_units_value
 
         if self.quantity == "time":
-            if self.s > 3600:
+            if np.any(self.s > 3600):
                 return self.timestring
         value_repr = f"{self.value:.04g}" if np.isscalar(self.value) else self.value
         return f"{value_repr}{UNITS['symbol'].get(self.units) or f' {self.units}'}"

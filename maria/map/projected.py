@@ -505,7 +505,7 @@ class ProjectedMap(Map):
                 )
 
                 if filename is not None:
-                    plt.savefig(filename=filename, dpi=256)
+                    plt.savefig(fname=filename, dpi=256)
 
     def to_fits(self, filename):
         if self.dims.get("nu", np.nan) > 1:
