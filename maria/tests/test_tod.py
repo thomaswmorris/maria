@@ -35,6 +35,21 @@ def test_tod_functions():
     print(f"{tod.boresight =}")
 
 
+def test_tod_calibration_with_atmosphere():
+    sim = Simulation(
+        instrument="MUSTANG-2",
+        plans="ten_second_zenith_stare",
+        site="green_bank",
+        atmosphere="2d",
+        noise=True,
+    )
+
+    tod = sim.run()[0]
+
+    tod = tod.to("pW")
+    tod = tod.to("K_RJ")
+
+
 def test_tod_preprocessing_with_config():
     sim = Simulation(
         instrument="MUSTANG-2",

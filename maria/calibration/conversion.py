@@ -39,9 +39,9 @@ def rayleigh_jeans_temperature_to_radiant_flux(
     if spectrum:
         integral = band.compute_nu_integral(
             spectrum=spectrum,
-            zenith_pwv=np.expand_dims(kwargs["zenith_pwv"], -1),
-            base_temperature=np.expand_dims(kwargs["base_temperature"], -1),
-            elevation=np.expand_dims(kwargs["elevation"], -1),
+            zenith_pwv=kwargs["zenith_pwv"],
+            base_temperature=kwargs["base_temperature"],
+            elevation=kwargs["elevation"],
         )
 
     else:
