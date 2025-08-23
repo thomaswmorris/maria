@@ -10,9 +10,8 @@ import scipy as sp
 from jax import scipy as jsp
 from tqdm import tqdm
 
-from maria.io import humanize_time
-
 from ..constants import k_B
+from ..io import DEFAULT_BAR_FORMAT, humanize_time
 
 here, this_filename = os.path.split(__file__)
 
@@ -42,6 +41,8 @@ class AtmosphereMixin:
             obs.instrument.dets.bands,
             desc="Computing atmospheric emission",
             disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
+            ncols=250,
         )
         for band in bands_pbar:
             emission_s = ttime.monotonic()

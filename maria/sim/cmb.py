@@ -17,7 +17,7 @@ from ..functions.radiometry import (
     planck_spectrum,
     rayleigh_jeans_spectrum,
 )  # noqa
-from ..io import humanize_time
+from ..io import DEFAULT_BAR_FORMAT, humanize_time
 from .observation import Observation
 
 logger = logging.getLogger("maria")
@@ -47,6 +47,8 @@ class CMBMixin:
             obs.instrument.bands,
             desc="Sampling CMB",
             disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
+            ncols=250,
         )
 
         stokes_weight = obs.instrument.dets.stokes_weight()

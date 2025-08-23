@@ -436,8 +436,8 @@ class ProjectedMap(Map):
         grid_u = Quantity(X, "rad").u
 
         header = fits.header.Header()
-        header["CDELT1"] = -grid_u["factor"]
-        header["CDELT2"] = grid_u["factor"]
+        header["CDELT1"] = -np.degrees(grid_u["factor"])
+        header["CDELT2"] = np.degrees(grid_u["factor"])
         header["CRPIX1"] = 1
         header["CRPIX2"] = 1
         header["CTYPE1"] = "RA---SIN"

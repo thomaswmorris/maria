@@ -265,8 +265,8 @@ class Plan:
         center = self.center()
 
         header = fits.header.Header()
-        header["CDELT1"] = -q_offsets.u["factor"]
-        header["CDELT2"] = q_offsets.u["factor"]
+        header["CDELT1"] = -np.degrees(q_offsets.u["factor"])
+        header["CDELT2"] = np.degrees(q_offsets.u["factor"])
         header["CRPIX1"] = 1
         header["CRPIX2"] = 1
         header["CTYPE1"] = "RA---SIN"

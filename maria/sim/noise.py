@@ -6,6 +6,7 @@ import dask.array as da
 import numpy as np
 from tqdm import tqdm
 
+from ..io import DEFAULT_BAR_FORMAT
 from ..noise import generate_noise_with_knee
 
 
@@ -20,6 +21,8 @@ class NoiseMixin:
             obs.instrument.dets.bands,
             desc="Generating noise",
             disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
+            ncols=250,
         )
         for band in bands_pbar:
             bands_pbar.set_postfix({"band": band.name})

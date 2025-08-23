@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from ..beam import compute_angular_fwhm
 from ..constants import k_B
-from ..io import DEFAULT_TIME_FORMAT, fetch, humanize_time
+from ..io import DEFAULT_BAR_FORMAT, DEFAULT_TIME_FORMAT, fetch, humanize_time
 from ..map import HEALPixMap, Map, ProjectedMap, load
 from ..units import Quantity
 
@@ -73,6 +73,9 @@ class MapMixin:
             obs.instrument.dets.bands,
             desc="Sampling map",
             disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
+            ncols=250,
+            postfix={"band": "", "channel": "", "stokes": ""},
         )
         for band in bands_pbar:
             bands_pbar.set_postfix(band=band.name)
@@ -102,8 +105,6 @@ class MapMixin:
                 qchannel = (nu_min, nu_max)
                 channel_string = f"{qchannel}"
 
-                bands_pbar.set_postfix(channel=channel_string)
-
                 spectrum_kwargs = (
                     {
                         "spectrum": obs.atmosphere.spectrum,
@@ -126,6 +127,8 @@ class MapMixin:
                 )
 
                 for stokes_index, stokes in enumerate(getattr(self.map, "stokes", "I")):
+                    bands_pbar.set_postfix(band=band.name, channel=channel_string, stokes=stokes)
+
                     stokes_weight = stokes_weights[band_mask, "IQUV".index(stokes), None]
                     if np.isclose(stokes_weight, 0).all():
                         logger.debug(f"Skipping stokes {stokes} (no weight)")

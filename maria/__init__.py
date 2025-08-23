@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import logging
 
+import pandas
+
 from ._version import __version__, __version_tuple__  # noqa
 from .array import Array, all_arrays, get_array  # noqa
 from .band import Band, all_bands, get_band  # noqa
@@ -26,6 +28,12 @@ logging.basicConfig(
 
 logger = logging.getLogger("maria")
 
+pandas.set_option("display.expand_frame_repr", False)
+
 
 def debug():
     logger.setLevel(logging.DEBUG)
+
+
+def undebug():
+    logger.setLevel(logging.INFO)

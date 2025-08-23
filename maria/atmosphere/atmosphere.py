@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from ..functions import approximate_normalized_matern
 from ..instrument import Instrument
-from ..io import humanize_time
+from ..io import DEFAULT_BAR_FORMAT, humanize_time
 from ..spectrum import AtmosphericSpectrum
 from ..units import Quantity
 from ..utils import compute_aligning_transform
@@ -117,6 +117,7 @@ class Atmosphere:
             sorted(np.unique(self.layers.process_index)),
             desc="Constructing atmosphere",
             disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
         ):
             process_init_s = ttime.monotonic()
 
@@ -285,6 +286,7 @@ class Atmosphere:
             self.processes.items(),
             desc="Generating turbulence",
             disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
         ):
             process_s = ttime.monotonic()
             process.run()
@@ -296,6 +298,7 @@ class Atmosphere:
             total=len(self.layers),
             desc="Sampling turbulence",
             disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
         ) as pbar:
             for k, process in self.processes.items():
                 wind_vector = np.c_[process.vx, process.vy, np.zeros(process.vx.shape)]

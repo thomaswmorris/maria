@@ -8,6 +8,7 @@ import requests
 from requests import HTTPError
 from tqdm import tqdm
 
+from ..constants import DEFAULT_BAR_FORMAT
 from ..utils.io import test_file
 
 logger = logging.getLogger("maria")
@@ -75,6 +76,8 @@ def download_from_url(
                 unit="B",
                 unit_scale=True,
                 desc=f"Downloading {source_url}",
+                bar_format=DEFAULT_BAR_FORMAT,
+                ncols=250,
             ) as pbar:
                 with open(cache_path, "wb") as f:
                     for chunk in r.iter_content(chunk_size):

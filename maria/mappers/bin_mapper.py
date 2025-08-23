@@ -1,26 +1,27 @@
 from __future__ import annotations
 
+import logging
 import os
+import time as ttime
 from collections.abc import Sequence
 
-import dask.array as da
 import numpy as np
-import scipy as sp
 from tqdm import tqdm
 
-from ..map import ProjectedMap
+from ..io import humanize_time
 from ..tod import TOD
-from .base import BaseMapper
+from .base import BaseProjectionMapper
 
 np.seterr(invalid="ignore")
 
 here, this_filename = os.path.split(__file__)
+logger = logging.getLogger("maria")
 
 
-class BinMapper(BaseMapper):
+class BinMapper(BaseProjectionMapper):
     def __init__(
         self,
-        center: tuple[float, float] = (0, 0),
+        center: tuple[float, float] = None,
         stokes: str = "I",
         width: float = 1,
         height: float = None,
@@ -46,81 +47,65 @@ class BinMapper(BaseMapper):
             calibrate=calibrate,
             tods=tods,
             units=units,
+            tod_preprocessing=tod_preprocessing,
+            map_postprocessing=map_postprocessing,
         )
 
-        self.tod_preprocessing = tod_preprocessing
-        self.map_postprocessing = map_postprocessing
+    def initialize_mapper(self):
+        return
 
-        self.n_x = int(np.maximum(1, self.width / self.resolution))
-        self.n_y = int(np.maximum(1, self.height / self.resolution))
-
-        self.x_bins = np.linspace(-0.5 * self.width.radians, 0.5 * self.width.radians, self.n_x + 1)
-        self.y_bins = np.linspace(0.5 * self.height.radians, -0.5 * self.height.radians, self.n_y + 1)
-
-    def _run(self, band):
+    def _run(self):
         """
         The actual mapper for the BinMapper.
         """
 
-        # nu = np.unique([band.center for tod in self.tods for band in tod.dets.bands])
+        self.map_data = {}
 
-        self.map = ProjectedMap(
-            data=np.zeros((self.n_y, self.n_x)),
-            width=self.width,
-            center=self.center,
-            frame=self.frame.name,
-            degrees=False,
-        )
+        map_sum = np.zeros((self.n_stokes, len(self.bands), (self.n_y + 2) * (self.n_x + 2)))
+        map_wgt = np.zeros((self.n_stokes, len(self.bands), (self.n_y + 2) * (self.n_x + 2)))
+        nu_list = []
 
-        map_numer = np.zeros((self.n_stokes, (self.n_y + 2) * (self.n_x + 2)))
-        map_denom = np.zeros((self.n_stokes, (self.n_y + 2) * (self.n_x + 2)))
+        for band_index, band in enumerate(self.bands):
+            band_start_s = ttime.monotonic()
 
-        for tod in self.tods:
-            band_tod = tod.subset(band=band.name)
+            nu_list.append(band.center)
 
-            if not tod.shape[0] > 0:
-                continue
+            pbar = tqdm(
+                enumerate(self.tods),
+                total=len(self.tods),
+                desc=f"Mapping band {band.name}",
+                postfix={"tod": f"1/{len(self.tods)}", "stokes": "I"},
+            )
 
-            band_tod = band_tod.process(config=self.tod_preprocessing).to(self.units)
+            for tod_index, tod in pbar:
+                band_tod = tod.subset(band=band.name)
 
-            P = self.map.pointing_matrix(coords=band_tod.coords)
-            D = band_tod.signal.compute()
-            W = band_tod.weight.compute()
+                if not tod.shape[0] > 0:
+                    continue
 
-            stokes_weight = band_tod.dets.stokes_weight()
+                band_tod = band_tod.process(config=self.tod_preprocessing).to(self.units)
 
-            stokes_pbar = tqdm(enumerate(self.stokes), total=self.n_stokes, desc=f"Mapping band {band.name}")
+                P = self.map.pointing_matrix(coords=band_tod.coords)
+                D = band_tod.signal.compute()
+                W = band_tod.weight.compute()
 
-            for stokes_index, stokes in stokes_pbar:
-                stokes_pbar.set_postfix(band=band.name, stokes=stokes)
+                stokes_weight = band_tod.dets.stokes_weight()
 
-                s = stokes_weight[:, "IQUV".index(stokes)][..., None]
+                for stokes_index, stokes in enumerate(self.stokes):
+                    pbar.set_postfix(tod=f"{tod_index + 1}/{len(self.tods)}", stokes=stokes)
 
-                map_numer[stokes_index] += P @ (np.sign(s) * W * D).ravel()
-                map_denom[stokes_index] += P @ (np.abs(s) * W).ravel()
+                    s = stokes_weight[:, "IQUV".index(stokes)][..., None]
 
-                # band_map_data["sum"][stokes_index] += sp.stats.binned_statistic_2d(
-                #     dy.ravel(),
-                #     dx.ravel(),
-                #     (np.sign(w) * band_tod.weight * band_tod.signal).ravel(),
-                #     bins=(self.y_bins[::-1], self.x_bins),
-                #     statistic="sum",
-                # ).statistic[::-1]
+                    map_sum[stokes_index, band_index] += P @ (np.sign(s) * W * D).ravel()
+                    map_wgt[stokes_index, band_index] += P @ (np.abs(s) * W).ravel()
 
-                # band_map_data["weight"][stokes_index] += sp.stats.binned_statistic_2d(
-                #     dy.ravel(),
-                #     dx.ravel(),
-                #     (np.abs(w) * band_tod.weight).ravel(),
-                #     bins=(self.y_bins[::-1], self.x_bins),
-                #     statistic="sum",
-                # ).statistic[::-1]
+                del band_tod
 
-            del band_tod
+            logger.info(f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}.")
 
-        band_map_data = {
-            "numer": map_numer.reshape(self.n_stokes, self.n_y + 2, self.n_x + 2)[:, 1:-1, 1:-1],
-            "denom": map_denom.reshape(self.n_stokes, self.n_y + 2, self.n_x + 2)[:, 1:-1, 1:-1],
-            "nom_freq": band.center,
+        return {
+            "sum": map_sum.reshape(self.n_stokes, self.n_bands, self.n_y + 2, self.n_x + 2)[..., 1:-1, 1:-1],
+            "wgt": map_wgt.reshape(self.n_stokes, self.n_bands, self.n_y + 2, self.n_x + 2)[..., 1:-1, 1:-1],
+            "stokes": self.stokes,
+            "nu": nu_list,
         }
-
-        return band_map_data
