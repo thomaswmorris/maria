@@ -415,8 +415,18 @@ class ProjectedMap(Map):
         cbar.set_label(label, fontsize=10)
         ax.tick_params(axis="x", bottom=True, top=False)
         ax.tick_params(axis="y", left=True, right=False, rotation=90)
-        ax.set_xlabel(rf"{self.frame.phi_long_name}")
-        ax.set_ylabel(rf"{self.frame.theta_long_name}")
+
+        lon = ax.coords[0]
+        lon.set_axislabel(rf"{self.frame.phi_long_name}")
+        lon.set_ticks_position("b")
+        lon.set_ticklabel_position("b")
+        lon.set_axislabel_position("b")
+
+        lat = ax.coords[1]
+        lat.set_axislabel(rf"{self.frame.theta_long_name}")
+        lat.set_ticks_position("l")
+        lat.set_ticklabel_position("l")
+        lat.set_axislabel_position("l")
 
         ax.set_aspect("equal")
 
