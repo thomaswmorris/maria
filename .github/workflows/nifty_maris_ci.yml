@@ -1,0 +1,34 @@
+name: Test Nifty Maria
+
+on: 
+  push:
+  pull_request:
+
+jobs:
+  test-nifty-maria:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout maria
+        uses: actions/checkout@v4
+
+      - name: Checkout nifty_maria (inside CMB_denoising)
+        uses: actions/checkout@v4
+        with:
+          repository: jwuerzinger/CMB_denoising
+          path: CMB_denoising
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install -e CMB_denoising/nifty_maria
+
+      - name: Run nifty_maria tests
+        run: |
+          cd CMB_denoising/nifty_maria
+          pytest -q
