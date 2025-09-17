@@ -31,5 +31,5 @@ jobs:
 
       - name: Run tests with pixi
         run: |
-          cd CMB_denoising
+          cd CMB_denoising/nifty_maria
           pixi run pytest -q
