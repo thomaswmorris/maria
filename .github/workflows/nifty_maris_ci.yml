@@ -27,6 +27,7 @@ jobs:
         run: |
           pip install -e .
           pip install -e CMB_denoising/nifty_maria
+          pip install pytest
 
       - name: Run nifty_maria tests
         run: |
