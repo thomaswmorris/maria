@@ -41,6 +41,7 @@ ALLOWED_ARRAY_KWARGS = [
     "packing",
     "polarized",
     "primary_size",
+    "rotation",
     "shape",
 ]
 
@@ -321,6 +322,8 @@ class Array:
             # - two of (n-like, field_of_view, beam_spacing), or
             # - two of (n-like, max_baseline, baseline_spacing)
 
+            pattern_kwargs = {}
+
             n_kwargs = {k: config.get(k) for k in ["n", "n_col", "n_row"] if config.get(k) is not None}
             n_explicit = ("n" in n_kwargs) or (("n_col" in n_kwargs) and ("n_row" in n_kwargs))
             n_focal_plane_kwargs = sum([n_explicit, "field_of_view" in config, "focal_plane_spacing" in config])
@@ -334,7 +337,7 @@ class Array:
 
             # this is not supposed to be elegant, it is supposed to be easy to understand
             if n_explicit:
-                pattern_kwargs = {**n_kwargs}
+                pattern_kwargs.update(n_kwargs)
                 if ("field_of_view" in config) or ("beam_spacing" in config):
                     # we can only use one if n is explicit
                     mode = "focal_plane"
@@ -379,6 +382,7 @@ class Array:
                 **pattern_kwargs,
                 shape=config.get("shape", "hexagon"),
                 packing=config.get("packing", "triangular"),
+                rotation=np.radians(config.get("rotation", 0)),
             )
 
             if mode == "focal_plane":

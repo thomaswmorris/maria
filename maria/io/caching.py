@@ -71,11 +71,12 @@ def download_from_url(
         with requests.get(source_url, stream=True) as r:
             r.raise_for_status()
             total_size_bytes = int(r.headers.get("content-length", 0))
+            logger.info(f"Fetching {source_url}")
             with tqdm(
                 total=total_size_bytes,
                 unit="B",
                 unit_scale=True,
-                desc=f"Downloading {source_url}",
+                desc=f"Downloading",
                 bar_format=DEFAULT_BAR_FORMAT,
                 ncols=250,
             ) as pbar:
