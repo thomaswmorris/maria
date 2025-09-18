@@ -29,6 +29,16 @@ jobs:
           curl -fsSL https://pixi.sh/install.sh | bash
           echo "$HOME/.pixi/bin" >> $GITHUB_PATH
 
+      - name: Ensure pip in pixi environment
+        run: |
+          cd CMB_denoising
+          pixi run python -m ensurepip --upgrade
+          pixi run python -m pip install --upgrade pip
+
+      - name: Install maria in pixi environment
+        run: |
+          pixi run pip install -e maria/
+
       - name: Run tests with pixi
         run: |
           cd CMB_denoising/nifty_maria
