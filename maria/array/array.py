@@ -13,6 +13,7 @@ import pandas as pd
 import scipy as sp
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
+from scipy.spatial import QhullError
 
 from ..band import Band, BandList  # noqa
 from ..beam import compute_angular_fwhm
@@ -41,6 +42,7 @@ ALLOWED_ARRAY_KWARGS = [
     "packing",
     "polarized",
     "primary_size",
+    "rotation",
     "shape",
 ]
 
@@ -136,8 +138,11 @@ class Array:
         return self._subset(mask=first_det_mask)
 
     def outer(self):
-        outer_dets_index = sp.spatial.ConvexHull(self.offsets).vertices
-        outer_dets_mask = np.isin(np.arange(self.n), outer_dets_index)
+        try:
+            hull = sp.spatial.ConvexHull(self.offsets)
+        except QhullError:
+            return self
+        outer_dets_mask = np.isin(np.arange(self.n), hull.vertices)
         return self._subset(mask=outer_dets_mask)
 
     @property
@@ -174,6 +179,11 @@ class Array:
         Returns the angular FWHM (in radians) at infinite distance.
         """
         return self.angular_fwhm(z=np.inf)
+
+    @property
+    def beams(self):
+        fwhm = self.fwhm.radians
+        return np.stack([fwhm, fwhm, np.zeros_like(fwhm)], axis=1)
 
     def mueller(self):
         """
@@ -308,18 +318,19 @@ class Array:
         else:
             raise ValueError("You must specify 'band' or 'bands' to generate an array.")
 
-        max_resolution = max(
-            [
-                compute_angular_fwhm(primary_size, z=np.inf, nu=band.center.Hz)
-                for band in bands
-                for primary_size in primary_sizes
-            ]
-        )
-
         if "file" not in config:
+            max_resolution = max(
+                [
+                    compute_angular_fwhm(primary_size, z=np.inf, nu=band.center.Hz)
+                    for band in bands
+                    for primary_size in primary_sizes
+                ]
+            )
             # we need:
             # - two of (n-like, field_of_view, beam_spacing), or
             # - two of (n-like, max_baseline, baseline_spacing)
+
+            pattern_kwargs = {}
 
             n_kwargs = {k: config.get(k) for k in ["n", "n_col", "n_row"] if config.get(k) is not None}
             n_explicit = ("n" in n_kwargs) or (("n_col" in n_kwargs) and ("n_row" in n_kwargs))
@@ -334,8 +345,14 @@ class Array:
 
             # this is not supposed to be elegant, it is supposed to be easy to understand
             if n_explicit:
-                pattern_kwargs = {**n_kwargs}
-                if ("field_of_view" in config) or ("beam_spacing" in config):
+                pattern_kwargs.update(n_kwargs)
+
+                # handle the case of a single detector
+                if (n_kwargs.get("n") == 1) or ((n_kwargs.get("n_row") == 1) and (n_kwargs.get("n_col") == 1)):
+                    mode = "focal_plane"
+                    pattern_kwargs["spacing"] = 0.0
+
+                elif ("field_of_view" in config) or ("beam_spacing" in config):
                     # we can only use one if n is explicit
                     mode = "focal_plane"
                     if "field_of_view" in config:
@@ -379,40 +396,13 @@ class Array:
                 **pattern_kwargs,
                 shape=config.get("shape", "hexagon"),
                 packing=config.get("packing", "triangular"),
+                rotation=np.radians(config.get("rotation", 0)),
             )
 
             if mode == "focal_plane":
                 df = pd.DataFrame(X, columns=["sky_x", "sky_y"])
             else:
                 df = pd.DataFrame(X, columns=["baseline_x", "baseline_y"])
-
-            # if n_focal_plane_kwargs >= 2:
-            #     X = generate_2d_pattern(
-            #         **n_kwargs,
-            #         shape=config.get("shape", "hexagon"),
-            #         packing=config.get("packing", "triangular"),
-            #         max_diameter=np.radians(config.get("field_of_view")),
-            #         spacing=config.get("focal_plane_spacing"),
-            #     )
-
-            #     df = pd.DataFrame(X, columns=["sky_x", "sky_y"])
-
-            # elif n_baseline_kwargs >= 2:
-            #     X = generate_2d_pattern(
-            #         **n_kwargs,
-            #         shape=config.get("shape", "circle"),
-            #         packing=config.get("packing", "sunflower"),
-            #         max_diameter=config.get("max_baseline"),
-            #         spacing=config.get("baseline_spacing"),
-            #     )
-
-            #     df = pd.DataFrame(X, columns=["baseline_x", "baseline_y"])
-
-            # else:
-            #     raise ValueError(
-            #         "Invalid array spec: you must supply exactly two of [n, field_of_view, beam_spacing] for "
-            #         "an array or exactly two of [n, max_baseline, baseline_spacing]."
-            #     )
 
             df.loc[:, "bath_temp"] = config.get("bath_temp", 0)
 

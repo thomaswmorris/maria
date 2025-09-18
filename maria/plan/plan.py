@@ -60,7 +60,8 @@ class Plan:
         sample_rate: float = 50.0,
         frame: str = "ra/dec",
         degrees: bool = True,
-        jitter: float = 0,
+        jitter: float = 0.0,
+        roll: float = 0.0,
         scan_center: tuple[float, float] = (0.0, 0.0),
         scan_pattern: str = "daisy",
         scan_options: dict = {},
@@ -142,7 +143,7 @@ class Plan:
             scan_center[1].rad,
         )
 
-        self = cls(time, phi=pt[..., 0], theta=pt[..., 1], frame=frame, site=site)
+        self = cls(time, phi=pt[..., 0], theta=pt[..., 1], roll=roll, frame=frame, site=site)
 
         self.generation_kwargs = {"scan_pattern": scan_pattern, "scan_options": scan_options}
 
@@ -153,6 +154,7 @@ class Plan:
         time: float,
         phi: float,
         theta: float,
+        roll: float = 0.0,
         frame: str = "ra/dec",
         site: Site | str = None,
         latitude: float = None,  # in degrees
@@ -202,6 +204,8 @@ class Plan:
         self.scan_speed = Quantity(
             np.sqrt(np.square(np.gradient(offsets, axis=0)).sum(axis=1)) / np.gradient(self.time), "rad/s"
         )
+
+        self.roll = roll
 
     @property
     def n(self):

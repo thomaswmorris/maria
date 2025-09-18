@@ -7,14 +7,16 @@ from ..io import leftpad
 from ..spectrum import AtmosphericSpectrum
 from ..units import DIMENSIONS, Quantity, parse_units
 from .conversion import (
+    brightness_temperature_to_cmb_temperature_anisotropy,
     brightness_temperature_to_radiant_flux,
+    cmb_temperature_anisotropy_to_brightness_temperature,
     cmb_temperature_anisotropy_to_radiant_flux,
-    cmb_temperature_anisotropy_to_rayleigh_jeans_temperature,
+    # cmb_temperature_anisotropy_to_rayleigh_jeans_temperature,
     identity,
     radiant_flux_to_brightness_temperature,
     radiant_flux_to_cmb_temperature_anisotropy,
     radiant_flux_to_rayleigh_jeans_temperature,
-    rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
+    # rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
     rayleigh_jeans_temperature_to_radiant_flux,
     rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
     spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel,
@@ -27,7 +29,10 @@ from .conversion import (
 here, this_filename = os.path.split(__file__)
 
 conversions = {}
-conversions["brightness_temperature"] = {"radiant_flux": {"f": brightness_temperature_to_radiant_flux, "linear": False}}
+conversions["brightness_temperature"] = {
+    "radiant_flux": {"f": brightness_temperature_to_radiant_flux, "linear": False},
+    "cmb_temperature_anisotropy": {"f": brightness_temperature_to_cmb_temperature_anisotropy, "linear": False},
+}
 
 conversions["radiant_flux"] = {
     "rayleigh_jeans_temperature": {"f": radiant_flux_to_rayleigh_jeans_temperature, "linear": True},
@@ -42,6 +47,7 @@ conversions["rayleigh_jeans_temperature"] = {
 
 conversions["cmb_temperature_anisotropy"] = {
     "radiant_flux": {"f": cmb_temperature_anisotropy_to_radiant_flux, "linear": True},
+    "brightness_temperature": {"f": cmb_temperature_anisotropy_to_brightness_temperature, "linear": False},
     # "rayleigh_jeans_temperature": {"f": cmb_temperature_anisotropy_to_rayleigh_jeans_temperature, "linear": False},
 }
 

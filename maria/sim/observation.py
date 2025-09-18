@@ -18,7 +18,7 @@ from ..map import Map, load
 from ..plan import Plan, PlanList, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
-from ..utils import read_yaml
+from ..utils import get_rotation_matrix_2d, read_yaml
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -59,7 +59,7 @@ class Observation:
 
         # this can be expensive sometimes
         self.coords = self.boresight.broadcast(
-            self.instrument.dets.offsets,
+            self.instrument.dets.offsets @ get_rotation_matrix_2d(np.radians(plan.roll)).T,
             frame="az/el",
         )
 

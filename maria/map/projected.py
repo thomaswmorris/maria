@@ -254,7 +254,7 @@ class ProjectedMap(Map):
                 "units": self.units,
                 "x_res": self.x_res.deg,
                 "y_res": self.y_res.deg,
-                "beam": (self.beam[0].deg, self.beam[1].deg, self.beam[2].deg),
+                "beam": self.beam.deg,
             }
         )
 
