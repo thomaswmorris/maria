@@ -160,6 +160,14 @@ class BaseProjectionMapper:
             warnings.simplefilter("ignore", category=RuntimeWarning)
             data_offsets = np.nanmean(data, axis=(-1, -2))[..., None, None]
 
+        beam_sum = np.zeros((len(self.bands), 3))
+        beam_wgt = np.zeros((len(self.bands), 3))
+
+        for band_index, band in enumerate(self.bands):
+            for tod in self.tods:
+                beam_sum[band_index] += tod.duration * tod.dets.beams[tod.dets.band_name == band.name].mean(axis=0)
+                beam_wgt[band_index] += tod.duration
+
         return ProjectedMap(
             data=(data - data_offsets),
             stokes=self.stokes,
@@ -170,4 +178,5 @@ class BaseProjectionMapper:
             degrees=False,
             frame=self.frame.name,
             units=self.units,
+            beam=beam_sum / beam_wgt,
         )

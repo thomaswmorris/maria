@@ -31,7 +31,7 @@ def regular_digitization(x, bins):
 
 
 def compute_pointing_matrix_sparse_indices(points, bins):
-    if not all([all(np.gradient(b) > 0) for b in bins]):
+    if not np.all([np.all(np.gradient(b) > 0) for b in bins]):
         raise ValueError(f"Each set of bins must be strictly increasing")
 
     idx = 0
@@ -82,7 +82,7 @@ def unpack_implicit_slice(key, ndims):
     return explicit_slices
 
 
-def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
+def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000, jitter: float = 0.0) -> float:
     """
     Parameters
     ----------
@@ -93,12 +93,16 @@ def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000) -> float:
     *input_shape, n_dim = points.shape
     X = points.reshape(-1, n_dim)
 
-    # add jitter
-    X += 1e-12 * np.ptp(X, axis=-1).max() * np.random.standard_normal(size=X.shape)
+    if jitter:
+        X += jitter * np.ptp(X, axis=-1).max() * np.random.standard_normal(size=X.shape)
 
     dim_mask = np.ptp(X, axis=tuple(range(X.ndim - 1))) > 0
     if not dim_mask.any():
         return 0.0
+
+    if len(X) < 16:
+        i, j = np.triu_indices(n=len(X), k=1)
+        return np.sqrt(np.sum(np.square(X[i] - X[j]), axis=-1).max())
 
     if lazy:
         X = X[

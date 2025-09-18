@@ -60,16 +60,13 @@ class Map:
 
         if not hasattr(beam, "__len__"):
             beam = (beam, beam, 0)
+        self.beam = Quantity(beam, "deg" if degrees else "rad")
 
-        if len(beam) != 3:
+        if np.shape(self.beam)[-1] != 3:
             raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
 
-        beam = np.radians(beam) if degrees else beam
-
-        self.beam = (Quantity(beam[0], "rad"), Quantity(beam[1], "rad"), Quantity(beam[2], "rad"))
-
         if self.u["quantity"] == "spectral_flux_density_per_beam":
-            if not self.beam_area > 0:
+            if not np.all(self.beam_area > 0):
                 raise ValueError(
                     f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
                 )
@@ -226,7 +223,7 @@ class Map:
         """
         Returns the beam area in steradians
         """
-        return (np.pi / 4) * self.beam[0].radians * self.beam[1].radians
+        return (np.pi / 4) * self.beam[..., 0].radians * self.beam[..., 1].radians
 
     def to(self, units: str):
         if units == self.units:
@@ -253,7 +250,7 @@ class Map:
                     f"{self.units} -> {units}",
                     nu=nu,
                     pixel_area=self.pixel_area,
-                    beam_area=self.beam_area,
+                    beam_area=np.atleast_1d(self.beam_area)[nu_index],
                 )
                 data[nu_index] = cal(data[nu_index])
 

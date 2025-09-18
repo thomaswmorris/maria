@@ -8,7 +8,7 @@ import maria
 plt.close("all")
 
 
-array1 = {
+arrays1 = {
     "subarray-1": {
         "n": 500,
         "primary_size": 10,
@@ -28,9 +28,12 @@ array1 = {
 
 # /Users/tom/maria/src/maria/array/
 
-array2 = [{"file": "alma/alma_f144.csv"}]
+arrays2 = [{"file": "alma/alma_f144.csv", "primary_size": 12, "bands": ["alma/f144"]}]
 
-array_configs_to_test = [array1, array2]
+arrays3 = [{"file": "alma/alma_f144.csv", "primary_size": 12, "bands": ["alma/f144"]}]
+
+
+array_configs_to_test = [arrays1, arrays2, arrays3]
 
 
 @pytest.mark.parametrize("array_config", array_configs_to_test)

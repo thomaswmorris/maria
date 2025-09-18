@@ -108,12 +108,11 @@ class MapMixin:
                 spectrum_kwargs = (
                     {
                         "spectrum": obs.atmosphere.spectrum,
-                        # "zenith_pwv": self.zenith_scaled_pwv[band_mask].compute(),
                         "zenith_pwv": obs.zenith_scaled_pwv[band_mask].mean().compute(),
                         "base_temperature": obs.atmosphere.weather.temperature[0],
                         "elevation": obs.coords.el[band_mask],
                     }
-                    if hasattr(obs, "atmosphere")
+                    if getattr(obs, "atmosphere", None)
                     else {}
                 )
 
