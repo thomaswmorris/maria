@@ -42,6 +42,7 @@ jobs:
       
       - name: Install nifty in pixi environment
         run: |
+          cd CMB_denoising
           pixi run pip install -e nifty/[re]
 
       - name: Run tests with pixi
