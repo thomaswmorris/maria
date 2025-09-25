@@ -40,6 +40,11 @@ jobs:
           cd CMB_denoising
           pixi run pip install -e ../
 
+      - name: Install nifty in pixi environment
+        run: |
+          cd CMB_denoising
+          pixi run pip install -e .[re]
+
       - name: Run tests with pixi
         run: |
           cd CMB_denoising/nifty_maria
