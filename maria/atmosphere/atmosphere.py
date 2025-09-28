@@ -210,6 +210,7 @@ class Atmosphere:
                 wide_lp_z_dense = layer.h * np.ones(len(wide_lp_x_dense))
                 wide_lp_dense = np.c_[wide_lp_x_dense, wide_lp_z_dense]
                 interior = triangulation.find_simplex(wide_lp_dense) > -1
+                # interior = interior if interior.any() else np.ones_like(interior, dtype=bool)
                 lp_dense_x = wide_lp_x_dense[interior]
                 lp_x_min = lp_dense_x.min() - 2 * res
                 lp_x_max = lp_dense_x.max() + 2 * res

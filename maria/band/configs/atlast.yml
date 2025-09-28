@@ -1,7 +1,7 @@
 f027:
   center: 27.e+9
   width: 5.e+9
-  shape: gaussian
+  shape: top_hat
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
@@ -11,7 +11,7 @@ f027:
 f039:
   center: 39.e+9
   width: 5.e+9
-  shape: gaussian
+  shape: top_hat
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
@@ -21,7 +21,7 @@ f039:
 f093:
   center: 93.e+9
   width: 10.e+9
-  shape: gaussian
+  shape: top_hat
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
@@ -31,7 +31,7 @@ f093:
 f150:
   center: 150.e+9
   width: 10.e+9
-  shape: gaussian
+  shape: top_hat
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
@@ -41,7 +41,7 @@ f150:
 f225:
   center: 225.e+9
   width: 30.e+9
-  shape: gaussian
+  shape: top_hat
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2
@@ -51,7 +51,27 @@ f225:
 f280:
   center: 280.e+9
   width: 40.e+9
-  shape: gaussian
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f350:
+  center: 350.e+9
+  width: 34.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f400:
+  center: 400.e+9
+  width: 30.e+9
+  shape: top_hat
   time_constant: 0
   efficiency: 0.5
   gain_error: 5.e-2

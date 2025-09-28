@@ -51,12 +51,12 @@ class MapMixin:
                 if map_start > self.min_time:
                     logger.warning(
                         f"Beginning of map ({map_start.format(DEFAULT_TIME_FORMAT)}) is after the "
-                        f"beginning of the simulation ({self.start_time.format(DEFAULT_TIME_FORMAT)}).",
+                        f"beginning of the simulation ({self.min_time.format(DEFAULT_TIME_FORMAT)}).",
                     )
                 if map_end < self.max_time:
                     logger.warning(
                         f"End of map ({map_end.format(DEFAULT_TIME_FORMAT)}) is before the "
-                        f"end of the simulation ({self.end_time.format(DEFAULT_TIME_FORMAT)}).",
+                        f"end of the simulation ({self.max_time.format(DEFAULT_TIME_FORMAT)}).",
                     )
             else:
                 self.map = self.map.squeeze("t")
@@ -108,7 +108,7 @@ class MapMixin:
                 spectrum_kwargs = (
                     {
                         "spectrum": obs.atmosphere.spectrum,
-                        "zenith_pwv": obs.zenith_scaled_pwv[band_mask].mean().compute(),
+                        "zenith_pwv": obs.zenith_scaled_pwv[band_mask].compute(),
                         "base_temperature": obs.atmosphere.weather.temperature[0],
                         "elevation": obs.coords.el[band_mask],
                     }

@@ -55,25 +55,28 @@ def daisy(
     miss_factor=0.15,
     miss_freq=np.sqrt(2),
 ):  # noqa
-    speed = speed or radius / 10
-    a = radius / (1 + miss_factor)
-    b = a * miss_factor
-    max_speed = 0
-    dp_dt = speed / radius
+    if radius > 0:
+        speed = speed or radius / 10
+        a = radius / (1 + miss_factor)
+        b = a * miss_factor
+        max_speed = 0.0
+        dp_dt = (speed / radius) if radius > 0.0 else 0.0
 
-    for iteration in range(4):
-        phase = dp_dt * time
-        test_x, test_y = daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
-        vx2 = (np.gradient(test_x) / np.gradient(time)) ** 2
-        vy2 = (np.gradient(test_y) / np.gradient(time)) ** 2
-        max_speed = np.sqrt(vx2 + vy2).max()
+        for _ in range(4):
+            phase = dp_dt * time
+            test_x, test_y = daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
+            vx2 = (np.gradient(test_x) / np.gradient(time)) ** 2
+            vy2 = (np.gradient(test_y) / np.gradient(time)) ** 2
+            max_speed = np.sqrt(vx2 + vy2).max()
 
-        if np.abs(np.log(max_speed / speed)) > 0.01:
-            dp_dt *= speed / max_speed
-        else:
-            break
+            if np.abs(np.log(max_speed / speed)) > 0.01:
+                dp_dt *= speed / max_speed
+            else:
+                break
 
-    return daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
+        return daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
+
+    return np.zeros((2, len(time)))
 
 
 def smooth_sawtooth(p, throw=1, delta=0.01):

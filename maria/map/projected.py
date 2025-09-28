@@ -155,6 +155,9 @@ class ProjectedMap(Map):
         header["CRPIX1"] = self.data.shape[-1] // 2
         header["CRPIX2"] = self.data.shape[-2] // 2
         header["BUNITS"] = self.units
+        header["BMAJOR"] = self.beam[0].degrees
+        header["BMINOR"] = self.beam[1].degrees
+        header["BPA"] = self.beam[2].degrees
 
         # specify x center
         CTYPE1 = self.frame.fits_phi
