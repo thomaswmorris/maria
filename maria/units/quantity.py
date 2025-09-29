@@ -289,6 +289,11 @@ class Quantity:
     def __pow__(self, power):
         return type(self)(self.base_units_value**power, units=self.base_units_vector * power)
 
+    # def __iter__(self):
+    #     u = self.units
+    #     for x in range(self.value):
+    #         yield Quantity(x, units=u)
+
     def __copy__(self):
         return Quantity(self.base_units_value, self.base_units_vector)
 

@@ -286,8 +286,9 @@ class Coordinates:
         timestep = timestep or factor * self.timestep
 
         ds_t = np.arange(self.t.min(), self.t.max(), timestep)
-        ds_phi = sp.interpolate.interp1d(self.t, self._phi, axis=-1)(ds_t)
-        ds_theta = sp.interpolate.interp1d(self.t, self._theta, axis=-1)(ds_t)
+        ds_phi = sp.interpolate.interp1d(self.t, self._phi, axis=-1, bounds_error=False, fill_value="extrapolate")(ds_t)
+
+        ds_theta = sp.interpolate.interp1d(self.t, self._theta, axis=-1, bounds_error=False, fill_value="extrapolate")(ds_t)
 
         return Coordinates(
             t=ds_t,

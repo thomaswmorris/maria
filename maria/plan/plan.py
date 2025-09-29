@@ -92,6 +92,8 @@ class Plan:
             **scan_options,
         )
 
+        assert not np.isnan(scan_offsets).any()
+
         scan_offsets = Quantity(scan_offsets, units=("deg" if degrees else "rad")).rad
 
         # TODO: scan speed checks in az/el frame

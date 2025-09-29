@@ -24,7 +24,7 @@ class AtmosphericSpectrum:
         self.source = source
 
         self.cache_path = fetch(
-            f"atmosphere/spectra/{self.source}/v2/{self.region}.h5",
+            f"atmosphere/spectra/{self.source}/v3/{self.region}.h5",
             max_age=30 * 86400,
             refresh=refresh_cache,
         )
@@ -44,7 +44,7 @@ class AtmosphericSpectrum:
             self.side_nu = f["side_nu_Hz"][:].astype(float)
 
             for key, mapping in key_mapping.items():
-                d = f[key]["relative"][:] * f[key]["scale"][:] + f[key]["offset"][:]
+                d = f[key][:]
 
                 setattr(
                     self,
