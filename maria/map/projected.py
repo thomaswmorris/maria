@@ -137,7 +137,6 @@ class ProjectedMap(Map):
         nsamps = len(idx)
         return sp.sparse.csc_array((np.ones(nsamps, dtype=np.uint8), (idx, np.arange(nsamps))), shape=(cum_npix, nsamps))
 
-    @property
     def header(self):
         header = ap.io.fits.header.Header()
 
@@ -155,9 +154,9 @@ class ProjectedMap(Map):
         header["CRPIX1"] = self.data.shape[-1] // 2
         header["CRPIX2"] = self.data.shape[-2] // 2
         header["BUNITS"] = self.units
-        header["BMAJOR"] = self.beam[0].degrees
-        header["BMINOR"] = self.beam[1].degrees
-        header["BPA"] = self.beam[2].degrees
+        header["BMAJOR"] = self.beam[..., 0].degrees.item()
+        header["BMINOR"] = self.beam[..., 1].degrees.item()
+        header["BPA"] = self.beam[..., 2].degrees.item()
 
         # specify x center
         CTYPE1 = self.frame.fits_phi
@@ -224,6 +223,7 @@ class ProjectedMap(Map):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
     def __repr__(self):
+        beam_repr = self.beam
         cphi_repr, ctheta_repr = repr_phi_theta(self.center[0].radians, self.center[1].radians, frame=self.frame.name)
         return f"""{self.__class__.__name__}:
   shape{self.dims_string}: {self.data.shape}
@@ -533,7 +533,7 @@ class ProjectedMap(Map):
         fits.writeto(
             filename=filename,
             data=data,
-            header=m.header,
+            header=m.header(),
             overwrite=True,
         )
 
