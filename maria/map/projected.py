@@ -229,7 +229,7 @@ class ProjectedMap(Map):
   shape{self.dims_string}: {self.data.shape}
   stokes: {self.stokes if "stokes" in self.dims else "naive"}
   nu: {self.nu if "nu" in self.dims else "naive"}
-  t: {Quantity(self.t, "s") if "t" in self.dims else "naive"}
+  t: {self.t if "t" in self.dims else "naive"}
   z: {self.z if "z" in self.dims else "naive"}
   quantity: {self.u["quantity"]}
   units: {self.units}
