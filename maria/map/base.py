@@ -65,18 +65,13 @@ class Map:
         if np.shape(self.beam)[-1] != 3:
             raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
 
-        if self.u["quantity"] == "spectral_flux_density_per_beam":
-            if not np.all(self.beam_area > 0):
-                raise ValueError(
-                    f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
-                )
-
         self.map_dims = map_dims
 
         self.slice_dims = {}
         if stokes is not None:
+            stokes = "".join(list(stokes))
             if stokes not in ["I", "IQU", "IQUV"]:
-                raise ValueError("'stokes' parameter must be either 'I', 'IQU', or 'IQUV'")
+                raise ValueError(f"Invalid stokes parameter '{stokes}' (must be either 'I', 'IQU', or 'IQUV').")
             self.stokes = stokes.upper()
             self.slice_dims["stokes"] = len(self.stokes)
         else:
@@ -125,6 +120,12 @@ class Map:
                 f"Inputs imply shape {self.dims_string}={implied_shape} for map data, but data has shape {self.data.shape}"
             )
 
+        if self.u["quantity"] == "spectral_flux_density_per_beam":
+            if not np.all(self.beam_area > 0):
+                raise ValueError(
+                    f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
+                )
+
     @property
     def dims(self):
         return {**self.slice_dims, **self.map_dims}
@@ -132,6 +133,10 @@ class Map:
     @property
     def ndim(self):
         return len(self.dims)
+
+    @property
+    def shape(self):
+        return tuple(self.dims.values())
 
     @property
     def dims_string(self):
@@ -171,6 +176,12 @@ class Map:
     # def weight(self):
     #     return self._weight if self._weight is not None else da.ones(shape=self.data.shape)
 
+    def append(self, map, dim):
+        return concatenate([self, map], dim=dim)
+
+    def extend(self, maps, dim):
+        return concatenate([self, *maps], dim=dim)
+
     def squeeze(self, dims=None):
         dims = np.atleast_1d(dims) if dims is not None else [dim for dim, n in self.slice_dims.items() if n == 1]
         package = self.package()
@@ -199,7 +210,9 @@ class Map:
 
         new_dim_index = 0
         for d in ["stokes", "nu", "t"]:
-            if d in self.dims and d != dim:
+            if d == dim:
+                break
+            if d in self.dims:
                 new_dim_index += 1
 
         package = self.package()
@@ -214,16 +227,17 @@ class Map:
     @property
     def pixel_area(self):
         if hasattr(self, "resolution"):
-            return self.resolution.rad**2
+            return Quantity(self.resolution.rad**2, "sr")
         else:
-            return self.x_res.rad * self.y_res.rad
+            return Quantity(self.x_res.rad * self.y_res.rad, "sr")
 
     @property
     def beam_area(self):
         """
         Returns the beam area in steradians
         """
-        return (np.pi / 4) * self.beam[..., 0].radians * self.beam[..., 1].radians
+        area = (np.pi / 4) * self.beam[..., 0].radians * self.beam[..., 1].radians
+        return Quantity(area * np.ones(tuple(self.slice_dims.values())), "sr")
 
     def to(self, units: str):
         if units == self.units:
@@ -244,17 +258,19 @@ class Map:
                     f"when map has no frequency."
                 )
 
-            data = package["data"].swapaxes(0, self.dims_list.index("nu"))  # put the nu index in front
+            # data = package["data"].swapaxes(0, self.dims_list.index("nu"))  # put the nu index in front
             for nu_index, nu in enumerate(self.nu.Hz):
+                nu_key = tuple([nu_index if dim == "nu" else slice(None, None, None) for dim in self.slice_dims])
+
                 cal = Calibration(
                     f"{self.units} -> {units}",
                     nu=nu,
-                    pixel_area=self.pixel_area,
-                    beam_area=np.atleast_1d(self.beam_area)[nu_index],
+                    pixel_area=self.pixel_area.sr,
+                    beam_area=self.beam_area[nu_key].sr,
                 )
-                data[nu_index] = cal(data[nu_index])
+                package["data"][nu_key] = cal(package["data"][nu_key])
 
-            package["data"] = data.swapaxes(0, self.dims_list.index("nu"))  # swap the axes back
+            # package["data"] = data.swapaxes(0, self.dims_list.index("nu"))  # swap the axes back
 
         package["units"] = units
         return type(self)(**package)
@@ -277,3 +293,39 @@ class Map:
     def nu_bin_bounds(self):
         nu_boundaries = [0, *(self.nu.Hz[:-1] + self.nu.Hz[1:]) / 2, np.inf]
         return [(Quantity(nu1, "Hz"), Quantity(nu2, "Hz")) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]
+
+    def copy(self):
+        return type(self)(**self.package().copy())
+
+
+def concatenate(maps: list[Map], dim: str) -> Map:
+    packages = []
+    concat_dim_values = []
+    dims_list = {}
+    for m in maps:
+        for d, n in m.dims.items():
+            if d not in dims_list:
+                dims_list[d] = []
+            dims_list[d].append(n)
+        for attr in ["center", "width", "height"]:
+            # TODO: checks for healpix maps
+            if getattr(m, attr, None) != getattr(maps[0], attr, None):
+                print("warning")
+        concat_dim_values.extend(getattr(m, dim))
+        packages.append(m.to(maps[0].units).package())
+
+    for d, ns in dims_list.items():
+        if d != dim:
+            if len(set(ns)) > 1:
+                raise ShapeError(
+                    "Map dimensions must be equal except along the concatenation axis "
+                    f"(maps have shapes {[m.shape for m in maps]})."
+                )
+
+    dim_index = list(dims_list.keys()).index(dim)
+    total_package = packages[0].copy()
+    total_package["data"] = np.concatenate([p["data"] for p in packages], axis=dim_index)
+    total_package["weight"] = np.concatenate([p["weight"] for p in packages], axis=dim_index)
+    total_package[dim] = concat_dim_values
+
+    return type(maps[0])(**total_package)

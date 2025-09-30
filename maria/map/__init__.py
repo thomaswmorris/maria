@@ -13,7 +13,7 @@ from matplotlib.colors import ListedColormap
 
 from ..coords import frames
 from ..units import Quantity
-from .base import Map
+from .base import Map, concatenate  # noqa
 from .healpix import HEALPixMap  # noqa
 from .projected import ProjectedMap  # noqa
 

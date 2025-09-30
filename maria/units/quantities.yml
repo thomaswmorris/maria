@@ -241,13 +241,13 @@ solid_angle:
   units:
     sr:
       factor: 1
-      long_name: steradian
+      long_name: steradians
       math_name: \text{sr}
       min_prefix_power: 0
       max_prefix_power: 0
     deg²:
       factor: 0.00030461741978670857
-      long_name: square degree
+      long_name: square degrees
       math_name: \text{deg}^2
       min_prefix_power: 0
       max_prefix_power: 0
@@ -263,14 +263,14 @@ information:
   units:
     b:
       factor: 1
-      long_name: Bit
+      long_name: Bits
       math_name: \text{bit}
       min_prefix_power: 0
       max_prefix_power: 30
       human: False
     B:
       factor: 1
-      long_name: Byte
+      long_name: Bytes
       math_name: \text{byte}
       min_prefix_power: 0
       max_prefix_power: 30
@@ -410,7 +410,7 @@ spectral_flux_density:
   units:
     Jy:
       factor: 1e-26
-      long_name: jansky
+      long_name: janskies
       math_name: \text{Jy}
       min_prefix_power: -30
       max_prefix_power: 30

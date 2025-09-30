@@ -39,6 +39,21 @@ def test_maps(map_path):
     m.plot()
 
 
+def test_map_operations():
+    map_filename = fetch("maps/cluster1.fits")
+
+    m1 = maria.map.load(filename=map_filename, nu=90e9)
+    m2 = maria.map.load(filename=map_filename, nu=150e9)
+    m3 = maria.map.load(filename=map_filename, nu=220e9)
+
+    m4 = m1.extend([m2, m3], dim="nu").unsqueeze("stokes")
+    m5, m6 = m4.copy(), m4.copy()
+    m5.stokes = "Q"
+    m6.stokes = "U"
+
+    m4.extend([m5, m6], dim="stokes")
+
+
 def test_trivial_recover_original_map():
     f090 = Band(center=90e9, width=30e9)
     f150 = Band(center=150e9, width=40e9)
