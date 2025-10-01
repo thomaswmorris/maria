@@ -246,8 +246,9 @@ class Band:
             return np.trapezoid(y=self.passband(nu), x=nu, axis=-1)
 
         else:
-            nu = spectrum.side_nu[(spectrum.side_nu >= nu_min_Hz) & (spectrum.side_nu < nu_max_Hz)]
-            integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity), x=nu, axis=-1)
+            nu_mask = (spectrum.side_nu >= nu_min_Hz) & (spectrum.side_nu < nu_max_Hz)
+            nu = spectrum.side_nu[nu_mask]
+            integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity[..., nu_mask]), x=nu, axis=-1)
             xi = (kwargs["base_temperature"], kwargs["zenith_pwv"], kwargs["elevation"])
             return np.array(jsp.interpolate.RegularGridInterpolator(points=spectrum.points[:3], values=integral_grid)(xi))
 
