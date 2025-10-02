@@ -16,6 +16,9 @@ k_B = 1.380649e-23
 # CMB temperature (K)
 T_CMB = 2.72548
 
+# equatorial radius of the earth (m)
+earth_radius = 6.378137e6
+
 MARIA_MIN_NU_HZ = 1e6  # 1 MHz
 MARIA_MAX_NU_HZ = 15e12  # 150 THz
 
