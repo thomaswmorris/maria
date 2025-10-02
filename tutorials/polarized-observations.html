@@ -367,8 +367,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-10-01 14:46:22.089 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 49.6MB/s]
+2025-10-02 14:39:36.811 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 15.1MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -399,10 +399,10 @@ Downloading: 100%|████████████████| 931k/931k [0
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(2 plans, 900 s):
-                           start_time duration     target(ra,dec)     center(az,el)
+                           start_time duration      target(ra,dec)     center(az,el)
 chunk
-0      2025-10-02 01:37:40.468 +00:00    600 s       (360°, -23°)  (95.92°, 61.16°)
-1      2025-10-02 01:48:17.968 +00:00    300 s  (2.047’, -23.02°)     (95.52°, 63°)
+0      2025-10-03 01:34:02.803 +00:00    600 s  (0.2717’, -22.99°)  (95.88°, 61.22°)
+1      2025-10-03 01:44:40.303 +00:00    300 s   (1.994’, -22.99°)  (95.43°, 63.06°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -454,10 +454,10 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(2 plans, 900 s):
-│                            start_time duration     target(ra,dec)     center(az,el)
+│                            start_time duration      target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2025-10-02 01:37:40.468 +00:00    600 s       (360°, -23°)  (95.92°, 61.16°)
-│ 1      2025-10-02 01:48:17.968 +00:00    300 s  (2.047’, -23.02°)     (95.52°, 63°)
+│ 0      2025-10-03 01:34:02.803 +00:00    600 s  (0.2717’, -22.99°)  (95.88°, 61.22°)
+│ 1      2025-10-03 01:44:40.303 +00:00    300 s   (1.994’, -22.99°)  (95.43°, 63.06°)
 ├ &#39;2d&#39;
 └ ProjectedMap:
     shape(stokes, nu, y, x): (4, 1, 685, 685)
@@ -494,22 +494,22 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-10-01 14:46:34.573 INFO: Simulating observation 1 of 2
-Constructing atmosphere: 100%|████████████████| 10/10 [00:20&lt;00:00,  2.02s/it]
-Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 17.36it/s]
-Sampling turbulence: 100%|████████████████| 10/10 [00:08&lt;00:00,  1.16it/s]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.06s/it, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:09&lt;00:00,  4.54s/it, band=f150, channel=(0 Hz, inf Hz), stokes=V]
-Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  2.26it/s, band=f150]
-2025-10-01 14:47:30.044 INFO: Simulated observation 1 of 2 in 55.46 s
-2025-10-01 14:47:30.045 INFO: Simulating observation 2 of 2
-Constructing atmosphere: 100%|████████████████| 10/10 [00:07&lt;00:00,  1.34it/s]
-Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 28.59it/s]
-Sampling turbulence: 100%|████████████████| 10/10 [00:05&lt;00:00,  1.69it/s]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.30it/s, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:05&lt;00:00,  2.56s/it, band=f150, channel=(0 Hz, inf Hz), stokes=V]
-Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  3.50it/s, band=f150]
-2025-10-01 14:47:58.119 INFO: Simulated observation 2 of 2 in 28.06 s
+2025-10-02 14:39:49.674 INFO: Simulating observation 1 of 2
+Constructing atmosphere: 100%|████████████████| 10/10 [00:22&lt;00:00,  2.24s/it]
+Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 17.05it/s]
+Sampling turbulence: 100%|████████████████| 10/10 [00:09&lt;00:00,  1.10it/s]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.16s/it, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:09&lt;00:00,  4.62s/it, band=f150, channel=(0 Hz, inf Hz), stokes=V]
+Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  2.21it/s, band=f150]
+2025-10-02 14:40:49.067 INFO: Simulated observation 1 of 2 in 59.38 s
+2025-10-02 14:40:49.068 INFO: Simulating observation 2 of 2
+Constructing atmosphere: 100%|████████████████| 10/10 [00:08&lt;00:00,  1.18it/s]
+Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 27.79it/s]
+Sampling turbulence: 100%|████████████████| 10/10 [00:06&lt;00:00,  1.50it/s]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.19it/s, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:05&lt;00:00,  2.71s/it, band=f150, channel=(0 Hz, inf Hz), stokes=V]
+Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  3.35it/s, band=f150]
+2025-10-02 14:41:20.033 INFO: Simulated observation 2 of 2 in 30.95 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -517,7 +517,7 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(652, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-02 01:47:40.447 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-01T14:47:18.349560+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 273.774}), TOD(shape=(652, 15000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-02 01:53:17.947 +00:00, duration=300.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-01T14:47:52.730370+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 1.164, &#39;base_temperature&#39;: 273.742})]
+[TOD(shape=(652, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-03 01:44:02.783 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-02T14:40:36.610898+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 273.833}), TOD(shape=(652, 15000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-03 01:49:40.283 +00:00, duration=300.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-02T14:41:13.956054+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 1.173, &#39;base_temperature&#39;: 273.801})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -541,8 +541,8 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(652, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-02 01:47:40.447 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-01T14:47:18.349560+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 273.774}),
- TOD(shape=(652, 15000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-02 01:53:17.947 +00:00, duration=300.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-01T14:47:52.730370+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 1.164, &#39;base_temperature&#39;: 273.742})]
+[TOD(shape=(652, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-03 01:44:02.783 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-02T14:40:36.610898+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 273.833}),
+ TOD(shape=(652, 15000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-10-03 01:49:40.283 +00:00, duration=300.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-10-02T14:41:13.956054+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 1.173, &#39;base_temperature&#39;: 273.801})]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -583,10 +583,10 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Mapping band f090: 100%|██████████| 2/2 [00:05&lt;00:00,  2.67s/it, stokes=U, tod=2/2]
-2025-10-01 14:48:10.505 INFO: Ran mapper for band f090 in 5.348 s.
-Mapping band f150: 100%|██████████| 2/2 [00:05&lt;00:00,  2.65s/it, stokes=U, tod=2/2]
-2025-10-01 14:48:15.825 INFO: Ran mapper for band f150 in 5.307 s.
+Mapping band f090: 100%|██████████| 2/2 [00:05&lt;00:00,  2.74s/it, stokes=U, tod=2/2]
+2025-10-02 14:41:32.410 INFO: Ran mapper for band f090 in 5.49 s.
+Mapping band f150: 100%|██████████| 2/2 [00:05&lt;00:00,  2.73s/it, stokes=U, tod=2/2]
+2025-10-02 14:41:37.885 INFO: Ran mapper for band f150 in 5.462 s.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -602,8 +602,8 @@ ProjectedMap:
   z: naive
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -2.439e+02
-    max: 2.133e+02
+    min: -2.460e+02
+    max: 2.075e+02
   center:
     ra:  00ʰ00ᵐ0.00ˢ
     dec: -23°00’0.00”

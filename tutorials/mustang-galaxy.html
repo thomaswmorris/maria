@@ -291,8 +291,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-10-01 14:45:16.191 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits
-Downloading: 100%|████████████████| 2.00M/2.00M [00:00&lt;00:00, 72.6MB/s]
+2025-10-02 14:38:27.989 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits
+Downloading: 100%|████████████████| 2.00M/2.00M [00:00&lt;00:00, 18.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -348,8 +348,8 @@ ProjectedMap:
 PlanList(2 plans, 900 s):
                            start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2025-10-02 08:12:47.313 +00:00    600 s  (83.63°, 22.02°)  (116.1°, 60.89°)
-1      2025-10-02 08:23:24.813 +00:00    300 s  (83.63°, 22.01°)  (118.8°, 62.31°)
+0      2025-10-03 08:09:06.734 +00:00    600 s  (83.63°, 22.02°)  (116.2°, 60.94°)
+1      2025-10-03 08:19:44.234 +00:00    300 s  (83.63°, 22.02°)  (118.9°, 62.36°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -412,10 +412,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-10-01 14:45:26.014 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
-Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 166MB/s]
-2025-10-01 14:45:26.986 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
-Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 127MB/s]
+2025-10-02 14:38:38.444 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 113MB/s]
+2025-10-02 14:38:39.306 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 95.7MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -444,8 +444,8 @@ Simulation
 ├ PlanList(2 plans, 900 s):
 │                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2025-10-02 08:12:47.313 +00:00    600 s  (83.63°, 22.02°)  (116.1°, 60.89°)
-│ 1      2025-10-02 08:23:24.813 +00:00    300 s  (83.63°, 22.01°)  (118.8°, 62.31°)
+│ 0      2025-10-03 08:09:06.734 +00:00    600 s  (83.63°, 22.02°)  (116.2°, 60.94°)
+│ 1      2025-10-03 08:19:44.234 +00:00    300 s  (83.63°, 22.02°)  (118.9°, 62.36°)
 ├ &#39;2d&#39;
 └ ProjectedMap:
     shape(stokes, nu, y, x): (1, 1, 500, 500)
@@ -480,22 +480,22 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-10-01 14:45:28.499 INFO: Simulating observation 1 of 2
-Constructing atmosphere: 100%|████████████████| 10/10 [00:00&lt;00:00, 14.03it/s]
-Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 42.17it/s]
-Sampling turbulence: 100%|████████████████| 10/10 [00:03&lt;00:00,  3.01it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.16it/s, band=m2/f093]
-Sampling map: 100%|████████████████| 1/1 [00:05&lt;00:00,  5.76s/it, band=m2/f093, channel=(0 Hz, inf Hz), stokes=I]
-Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.37it/s, band=m2/f093]
-2025-10-01 14:45:49.596 INFO: Simulated observation 1 of 2 in 21.09 s
-2025-10-01 14:45:49.597 INFO: Simulating observation 2 of 2
-Constructing atmosphere: 100%|████████████████| 10/10 [00:00&lt;00:00, 16.07it/s]
-Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 47.91it/s]
-Sampling turbulence: 100%|████████████████| 10/10 [00:03&lt;00:00,  3.02it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.54it/s, band=m2/f093]
-Sampling map: 100%|████████████████| 1/1 [00:03&lt;00:00,  3.56s/it, band=m2/f093, channel=(0 Hz, inf Hz), stokes=I]
-Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  2.14it/s, band=m2/f093]
-2025-10-01 14:46:03.031 INFO: Simulated observation 2 of 2 in 13.42 s
+2025-10-02 14:38:40.928 INFO: Simulating observation 1 of 2
+Constructing atmosphere: 100%|████████████████| 10/10 [00:00&lt;00:00, 13.46it/s]
+Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 38.90it/s]
+Sampling turbulence: 100%|████████████████| 10/10 [00:03&lt;00:00,  2.81it/s]
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.08it/s, band=m2/f093]
+Sampling map: 100%|████████████████| 1/1 [00:05&lt;00:00,  5.88s/it, band=m2/f093, channel=(0 Hz, inf Hz), stokes=I]
+Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.29it/s, band=m2/f093]
+2025-10-02 14:39:02.820 INFO: Simulated observation 1 of 2 in 21.88 s
+2025-10-02 14:39:02.821 INFO: Simulating observation 2 of 2
+Constructing atmosphere: 100%|████████████████| 10/10 [00:00&lt;00:00, 14.84it/s]
+Generating turbulence: 100%|████████████████| 10/10 [00:00&lt;00:00, 47.22it/s]
+Sampling turbulence: 100%|████████████████| 10/10 [00:03&lt;00:00,  2.71it/s]
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.46it/s, band=m2/f093]
+Sampling map: 100%|████████████████| 1/1 [00:03&lt;00:00,  3.72s/it, band=m2/f093, channel=(0 Hz, inf Hz), stokes=I]
+Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  2.02it/s, band=m2/f093]
+2025-10-02 14:39:17.328 INFO: Simulated observation 2 of 2 in 14.5 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -540,7 +540,7 @@ Generating noise: 100%|████████████████| 1/1 [00
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 Mapping band m2/f093: 100%|██████████| 2/2 [00:05&lt;00:00,  2.92s/it, stokes=I, tod=2/2]
-2025-10-01 14:46:13.402 INFO: Ran mapper for band m2/f093 in 5.849 s.
+2025-10-02 14:39:27.662 INFO: Ran mapper for band m2/f093 in 5.848 s.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
