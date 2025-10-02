@@ -11,6 +11,7 @@ import pandas as pd
 from astropy.coordinates import EarthLocation
 from matplotlib import pyplot as plt
 
+from ..constants import earth_radius
 from ..io import fetch, repr_lat_lon
 from ..units import Quantity
 
@@ -84,12 +85,12 @@ class Site:
             height=self.altitude.m,
         )
 
-    def plot(self, res=0.03, wide_size: float = 45, zoom_size: float = 2):
+    def plot(self, res=0.03, wide_size: float = 25, zoom_size: float = 2, cmap="cubehelix"):
         height_map = get_height_map()
 
         kwargs = {
             "rot": (self.longitude.deg, self.latitude.deg),
-            "cmap": "gist_earth",
+            "cmap": cmap,
             "flip": "geo",
             "badcolor": "gray",
             "reso": 60 * res,
@@ -97,53 +98,55 @@ class Site:
             "no_plot": True,
         }
 
-        zoom_map = hp.gnomview(
-            height_map,
-            xsize=zoom_size / res,
-            **kwargs,
-        )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
         wide_map = hp.gnomview(
             height_map,
             xsize=wide_size / res,
             **kwargs,
-        )  # , norm=mpl.colors.Normalize(vmin=0, vmax=5e3))
+        )[::2, ::2]
+
+        zoom_map = hp.gnomview(
+            height_map,
+            xsize=zoom_size / res,
+            **kwargs,
+        )
 
         fig, axes = plt.subplots(1, 2, figsize=(8, 5), constrained_layout=True)
 
-        zoom_vmax = np.nanpercentile(zoom_map.data, q=99)
-        wide_vmax = np.nanpercentile(wide_map.data, q=99)
+        wide_vmax = np.nanpercentile(wide_map.data, q=99.9)
+        zoom_vmax = np.nanpercentile(zoom_map.data, q=95)
 
-        cmap = mpl.cm.gist_ncar
-        cmap = mpl.cm.gist_earth
+        cmap = plt.get_cmap(cmap)
         cmap.set_bad("royalblue", 1.0)
 
         wide_mesh = axes[0].pcolormesh(
-            wide_size * np.linspace(-0.5, 0.5, int(wide_size / res)),
-            wide_size * np.linspace(-0.5, 0.5, int(wide_size / res)),
+            1e-3 * earth_radius * np.radians(wide_size) * np.linspace(-0.5, 0.5, wide_map.shape[0]),
+            1e-3 * earth_radius * np.radians(wide_size) * np.linspace(-0.5, 0.5, wide_map.shape[1]),
             wide_map,
             cmap=cmap,
             vmax=wide_vmax,
+            shading="nearest",
         )
-        cbar = fig.colorbar(wide_mesh, ax=axes[0], location="bottom", shrink=0.8, label="height")
-        cbar.set_label("height [m]")
+        cbar = fig.colorbar(wide_mesh, ax=axes[0], location="bottom", shrink=0.9, label="height")
+        cbar.set_label("Height [meters]")
 
         zoom_mesh = axes[1].pcolormesh(
-            zoom_size * np.linspace(-0.5, 0.5, int(zoom_size / res)),
-            zoom_size * np.linspace(-0.5, 0.5, int(zoom_size / res)),
+            1e-3 * earth_radius * np.radians(zoom_size) * np.linspace(-0.5, 0.5, zoom_map.shape[0]),
+            1e-3 * earth_radius * np.radians(zoom_size) * np.linspace(-0.5, 0.5, zoom_map.shape[1]),
             zoom_map,
             cmap=cmap,
             vmax=zoom_vmax,
+            shading="nearest",
         )
-        cbar = fig.colorbar(zoom_mesh, ax=axes[1], location="bottom", shrink=0.8, label="height")
-        cbar.set_label("height [m]")
+        cbar = fig.colorbar(zoom_mesh, ax=axes[1], location="bottom", shrink=0.9, label="height")
+        cbar.set_label("Height [meters]")
 
         for ax in axes:
-            # ax.scatter(0, 0, color="gray", alpha=0.8, s=256)
             ax.scatter(0, 0, edgecolor="r", facecolor="none", linewidth=2, s=256)
-            ax.set_xticks([])
+            ax.set_xlabel("Distance [kilometers]")
             ax.set_yticks([])
             ax.set_facecolor("gray")
             ax.set_rasterized(True)
+            ax.set_aspect("equal")
 
     @property
     def location(self):
