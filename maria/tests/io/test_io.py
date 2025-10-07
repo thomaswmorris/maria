@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import os
 
-import pytest
-
 import maria
+import pytest
 from maria import all_maps
 from maria.io import fetch
 
