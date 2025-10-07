@@ -185,77 +185,73 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
     def run(self, units: str = "K_RJ"):
         tods = []
-
         for obs_index, obs in enumerate(self.obs_list):
-            obs_start_s = ttime.monotonic()
-
             logger.info(f"Simulating observation {obs_index + 1} of {len(self.obs_list)}")
-
-            obs.loading = {}
-
-            if hasattr(obs, "atmosphere"):
-                atmosphere_sim_start_s = ttime.monotonic()
-                obs.atmosphere.initialize(instrument=obs.instrument, boresight=obs.boresight, site=obs.site)
-                self._simulate_atmosphere(obs)
-                obs.loading["atmosphere"] = self._compute_atmospheric_loading(obs)
-                logger.debug(f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}.")
-
-            if hasattr(self, "cmb"):
-                cmb_sim_start_s = ttime.monotonic()
-                obs.loading["cmb"] = self._compute_cmb_loading(obs)
-                logger.debug(f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}.")
-
-            if hasattr(self, "map"):
-                map_sim_start_s = ttime.monotonic()
-                self._sample_maps(obs)
-                logger.debug(f"Ran map simulation in {humanize_time(ttime.monotonic() - map_sim_start_s)}.")
-
-            # number of bands are lost here
-            if self.noise:
-                noise_sim_start_s = ttime.monotonic()
-                self._simulate_noise(obs)
-                logger.debug(f"Ran noise simulation in {humanize_time(ttime.monotonic() - noise_sim_start_s)}.")
-
-            gain_error = np.exp(
-                obs.instrument.dets.gain_error * np.random.standard_normal(size=obs.instrument.dets.n),
-            )
-
-            for field in obs.loading:
-                if field in ["noise"]:
-                    continue
-
-                obs.loading[field] *= gain_error[:, None]
-
-            metadata = {
-                "atmosphere": False,
-                "sim_time": arrow.now(),
-                "altitude": float(obs.site.altitude.m),
-                "region": obs.site.region,
-            }
-
-            if hasattr(obs, "atmosphere"):
-                metadata["atmosphere"] = True
-                metadata["pwv"] = float(np.round(obs.atmosphere.weather.pwv, 3))
-                metadata["base_temperature"] = float(np.round(obs.atmosphere.weather.temperature[0], 3))
-            else:
-                metadata["atmosphere"] = False
-
-            tod = TOD(
-                data=obs.loading,
-                dets=obs.instrument.dets,
-                coords=obs.coords,
-                units="pW",
-                metadata=metadata,
-            )
-
-            tods.append(tod.to(units))
-
+            obs_start_s = ttime.monotonic()
+            tods.append(self.run_obs(obs).to(units))
             logger.info(
                 f"Simulated observation {obs_index + 1} of {len(self.obs_list)} "
                 f"in {humanize_time(ttime.monotonic() - obs_start_s)}"
             )
-
         return tods
+
+    def run_obs(self, obs: Observation) -> TOD:
+        obs.loading = {}
+
+        if hasattr(obs, "atmosphere"):
+            atmosphere_sim_start_s = ttime.monotonic()
+            obs.atmosphere.initialize(instrument=obs.instrument, boresight=obs.boresight, site=obs.site)
+            self._simulate_atmosphere(obs)
+            obs.loading["atmosphere"] = self._compute_atmospheric_loading(obs)
+            logger.debug(f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}.")
+
+        if hasattr(self, "cmb"):
+            cmb_sim_start_s = ttime.monotonic()
+            obs.loading["cmb"] = self._compute_cmb_loading(obs)
+            logger.debug(f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}.")
+
+        if hasattr(self, "map"):
+            map_sim_start_s = ttime.monotonic()
+            self._sample_maps(obs)
+            logger.debug(f"Ran map simulation in {humanize_time(ttime.monotonic() - map_sim_start_s)}.")
+
+        # number of bands are lost here
+        if self.noise:
+            noise_sim_start_s = ttime.monotonic()
+            self._simulate_noise(obs)
+            logger.debug(f"Ran noise simulation in {humanize_time(ttime.monotonic() - noise_sim_start_s)}.")
+
+        gain_error = np.exp(
+            obs.instrument.dets.gain_error * np.random.standard_normal(size=obs.instrument.dets.n),
+        )
+
+        for field in obs.loading:
+            if field in ["noise"]:
+                continue
+
+            obs.loading[field] *= gain_error[:, None]
+
+        metadata = {
+            "atmosphere": False,
+            "sim_time": arrow.now(),
+            "altitude": float(obs.site.altitude.m),
+            "region": obs.site.region,
+        }
+
+        if hasattr(obs, "atmosphere"):
+            metadata["atmosphere"] = True
+            metadata["pwv"] = float(np.round(obs.atmosphere.weather.pwv, 3))
+            metadata["base_temperature"] = float(np.round(obs.atmosphere.weather.temperature[0], 3))
+        else:
+            metadata["atmosphere"] = False
+
+        return TOD(
+            data=obs.loading,
+            dets=obs.instrument.dets,
+            coords=obs.coords,
+            units="pW",
+            metadata=metadata,
+        )
 
     def plot_counts(self, x_bins=100, y_bins=100):
         self.plan.plot_counts(instrument=self.instrument, x_bins=x_bins, y_bins=y_bins)

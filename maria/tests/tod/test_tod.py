@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 from maria import Simulation
 from maria.coords import Coordinates, unjitted_offsets_to_phi_theta
 from maria.instrument import get_instrument

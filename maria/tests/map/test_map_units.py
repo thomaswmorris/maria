@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+import maria
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-
-import maria
 from maria.instrument import Band
 from maria.io import fetch
 from maria.map import all_maps
@@ -108,6 +107,8 @@ def test_trivial_recover_original_map():
     relsqres = np.sqrt(np.nansum(w * (m1 - m0) ** 2, axis=(-1, -2)) / np.nansum(w))
 
     assert all(relsqres < 1e-3)
+
+    output_map.to("Jy/pixel")
 
 
 def test_time_ordered_map_sim():

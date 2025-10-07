@@ -9,13 +9,14 @@ from typing import Mapping
 
 import numpy as np
 import scipy as sp
+from tqdm import tqdm
 
 from ..coords import FRAMES, Frame, get_center_phi_theta
 from ..instrument import BandList
-from ..io import humanize_time
-from ..map import ProjectedMap
-from ..tod import TOD
-from ..units import Quantity
+from ..io import DEFAULT_BAR_FORMAT
+from ..map import MAP_QUANTITIES, ProjectedMap
+from ..tod import TOD, TOD_QUANTITIES
+from ..units import Quantity, parse_units
 
 # np.seterr(invalid="ignore")
 
@@ -43,6 +44,13 @@ class BaseProjectionMapper:
         tod_preprocessing: Mapping,
         map_postprocessing: Mapping,
     ):
+        u = parse_units(units)
+        self.tod_units = units if u["quantity"] in TOD_QUANTITIES else "K_RJ"
+        self.map_units = "K_RJ"
+
+        if u["quantity"] not in MAP_QUANTITIES:
+            raise ValueError(f"Units '{units}' (with associated quantity '{u['quantity']}') are not valid map units")
+
         center = center or np.degrees(get_center_phi_theta(*np.stack([tod.coords.center(frame="ra/dec") for tod in tods]).T))
         height = height or width
 
@@ -76,9 +84,9 @@ class BaseProjectionMapper:
         )
 
     def add_tods(self, tods):
-        for tod in np.atleast_1d(tods):
-            self.tods.append(tod.process(config=self.tod_preprocessing).to(self.units))
-
+        tods_pbar = tqdm(np.atleast_1d(tods), desc="Preprocessing TODs", bar_format=DEFAULT_BAR_FORMAT)
+        for tod in tods_pbar:
+            self.tods.append(tod.process(config=self.tod_preprocessing).to(self.tod_units))
             for band in tod.dets.bands:
                 self.bands.add(band)
 
@@ -177,6 +185,6 @@ class BaseProjectionMapper:
             center=self.center,
             degrees=False,
             frame=self.frame.name,
-            units=self.units,
+            units=self.tod_units,
             beam=beam_sum / beam_wgt,
-        )
+        ).to(self.units)

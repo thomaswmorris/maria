@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import maria
 import numpy as np
 import pytest
-
-import maria
 from maria import all_bands, all_regions
 from maria.calibration import Calibration
 from maria.constants import T_CMB

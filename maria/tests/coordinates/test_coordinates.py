@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from maria.coords import offsets_to_phi_theta, phi_theta_to_offsets
 
 

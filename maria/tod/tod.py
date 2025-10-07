@@ -23,8 +23,11 @@ from ..io import DEFAULT_TIME_FORMAT, humanize_time
 from ..plotting import plot_tod, twinkle_plot
 from ..site import get_site
 from ..spectrum import AtmosphericSpectrum
+from ..units import parse_units
 
 logger = logging.getLogger("maria")
+
+TOD_QUANTITIES = ["rayleigh_jeans_temperature", "cmb_temperature_anisotropy", "radiant_flux"]
 
 
 class TOD:
@@ -103,6 +106,12 @@ class TOD:
         """
         Convert to a different set of units.
         """
+
+        u = parse_units(units)
+        if u["quantity"] not in TOD_QUANTITIES:
+            raise ValueError(
+                f"Cannot convert map to units '{units}' (associated quantity '{u['quantity']}' is not a valid TOD quantity)"
+            )
 
         cal_start_s = ttime.monotonic()
 

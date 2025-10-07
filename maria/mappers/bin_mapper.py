@@ -83,8 +83,6 @@ class BinMapper(BaseProjectionMapper):
                 if not tod.shape[0] > 0:
                     continue
 
-                band_tod = band_tod.process(config=self.tod_preprocessing).to(self.units)
-
                 P = self.map.pointing_matrix(coords=band_tod.coords)
                 D = band_tod.signal.compute()
                 W = band_tod.weight.compute()

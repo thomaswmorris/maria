@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import pytest
-
 import maria
+import pytest
 
 
 @pytest.mark.parametrize("nside", [256, 512, 1024, 2048])

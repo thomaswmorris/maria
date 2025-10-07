@@ -79,7 +79,7 @@ def unpack_implicit_slice(key, ndims):
     while len(explicit_slices) < ndims:
         explicit_slices.append(slice(None, None, None))
 
-    return explicit_slices
+    return tuple(explicit_slices)
 
 
 def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000, jitter: float = 0.0) -> float:

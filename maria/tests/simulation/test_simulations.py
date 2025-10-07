@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import os
 
+import maria
 import numpy as np
 import pytest
-
-import maria
 from maria import Planner, Simulation, all_instruments
 from maria.io import fetch
 from maria.mappers import BinMapper

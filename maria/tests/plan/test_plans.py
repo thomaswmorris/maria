@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import maria
 import numpy as np
 import pytest
-
-import maria
 from maria.plan import scan_patterns
 
 

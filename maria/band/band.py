@@ -230,7 +230,7 @@ class Band:
     def NET_CMB(self, value):
         self.NEP = Quantity(self.cal("K_CMB -> W", spectrum=self.spectrum, **self.spectrum_kwargs)(value), "W√s")
 
-    def compute_nu_integral(
+    def compute_transmission_integral(
         self,
         spectrum: AtmosphericSpectrum = None,
         nu_min_Hz: float = 0,

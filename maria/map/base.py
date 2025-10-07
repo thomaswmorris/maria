@@ -32,6 +32,14 @@ SLICE_DIMS = {
     },
 }
 
+MAP_QUANTITIES = [
+    "rayleigh_jeans_temperature",
+    "cmb_temperature_anisotropy",
+    "spectral_flux_density_per_pixel",
+    "spectral_flux_density_per_beam",
+    "spectral_radiance",
+]
+
 
 class Map:
     """
@@ -225,13 +233,6 @@ class Map:
         return type(self)(**package)
 
     @property
-    def pixel_area(self):
-        if hasattr(self, "resolution"):
-            return Quantity(self.resolution.rad**2, "sr")
-        else:
-            return Quantity(self.x_res.rad * self.y_res.rad, "sr")
-
-    @property
     def beam_area(self):
         """
         Returns the beam area in steradians
@@ -244,6 +245,9 @@ class Map:
             return self
 
         u = parse_units(units)
+
+        if u["quantity"] not in MAP_QUANTITIES:
+            raise ValueError(f"Units '{units}' (with associated quantity '{u['quantity']}') are not valid map units")
 
         package = self.package().copy()
 

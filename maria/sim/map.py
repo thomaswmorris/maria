@@ -118,7 +118,9 @@ class MapMixin:
 
                 calibration_s = ttime.monotonic()
                 pW_per_K_RJ = (
-                    1e12 * k_B * band.compute_nu_integral(nu_min_Hz=nu_min.Hz, nu_max_Hz=nu_max.Hz, **spectrum_kwargs)
+                    1e12
+                    * k_B
+                    * band.compute_transmission_integral(nu_min_Hz=nu_min.Hz, nu_max_Hz=nu_max.Hz, **spectrum_kwargs)
                 )
                 logger.debug(
                     f"Computed K_RJ -> pW calibration for band {band.name}, channel {channel_string} in "

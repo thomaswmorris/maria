@@ -89,6 +89,10 @@ class HEALPixMap(Map):
         return hp.pixelfunc.nside2resol(self.nside)
 
     @property
+    def pixel_area(self):
+        return Quantity(hp.pixelfunc.nside2resol(self.nside) ** 2, "sr")
+
+    @property
     def npix(self):
         return self.dims["npix"]
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from maria.band import Band, BandList, all_bands, get_band, parse_band
 from maria.errors import FrequencyOutOfBoundsError
 

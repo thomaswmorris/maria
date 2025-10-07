@@ -45,7 +45,7 @@ def rayleigh_jeans_temperature_to_radiant_flux(
     band: response to a Rayleigh-Jeans source
     """
     if spectrum:
-        integral = band.compute_nu_integral(
+        integral = band.compute_transmission_integral(
             spectrum=spectrum,
             zenith_pwv=kwargs["zenith_pwv"],
             base_temperature=kwargs["base_temperature"],
@@ -53,7 +53,7 @@ def rayleigh_jeans_temperature_to_radiant_flux(
         )
 
     else:
-        integral = band.compute_nu_integral(spectrum=None)
+        integral = band.compute_transmission_integral(spectrum=None)
 
     return (0.5 if polarized else 1.0) * k_B * integral * T_RJ
 
@@ -65,7 +65,7 @@ def radiant_flux_to_rayleigh_jeans_temperature(P, band, polarized: bool = False,
     """
 
     if spectrum:
-        integral = band.compute_nu_integral(
+        integral = band.compute_transmission_integral(
             spectrum=spectrum,
             zenith_pwv=kwargs["zenith_pwv"],
             base_temperature=kwargs["base_temperature"],
@@ -73,7 +73,7 @@ def radiant_flux_to_rayleigh_jeans_temperature(P, band, polarized: bool = False,
         )
 
     else:
-        integral = band.compute_nu_integral(spectrum=None)
+        integral = band.compute_transmission_integral(spectrum=None)
 
     return P / ((0.5 if polarized else 1.0) * k_B * integral)
 

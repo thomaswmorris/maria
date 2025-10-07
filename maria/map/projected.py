@@ -195,6 +195,8 @@ class ProjectedMap(Map):
                 continue
             package[dim] = package[dim][explicit_slices[axis]]
 
+            package["beam"] = package["beam"][explicit_slices[axis]]
+
         package["y_res"] *= explicit_slices[-2].step or 1
         package["x_res"] *= explicit_slices[-1].step or 1
 
@@ -266,6 +268,10 @@ class ProjectedMap(Map):
                 package.pop(dim)
 
         return package
+
+    @property
+    def pixel_area(self):
+        return Quantity(self.x_res.rad * self.y_res.rad, "sr")
 
     @property
     def resolution(self):
