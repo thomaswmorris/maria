@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import maria
 import matplotlib.pyplot as plt
 import pytest
-
-import maria
 
 plt.close("all")
 
