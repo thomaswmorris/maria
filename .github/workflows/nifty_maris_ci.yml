@@ -43,7 +43,7 @@ jobs:
       - name: Install nifty in pixi environment
         run: |
           cd CMB_denoising
-          pixi run pip install 'nifty[re]'
+          pixi run pip install "nifty[re]<9"
       
       - name: Install nifty_maria in pixi environment
         run: |
