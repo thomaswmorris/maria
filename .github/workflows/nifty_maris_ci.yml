@@ -39,16 +39,19 @@ jobs:
         run: |
           cd CMB_denoising
           pixi run pip install -e ../
+          pip list
 
       - name: Install nifty in pixi environment
         run: |
           cd CMB_denoising
           pixi run pip install "nifty[re]<9"
+          pip list
       
       - name: Install nifty_maria in pixi environment
         run: |
           cd CMB_denoising
           pixi run pip install -e nifty_maria/
+          pip list
 
       - name: Run tests with pixi
         run: |
