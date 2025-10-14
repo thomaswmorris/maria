@@ -35,8 +35,9 @@ jobs:
           pixi run python -m ensurepip --upgrade
           pixi run python -m pip install --upgrade pip
 
-      - name: Set up Pixi CPU environment
+      - name: Set up pixi cpu environment
         run: |
+          cd CMB_denoising
           export PIXI_ENV=cpu
           pixi install
 
