@@ -35,6 +35,11 @@ jobs:
           pixi run python -m ensurepip --upgrade
           pixi run python -m pip install --upgrade pip
 
+      - name: Set up Pixi CPU environment
+        run: |
+          export PIXI_ENV=cpu
+          pixi install
+
       - name: Install maria in pixi environment
         run: |
           cd CMB_denoising
@@ -57,7 +62,5 @@ jobs:
 
       - name: Run atmos test
         run: |
-          # cd CMB_denoising/nifty_maria/steering
           cd CMB_denoising
-          pixi run pip list
           pixi run python nifty_maria/steering/test_steering.py --config test --fit_atmos True --fit_map False
