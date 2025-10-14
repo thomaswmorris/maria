@@ -40,10 +40,10 @@ jobs:
           cd CMB_denoising
           pixi run pip install -e ../
 
-      - name: Install nifty in pixi environment
+      - name: Install nifty 8 in pixi environment
         run: |
           cd CMB_denoising
-          pixi run pip install "nifty[re] < 9"
+          pixi run pip install git+https://gitlab.mpcdf.mpg.de/ift/nifty/-/tree/NIFTy_8
       
       - name: Install nifty_maria in pixi environment
         run: |
