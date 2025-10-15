@@ -39,6 +39,7 @@ jobs:
         run: |
           cd CMB_denoising
           export PIXI_ENV=cpu
+          export JAX_PLATFORM_NAME=cpu
           pixi install
 
       - name: Install maria in pixi environment
@@ -64,5 +65,5 @@ jobs:
       - name: Run atmos test
         run: |
           cd CMB_denoising
-          pixi env list
+          pixi run python -c "import sys; print('Python path:', sys.executable)"
           pixi run python nifty_maria/steering/test_steering.py --config test --fit_atmos True --fit_map False
