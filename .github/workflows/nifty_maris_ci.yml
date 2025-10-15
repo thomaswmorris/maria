@@ -29,7 +29,6 @@ jobs:
           cd CMB_denoising
           curl -fsSL https://pixi.sh/install.sh | bash
           echo "$HOME/.pixi/bin" >> $GITHUB_PATH
-          "$HOME/.pixi/bin/pixi" --version
 
       - name: Ensure pip in pixi environment
         run: |
@@ -67,5 +66,5 @@ jobs:
       - name: Run atmos test
         run: |
           cd CMB_denoising
-          pixi run python -c "import sys; print('Python path:', sys.executable)"
+          pixi run python -c "import sys; print('Python path:' jax.default_backend()))"
           pixi run python nifty_maria/steering/test_steering.py --config test --fit_atmos True --fit_map False
