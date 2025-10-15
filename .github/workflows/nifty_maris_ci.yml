@@ -66,5 +66,5 @@ jobs:
       - name: Run atmos test
         run: |
           cd CMB_denoising
-          pixi run python -c "import sys; print('Python path:' jax.default_backend())"
+          pixi run python -c "import sys; print('Python path:', jax.default_backend())"
           pixi run python nifty_maria/steering/test_steering.py --config test --fit_atmos True --fit_map False
