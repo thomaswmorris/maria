@@ -48,6 +48,12 @@ jobs:
           cd CMB_denoising
           pixi run pip install -e ../
 
+      - name: Debug maria install
+        run: |
+          cd CMB_denoising
+          pixi run python -c "import maria, inspect; print('Maria from:', maria.__file__); from maria.instrument import Band; print('Has compute_nu_integral?', hasattr(Band, 'compute_nu_integral'))"
+
+
       - name: Install nifty 8 in pixi environment
         run: |
           cd CMB_denoising
