@@ -457,7 +457,7 @@ class Array:
 
         return cls(dets=df, bands=bands, name=config.get("name", str(uuid.uuid4())[:8]))
 
-    def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=True):
+    def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=False):
         # if plot_baseline == "infer":
         #     plot_baseline = self.dets.max_baseline > 0
 

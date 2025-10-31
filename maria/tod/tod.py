@@ -24,6 +24,7 @@ from ..plotting import plot_tod, twinkle_plot
 from ..site import get_site
 from ..spectrum import AtmosphericSpectrum
 from ..units import parse_units
+from ..utils import unpack_implicit_slice
 
 logger = logging.getLogger("maria")
 
@@ -459,6 +460,24 @@ class TOD:
         if attr in self.fields:
             return self.data[attr]
         raise AttributeError(f"'TOD' object has no attribute '{attr}'")
+
+    def __getitem__(self, key):
+        if not hasattr(key, "__iter__"):
+            key = (key,)
+
+        explicit_slices = unpack_implicit_slice(key, ndims=2)
+
+        indexed_data = {field: data[explicit_slices] for field, data in self.data.items()}
+
+        return type(self)(
+            data=indexed_data,
+            weight=self.weight[explicit_slices],
+            coords=self.coords[explicit_slices],
+            dets=self.dets[explicit_slices[0]],
+            units=self.units,
+            dtype=self.dtype,
+            metadata=self.metadata,
+        )
 
     def __repr__(self):
         parts = []

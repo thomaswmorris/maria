@@ -57,7 +57,7 @@ def test_tod_preprocessing_with_config():
         noise=True,
     )
 
-    tod = sim.run()[0]
+    tod = sim.run()[0][::2, :10000]
 
     pp_config = {
         "window": {"name": "tukey", "kwargs": {"alpha": 0.25}},

@@ -49,8 +49,7 @@ def generate_layers(
 
     min_el = boresight.el.min()
 
-    h_samples = np.arange(0, max_height + 1e0, 1e-1)
-
+    h_samples = np.arange(0.0, 20000.0, 1e0)
     z_samples = h_samples / np.sin(min_el)
 
     fov = instrument.dets.field_of_view
@@ -64,7 +63,8 @@ def generate_layers(
         return sp.interpolate.interp1d(h_samples, res_samples)(h)
 
     if mode == "2d":
-        h_boundaries = np.arange(0, max_height + layer_spacing, layer_spacing)
+        h_boundaries = np.array([0.0, 500.0, 1000.0, 1500.0, 2000.0, 3000.0, 5000.0, 8000.0, 12000.0])
+        # h_boundaries = layer_boundaries or np.arange(0, max_height + layer_spacing, layer_spacing)
         process_index = np.arange(len(h_boundaries) - 1)
     elif mode == "3d":
         h_boundaries = [0]

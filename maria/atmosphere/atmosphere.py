@@ -205,8 +205,9 @@ class Atmosphere:
             for i, (layer_index, layer) in enumerate(
                 self.layers.loc[in_process].iterrows(),
             ):
+                # this algorithm probably works
                 res = layer.res
-                wide_lp_x_dense = np.arange(min_ty - 2 * res, max_ty + 2 * res, 1e-1)
+                wide_lp_x_dense = np.linspace(min_ty, max_ty, 10000)
                 wide_lp_z_dense = layer.h * np.ones(len(wide_lp_x_dense))
                 wide_lp_dense = np.c_[wide_lp_x_dense, wide_lp_z_dense]
                 interior = triangulation.find_simplex(wide_lp_dense) > -1
