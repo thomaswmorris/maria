@@ -87,6 +87,7 @@ class AtmosphereMixin:
                 kind="cubic",
                 bounds_error=False,
                 fill_value="extrapolate",
+                axis=-1,
             )(obs.coords.t),
             dtype=self.dtype,
         )

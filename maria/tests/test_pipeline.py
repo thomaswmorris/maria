@@ -16,7 +16,7 @@ all_test_plan_configs = list(read_yaml(f"{here}/configs/test_plans.yml").values(
 
 all_instruments.pop(all_instruments.index("alma/ALMA"))
 
-n_sims = 3
+n_sims = 8
 test_instruments = np.random.choice(a=all_instruments, size=n_sims)
 test_sites = np.random.choice(a=all_sites, size=n_sims)
 
@@ -32,8 +32,8 @@ def test_pipeline(instrument, site):
         start_time="2024-08-06T09:00:00",
         scan_pattern="daisy",
         scan_options={"radius": 0.5, "speed": 0.1},  # in degrees
-        duration=5,  # in seconds
-        sample_rate=20,  # in Hz
+        duration=10,  # in seconds
+        sample_rate=25,  # in Hz
         scan_center=(31, 62),
         frame="az/el",
     )
