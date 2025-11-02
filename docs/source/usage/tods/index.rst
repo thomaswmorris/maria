@@ -2,19 +2,19 @@
 TODs
 ####
 
-The result of a simulation is a ``TOD``, which encapsulates the generated time-ordered data (and all metadata, like the pointing coordinates).
-The overall signal in the
+The result of a simulation is a ``TOD``, which encapsulates the generated time-ordered data (and all metadata, like the pointing coordinates and detectors).
 
-
-.. code-block:: python
-
-    tod.plot()
-
-It has a few useful features. We can see what our data looks like with
+We can see what our data looks like with
 
 .. code-block:: python
 
     tod.plot()
+
+A ``TOD`` can be sliced like any array; we can get the first ten thousand samples for every other detector as
+
+.. code-block:: python
+
+    subtod = tod[::2, :10000]
 
 ==========
 Components
@@ -34,7 +34,6 @@ which is the sum of all of the simulated fields (e.g. noise, atmosphere, CMB) se
 
 We can see all the available fields with ``tod.fields``.
 
-
 =====
 Units
 =====
@@ -45,8 +44,6 @@ TODs are by default in units of picowatts, but we can convert to any unit that i
 
     tod_in_rj_units = tod.to(units="mK_RJ")
     tod_in_cmb_units = tod.to(units="uK_CMB")
-
-
 
 =============
 Load and save
