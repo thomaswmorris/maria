@@ -47,11 +47,6 @@ jobs:
         run: |
           cd CMB_denoising
           pixi run pip install -e ../
-
-      - name: Install nifty 8 in pixi environment
-        run: |
-          cd CMB_denoising
-          pixi run pip install "git+https://gitlab.mpcdf.mpg.de/ift/nifty.git@NIFTy_8#egg=nifty8"
       
       - name: Install nifty_maria in pixi environment
         run: |
