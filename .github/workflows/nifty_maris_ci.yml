@@ -67,6 +67,11 @@ jobs:
         run: |
           cd CMB_denoising/nifty_maria/steering
           pixi run python test_steering.py --config test --fit_atmos True --fit_map False
+
+      - name: Run map test
+        run: |
+          cd CMB_denoising/nifty_maria/steering
+          pixi run python test_steering.py --config test --fit_atmos False --fit_map True
       
       - name: Run both atmos and map test
         run: |
