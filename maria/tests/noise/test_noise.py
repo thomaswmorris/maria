@@ -4,7 +4,7 @@ import numpy as np
 from maria import Simulation
 
 
-def test_noise_levels():
+def test_white_noise_levels():
     sim = Simulation(
         instrument="MUSTANG-2",
         plans="ten_second_zenith_stare",

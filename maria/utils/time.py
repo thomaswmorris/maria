@@ -1,4 +1,5 @@
 import arrow
+import numpy as np
 
 
 def get_day_hour(t):
@@ -19,3 +20,7 @@ def get_utc_year_day(t, partial=True):
 
 def get_utc_year(t):
     return arrow.get(t).to("utc").year
+
+
+utc_day_hour = np.vectorize(get_utc_day_hour)
+utc_year_day = np.vectorize(get_utc_year_day)
