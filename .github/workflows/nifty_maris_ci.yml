@@ -17,6 +17,7 @@ jobs:
         with:
           repository: jwuerzinger/CMB_denoising
           path: CMB_denoising
+          ref: pixi
 
       - name: Set up Python
         uses: actions/setup-python@v5
