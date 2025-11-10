@@ -13,6 +13,6 @@ Methods
 Usage
 -----
 
+* [`link <https://astro.theoj.org/article/144106-observing-the-sun-with-the-atacama-large-aperture-submillimeter-telescope-atlast-forecasting-full-disk-observations>`_] M. Kirkaune, et al., “Observing the Sun with the Atacama Large Aperture Submillimeter Telescope (AtLAST): Forecasting Full-disk Observations” *The Open Journal of Astrophysics* **8** (2025)
 * [`link <https://www.arxiv.org/abs/2509.01600>`_] J. Würzinger, et al., “maria goes NIFTy: Gaussian Process-Based Reconstruction and Denoising of Simulated (Sub-)Millimetre Single-Dish Telescope Data” *arXiv preprint arXiv:2509.01600* (2025)
 * [`link <https://open-research-europe.ec.europa.eu/articles/4-113/v2>`_] L. di Mascolo, et al., “Atacama Large Aperture Submillimeter Telescope (AtLAST) Science: Resolving the Hot and Ionized Universe through the Sunyaev-Zeldovich effect” *Open Research Europe* **4** (2025) 113
-* [`link <https://www.arxiv.org/abs/2505.13145>`_] M. Kirkaune, et al., “Observing the Sun with the Atacama Large Aperture Submillimeter Telescope (AtLAST): Forecasting Full-disk Observations” *arXiv preprint arXiv:2505.13145* (2025)
