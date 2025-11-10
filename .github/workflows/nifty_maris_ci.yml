@@ -38,8 +38,6 @@ jobs:
       - name: Set up pixi cpu environment
         run: |
           cd CMB_denoising
-          export PIXI_ENV=cpu
-          export JAX_PLATFORM_NAME=cpu
           pixi install -e cpu
 
       - name: Install maria in pixi environment
