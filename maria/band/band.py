@@ -13,7 +13,7 @@ import scipy as sp
 from jax import scipy as jsp
 
 from ..calibration import Calibration
-from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c
+from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c, k_B
 from ..errors import FrequencyOutOfBoundsError
 from ..spectrum import AtmosphericSpectrum
 from ..units import Quantity
@@ -258,6 +258,28 @@ class Band:
         elif self.spectrum.region != region:
             self.spectrum = AtmosphericSpectrum(region=region)
         return self.spectrum.transmission(nu=self.center, pwv=pwv, elevation=elevation)
+
+    def atmosphere_power(
+        self,
+        spectrum: AtmosphericSpectrum,
+        base_temperature: float,
+        zenith_pwv: float,
+        elevation: float,
+    ):
+        values = (
+            1e12
+            * k_B
+            * np.trapezoid(
+                spectrum._emission * self.passband(spectrum.side_nu),
+                spectrum.side_nu,
+                axis=-1,
+            )
+        )
+
+        return jsp.interpolate.RegularGridInterpolator(
+            spectrum.points[:3],
+            values,
+        )((base_temperature, zenith_pwv, elevation))
 
     # @classmethod
     # def from_file(cls, filename, **kwargs):

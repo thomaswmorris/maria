@@ -51,28 +51,11 @@ class AtmosphereMixin:
 
             band_index = obs.instrument.dets.mask(band_name=band.name)
 
-            # the 1e12 is for picowatts
-            det_power_grid = (
-                1e12
-                * k_B
-                * np.trapezoid(
-                    obs.atmosphere.spectrum._emission * band.passband(obs.atmosphere.spectrum.side_nu),
-                    obs.atmosphere.spectrum.side_nu,
-                    axis=-1,
-                )
-            )
-
-            band_power_interpolator = jsp.interpolate.RegularGridInterpolator(
-                obs.atmosphere.spectrum.points[:3],
-                det_power_grid,
-            )
-
-            atmosphere_loading[band_index] = band_power_interpolator(
-                (
-                    obs.atmosphere.weather.temperature[0],
-                    obs.atmosphere.zenith_scaled_pwv[band_index],
-                    obs.atmosphere.coords.el[band_index].clip(max=np.pi / 2),
-                ),
+            atmosphere_loading[band_index] = band.atmosphere_power(
+                spectrum=obs.atmosphere.spectrum,
+                base_temperature=obs.atmosphere.weather.temperature[0],
+                zenith_pwv=obs.atmosphere.zenith_scaled_pwv[band_index],
+                elevation=obs.atmosphere.coords.el[band_index].clip(max=np.pi / 2),
             )
 
             logger.debug(

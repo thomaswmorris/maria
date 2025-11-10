@@ -99,7 +99,7 @@ class AutoregressiveProcess:
         ]
         self.n_live_edge = len(self.live_edge_points)
 
-        n_side_warn = 1000
+        n_side_warn = 4000
 
         if self.n_sample > n_side_warn:
             logger.warning(
