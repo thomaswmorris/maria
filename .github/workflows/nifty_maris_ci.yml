@@ -34,16 +34,6 @@ jobs:
           cd CMB_denoising
           pixi install -e cpu
 
-      - name: Install maria in pixi environment
-        run: |
-          cd CMB_denoising
-          pixi run pip install -e ../
-      
-      - name: Install nifty_maria in pixi environment
-        run: |
-          cd CMB_denoising
-          pixi run pip install -e nifty_maria/
-
       - name: Run tests with pixi
         run: |
           cd CMB_denoising/nifty_maria
