@@ -41,9 +41,9 @@ but we can also map the data in units of ``Jy/pixel`` (Jankies per pixel) or ``K
                        tods=[tod1, tod2],
                        )
 
-########################
+#######################
 Pre- and postprocessing
-########################
+#######################
 
 We specify the preprocessing we want done to each ``TOD`` and the postprocessing done to the output map also
 
@@ -59,3 +59,19 @@ We specify the preprocessing we want done to each ``TOD`` and the postprocessing
                             },
                        tods=[tod1, tod2],
                        )
+
+
+
+###################
+Time evolution maps
+###################
+
+To map a time-evolving source, we can pass a ``timestep`` parameter as
+
+.. code-block:: python
+
+    mapper = BinMapper(tods=[tod1, tod2],
+                       timestep=60,
+                       )
+
+to make a map of the source every minute.

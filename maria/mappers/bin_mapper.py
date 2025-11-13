@@ -44,7 +44,7 @@ class BinMapper(BaseProjectionMapper):
 
         center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
         width = (Quantity(width, "deg" if degrees else "rad")) if width is not None else None
-        height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else None
+        height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else width
         resolution = (Quantity(resolution, "deg" if degrees else "rad")) if resolution is not None else None
 
         infer_center, infer_width, infer_height = infer_center_width_height(
@@ -71,7 +71,7 @@ class BinMapper(BaseProjectionMapper):
             logger.info(f"Inferring height {height} for mapper.")
 
         if resolution is None:
-            resolution = Quantity(infer_width / 100, "rad")
+            resolution = Quantity(width / 100, "rad")
             logger.info(f"Inferring resolution {resolution} for mapper.")
 
         if stokes is None:
