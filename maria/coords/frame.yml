@@ -26,9 +26,11 @@ ra/dec:
   phi: 
     name: ra
     long_name: Right ascension (J2000)
+    repr: dms
   theta: 
     name: dec
     long_name: Declination (J2000)
+    repr: deg
   fits:
     phi: RA
     theta: DEC
