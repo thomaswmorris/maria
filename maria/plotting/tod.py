@@ -24,7 +24,7 @@ FIELD_LABELS = {"atmosphere": "atm."}
 
 def plot_tod(
     tod,
-    detrend: bool = True,
+    detrend: str = "mean",
     n_freq_bins: int = 1024,
     max_dets: int = 1,
     lw: float = 1e0,
@@ -72,7 +72,10 @@ def plot_tod(
                     np.linspace(0, band_mask.sum() - 1, max_dets).astype(int)
                 ]
 
-            if detrend:
+            if detrend == "mean":
+                field_plot_data[band_name] = field_plot_data[band_name] - field_plot_data[band_name].mean(axis=-1)[..., None]
+
+            if detrend == "linear":
                 field_plot_data[band_name] = detrend_signal(field_plot_data[band_name], order=1)
 
         max_abs_signal = Quantity(

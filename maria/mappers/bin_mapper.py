@@ -8,8 +8,10 @@ from collections.abc import Sequence
 import numpy as np
 from tqdm import tqdm
 
-from ..io import humanize_time
+from ..coords import infer_center_width_height
+from ..io import humanize_time, repr_phi_theta
 from ..tod import TOD
+from ..units import Quantity
 from .base import BaseProjectionMapper
 
 np.seterr(invalid="ignore")
@@ -21,34 +23,87 @@ logger = logging.getLogger("maria")
 class BinMapper(BaseProjectionMapper):
     def __init__(
         self,
+        tods: Sequence[TOD],
         center: tuple[float, float] = None,
-        stokes: str = "I",
-        width: float = 1,
+        stokes: str = None,
+        width: float = None,
         height: float = None,
-        resolution: float = 0.01,
+        resolution: float = None,
         frame: str = "ra/dec",
         units: str = "K_RJ",
         degrees: bool = True,
         calibrate: bool = False,
+        min_time: float = None,
+        max_time: float = None,
+        timestep: float = None,
         tod_preprocessing: dict = {},
         map_postprocessing: dict = {},
-        tods: Sequence[TOD] = [],
     ):
-        height = height or width
+        if not tods:
+            raise ValueError("You must pass at least one TOD to the mapper!")
+
+        center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
+        width = (Quantity(width, "deg" if degrees else "rad")) if width is not None else None
+        height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else None
+        resolution = (Quantity(resolution, "deg" if degrees else "rad")) if resolution is not None else None
+
+        infer_center, infer_width, infer_height = infer_center_width_height(
+            coords_list=[tod.coords for tod in tods], center=center, frame=frame, square=True
+        )
+
+        logger.debug(
+            f"Inferred center={Quantity(infer_center, 'rad')}, width={Quantity(infer_width, 'rad')}, \
+                     width={Quantity(infer_height, 'rad')} for map."
+        )
+
+        if center is None:
+            center = Quantity(infer_center, "rad")
+            logger.info(
+                f"Inferring center {repr_phi_theta(phi=center[0].rad, theta=center[1].rad, frame=frame)} for mapper."
+            )
+
+        if width is None:
+            if height is not None:
+                width = height
+                logger.info(f"Inferring mapper width {width} to match supplied height.")
+            else:
+                width = Quantity(infer_width, "rad")
+                logger.info(f"Inferring mapper width {width} for mapper from observation patch.")
+
+        if height is None:
+            if width is not None:
+                height = width
+                logger.info(f"Inferring mapper height {height} to match supplied width.")
+            else:
+                height = Quantity(infer_height, "rad")
+                logger.info(f"Inferring mapper height {height} for mapper from observation patch.")
+
+        if resolution is None:
+            resolution = Quantity(width / 100, "rad")
+            logger.info(f"Inferring mapper resolution {resolution} for mapper from observation patch.")
+
+        if stokes is None:
+            stokes = "IQUV" if any([tod.dets.polarized for tod in tods]) else "I"
+            logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
+
+        min_time = min_time or min([tod.coords.t.min() for tod in tods])
+        max_time = max_time or max([tod.coords.t.max() for tod in tods])
 
         super().__init__(
-            center=center,
             stokes=stokes,
-            width=width,
-            height=height,
-            resolution=resolution,
+            center=Quantity(center, "rad"),
+            width=Quantity(width, "rad"),
+            height=Quantity(height, "rad"),
+            resolution=Quantity(resolution, "rad"),
             frame=frame,
-            degrees=degrees,
             calibrate=calibrate,
             tods=tods,
             units=units,
             tod_preprocessing=tod_preprocessing,
             map_postprocessing=map_postprocessing,
+            min_time=min_time,
+            max_time=max_time,
+            timestep=timestep,
         )
 
     def initialize_mapper(self):
@@ -61,8 +116,9 @@ class BinMapper(BaseProjectionMapper):
 
         self.map_data = {}
 
-        map_sum = np.zeros((self.n_stokes, len(self.bands), (self.n_y + 2) * (self.n_x + 2)))
-        map_wgt = np.zeros((self.n_stokes, len(self.bands), (self.n_y + 2) * (self.n_x + 2)))
+        map_sum = np.zeros((self.n_stokes, len(self.map.nu), len(self.map.t) * self.n_y * self.n_x))
+        map_wgt = np.zeros((self.n_stokes, len(self.map.nu), len(self.map.t) * self.n_y * self.n_x))
+
         nu_list = []
 
         for band_index, band in enumerate(self.bands):
@@ -83,7 +139,7 @@ class BinMapper(BaseProjectionMapper):
                 if not tod.shape[0] > 0:
                     continue
 
-                P = self.map.pointing_matrix(coords=band_tod.coords)
+                pmat = self.map.pointing_matrix(coords=band_tod.coords)
                 D = band_tod.signal.compute()
                 W = band_tod.weight.compute()
 
@@ -94,16 +150,16 @@ class BinMapper(BaseProjectionMapper):
 
                     s = stokes_weight[:, "IQUV".index(stokes)][..., None]
 
-                    map_sum[stokes_index, band_index] += P @ (np.sign(s) * W * D).ravel()
-                    map_wgt[stokes_index, band_index] += P @ (np.abs(s) * W).ravel()
+                    map_sum[stokes_index, band_index] += (np.sign(s) * W * D).ravel() @ pmat
+                    map_wgt[stokes_index, band_index] += (np.abs(s) * W).ravel() @ pmat
 
                 del band_tod
 
             logger.info(f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}.")
 
         return {
-            "sum": map_sum.reshape(self.n_stokes, self.n_bands, self.n_y + 2, self.n_x + 2)[..., 1:-1, 1:-1],
-            "wgt": map_wgt.reshape(self.n_stokes, self.n_bands, self.n_y + 2, self.n_x + 2)[..., 1:-1, 1:-1],
+            "sum": map_sum.reshape(self.n_stokes, self.n_bands, len(self.map.t), self.n_y, self.n_x),
+            "wgt": map_wgt.reshape(self.n_stokes, self.n_bands, len(self.map.t), self.n_y, self.n_x),
             "stokes": self.stokes,
             "nu": nu_list,
         }

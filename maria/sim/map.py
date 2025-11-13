@@ -146,9 +146,10 @@ class MapMixin:
                     #             method="linear",
                     #         ))((dy[band_mask], dx[band_mask]))
 
-                    flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
+                    # flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
+                    # flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
 
-                    pW = pW_per_K_RJ * stokes_weight * (flat_padded_map @ pmat).reshape(band_coords.shape)
+                    pW = pW_per_K_RJ * stokes_weight * (pmat @ channel_stokes_map.ravel()).reshape(band_coords.shape)
 
                     map_loading[band_mask] += pW
 

@@ -127,7 +127,7 @@ class CMBMixin:
                     continue
 
                 cmb_loading[band_mask] += (
-                    pW_per_K_CMB * s * (self.cmb.data[stokes_index, 0].compute() @ pmat).reshape(band_coords.shape)
+                    pW_per_K_CMB * s * (pmat @ self.cmb.data[stokes_index, 0, 0].compute()).reshape(band_coords.shape)
                 )
                 logger.debug(
                     f"Computed Stokes {stokes} CMB anisotropy for band {band.name} "

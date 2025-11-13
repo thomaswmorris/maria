@@ -55,7 +55,7 @@ def test_polarized_map_sim():
             "median_filter": {"size": 1},
         },
         units="mK_RJ",
+        tods=[tod],
     )
 
-    mapper.add_tods(tod)
     mapper.run()

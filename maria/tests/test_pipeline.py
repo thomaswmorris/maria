@@ -55,12 +55,6 @@ def test_pipeline(instrument, site):
     tod = tod.to("K_RJ")
 
     mapper = BinMapper(
-        center=(0, -23),
-        stokes="IQUV",
-        frame="ra/dec",
-        width=1,
-        height=1,
-        resolution=1 / 256,
         tod_preprocessing={
             "window": {"name": "tukey", "kwargs": {"alpha": 0.1}},
             "remove_spline": {"knot_spacing": 30, "remove_el_gradient": True},
@@ -71,7 +65,9 @@ def test_pipeline(instrument, site):
             "median_filter": {"size": 1},
         },
         units="mK_RJ",
+        tods=[tod],
     )
 
-    mapper.add_tods(tod)
-    mapper.run()
+    output_map = mapper.run()
+
+    assert output_map.weight.sum() > 0

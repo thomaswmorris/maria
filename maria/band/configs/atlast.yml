@@ -38,8 +38,8 @@ f150:
   NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
 
-f225:
-  center: 225.e+9
+f220:
+  center: 220.e+9
   width: 30.e+9
   shape: top_hat
   time_constant: 0

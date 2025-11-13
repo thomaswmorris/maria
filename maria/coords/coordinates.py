@@ -16,7 +16,7 @@ from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from scipy.interpolate import interp1d
 
-from ..io import DEFAULT_TIME_FORMAT, humanize_time, repr_lat_lon
+from ..io import DEFAULT_TIME_FORMAT, humanize_time, repr_lat_lon, repr_phi_theta
 from ..units import Quantity
 from ..utils import get_utc_day_hour, get_utc_year_day
 from .frame import FRAMES, Frame
@@ -87,6 +87,9 @@ class Coordinates:
 
         self.initialized = False
         self.computed_frames = [self.frame.name]
+
+        # dicts for caching metadata
+        self.centers = {}
 
     def initialize(self):
         """
@@ -347,14 +350,29 @@ class Coordinates:
     def compute_points(self):
         return phi_theta_to_xyz(self._phi, self._theta)
 
-    def center(self, frame=None):
+    def center(self, frame: str = None):
         frame = Frame(frame or self.frame)
-        return np.array(
-            get_center_phi_theta(
-                getattr(self, frame.phi_name),
-                getattr(self, frame.theta_name),
+        if frame.name not in self.centers:
+            center_phi, center_theta = np.array(
+                get_center_phi_theta(
+                    getattr(self, frame.phi_name),
+                    getattr(self, frame.theta_name),
+                )
             )
-        )
+            self.centers[frame.name] = (Quantity(center_phi, "rad"), Quantity(center_theta, "rad"))
+        return self.centers[frame.name]
+
+    def hull(self, frame: str, center=None, lazy: bool = None):
+        center = center if center is not None else self.center(frame=frame)
+        offsets = self.offsets(frame=frame, center=center).reshape(-1, 2)
+
+        lazy = lazy if lazy is not None else len(offsets) > 20000
+        if lazy:
+            offsets = offsets[np.random.choice(a=len(offsets), size=20000)]
+
+        hull = sp.spatial.ConvexHull(offsets)
+
+        return offsets[hull.vertices]
 
     def broadcast(self, offsets, frame="az/el"):
         phi_theta = unjitted_offsets_to_phi_theta(offsets[..., None, :], self.az, self.el)
@@ -370,6 +388,7 @@ class Coordinates:
         offsets_s = ttime.monotonic()
 
         frame = Frame(frame)
+        center = (Quantity(center[0], "rad"), Quantity(center[1], "rad"))
 
         if compute:
             return self.offsets(frame=frame, center=center, units=units, compute=False)
@@ -378,11 +397,11 @@ class Coordinates:
             if center == "auto":
                 center = self.center(frame=frame)
         if frame.name == "az/el":
-            X = phi_theta_to_offsets(np.stack([self.az, self.el], axis=-1), *center)
+            X = phi_theta_to_offsets(np.stack([self.az, self.el], axis=-1), center[0].rad, center[1].rad)
         elif frame.name == "ra/dec":
-            X = phi_theta_to_offsets(np.stack([self.ra, self.dec], axis=-1), *center)
+            X = phi_theta_to_offsets(np.stack([self.ra, self.dec], axis=-1), center[0].rad, center[1].rad)
         elif frame.name == "galactic":
-            X = phi_theta_to_offsets(np.stack([self.l, self.b], axis=-1), *center)
+            X = phi_theta_to_offsets(np.stack([self.l, self.b], axis=-1), center[0].rad, center[1].rad)
 
         logger.debug(f"Computed offsets for {self} in {humanize_time(ttime.monotonic() - offsets_s)}")
 
@@ -410,11 +429,20 @@ class Coordinates:
 
     def __repr__(self):
         repr_lat, repr_lon = repr_lat_lon(self.latitude.degrees, self.longitude.degrees)
+        center_repr = "center:"
+        for frame in set([self.frame.name, *list(self.centers)]):
+            for key, value in repr_phi_theta(*self.center(frame), frame=frame).items():
+                center_repr += f"\n    {key}: {value}"
+
+        min_time = arrow.get(self.t.min())
+        max_time = arrow.get(self.t.max())
+
         return f"""Coordinates:
   shape: {self.shape}
+  {center_repr}
   location:
     lat: {repr_lat}
     lon: {repr_lon}
   time:
-    min: {arrow.get(self.t.min()).format(DEFAULT_TIME_FORMAT)}
-    max: {arrow.get(self.t.max()).format(DEFAULT_TIME_FORMAT)}"""
+    min: {min_time.timestamp():.03f} ({min_time.format(DEFAULT_TIME_FORMAT)})
+    max: {max_time.timestamp():.03f} ({max_time.format(DEFAULT_TIME_FORMAT)})"""
