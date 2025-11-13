@@ -102,9 +102,9 @@
     "        \"median_filter\": {\"size\": 1},\n",
     "    },\n",
     "    units=\"uK_RJ\",\n",
+    "    tods=tods,\n",
     ")\n",
     "\n",
-    "mapper.add_tods(tods)\n",
     "output_map = mapper.run()"
    ]
   },
@@ -121,7 +121,7 @@
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "maria",
+   "display_name": "Python 3 (ipykernel)",
    "language": "python",
    "name": "python3"
   },
