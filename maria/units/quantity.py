@@ -313,19 +313,23 @@ class Quantity:
         parts.append(f"{t:.03f}s")
         return " ".join(parts)
 
-    @property
-    def dms(self) -> str:
-        if self.quantity != "angle":
-            raise ValueError("'dms' is only for angles")
-        sign, d, m, s = deg_to_signed_dms(self.deg)
-        return f"{int(sign * d):>02}°{int(m):>02}’{s:.02f}”"
+    def repr(self, format: str) -> str:
+        if format == "dms":
+            if self.quantity != "angle":
+                raise ValueError("string format 'dms' is only for angles")
+            sign, d, m, s = deg_to_signed_dms(self.deg)
+            return f"{int(sign * d):>02}°{int(m):>02}’{s:.02f}”"
 
-    @property
-    def hms(self) -> str:
-        if self.quantity != "angle":
-            raise ValueError("'hms' is only for angles")
-        sign, h, m, s = deg_to_signed_hms(self.deg)
-        return f"{int(sign * h):>02}ʰ{int(m):>02}ᵐ{s:.02f}ˢ"
+        if format == "hms":
+            if self.quantity != "angle":
+                raise ValueError("string format 'hms' is only for angles")
+            sign, h, m, s = deg_to_signed_hms(self.deg)
+            return f"{int(sign * h):>02}ʰ{int(m):>02}ᵐ{s:.02f}ˢ"
+
+        if format == "deg":
+            if self.quantity != "angle":
+                raise ValueError("string format 'deg' is only for angles")
+            return f"{self.deg:.04f}°"
 
     def mean(self, axis=None, *args, **kwargs):
         return Quantity(np.mean(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)

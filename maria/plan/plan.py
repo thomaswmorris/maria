@@ -288,7 +288,7 @@ class Plan:
         fig = plt.figure(figsize=(10, 5) if two_panel else (5, 5), dpi=256, constrained_layout=True)
         ax = fig.add_subplot(111 if two_panel is None else 121, projection=wcs)
 
-        cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame.name)
+        cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame.name, join=True)
 
         ax.plot(q_offsets.value[:, 0], q_offsets.value[:, 1], lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=f"{cphi_repr}\n{ctheta_repr}")
@@ -404,7 +404,7 @@ class Plan:
         c = self.center(frame=self.frame.name)
         q_offsets = Quantity(self.offsets(), "rad")
 
-        cphi_repr, ctheta_repr = repr_phi_theta(c[0].rad, c[1].rad, frame=self.frame.name)
+        cphi_repr, ctheta_repr = repr_phi_theta(c[0].rad, c[1].rad, frame=self.frame.name, join=True)
         center_string = f"""center:
     {cphi_repr}
     {ctheta_repr}"""

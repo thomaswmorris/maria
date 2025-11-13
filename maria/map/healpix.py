@@ -73,15 +73,14 @@ class HEALPixMap(Map):
         self.beam = tuple(np.radians(beam) if degrees else beam)
 
     def pointing_matrix(self, coords: Coordinates):
-        idx = hp.ang2pix(
+        pixel_index = hp.ang2pix(
             nside=self.nside,
             phi=getattr(coords, self.frame.phi_name).ravel(),
             theta=np.pi / 2 - getattr(coords, self.frame.theta_name).ravel(),
         ).ravel()
 
-        nsamps = len(idx)
-        return sp.sparse.csc_array(
-            (np.ones(coords.size, dtype=np.uint8), (idx, np.arange(nsamps))), shape=(self.npix, nsamps)
+        return sp.sparse.csr_array(
+            (np.ones(coords.size, dtype=np.uint8), (np.arange(coords.size), pixel_index)), shape=(coords.size, self.npix)
         )
 
     @property
@@ -165,8 +164,9 @@ class HEALPixMap(Map):
         return f"""{self.__class__.__name__}:
   shape{self.dims_string}: {self.data.shape}
   stokes: {self.stokes if "stokes" in self.dims else "naive"}
-  nu: {Quantity(self.nu, "Hz") if "nu" in self.dims else "naive"}
-  t: {Quantity(self.t, "s") if "t" in self.dims else "naive"}
+  nu: {self.nu if "nu" in self.dims else "naive"}
+  t: {self.t if "t" in self.dims else "naive"}
+  z: {self.z if "z" in self.dims else "naive"}
   nside: {self.nside}
   frame: {self.frame.name}
   quantity: {self.u["quantity"]}

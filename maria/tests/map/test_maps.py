@@ -95,6 +95,7 @@ def test_trivial_recover_original_map():
         width=input_map.width,
         resolution=input_map.x_res,
         degrees=False,
+        tods=tods,
     )
 
     mapper.add_tods(tods)

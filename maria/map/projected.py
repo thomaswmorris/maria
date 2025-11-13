@@ -125,17 +125,18 @@ class ProjectedMap(Map):
 
         if "t" in self.dims:
             return compute_pointing_matrix_sparse_indices(
-                points=(offsets[..., 0], offsets[..., 1], coords._t), bins=(self.x_bins, self.y_bins[::-1], self.t_bins)
+                x_list=(offsets[..., 0], offsets[..., 1], coords._t), bins_list=(self.x_bins, self.y_bins[::-1], self.t_bins)
             )
         else:
             return compute_pointing_matrix_sparse_indices(
-                points=(offsets[..., 0], offsets[..., 1]), bins=(self.x_bins, self.y_bins[::-1])
+                x_list=(offsets[..., 0], offsets[..., 1]), bins_list=(self.x_bins, self.y_bins[::-1])
             )
 
     def pointing_matrix(self, coords: Coordinates):
-        idx, cum_npix = self._pointing_matrix_sparse_indices(coords)
-        nsamps = len(idx)
-        return sp.sparse.csc_array((np.ones(nsamps, dtype=np.uint8), (idx, np.arange(nsamps))), shape=(cum_npix, nsamps))
+        sample_index, pixel_index, n_pixels = self._pointing_matrix_sparse_indices(coords=coords)
+        return sp.sparse.csr_array(
+            (np.ones(len(pixel_index), dtype=np.uint8), (sample_index, pixel_index)), shape=(coords.size, n_pixels)
+        )
 
     def header(self):
         header = ap.io.fits.header.Header()
@@ -191,11 +192,11 @@ class ProjectedMap(Map):
         package["weight"] = package["weight"][key]
 
         for axis, (dim, naxis) in enumerate(self.dims.items()):
-            if dim in "xy":
-                continue
-            package[dim] = package[dim][explicit_slices[axis]]
+            if dim not in "xy":
+                package[dim] = package[dim][explicit_slices[axis]]
 
-            package["beam"] = package["beam"][explicit_slices[axis]]
+            if dim in "nu":
+                package["beam"] = package["beam"][explicit_slices[axis]]
 
         package["y_res"] *= explicit_slices[-2].step or 1
         package["x_res"] *= explicit_slices[-1].step or 1
@@ -225,8 +226,10 @@ class ProjectedMap(Map):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
     def __repr__(self):
-        beam_repr = self.beam
-        cphi_repr, ctheta_repr = repr_phi_theta(self.center[0].radians, self.center[1].radians, frame=self.frame.name)
+        # beam_repr = self.beam
+        center_repr = "center:"
+        for key, value in repr_phi_theta(self.center[0].rad, self.center[1].rad, frame=self.frame.name).items():
+            center_repr += f"\n    {key}: {value}"
         return f"""{self.__class__.__name__}:
   shape{self.dims_string}: {self.data.shape}
   stokes: {self.stokes if "stokes" in self.dims else "naive"}
@@ -237,9 +240,7 @@ class ProjectedMap(Map):
   units: {self.units}
     min: {np.nanmin(self.data).compute():.03e}
     max: {np.nanmax(self.data).compute():.03e}
-  center:
-    {cphi_repr}
-    {ctheta_repr}
+  {center_repr}
   size(y, x): ({self.height}, {self.width})
   resolution(y, x): ({self.y_res}, {self.x_res})
   beam(maj, min, rot): {self.beam}
@@ -560,4 +561,4 @@ class ProjectedMap(Map):
             f.create_dataset("y_res", dtype=float, data=self.y_res.deg)
             f.create_dataset("units", data=self.units)
             f.create_dataset("frame", data=self.frame.name)
-            f.create_dataset("beam", data=(self.beam[0].deg, self.beam[1].deg, self.beam[2].deg))
+            f.create_dataset("beam", data=self.beam.deg)

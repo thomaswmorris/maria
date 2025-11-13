@@ -295,8 +295,8 @@ class TOD:
         if format.lower() == "mustang-2":
             header = fits.header.Header()
 
-            header["AZIM"] = (self.coords.center("az/el")[0], "radians")
-            header["ELEV"] = (self.coords.center("az/el")[1], "radians")
+            header["AZIM"] = (self.coords.center("az/el")[0].rad, "radians")
+            header["ELEV"] = (self.coords.center("az/el")[1].rad, "radians")
             header["BMAJ"] = (9.0, "arcsec")
             header["BMIN"] = (9.0, "arcsec")
             header["BPA"] = (0.0, "degrees")
@@ -357,9 +357,9 @@ class TOD:
 
             hdu.writeto(fname, overwrite=overwrite)
 
-    def to_hdf(self, fname):
-        with h5py.File(fname, "w") as f:
-            f.createdataset(fname)
+    # def to_hdf(self, fname):
+    #     with h5py.File(fname, "w") as f:
+    #         f.create_dataset(fname)
 
     @staticmethod
     def from_fits(fname: str, format: str, **kwargs):
@@ -441,7 +441,7 @@ class TOD:
             gc.collect()
             return tod
 
-    def plot(self, detrend=True, max_dets: int = 1, n_freq_bins: int = 1024):
+    def plot(self, detrend="mean", max_dets: int = 1, n_freq_bins: int = 1024):
         plot_tod(
             self,
             detrend=detrend,

@@ -26,21 +26,42 @@ def great_circle_distance(phi1, theta1, phi2, theta2):
 
 @jax.jit
 def regular_digitization(x, bins):
-    dx = jnp.gradient(bins).mean()
+    dx = jnp.mean(jnp.gradient(bins)) if len(bins) > 1 else 1.0
     return ((x - (bins.min() - dx)) / dx).astype(int).clip(min=0, max=len(bins))
 
 
-def compute_pointing_matrix_sparse_indices(points, bins):
-    if not np.all([np.all(np.gradient(b) > 0) for b in bins]):
+def compute_pointing_matrix_sparse_indices(x_list, bins_list):
+    """
+    Compute the pointing matrix for a set of points onto a Cartesian product of bins
+    """
+
+    n_samples = len(x_list[0].ravel())
+
+    if not np.all([np.all(np.diff(bins) > 0) for bins in bins_list]):
         raise ValueError(f"Each set of bins must be strictly increasing")
 
-    idx = 0
+    map_pixel_index = 0
+    mask = np.ones_like(x_list[0].ravel(), dtype=bool)
     cum_npix = 1
-    for dim, (x, b) in enumerate(zip(points, bins)):
-        idx += cum_npix * regular_digitization(x.ravel(), b)
-        cum_npix *= len(b) + 1
 
-    return idx, cum_npix
+    # indices_per_bin = np.zeros(())
+
+    for dim, (x, bins) in enumerate(zip(x_list, bins_list)):
+        dim_bins = np.digitize(x.ravel(), bins=bins)
+
+        # print(dim_bins.min(), dim_bins.max(), len(bins))
+
+        mask *= np.where((dim_bins > 0) & (dim_bins < len(bins)), True, False)
+        map_pixel_index += cum_npix * (dim_bins - 1)
+        cum_npix *= len(bins) - 1
+
+    if not mask.sum():
+        return [], [], cum_npix
+
+    if map_pixel_index[mask].max() >= cum_npix:
+        raise RuntimeError()
+
+    return np.arange(n_samples)[mask], map_pixel_index[mask], cum_npix
 
 
 def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, beta: float = 8 / 3):

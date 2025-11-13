@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import logging
 import os
-import time as ttime
 import warnings
 from collections.abc import Sequence
 from typing import Mapping
 
+import arrow
 import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..coords import FRAMES, Frame, get_center_phi_theta
+from ..coords import FRAMES, Frame, get_center_phi_theta, infer_center_width_height
 from ..instrument import BandList
 from ..io import DEFAULT_BAR_FORMAT
 from ..map import MAP_QUANTITIES, ProjectedMap
@@ -31,18 +31,20 @@ class BaseProjectionMapper:
 
     def __init__(
         self,
-        center: tuple[float, float],
+        center: tuple[Quantity, Quantity],
         stokes: str,
-        width: float,
-        height: float,
-        resolution: float,
+        width: Quantity,
+        height: Quantity,
+        resolution: Quantity,
         frame: str,
         units: str,
-        degrees: bool,
         calibrate: bool,
         tods: Sequence[TOD],
         tod_preprocessing: Mapping,
         map_postprocessing: Mapping,
+        min_time: float,
+        max_time: float,
+        timestep: float,
     ):
         u = parse_units(units)
         self.tod_units = units if u["quantity"] in TOD_QUANTITIES else "K_RJ"
@@ -51,20 +53,22 @@ class BaseProjectionMapper:
         if u["quantity"] not in MAP_QUANTITIES:
             raise ValueError(f"Units '{units}' (with associated quantity '{u['quantity']}') are not valid map units")
 
-        center = center or np.degrees(get_center_phi_theta(*np.stack([tod.coords.center(frame="ra/dec") for tod in tods]).T))
-        height = height or width
-
-        self.resolution = Quantity(resolution, "deg" if degrees else "rad")
-        self.center = Quantity(center, "deg" if degrees else "rad")
-        self.width = Quantity(width, "deg" if degrees else "rad")
-        self.height = Quantity(height, "deg" if degrees else "rad")
-        self.degrees = degrees
+        self.resolution = resolution
+        self.center = center
+        self.width = width
+        self.height = height
         self.calibrate = calibrate
         self.frame = Frame(frame)
         self.units = units
         self.stokes = stokes
         self.tod_preprocessing = tod_preprocessing
         self.map_postprocessing = map_postprocessing
+
+        if timestep is None:
+            self.timestamps = np.mean([min_time, max_time])
+        else:
+            self.time_bins = np.arange(min_time, max_time + timestep, timestep)
+            self.timestamps = (self.time_bins[1:] + self.time_bins[:-1]) / 2
 
         self.bands = BandList([])
 
@@ -75,6 +79,7 @@ class BaseProjectionMapper:
             data=np.zeros((self.n_y, self.n_x)),
             weight=np.ones((self.n_y, self.n_x)),
             stokes=self.stokes,
+            t=self.timestamps,
             nu=self.bands.center,
             resolution=self.resolution,
             center=self.center,
@@ -140,8 +145,8 @@ class BaseProjectionMapper:
         if "gaussian_filter" in self.map_postprocessing.keys():
             sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
 
-            map_data["sum"] = sp.ndimage.gaussian_filter(map_data["sum"], sigma=(0, 0, sigma, sigma))
-            map_data["wgt"] = sp.ndimage.gaussian_filter(map_data["wgt"], sigma=(0, 0, sigma, sigma))
+            map_data["sum"] = sp.ndimage.gaussian_filter(map_data["sum"], sigma=(0, 0, 0, sigma, sigma))
+            map_data["wgt"] = sp.ndimage.gaussian_filter(map_data["wgt"], sigma=(0, 0, 0, sigma, sigma))
 
         if "median_filter" in self.map_postprocessing.keys():
             size = self.map_postprocessing["median_filter"]["size"]
@@ -168,8 +173,8 @@ class BaseProjectionMapper:
             warnings.simplefilter("ignore", category=RuntimeWarning)
             data_offsets = np.nanmean(data, axis=(-1, -2))[..., None, None]
 
-        beam_sum = np.zeros((len(self.bands), 3))
-        beam_wgt = np.zeros((len(self.bands), 3))
+        beam_sum = np.zeros((len(self.bands), 1, 3))
+        beam_wgt = np.zeros((len(self.bands), 1, 3))
 
         for band_index, band in enumerate(self.bands):
             for tod in self.tods:
@@ -181,6 +186,7 @@ class BaseProjectionMapper:
             stokes=self.stokes,
             weight=map_data["wgt"],
             nu=self.bands.center,
+            t=self.timestamps,
             resolution=self.resolution,
             center=self.center,
             degrees=False,

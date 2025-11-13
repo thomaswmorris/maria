@@ -30,6 +30,10 @@ SLICE_DIMS = {
         "dtype": float,
         "default": arrow.now().timestamp(),
     },
+    "z": {
+        "dtype": float,
+        "default": 0,
+    },
 }
 
 MAP_QUANTITIES = [
@@ -65,13 +69,6 @@ class Map:
         self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
 
         self.units = parse_units(units)["units"]
-
-        if not hasattr(beam, "__len__"):
-            beam = (beam, beam, 0)
-        self.beam = Quantity(beam, "deg" if degrees else "rad")
-
-        if np.shape(self.beam)[-1] != 3:
-            raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
 
         self.map_dims = map_dims
 
@@ -128,6 +125,16 @@ class Map:
                 f"Inputs imply shape {self.dims_string}={implied_shape} for map data, but data has shape {self.data.shape}"
             )
 
+        if not hasattr(beam, "__len__"):
+            beam = np.array([beam, beam, 0])
+
+        if np.shape(beam)[-1] != 3:
+            raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
+
+        beam = beam * np.ones((1, 3) if "nu" in self.dims else 3)
+
+        self.beam = Quantity(beam, "deg" if degrees else "rad")
+
         if self.u["quantity"] == "spectral_flux_density_per_beam":
             if not np.all(self.beam_area > 0):
                 raise ValueError(
@@ -170,7 +177,9 @@ class Map:
         t_min = arrow.get("0001-01-01").timestamp()
         t_max = arrow.get("3000-01-01").timestamp()
 
-        return np.array([t_min, *(self.t[1:] + self.t[:-1]), t_max])
+        return np.array([t_min, *(self.t[1:] + self.t[:-1]) / 2, t_max])
+
+        # return np.array([-np.inf, *(self.t[1:] + self.t[:-1])/2, np.inf])
 
     @property
     def t_side(self):
