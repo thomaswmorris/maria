@@ -42,59 +42,12 @@ class BinMapper(BaseProjectionMapper):
         if not tods:
             raise ValueError("You must pass at least one TOD to the mapper!")
 
-        center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
-        width = (Quantity(width, "deg" if degrees else "rad")) if width is not None else None
-        height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else None
-        resolution = (Quantity(resolution, "deg" if degrees else "rad")) if resolution is not None else None
-
-        infer_center, infer_width, infer_height = infer_center_width_height(
-            coords_list=[tod.coords for tod in tods], center=center, frame=frame, square=True
-        )
-
-        logger.debug(
-            f"Inferred center={Quantity(infer_center, 'rad')}, width={Quantity(infer_width, 'rad')}, \
-                     width={Quantity(infer_height, 'rad')} for map."
-        )
-
-        if center is None:
-            center = Quantity(infer_center, "rad")
-            logger.info(
-                f"Inferring center {repr_phi_theta(phi=center[0].rad, theta=center[1].rad, frame=frame)} for mapper."
-            )
-
-        if width is None:
-            if height is not None:
-                width = height
-                logger.info(f"Inferring mapper width {width} to match supplied height.")
-            else:
-                width = Quantity(infer_width, "rad")
-                logger.info(f"Inferring mapper width {width} for mapper from observation patch.")
-
-        if height is None:
-            if width is not None:
-                height = width
-                logger.info(f"Inferring mapper height {height} to match supplied width.")
-            else:
-                height = Quantity(infer_height, "rad")
-                logger.info(f"Inferring mapper height {height} for mapper from observation patch.")
-
-        if resolution is None:
-            resolution = Quantity(width / 100, "rad")
-            logger.info(f"Inferring mapper resolution {resolution} for mapper from observation patch.")
-
-        if stokes is None:
-            stokes = "IQUV" if any([tod.dets.polarized for tod in tods]) else "I"
-            logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
-
-        min_time = min_time or min([tod.coords.t.min() for tod in tods])
-        max_time = max_time or max([tod.coords.t.max() for tod in tods])
-
         super().__init__(
             stokes=stokes,
-            center=Quantity(center, "rad"),
-            width=Quantity(width, "rad"),
-            height=Quantity(height, "rad"),
-            resolution=Quantity(resolution, "rad"),
+            center=center,
+            width=width,
+            height=height,
+            resolution=resolution,
             frame=frame,
             calibrate=calibrate,
             tods=tods,
@@ -104,6 +57,7 @@ class BinMapper(BaseProjectionMapper):
             min_time=min_time,
             max_time=max_time,
             timestep=timestep,
+            degrees=degrees,
         )
 
     def initialize_mapper(self):

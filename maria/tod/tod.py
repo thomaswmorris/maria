@@ -394,6 +394,10 @@ class TOD:
 
             if "JDSTART" in f[index].header:
                 t += Time(f[index].header["JDSTART"], format="jd").unix
+            else:
+                start_time = arrow.get()
+                logger.warning(f"No start time specified, assuming start_time={start_time}")
+                t += start_time.timestamp()
 
             site = get_site("green_bank")
 

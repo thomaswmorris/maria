@@ -161,7 +161,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         if map:
             map_start_s = ttime.monotonic()
-            self._init_map(map, **map_kwargs)
+            self._initialize_map(map, **map_kwargs)
             logger.debug(f"Initialized map simulation in {humanize_time(ttime.monotonic() - map_start_s)}.")
 
         if noise:

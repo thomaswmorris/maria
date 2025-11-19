@@ -17,7 +17,7 @@ from skimage.measure import block_reduce
 
 from ..coords import FRAMES, Coordinates, Frame
 from ..io import repr_phi_theta
-from ..units import Quantity
+from ..units import Quantity, get_factor_and_base_units_vector
 from ..utils import compute_pointing_matrix_sparse_indices, unpack_implicit_slice
 from .base import Map
 
@@ -178,6 +178,10 @@ class ProjectedMap(Map):
         if attr in broadcasted_attrs:
             broadcasted_attr_values = np.meshgrid(self.stokes, self.nu.Hz, self.t, self.y_side, self.x_side)
             return broadcasted_attr_values[broadcasted_attrs.index(attr)]
+        if attr in ["min", "max", "rms"]:
+            if not hasattr(self, "stats"):
+                self.compute_stats()
+            return self.stats[attr]
 
         raise AttributeError(f"'ProjectedMap' object has no attribute '{attr}'")
 
@@ -187,7 +191,14 @@ class ProjectedMap(Map):
 
         explicit_slices = unpack_implicit_slice(key, ndims=self.ndim)
 
-        package = self.to("K_RJ").package()
+        _, dimensions = get_factor_and_base_units_vector(self.units)
+        if all([dimensions[dim] == 0 for dim in ["pixel", "rad"]]):
+            # don't convert if in resolution-neutral units (like temperature)
+            package = self.package()
+        else:
+            # convert if in non-resolution-neutral units (like spectral flux)
+            package = self.to("K_RJ").package()
+
         package["data"] = package["data"][key]
         package["weight"] = package["weight"][key]
 
@@ -225,6 +236,13 @@ class ProjectedMap(Map):
     def points(self):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
+    def compute_stats(self):
+        self.stats = {
+            "min": np.nanmin(self.data).compute(),
+            "max": np.nanmax(self.data).compute(),
+            "rms": np.sqrt(np.sum(np.square(self.data - self.data.mean()) * self.weight / self.weight.sum())).compute(),
+        }
+
     def __repr__(self):
         # beam_repr = self.beam
         center_repr = "center:"
@@ -238,8 +256,9 @@ class ProjectedMap(Map):
   z: {self.z if "z" in self.dims else "naive"}
   quantity: {self.u["quantity"]}
   units: {self.units}
-    min: {np.nanmin(self.data).compute():.03e}
-    max: {np.nanmax(self.data).compute():.03e}
+    min: {self.min:.03e}
+    max: {self.max:.03e}
+    rms: {self.rms:.03e}
   {center_repr}
   size(y, x): ({self.height}, {self.width})
   resolution(y, x): ({self.y_res}, {self.x_res})
@@ -341,6 +360,9 @@ class ProjectedMap(Map):
         cmap: str = "default",
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
+        norm_method: str = "slice",
+        vmin: float = None,
+        vmax: float = None,
     ):
         d = self.data
         w = self.weight
@@ -374,14 +396,31 @@ class ProjectedMap(Map):
         if cmap == "default":
             cmap = "CMRmap" if stokes == "I" else "cmb"
 
-        map_qdata = Quantity(d.compute(), units=self.units)
-        subset = np.random.choice(d.size, size=min(d.size, 20000), replace=False)
-        vmin, vmax = np.nanquantile(
-            map_qdata.value.ravel()[subset],
-            weights=w.ravel()[subset].compute(),
-            q=[rel_vmin, rel_vmax],
-            method="inverted_cdf",
-        )
+        map_slice_qdata = Quantity(d.compute(), units=self.units)
+
+        if vmin is None or vmax is None:
+            if norm_method == "slice":
+                subset = np.random.choice(d.size, size=min(d.size, 20000), replace=False)
+                auto_vmin, auto_vmax = np.nanquantile(
+                    map_slice_qdata.value.ravel()[subset],
+                    weights=w.ravel()[subset].compute(),
+                    q=(rel_vmin, rel_vmax),
+                    method="inverted_cdf",
+                )
+            elif norm_method == "total":
+                map_values = Quantity(self.data.compute(), units=self.units).to(map_slice_qdata.units)
+                subset = np.random.choice(map_values.size, size=min(d.size, 20000), replace=False)
+                auto_vmin, auto_vmax = np.nanquantile(
+                    map_values.ravel()[subset],
+                    weights=self.weight.ravel()[subset].compute(),
+                    q=(rel_vmin, rel_vmax),
+                    method="inverted_cdf",
+                )
+            else:
+                raise ValueError(f"Invalid normalization method '{norm_method}'")
+
+            vmin = vmin or auto_vmin
+            vmax = vmax or auto_vmax
 
         X = np.r_[self.x_bins, self.y_bins]
         grid_u = Quantity(X, "rad").u
@@ -395,7 +434,7 @@ class ProjectedMap(Map):
         ax.pcolormesh(
             getattr(x, grid_u["units"]),
             getattr(y, grid_u["units"]),
-            map_qdata.value,
+            map_slice_qdata.value,
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
@@ -417,7 +456,7 @@ class ProjectedMap(Map):
             pad=0,
         )
 
-        label = rf"${map_qdata.u['math_name']}$"
+        label = rf"${map_slice_qdata.u['math_name']}$"
         if "stokes" in self.dims:
             label += f" Stokes {stokes}"
         if "nu" in self.dims:
@@ -451,6 +490,9 @@ class ProjectedMap(Map):
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
         filename: str = None,
+        norm_method: str = "slice",
+        vmin: float = None,
+        vmax: float = None,
     ):
         X = np.r_[self.x_bins, self.y_bins]
         grid_u = Quantity(X, "rad").u
@@ -522,6 +564,9 @@ class ProjectedMap(Map):
                     rel_vmin=rel_vmin,
                     rel_vmax=rel_vmax,
                     cmap=cmap,
+                    norm_method=norm_method,
+                    vmin=vmin,
+                    vmax=vmax,
                 )
 
                 if filename is not None:

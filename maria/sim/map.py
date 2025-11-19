@@ -29,14 +29,16 @@ class MapMixin:
     TODO: add errors
     """
 
-    def _init_map(self, map: str | ProjectedMap | HEALPixMap, **map_kwargs):
+    def _initialize_map(self, map: str | Map, **map_kwargs):
         if isinstance(map, str):
-            map = load(fetch(map), **map_kwargs)
-        elif not isinstance(map, Map):
-            raise ValueError("")
+            self.map = load(fetch(map), **map_kwargs)
+        elif isinstance(map, Map):
+            self.map = map
+        else:
+            raise ValueError("'map' must be either a Map or a string")
 
         # the map can be frequency-naive if it is already in K_RJ
-        self.map = map.to(units="K_RJ")
+        # self.map = map.to(units="K_RJ")
 
         if "stokes" not in self.map.dims:
             self.map = self.map.unsqueeze("stokes")
@@ -101,7 +103,7 @@ class MapMixin:
             smoothed_map = self.map.smooth(fwhm=band_fwhm)
 
             for channel_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
-                channel_map = smoothed_map.data[:, channel_index]
+                channel_map = smoothed_map.to("K_RJ", band=band).data[:, channel_index]
                 qchannel = (nu_min, nu_max)
                 channel_string = f"{qchannel}"
 

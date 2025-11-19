@@ -11,9 +11,9 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..coords import FRAMES, Frame, get_center_phi_theta, infer_center_width_height
+from ..coords import FRAMES, Frame, infer_center_width_height
 from ..instrument import BandList
-from ..io import DEFAULT_BAR_FORMAT
+from ..io import DEFAULT_BAR_FORMAT, repr_phi_theta
 from ..map import MAP_QUANTITIES, ProjectedMap
 from ..tod import TOD, TOD_QUANTITIES
 from ..units import Quantity, parse_units
@@ -45,10 +45,58 @@ class BaseProjectionMapper:
         min_time: float,
         max_time: float,
         timestep: float,
+        degrees: bool = False,
     ):
         u = parse_units(units)
         self.tod_units = units if u["quantity"] in TOD_QUANTITIES else "K_RJ"
         self.map_units = "K_RJ"
+
+        center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
+        width = (Quantity(width, "deg" if degrees else "rad")) if width is not None else None
+        height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else None
+        resolution = (Quantity(resolution, "deg" if degrees else "rad")) if resolution is not None else None
+
+        infer_center, infer_width, infer_height = infer_center_width_height(
+            coords_list=[tod.coords for tod in tods], center=center, frame=frame, square=True
+        )
+
+        logger.debug(
+            f"Inferred center={Quantity(infer_center, 'rad')}, width={Quantity(infer_width, 'rad')}, \
+                     width={Quantity(infer_height, 'rad')} for map."
+        )
+
+        if center is None:
+            center = Quantity(infer_center, "rad")
+            logger.info(
+                f"Inferring center {repr_phi_theta(phi=center[0].rad, theta=center[1].rad, frame=frame)} for mapper."
+            )
+
+        if width is None:
+            if height is not None:
+                width = height
+                logger.info(f"Inferring mapper width {width} to match supplied height.")
+            else:
+                width = Quantity(infer_width, "rad")
+                logger.info(f"Inferring mapper width {width} for mapper from observation patch.")
+
+        if height is None:
+            if width is not None:
+                height = width
+                logger.info(f"Inferring mapper height {height} to match supplied width.")
+            else:
+                height = Quantity(infer_height, "rad")
+                logger.info(f"Inferring mapper height {height} for mapper from observation patch.")
+
+        if resolution is None:
+            resolution = Quantity(width / 100, "rad")
+            logger.info(f"Inferring mapper resolution {resolution} for mapper from observation patch.")
+
+        if stokes is None:
+            stokes = "IQUV" if any([tod.dets.polarized for tod in tods]) else "I"
+            logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
+
+        min_time = min_time or min([tod.coords.t.min() for tod in tods])
+        max_time = max_time or max([tod.coords.t.max() for tod in tods])
 
         if u["quantity"] not in MAP_QUANTITIES:
             raise ValueError(f"Units '{units}' (with associated quantity '{u['quantity']}') are not valid map units")
@@ -95,7 +143,7 @@ class BaseProjectionMapper:
             for band in tod.dets.bands:
                 self.bands.add(band)
 
-        self.initialize_mapper()
+        # self.initialize_mapper()
 
     def initialize_mapper(self):
         raise NotImplementedError()
@@ -142,12 +190,6 @@ class BaseProjectionMapper:
 
         map_data = self._run()
 
-        if "gaussian_filter" in self.map_postprocessing.keys():
-            sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
-
-            map_data["sum"] = sp.ndimage.gaussian_filter(map_data["sum"], sigma=(0, 0, 0, sigma, sigma))
-            map_data["wgt"] = sp.ndimage.gaussian_filter(map_data["wgt"], sigma=(0, 0, 0, sigma, sigma))
-
         if "median_filter" in self.map_postprocessing.keys():
             size = self.map_postprocessing["median_filter"]["size"]
             map_data["sum"] = sp.ndimage.median_filter(
@@ -160,6 +202,12 @@ class BaseProjectionMapper:
                 size=size,
                 axes=(-2, -1),
             )
+
+        if "gaussian_filter" in self.map_postprocessing.keys():
+            sigma = self.map_postprocessing["gaussian_filter"]["sigma"]
+
+            map_data["sum"] = sp.ndimage.gaussian_filter(map_data["sum"], sigma=(0, 0, 0, sigma, sigma))
+            map_data["wgt"] = sp.ndimage.gaussian_filter(map_data["wgt"], sigma=(0, 0, 0, sigma, sigma))
 
         for stokes_index, stokes in enumerate(self.stokes):
             for nu_index, nu in enumerate(self.bands.center):

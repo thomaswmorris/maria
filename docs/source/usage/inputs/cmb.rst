@@ -25,3 +25,20 @@ We can customize the CMB by specifying a set of ``cmb_kwargs`` to, e.g., increas
                            atmosphere="2d",
                            cmb="generate",
                            cmb_kwargs={"nside": 4096})
+
+
+###########
+CMB patches
+###########
+
+To simulate CMB observations at high resolution, we can generate a small patch as a ``Map`` using
+
+.. code-block:: python
+
+    from maria.cmb import generate_cmb_patch
+
+    cmb_patch = generate_cmb_patch(width=5) # in degrees
+
+    cmb_patch.plot(cmap="cmb")
+
+which can then be passed as an input map to a ``Simulation``.
