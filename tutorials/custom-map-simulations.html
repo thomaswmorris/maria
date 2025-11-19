@@ -209,8 +209,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/inputs/sites.html">Sites</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/inputs/plans.html">Plans</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/inputs/atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../usage/inputs/cmb.html">CMB</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/inputs/maps.html">Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/inputs/cmb.html">CMB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/inputs/cmb.html#cmb-patches">CMB patches</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../usage/tods.html">TODs</a><input aria-label="Toggle navigation of TODs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -373,8 +374,8 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-13 01:49:37.266 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
-Downloading: 100%|████████████████| 7.34M/7.34M [00:00&lt;00:00, 96.7MB/s]
+2025-11-19 23:22:14.356 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
+Downloading: 100%|████████████████| 7.34M/7.34M [00:00&lt;00:00, 156MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -409,8 +410,8 @@ Downloading: 100%|████████████████| 7.34M/7.34M 
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-13 01:49:38.991 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits
-Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 88.7MB/s]
+2025-11-19 23:22:15.934 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits
+Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 96.2MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -428,6 +429,7 @@ ProjectedMap:
   units: Jy/pixel
     min: -1.923e-04
     max: -2.502e-07
+    rms: 2.900e-05
   center:
     ra: 19ʰ24ᵐ37.44ˢ
     dec: -31°13’48.00”
@@ -507,10 +509,10 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-13 01:49:58.133 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/chajnantor.h5
-Downloading: 100%|████████████████| 32.9M/32.9M [00:00&lt;00:00, 131MB/s]
-2025-11-13 01:49:59.626 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5
-Downloading: 100%|████████████████| 8.00M/8.00M [00:00&lt;00:00, 136MB/s]
+2025-11-19 23:22:30.761 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/chajnantor.h5
+Downloading: 100%|████████████████| 32.9M/32.9M [00:00&lt;00:00, 147MB/s]
+2025-11-19 23:22:32.252 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5
+Downloading: 100%|████████████████| 8.00M/8.00M [00:00&lt;00:00, 150MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -549,10 +551,11 @@ Simulation
     nu: [150.] GHz
     t: naive
     z: naive
-    quantity: rayleigh_jeans_temperature
-    units: K_RJ
-      min: -9.574e-04
-      max: -1.246e-06
+    quantity: spectral_flux_density_per_pixel
+    units: Jy/pixel
+      min: -1.923e-04
+      max: -2.502e-07
+      rms: 2.900e-05
     center:
       ra: 19ʰ24ᵐ37.44ˢ
       dec: -31°13’48.00”
@@ -579,22 +582,22 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-13 01:50:01.203 INFO: Simulating observation 1 of 2
-Constructing atmosphere: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.20it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 15.76it/s]
+2025-11-19 23:22:33.777 INFO: Simulating observation 1 of 2
+Constructing atmosphere: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.12it/s]
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 16.16it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:08&lt;00:00,  1.11s/it]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.29s/it, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:06&lt;00:00,  3.02s/it, band=f150, channel=(0 Hz, inf Hz), stokes=I]
+Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  3.24it/s, band=f150]
+2025-11-19 23:23:04.233 INFO: Simulated observation 1 of 2 in 30.44 s
+2025-11-19 23:23:04.234 INFO: Simulating observation 2 of 2
+Constructing atmosphere: 100%|████████████████| 8/8 [00:04&lt;00:00,  1.88it/s]
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 16.21it/s]
 Sampling turbulence: 100%|████████████████| 8/8 [00:08&lt;00:00,  1.08s/it]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.28s/it, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:05&lt;00:00,  2.89s/it, band=f150, channel=(0 Hz, inf Hz), stokes=I]
-Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  3.36it/s, band=f150]
-2025-11-13 01:50:30.544 INFO: Simulated observation 1 of 2 in 29.33 s
-2025-11-13 01:50:30.544 INFO: Simulating observation 2 of 2
-Constructing atmosphere: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.22it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 15.89it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:08&lt;00:00,  1.02s/it]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.11s/it, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:04&lt;00:00,  2.17s/it, band=f150, channel=(0 Hz, inf Hz), stokes=I]
-Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  7.17it/s, band=f150]
-2025-11-13 01:50:57.196 INFO: Simulated observation 2 of 2 in 26.64 s
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.16s/it, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:04&lt;00:00,  2.30s/it, band=f150, channel=(0 Hz, inf Hz), stokes=I]
+Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  6.55it/s, band=f150]
+2025-11-19 23:23:32.512 INFO: Simulated observation 2 of 2 in 28.27 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -602,7 +605,7 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-11-13T01:50:25.334801+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.7}), TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-11-13T01:50:51.978748+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.925, &#39;base_temperature&#39;: 272.683})]
+[TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-11-19T23:22:58.730914+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.7}), TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-11-19T23:23:27.177958+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.925, &#39;base_temperature&#39;: 272.683})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -673,17 +676,17 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-13 01:51:03.338 INFO: Inferring center {&#39;ra&#39;: &#39;19ʰ24ᵐ38.36ˢ&#39;, &#39;dec&#39;: &#39;-31°14’18.14”&#39;} for mapper.
-2025-11-13 01:51:03.351 INFO: Inferring mapper width 1.137° for mapper from observation patch.
-2025-11-13 01:51:03.351 INFO: Inferring mapper height 1.137° to match supplied width.
-2025-11-13 01:51:03.364 INFO: Inferring mapper resolution 0.6823’ for mapper from observation patch.
-2025-11-13 01:51:03.365 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.08s/it]
-Preprocessing TODs: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.00it/s]
-Mapping band f090: 100%|██████████| 4/4 [00:03&lt;00:00,  1.14it/s, stokes=I, tod=4/4]
-2025-11-13 01:51:11.070 INFO: Ran mapper for band f090 in 3.501 s.
-Mapping band f150: 100%|██████████| 4/4 [00:02&lt;00:00,  1.46it/s, stokes=I, tod=4/4]
-2025-11-13 01:51:13.830 INFO: Ran mapper for band f150 in 2.747 s.
+2025-11-19 23:23:38.774 INFO: Inferring center {&#39;ra&#39;: &#39;19ʰ24ᵐ38.36ˢ&#39;, &#39;dec&#39;: &#39;-31°14’18.14”&#39;} for mapper.
+2025-11-19 23:23:38.788 INFO: Inferring mapper width 1.136° for mapper from observation patch.
+2025-11-19 23:23:38.789 INFO: Inferring mapper height 1.136° to match supplied width.
+2025-11-19 23:23:38.801 INFO: Inferring mapper resolution 0.6819’ for mapper from observation patch.
+2025-11-19 23:23:38.802 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.14s/it]
+Preprocessing TODs: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.05s/it]
+Mapping band f090: 100%|██████████| 4/4 [00:03&lt;00:00,  1.25it/s, stokes=I, tod=4/4]
+2025-11-19 23:23:46.422 INFO: Ran mapper for band f090 in 3.193 s.
+Mapping band f150: 100%|██████████| 4/4 [00:02&lt;00:00,  1.49it/s, stokes=I, tod=4/4]
+2025-11-19 23:23:49.117 INFO: Ran mapper for band f150 in 2.682 s.
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>

@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Maps" href="maps.html"><link rel="prev" title="Atmosphere" href="atmosphere.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="TODs" href="../tods.html"><link rel="prev" title="Maps" href="maps.html">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
         <title>CMB - maria</title>
@@ -208,8 +208,9 @@
 <li class="toctree-l3"><a class="reference internal" href="sites.html">Sites</a></li>
 <li class="toctree-l3"><a class="reference internal" href="plans.html">Plans</a></li>
 <li class="toctree-l3"><a class="reference internal" href="atmosphere.html">Atmosphere</a></li>
-<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">CMB</a></li>
 <li class="toctree-l3"><a class="reference internal" href="maps.html">Maps</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">CMB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cmb-patches">CMB patches</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../tods.html">TODs</a><input aria-label="Toggle navigation of TODs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -291,29 +292,41 @@
 </pre></div>
 </div>
 </section>
+<section id="cmb-patches">
+<h1>CMB patches<a class="headerlink" href="#cmb-patches" title="Link to this heading">¶</a></h1>
+<p>To simulate CMB observations at high resolution, we can generate a small patch as a <code class="docutils literal notranslate"><span class="pre">Map</span></code> using</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.cmb</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_cmb_patch</span>
+
+<span class="n">cmb_patch</span> <span class="o">=</span> <span class="n">generate_cmb_patch</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># in degrees</span>
+
+<span class="n">cmb_patch</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;cmb&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which can then be passed as an input map to a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>.</p>
+</section>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="maps.html">
+          <a class="next-page" href="../tods.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Maps</div>
+                <div class="title">TODs</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="atmosphere.html">
+          <a class="prev-page" href="maps.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Atmosphere</div>
+                <div class="title">Maps</div>
                 
               </div>
             </a>
