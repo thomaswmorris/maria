@@ -31,8 +31,6 @@ def test_cmb_calibration():
 
     tod = sim.run()[0].to("uK_CMB")
 
-    tod.to("uK_CMB").signal.std(axis=1).compute()
-
     # should be around 110 uK
     cmb_rms_uK = tod.signal.std(axis=-1).compute()
 
