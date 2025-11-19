@@ -9,5 +9,5 @@ Inputs
    inputs/sites.rst
    inputs/plans.rst
    inputs/atmosphere.rst
-   inputs/cmb.rst
    inputs/maps.rst
+   inputs/cmb.rst
