@@ -56,24 +56,31 @@ def downsample(DATA, rate, axis=-1, method=None):
         )
 
 
-def decompose(data, k: int = None):
-    k = k or len(data)
+def decompose(D, k=64, batch=True):
+    *batch_shape, n_d, n_t = D.shape
+    dnorm = D.std(axis=-1)
 
-    if data.ndim != 2:
-        raise ValueError("'data' must be a 2D array.")
+    if batch_shape:
+        if batch:
+            A_list, B_list = [], []
+            for d in D.reshape(-1, n_d, n_t):
+                A, B = decompose(d)
+                A_list.append(A)
+                B_list.append(B)
+            return (
+                np.stack(A_list, axis=0).reshape(*batch_shape, n_d, k),
+                np.stack(B_list, axis=0).reshape(*batch_shape, k, n_t),
+            )
 
-    if k < len(data):
-        u, s, vh = sp.sparse.linalg.svds(data, k=k, which="LM")
-    else:
-        u, s, vh = sp.linalg.svd(data, full_matrices=False)
+        else:
+            A, B = decompose(D.reshape(-1, n_t))
+            return A.reshape(*batch_shape, n_d, -1), B
 
-    norm = np.sign(u.mean(axis=0)) * vh.std(axis=-1)
-    a = u @ np.diag(s * norm)
-    b = np.diag(1 / norm) @ vh
-
+    dnorm = np.sqrt(np.sum(np.square(D), axis=-1))
+    u, s, v = sp.sparse.linalg.svds(D / dnorm[..., None], k=k)
+    vnorm = np.sqrt(np.sum(np.square(v), axis=-1))
     mode_sort = np.argsort(-s)
-
-    return a[:, mode_sort], b[mode_sort]
+    return (dnorm[:, None] * u * s * vnorm)[..., mode_sort], (v / vnorm[..., None])[mode_sort]
 
 
 def bspline_knots(t, spacing, order):

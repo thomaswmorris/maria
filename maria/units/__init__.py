@@ -9,7 +9,7 @@ from astropy import units as u
 from ..constants import T_CMB, c, g, k_B  # noqa
 from .angle import Angle  # noqa
 from .prefixes import PREFIXES  # noqa
-from .quantity import DIMENSIONS, UNITS, Quantity, parse_units  # noqa
+from .quantity import DIMENSIONS, UNITS, Quantity, get_factor_and_base_units_vector, parse_units  # noqa
 
 here, this_filename = os.path.split(__file__)
 symbols = {"radians": "rad"}

@@ -1,7 +1,7 @@
 import logging
 import os
 import time as ttime
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 import arrow
 import dask.array as da
@@ -249,7 +249,7 @@ class Map:
         area = (np.pi / 4) * self.beam[..., 0].radians * self.beam[..., 1].radians
         return Quantity(area * np.ones(tuple(self.slice_dims.values())), "sr")
 
-    def to(self, units: str):
+    def to(self, units: str, **calibration_kwargs: Mapping):
         if units == self.units:
             return self
 
@@ -280,6 +280,7 @@ class Map:
                     nu=nu,
                     pixel_area=self.pixel_area.sr,
                     beam_area=self.beam_area[nu_key].sr,
+                    **calibration_kwargs,
                 )
                 package["data"][nu_key] = cal(package["data"][nu_key])
 
