@@ -56,11 +56,12 @@ def generate_cmb(nside: int = 2048, seed=123456, **kwargs):
 
 
 def generate_cmb_patch(
-    width: float = 5,
+    width: float = 5.0,
     height: float = None,
     center: tuple[float, float] = None,
     resolution: float = None,
     degrees: bool = True,
+    buffer: int = 2,
 ):
     width = Quantity(width, "deg" if degrees else "rad").rad
     height = Quantity(height, "deg" if degrees else "rad").rad if height is not None else width
@@ -69,11 +70,18 @@ def generate_cmb_patch(
 
     nx = int(width / resolution)
     ny = int(height / resolution)
+
     dx = width / nx
     dy = height / ny
 
-    kx = np.fft.fftfreq(nx, dx)
-    ky = np.fft.fftfreq(ny, dy)
+    x_buffer_pixels = buffer * nx
+    y_buffer_pixels = buffer * ny
+
+    nx_gen = 2 * x_buffer_pixels + nx
+    ny_gen = 2 * y_buffer_pixels + ny
+
+    kx = np.fft.fftfreq(nx_gen, dx)
+    ky = np.fft.fftfreq(ny_gen, dy)
     KY, KX = np.meshgrid(ky, kx)
     K = np.sqrt(KX**2 + KY**2)
 
@@ -82,6 +90,9 @@ def generate_cmb_patch(
         2 * np.pi * K
     )
 
-    m = np.sqrt(nx * ny) * np.fft.ifft2(np.sqrt(PS) * np.fft.fft2(np.random.standard_normal((ny, nx)))).real
+    PS /= resolution**2  # convert from uK^2 radians^2 to uK^2 pixels^2
+
+    complex_map = np.fft.ifft2(np.sqrt(PS) * np.fft.fft2(np.random.standard_normal((ny_gen, nx_gen))))
+    m = complex_map.real[:nx, :ny]
 
     return ProjectedMap(data=(m - m.mean())[None], center=center, width=width, nu=148e9, units="K_CMB", degrees=False)
