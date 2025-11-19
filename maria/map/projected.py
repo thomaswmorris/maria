@@ -360,6 +360,9 @@ class ProjectedMap(Map):
         cmap: str = "default",
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
+        norm_method: str = "slice",
+        vmin: float = None,
+        vmax: float = None,
     ):
         d = self.data
         w = self.weight
@@ -393,14 +396,31 @@ class ProjectedMap(Map):
         if cmap == "default":
             cmap = "CMRmap" if stokes == "I" else "cmb"
 
-        map_qdata = Quantity(d.compute(), units=self.units)
-        subset = np.random.choice(d.size, size=min(d.size, 20000), replace=False)
-        vmin, vmax = np.nanquantile(
-            map_qdata.value.ravel()[subset],
-            weights=w.ravel()[subset].compute(),
-            q=[rel_vmin, rel_vmax],
-            method="inverted_cdf",
-        )
+        map_slice_qdata = Quantity(d.compute(), units=self.units)
+
+        if vmin is None or vmax is None:
+            if norm_method == "slice":
+                subset = np.random.choice(d.size, size=min(d.size, 20000), replace=False)
+                auto_vmin, auto_vmax = np.nanquantile(
+                    map_slice_qdata.value.ravel()[subset],
+                    weights=w.ravel()[subset].compute(),
+                    q=(rel_vmin, rel_vmax),
+                    method="inverted_cdf",
+                )
+            elif norm_method == "total":
+                map_values = Quantity(self.data.compute(), units=self.units).to(map_slice_qdata.units)
+                subset = np.random.choice(map_values.size, size=min(d.size, 20000), replace=False)
+                auto_vmin, auto_vmax = np.nanquantile(
+                    map_values.ravel()[subset],
+                    weights=self.weight.ravel()[subset].compute(),
+                    q=(rel_vmin, rel_vmax),
+                    method="inverted_cdf",
+                )
+            else:
+                raise ValueError(f"Invalid normalization method '{norm_method}'")
+
+            vmin = vmin or auto_vmin
+            vmax = vmax or auto_vmax
 
         X = np.r_[self.x_bins, self.y_bins]
         grid_u = Quantity(X, "rad").u
@@ -414,7 +434,7 @@ class ProjectedMap(Map):
         ax.pcolormesh(
             getattr(x, grid_u["units"]),
             getattr(y, grid_u["units"]),
-            map_qdata.value,
+            map_slice_qdata.value,
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
@@ -436,7 +456,7 @@ class ProjectedMap(Map):
             pad=0,
         )
 
-        label = rf"${map_qdata.u['math_name']}$"
+        label = rf"${map_slice_qdata.u['math_name']}$"
         if "stokes" in self.dims:
             label += f" Stokes {stokes}"
         if "nu" in self.dims:
@@ -470,6 +490,9 @@ class ProjectedMap(Map):
         rel_vmin: float = 0.005,
         rel_vmax: float = 0.995,
         filename: str = None,
+        norm_method: str = "slice",
+        vmin: float = None,
+        vmax: float = None,
     ):
         X = np.r_[self.x_bins, self.y_bins]
         grid_u = Quantity(X, "rad").u
@@ -541,6 +564,9 @@ class ProjectedMap(Map):
                     rel_vmin=rel_vmin,
                     rel_vmax=rel_vmax,
                     cmap=cmap,
+                    norm_method=norm_method,
+                    vmin=vmin,
+                    vmax=vmax,
                 )
 
                 if filename is not None:
