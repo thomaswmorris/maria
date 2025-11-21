@@ -227,7 +227,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs/scan-patterns.html">Scan patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" checked="" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="custom-map-simulations.html">Custom map simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="polarized-observations.html">Polarized observations</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Simulating observations with MUSTANG-2</a></li>
@@ -295,8 +299,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-19 23:23:55.547 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits
-Downloading: 100%|████████████████| 2.00M/2.00M [00:00&lt;00:00, 70.7MB/s]
+2025-11-21 01:57:49.631 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits
+Downloading: 100%|████████████████| 2.00M/2.00M [00:00&lt;00:00, 24.6MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -350,11 +354,10 @@ ProjectedMap:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-PlanList(2 plans, 900 s):
+PlanList(1 plans, 900 s):
                            start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2025-11-20 05:00:11.684 +00:00    600 s  (83.63°, 22.02°)  (116.2°, 60.91°)
-1      2025-11-20 05:10:49.184 +00:00    300 s  (83.63°, 22.02°)  (118.8°, 62.32°)
+0      2025-11-21 04:57:50.814 +00:00    900 s  (83.63°, 22.02°)  (117.5°, 61.62°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -417,10 +420,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-19 23:24:05.875 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
-Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 192MB/s]
-2025-11-19 23:24:06.474 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
-Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 162MB/s]
+2025-11-21 01:57:58.745 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 77.9MB/s]
+2025-11-21 01:57:59.626 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 51.9MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -446,11 +449,10 @@ Simulation
 │     altitude: 825 m
 │   seasonal: True
 │   diurnal: True
-├ PlanList(2 plans, 900 s):
+├ PlanList(1 plans, 900 s):
 │                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2025-11-20 05:00:11.684 +00:00    600 s  (83.63°, 22.02°)  (116.2°, 60.91°)
-│ 1      2025-11-20 05:10:49.184 +00:00    300 s  (83.63°, 22.02°)  (118.8°, 62.32°)
+│ 0      2025-11-21 04:57:50.814 +00:00    900 s  (83.63°, 22.02°)  (117.5°, 61.62°)
 ├ &#39;2d&#39;
 └ ProjectedMap:
     shape(stokes, nu, y, x): (1, 1, 500, 500)
@@ -486,22 +488,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-19 23:24:08.017 INFO: Simulating observation 1 of 2
-Constructing atmosphere: 100%|████████████████| 8/8 [00:00&lt;00:00, 10.93it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 28.84it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.35it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.02it/s, band=m2/f093]
-Sampling map: 100%|████████████████| 1/1 [00:06&lt;00:00,  6.76s/it, band=m2/f093, channel=(0 Hz, inf Hz), stokes=I]
-Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.33it/s, band=m2/f093]
-2025-11-19 23:24:30.864 INFO: Simulated observation 1 of 2 in 22.84 s
-2025-11-19 23:24:30.864 INFO: Simulating observation 2 of 2
-Constructing atmosphere: 100%|████████████████| 8/8 [00:00&lt;00:00, 15.50it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 40.66it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.31it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.39it/s, band=m2/f093]
-Sampling map: 100%|████████████████| 1/1 [00:04&lt;00:00,  4.10s/it, band=m2/f093, channel=(0 Hz, inf Hz), stokes=I]
-Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  2.04it/s, band=m2/f093]
-2025-11-19 23:24:45.351 INFO: Simulated observation 2 of 2 in 14.48 s
+2025-11-21 01:58:00.314 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:00&lt;00:00,  8.74it/s]
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 22.35it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.32it/s]
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.06it/s, band=m2/f093]
+Sampling map: 100%|████████████████| 1/1 [00:08&lt;00:00,  8.48s/it, band=m2/f093, channel=(0 Hz, inf Hz), stokes=I]
+Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=m2/f093]
+2025-11-21 01:58:28.436 INFO: Simulated observation 1 of 1 in 28.11 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -545,10 +539,10 @@ Generating noise: 100%|████████████████| 1/1 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-19 23:24:51.010 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.03it/s]
-Mapping band m2/f093: 100%|██████████| 2/2 [00:03&lt;00:00,  1.57s/it, stokes=I, tod=2/2]
-2025-11-19 23:24:56.138 INFO: Ran mapper for band m2/f093 in 3.14 s.
+2025-11-21 01:58:34.812 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.52s/it]
+Mapping band m2/f093: 100%|██████████| 1/1 [00:02&lt;00:00,  2.99s/it, stokes=I, tod=1/1]
+2025-11-21 01:58:39.365 INFO: Ran mapper for band m2/f093 in 2.998 s.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
