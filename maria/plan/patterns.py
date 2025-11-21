@@ -33,11 +33,13 @@ def parse_scan_kwargs(scan_kwargs, default_radius: float = 1.0):
 
     size_kwargs = ["radius", "width", "x_throw", "height", "y_throw"]
     if not any([kwarg in scan_kwargs for kwarg in size_kwargs]):
+        if default_radius is None:
+            default_radius = 1.0
+            logger.warning(
+                f"No scan size kwargs (one of {size_kwargs}) were passed. "
+                f"Assuming a scan radius of {default_radius:.03e} degrees."
+            )
         scan_kwargs["radius"] = default_radius
-        logger.warning(
-            f"No scan size kwargs (one of {size_kwargs}) were passed. "
-            f"Assuming a scan radius of {default_radius:.03e} degrees."
-        )
 
     if "x_throw" not in scan_kwargs:
         if "radius" in scan_kwargs:
