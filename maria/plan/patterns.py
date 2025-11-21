@@ -1,43 +1,104 @@
 from __future__ import annotations
 
 import inspect
+import logging
 
 import numpy as np
 import pandas as pd
+import scipy as sp
+
+logger = logging.getLogger("maria")
+
+VALID_SCAN_KWARGS = [
+    "time",
+    "radius",
+    "width",
+    "height",
+    "x_throw",
+    "y_throw",
+    "speed",
+    "n",
+    "petals",
+    "ratio",
+    "freq_ratio",
+    "miss_factor",
+    "smoothness",
+]
+
+
+def parse_scan_kwargs(scan_kwargs, default_radius: float = 1.0):
+    for kwarg in scan_kwargs:
+        if kwarg not in VALID_SCAN_KWARGS:
+            raise ValueError(f"Invalid scan kwarg '{kwarg}'")
+
+    size_kwargs = ["radius", "width", "x_throw", "height", "y_throw"]
+    if not any([kwarg in scan_kwargs for kwarg in size_kwargs]):
+        if default_radius is None:
+            default_radius = 1.0
+            logger.warning(
+                f"No scan size kwargs (one of {size_kwargs}) were passed. "
+                f"Assuming a scan radius of {default_radius:.03e} degrees."
+            )
+        scan_kwargs["radius"] = default_radius
+
+    if "x_throw" not in scan_kwargs:
+        if "radius" in scan_kwargs:
+            scan_kwargs["x_throw"] = scan_kwargs.pop("radius")
+        elif "width" in scan_kwargs:
+            scan_kwargs["x_throw"] = 0.5 * scan_kwargs.pop("width")
+        elif "y_throw" in scan_kwargs:
+            scan_kwargs["x_throw"] = scan_kwargs["y_throw"]
+        else:
+            scan_kwargs["x_throw"] = 0.5 * scan_kwargs.pop("height")
+
+    if "y_throw" not in scan_kwargs:
+        if "height" in scan_kwargs:
+            scan_kwargs["y_throw"] = 0.5 * scan_kwargs.pop("height")
+        else:
+            scan_kwargs["y_throw"] = scan_kwargs["x_throw"]
+
+    if "speed" not in scan_kwargs:
+        scan_kwargs["speed"] = max(scan_kwargs["x_throw"], scan_kwargs["y_throw"]) / 5
+
+    logger.debug(f"Parsed scan pattern kwargs {scan_kwargs}")
+
+    return scan_kwargs
 
 
 def lissajous(
     time,
-    radius=1.0,
-    speed=None,
-    width=None,
-    height=None,
+    x_throw,
+    y_throw,
+    speed,
     freq_ratio=1.193,
+    **extra_kwargs,
 ):  # noqa
-    width = width or radius / 2
-    height = height or width
-    speed = speed or width / 10
+    if extra_kwargs:
+        logger.warning(f"Ignoring parameters {extra_kwargs} for scan pattern 'lissajous'.")
 
-    freq = speed / np.sqrt((width * freq_ratio) ** 2 + height**2)
+    freq = speed / np.sqrt((x_throw * freq_ratio) ** 2 + y_throw**2)
 
-    x = width * np.cos(freq_ratio * freq * time)
-    y = height * np.sin(freq * time)
+    x = x_throw * np.cos(freq_ratio * freq * time)
+    y = y_throw * np.sin(freq * time)
 
     return np.stack([x, y])
 
 
-def double_circle(time, speed=None, radius=1.0, ratio=0.5, freq_ratio=1.7):
-    speed = speed or radius / 10
+def double_circle(time, x_throw, y_throw, speed, ratio=0.5, freq_ratio=1.7, **extra_kwargs):
+    if extra_kwargs:
+        logger.warning(f"Ignoring parameters {extra_kwargs} for scan pattern 'double_circle'.")
+
+    radius = x_throw
 
     a = radius / (1 + 1 / ratio)
     b = a / ratio
 
     phase = time * speed / np.maximum(a + b * freq_ratio, 1e-16)  # do not divide by zero!
 
-    x_p = a * np.sin(phase) + b * np.sin(phase * freq_ratio)
-    y_p = a * np.cos(phase) + b * np.cos(phase * freq_ratio)
+    x = a * np.sin(phase) + b * np.sin(phase * freq_ratio)
+    y = a * np.cos(phase) + b * np.cos(phase * freq_ratio)
 
-    return np.stack([x_p, y_p])
+    return np.stack([x, (y_throw / x_throw) * y])
 
 
 def daisy_from_phase(phase, a, b, petals, miss_freq):
@@ -49,14 +110,20 @@ def daisy_from_phase(phase, a, b, petals, miss_freq):
 
 def daisy(
     time,
-    radius=1.0,
-    speed=None,
+    x_throw,
+    y_throw,
+    speed,
     petals=7 / np.pi,
     miss_factor=0.15,
     miss_freq=np.sqrt(2),
+    **extra_kwargs,
 ):  # noqa
+    if extra_kwargs:
+        logger.warning(f"Ignoring parameters {extra_kwargs} for scan pattern 'daisy'.")
+
+    radius = x_throw
+
     if radius > 0:
-        speed = speed or radius / 10
         a = radius / (1 + miss_factor)
         b = a * miss_factor
         max_speed = 0.0
@@ -74,13 +141,16 @@ def daisy(
             else:
                 break
 
-        return daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
+        x, y = daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
 
-    return np.zeros((2, len(time)))
+    else:
+        x, y = np.zeros((2, len(time)))
+
+    return np.stack([x, (y_throw / x_throw) * y])
 
 
-def smooth_sawtooth(p, throw=1, delta=0.01):
-    return throw * (1 - 2 * np.arccos((1 - delta) * np.sin(p)) / np.pi)
+def smooth_sawtooth(p, delta=0.01):
+    return 1 - 2 * np.arccos((delta - 1) * np.cos(p)) / np.pi
 
 
 def back_and_forth(t, radius=1, x_throw=None, y_throw=0, speed=1.0, max_accel=np.inf, d=0.01):
@@ -95,108 +165,44 @@ def back_and_forth(t, radius=1, x_throw=None, y_throw=0, speed=1.0, max_accel=np
 
     dp_dt = np.minimum(a, b)
 
-    x = factor * smooth_sawtooth(dp_dt * t, throw=x_throw, delta=d)
-    y = factor * smooth_sawtooth(dp_dt * t, throw=y_throw, delta=d)
+    x = factor * x_throw * smooth_sawtooth(dp_dt * t, delta=d)
+    y = factor * y_throw * smooth_sawtooth(dp_dt * t, delta=d)
 
     return np.stack([x, y])
 
 
-# def grid(time, radius=1, speed=None, n=17, turnaround_time=5):  # noqa
-#     speed = speed or radius / 5
+def raster(time: float, x_throw: float, y_throw: float, speed: float, n: int = 21, smoothness: float = 2, **extra_kwargs):
+    if extra_kwargs:
+        logger.warning(f"Ignoring parameters {extra_kwargs} for scan pattern 'raster'.")
 
-#     duration = np.ptp(time)
+    sample_rate = 1 / np.median(np.gradient(time))
 
-#     xs = []
-#     ys = []
+    raster_distance = np.sqrt((2 * n * x_throw) ** 2 + (2 * y_throw) ** 2)
+    raster_duration = raster_distance / speed
 
-#     minor_axis = "x"
+    raster_phase = np.linspace(0, 2 * np.pi, 10000)
+    raster_x = x_throw * sp.signal.sawtooth(0.5 * n * raster_phase, width=0.5)
+    raster_y = y_throw * np.linspace(1, -1, 10000)
 
-#     timestep = (2 * radius / speed) / (n - 1)
+    return_distance = np.sqrt((raster_x[-1] + x_throw) ** 2 + (2 * y_throw) ** 2)
+    return_duration = return_distance / speed
+    period = raster_duration + return_duration
 
-#     side = np.linspace(-radius, radius, n)
+    raster_phase *= raster_duration / period
 
-#     while timestep * (len(xs) - n) <= duration:
-#         minor = []
-#         major = []
+    phase_samples = [*raster_phase, 2 * np.pi]
+    offset_samples = np.stack([[*raster_x, -x_throw], [*raster_y, y_throw]], axis=0)
 
-#         for i, y in enumerate(side):
-#             minor.extend(side[:: (-1) ** (i + 1)])
-#             major.extend(np.repeat(y, n))
+    phase = 2 * np.pi * (time % period) / period
 
-#         minor.pop(-1), major.pop(-1)
+    offsets = sp.interpolate.interp1d(phase_samples, offset_samples)(phase)
 
-#         if minor_axis == "x":
-#             xs.extend(minor)
-#             ys.extend(major)
-#         else:
-#             xs.extend(major)
-#             ys.extend(minor)
-
-#         minor_axis = "y" if minor_axis == "x" else "x"
-
-#     offsets = sp.interpolate.interp1d(
-#         timestep * np.arange(len(xs)) + time.min(),
-#         np.c_[xs, ys].T,
-#         bounds_error=False,
-#         fill_value="extrapolate",
-#     )(time)
-
-#     return sp.ndimage.gaussian_filter1d(
-#         offsets,
-#         sigma=turnaround_time / timestep,
-#         axis=-1,
-#     )
+    return sp.ndimage.gaussian_filter1d(offsets, sigma=1, axis=-1)
 
 
-# def smooth_sawtooth(phase, width=0.5, smoothness=0.5):
-#     smooth_phase = sp.ndimage.gaussian_filter1d(
-#         phase,
-#         sigma=smoothness * np.gradient(phase).mean(),
-#     )
-#     smooth_sawtooth = sp.signal.sawtooth(smooth_phase, width=width)
-#     return 2 * (smooth_sawtooth - smooth_sawtooth.min()) / smooth_sawtooth.ptp() - 1
-
-
-# def raster(time, radius=1, height=None, speed=0.5, n=16, turnaround_time=0.5):
-#     width = 2 * radius
-#     height = height if height is not None else width
-
-#     sample_rate = 1 / np.gradient(time).mean()
-
-#     start_time = time.min()
-
-#     ts, xs, ys = [], [], []
-
-#     n_scans = 2 * n + 1
-#     phase = np.linspace(0, np.pi * n_scans, n_scans * 256)
-#     raster_period = 2 * n_scans * np.sqrt(width**2 + (height / n_scans) ** 2) / speed
-
-#     while start_time < time.max():
-#         xs.extend(0.5 * width * sp.signal.sawtooth(phase, width=0.5))
-#         ys.extend(height * np.linspace(0.5, -0.5, len(phase)))
-#         ts.extend(start_time + np.linspace(0, raster_period, len(phase)))
-#         start_time = ts[-1] + np.sqrt(width**2 + height**2) / speed
-
-#     offsets = sp.interpolate.interp1d(ts, np.c_[xs, ys].T)(time)
-
-#     return sp.ndimage.gaussian_filter1d(
-#         offsets,
-#         sigma=turnaround_time * sample_rate,
-#         axis=-1,
-#     )
-
-
-# def back_and_forth(time, speed=1, radius=5, turnaround_time=0.5):  # noqa
-#     return raster(
-#         time,
-#         speed=speed,
-#         radius=radius,
-#         height=0,
-#         turnaround_time=turnaround_time,
-#     )
-
-
-def stare(time):
+def stare(time, **extra_kwargs):
+    if extra_kwargs:
+        logger.warning(f"Ignoring parameters {extra_kwargs} for scan pattern 'stare'.")
     return np.zeros((2, *time.shape))
 
 
@@ -233,7 +239,7 @@ scan_patterns = {
     "stare": {"aliases": [], "generator": stare},
     "daisy": {"aliases": ["daisy_scan"], "generator": daisy},
     "lissajous": {"aliases": ["lissajous_box"], "generator": lissajous},
-    # "raster": {"aliases": [], "generator": raster},
+    "raster": {"aliases": [], "generator": raster},
     "back_and_forth": {"aliases": ["back-and-forth"], "generator": back_and_forth},
     # "grid": {"aliases": [], "generator": grid},
     "double_circle": {"aliases": [], "generator": double_circle},
@@ -242,12 +248,17 @@ scan_patterns = {
 for key in scan_patterns:
     scan_patterns[key]["signature"] = str(inspect.signature(scan_patterns[key]["generator"]))
 
-scan_patterns = pd.DataFrame(scan_patterns).T
+scan_patterns = pd.DataFrame(scan_patterns).T.sort_index()
 
 
-def get_scan_pattern_generator(name):
+def get_scan_pattern_generator(pattern):
     for index, entry in scan_patterns.iterrows():
-        if (name == index) or (name in entry.aliases):
+        if (pattern == index) or (pattern in entry.aliases):
             return entry.generator
 
-    raise ValueError(f"Invalid pattern name '{name}'.")
+    raise ValueError(f"Invalid scan pattern '{pattern}'. Valid scan patterns are {list(scan_patterns.index)}.")
+
+
+def generate_scan_offsets(time: float, pattern: str, **scan_kwargs):
+    f = get_scan_pattern_generator(pattern=pattern)
+    return f(time, parse_scan_kwargs(scan_kwargs))

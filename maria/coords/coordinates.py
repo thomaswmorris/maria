@@ -178,7 +178,7 @@ class Coordinates:
 
         duration_s = ttime.monotonic() - ref_time
         logger.debug(
-            f"Initialized {self} in {humanize_time(duration_s)}.",
+            f"Initialized Coordinates with shape {self.shape} in {humanize_time(duration_s)}.",
         )  # noqa
 
     def compute_transform(self, frame):
@@ -230,7 +230,8 @@ class Coordinates:
 
         duration = ttime.monotonic() - compute_transform_start_s
         logger.debug(
-            f"Computed transform to frame '{frame.name}' for {self} in {humanize_time(duration)}.",
+            f"Computed transform to frame '{frame.name}' for Coordinates with shape {self.shape} "
+            f"in {humanize_time(duration)}.",
         )  # noqa
 
     @property
@@ -403,7 +404,9 @@ class Coordinates:
         elif frame.name == "galactic":
             X = phi_theta_to_offsets(np.stack([self.l, self.b], axis=-1), center[0].rad, center[1].rad)
 
-        logger.debug(f"Computed offsets for {self} in {humanize_time(ttime.monotonic() - offsets_s)}")
+        logger.debug(
+            f"Computed offsets for Coordinates with shape {self.shape} in {humanize_time(ttime.monotonic() - offsets_s)}."
+        )
 
         return X
 

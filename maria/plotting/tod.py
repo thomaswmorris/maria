@@ -29,18 +29,20 @@ def plot_tod(
     max_dets: int = 1,
     lw: float = 1e0,
     fontsize: float = 10,
+    figsize: tuple[float, float] = (10, 5),
 ):
     fig, axes = plt.subplots(
         ncols=2,
         nrows=len(tod.fields),
         sharex="col",
-        figsize=(10, 4),
+        figsize=figsize,
         dpi=256,
+        constrained_layout=True,
     )
     axes = np.atleast_2d(axes)
     gs = axes[0, 0].get_gridspec()
 
-    plt.subplots_adjust(top=0.99, bottom=0.01, hspace=0, wspace=0.025)
+    # plt.subplots_adjust(top=0.99, bottom=0.01, hspace=0, wspace=0.025)
 
     for ax in axes[:, -1]:
         ax.remove()

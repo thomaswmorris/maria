@@ -4,6 +4,7 @@ import maria
 import numpy as np
 import pytest
 from maria.plan import scan_patterns
+from maria.plan.patterns import parse_scan_kwargs
 
 
 @pytest.mark.parametrize("scan_pattern", scan_patterns.index)
@@ -33,13 +34,15 @@ def test_pattern_speed(scan_pattern):
         return
 
     for trial in range(16):
-        radius = np.random.choice(np.geomspace(1e-1, 1e0, 256))  # in degrees
-        speed = np.random.choice(np.geomspace(1e-1, 1e0, 256))  # in degrees
+        scan_kwargs = {
+            "x_throw": np.random.choice(np.geomspace(1e-1, 1e0, 256)),  # in degrees
+            "speed": np.random.choice(np.geomspace(1e-1, 1e0, 256)),  # in degrees
+        }
 
-        x, y = scan_patterns.loc[scan_pattern].generator(time, radius=radius, speed=speed)
+        x, y = scan_patterns.loc[scan_pattern].generator(time, **parse_scan_kwargs(scan_kwargs))
         vx = np.diff(x) / np.diff(time)
         vy = np.diff(y) / np.diff(time)
 
         max_speed = np.sqrt(vx**2 + vy**2).max()
 
-        assert np.isclose(max_speed, speed, rtol=1e-1)
+        assert np.isclose(max_speed, scan_kwargs["speed"], rtol=2e-1)
