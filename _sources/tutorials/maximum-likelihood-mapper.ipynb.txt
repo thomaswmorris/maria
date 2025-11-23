@@ -20,7 +20,7 @@
     "input_map = maria.map.load(fetch(\"maps/cluster2.fits\"), nu=150e9)\n",
     "input_map.data *= 2e1 \n",
     "\n",
-    "input_map.plot()\n",
+    "input_map.to(\"uK_RJ\").plot()\n",
     "print(input_map)"
    ]
   },
