@@ -78,6 +78,7 @@ dev = [
   "types-PyYAML",
   "mypy",
 ]
+all = ["maria[mapping,dev]"]
 
 [project.urls]
 "Homepage" = "https://github.com/thomaswmorris/maria"
