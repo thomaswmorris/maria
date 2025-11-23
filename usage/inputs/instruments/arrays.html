@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html"><link rel="next" title="Sites" href="../sites.html"><link rel="prev" title="Noise" href="noise.html">
+<link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html"><link rel="next" title="Generation" href="arrays/generation.html"><link rel="prev" title="Noise" href="noise.html">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
         <title>Arrays - maria</title>
@@ -175,7 +175,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -202,7 +202,14 @@
 <li class="toctree-l4"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bands.html">Bands</a></li>
 <li class="toctree-l4"><a class="reference internal" href="noise.html">Noise</a></li>
-<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">Arrays</a></li>
+<li class="toctree-l4 current has-children current-page"><a class="current reference internal" href="#">Arrays</a><input aria-label="Toggle navigation of Arrays" checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="arrays/generation.html">Generation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arrays/generation.html#multiple-arrays">Multiple arrays</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arrays/generation.html#polarized-arrays">Polarized arrays</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arrays/generation.html#array-shapes-and-packings">Array shapes and packings</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arrays/custom.html">Custom offsets and baselines</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../sites.html">Sites</a></li>
@@ -213,11 +220,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../cmb.html#cmb-patches">CMB patches</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../tods.html">TODs</a><input aria-label="Toggle navigation of TODs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../tods.html">TODs</a><input aria-label="Toggle navigation of TODs" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tods/index.html">TODs</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../mapping.html">Mapping</a><input aria-label="Toggle navigation of Mapping" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../mapping.html">Mapping</a><input aria-label="Toggle navigation of Mapping" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../mapping/index.html">Mapping</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../mapping/index.html#customization">Customization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../mapping/index.html#pre-and-postprocessing">Pre- and postprocessing</a></li>
@@ -226,11 +233,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/inputs/scan-patterns.html">Scan patterns</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../tutorials.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../tutorials.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/custom-map-simulations.html">Custom map simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/polarized-observations.html">Polarized observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/mustang-nebula.html">Simulating observations with MUSTANG-2</a></li>
@@ -272,163 +279,22 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="arrays">
 <span id="id1"></span><h1>Arrays<a class="headerlink" href="#arrays" title="Link to this heading">¶</a></h1>
-<p>An <code class="docutils literal notranslate"><span class="pre">Array</span></code> is a set of detectors, either at the same point in space distributed across some field of view (e.g. a bolometric camera) or distributed in space looking at the same point on the sky (e.g. an interferometer).
-To generate a custom <code class="docutils literal notranslate"><span class="pre">Array</span></code> we specify a configuration as a <code class="docutils literal notranslate"><span class="pre">dict</span></code>, for example as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span>
-
-<span class="n">my_array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">217</span><span class="p">,</span>
-            <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="c1"># in degrees</span>
-            <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="c1"># in meters</span>
-            <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;act/pa5/f090&quot;</span><span class="p">,</span> <span class="s2">&quot;act/pa5/f150&quot;</span><span class="p">]}</span>
-
-<span class="n">Array</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">my_array</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="arrays/generation.html">Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays/generation.html#multiple-arrays">Multiple arrays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays/generation.html#polarized-arrays">Polarized arrays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays/generation.html#array-shapes-and-packings">Array shapes and packings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays/custom.html">Custom offsets and baselines</a></li>
+</ul>
 </div>
-<p>(<a class="reference download internal" download="" href="../../../_downloads/0c0c4a575276c7ee24466428faf9d2a4/arrays-1.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/203d8d4d57cc52f99e6183e2621a5573/arrays-1.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/0ffbed2a3c06e904d5a42b227c5c1137/arrays-1.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/d88256274bd435da3c1f022fd57f85d7/arrays-1.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
-<figure class="align-default">
-<img alt="../../../_images/arrays-1.png" class="plot-directive" src="../../../_images/arrays-1.png" />
-</figure>
-<p>where the <code class="docutils literal notranslate"><span class="pre">bands</span></code> parameter is a list of either <code class="docutils literal notranslate"><span class="pre">Band</span></code> object or a string corresponding to a pre-defined band.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The items in the list supplied as the <code class="docutils literal notranslate"><span class="pre">bands</span></code> parameter can be a <code class="docutils literal notranslate"><span class="pre">Band</span></code> object, a <code class="docutils literal notranslate"><span class="pre">dict</span></code>, or a <code class="docutils literal notranslate"><span class="pre">str</span></code>. The following are all valid bands:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">band_1</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
-
-<span class="n">band_2</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="mf">90e9</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mf">30e9</span><span class="p">,</span> <span class="s2">&quot;NEP&quot;</span><span class="p">:</span> <span class="mf">1e-15</span><span class="p">}</span>
-
-<span class="n">band_3</span> <span class="o">=</span> <span class="s2">&quot;act/pa5/f150&quot;</span>
-</pre></div>
-</div>
-</div>
-<div class="admonition hint">
-<p class="admonition-title">Hint</p>
-<p>To see all available pre-defined bands, run <code class="docutils literal notranslate"><span class="pre">print(maria.all_bands)</span></code>. For documentation on how to define a custom band, refer to the <a class="reference internal" href="bands.html#bands"><span class="std std-ref">Bands</span></a> section.</p>
-</div>
-<p>We can then generate an <code class="docutils literal notranslate"><span class="pre">Instrument</span></code> as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Instrument</span>
-
-<span class="n">instrument</span> <span class="o">=</span> <span class="n">Instrument</span><span class="p">(</span><span class="n">arrays</span><span class="o">=</span><span class="p">[</span><span class="n">my_array</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>which generates an array of 1000 multichroic detectors (a detector per band per array position).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The items in the <code class="docutils literal notranslate"><span class="pre">arrays</span></code> list can be an <code class="docutils literal notranslate"><span class="pre">Array</span></code> object, a <code class="docutils literal notranslate"><span class="pre">dict</span></code>, or a <code class="docutils literal notranslate"><span class="pre">str</span></code>. The following are all valid arrays that can be in an <code class="docutils literal notranslate"><span class="pre">arrays</span></code> list:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array_1</span> <span class="o">=</span>  <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">217</span><span class="p">,</span>
-           <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="c1"># in degrees</span>
-           <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="c1"># in meters</span>
-           <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;act/pa5/f090&quot;</span><span class="p">,</span> <span class="s2">&quot;act/pa5/f150&quot;</span><span class="p">]}</span>
-
-<span class="n">array_2</span> <span class="o">=</span> <span class="n">Array</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">array_1</span><span class="p">)</span>
-
-<span class="n">array_3</span> <span class="o">=</span> <span class="s2">&quot;so/sat-wafer&quot;</span>
-</pre></div>
-</div>
-</div>
-<p>We can also leave the number of detectors <code class="docutils literal notranslate"><span class="pre">n</span></code> implicit and define an array with a given field of view as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">band_1</span><span class="p">,</span> <span class="n">band_2</span><span class="p">]}</span>
-</pre></div>
-</div>
-<p>Here, <code class="docutils literal notranslate"><span class="pre">maria</span></code> will infer the number of detectors by packing the field of view with beams of a given resolution (determined by the <code class="docutils literal notranslate"><span class="pre">primary_size</span></code> and <code class="docutils literal notranslate"><span class="pre">bands</span></code> parameters).
-By default, the spacing between the beams will be 1.5 times the FWHM, but we can adjust the ratio with the <code class="docutils literal notranslate"><span class="pre">beam_spacing</span></code> parameter.</p>
-<section id="multiple-arrays">
-<span id="id2"></span><h2>Multiple arrays<a class="headerlink" href="#multiple-arrays" title="Link to this heading">¶</a></h2>
-<p>Many instruments are made up of individual subarrays that set next to each other on the focal plane. We can create an instrument made of identical subarrays with</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Instrument</span>
-
-<span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;act/pa5/f090&quot;</span><span class="p">,</span> <span class="s2">&quot;act/pa5/f150&quot;</span><span class="p">]}</span>
-
-<span class="n">subarray_left</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;focal_plane_offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">array</span><span class="p">}</span>
-<span class="n">subarray_right</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;focal_plane_offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">array</span><span class="p">}</span>
-
-<span class="n">instrument</span> <span class="o">=</span> <span class="n">Instrument</span><span class="p">(</span><span class="n">arrays</span><span class="o">=</span><span class="p">[</span><span class="n">subarray_left</span><span class="p">,</span> <span class="n">subarray_right</span><span class="p">])</span>
-
-<span class="n">instrument</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>(<a class="reference download internal" download="" href="../../../_downloads/09253de2d979dc2b45df34e751c728ca/arrays-2.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/c89db2778b727b2cbbd12a315b685fa3/arrays-2.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/ed7c3d74ef1a9d6c765c56d4ac5ccde5/arrays-2.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/9861edb9465d0e40c3e80e03e3290790/arrays-2.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
-<figure class="align-default">
-<img alt="../../../_images/arrays-2.png" class="plot-directive" src="../../../_images/arrays-2.png" />
-</figure>
-</section>
-<section id="polarized-arrays">
-<h2>Polarized arrays<a class="headerlink" href="#polarized-arrays" title="Link to this heading">¶</a></h2>
-<p>We can define an array with polarized detectors as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
-         <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-         <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-         <span class="s2">&quot;polarized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">my_band</span><span class="p">]}</span>
-</pre></div>
-</div>
-<p>which will generate two orthogonally polarized detectors per band per array position.</p>
-</section>
-<section id="array-shapes-and-packings">
-<h2>Array shapes and packings<a class="headerlink" href="#array-shapes-and-packings" title="Link to this heading">¶</a></h2>
-<p>By default, the generated array is hexagonal with a triangular packing. We can change both of these with the <code class="docutils literal notranslate"><span class="pre">shape</span></code> and <code class="docutils literal notranslate"><span class="pre">packing</span></code> parameters. Consider</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span>
-
-<span class="n">octagonal_array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1005</span><span class="p">,</span>
-                   <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;octagon&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;packing&quot;</span><span class="p">:</span> <span class="s2">&quot;square&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="c1"># in degrees</span>
-                   <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="c1"># in meters</span>
-                   <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;act/pa5/f090&quot;</span><span class="p">,</span> <span class="s2">&quot;act/pa5/f150&quot;</span><span class="p">]}</span>
-
-<span class="n">Array</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">octagonal_array</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>(<a class="reference download internal" download="" href="../../../_downloads/326576bcb1afa56a7298655c7bc7917d/arrays-3.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/89a7f5af51d25bcce42d9bd566bcb422/arrays-3.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/bac66f2aa26adb1ec8e41f07238657db/arrays-3.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/fcdd89f972e90651767a79e4b0e7b747/arrays-3.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
-<figure class="align-default">
-<img alt="../../../_images/arrays-3.png" class="plot-directive" src="../../../_images/arrays-3.png" />
-</figure>
-<p>or</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span>
-
-<span class="n">flower_array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
-            <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;circle&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;packing&quot;</span><span class="p">:</span> <span class="s2">&quot;sunflower&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="c1"># in degrees</span>
-            <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="c1"># in meters</span>
-            <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;act/pa5/f090&quot;</span><span class="p">,</span> <span class="s2">&quot;act/pa5/f150&quot;</span><span class="p">]}</span>
-
-<span class="n">Array</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">flower_array</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>(<a class="reference download internal" download="" href="../../../_downloads/a18aa9eab19f4e1e2576f16c20f3b7a2/arrays-4.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/21708bd10a127ee6b001aba5c673ec05/arrays-4.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/1c8cba687b4a310c9cf67cd5f115c5a1/arrays-4.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/0cd3bb44de0d735a9efa8bd5f5f65528/arrays-4.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
-<figure class="align-default">
-<img alt="../../../_images/arrays-4.png" class="plot-directive" src="../../../_images/arrays-4.png" />
-</figure>
-<p>To generate a long, thin array, we parametrize the array in terms of the numbers of rows and columns:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span>
-
-<span class="n">stripe_array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n_col&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                <span class="s2">&quot;n_row&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
-                <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;square&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;packing&quot;</span><span class="p">:</span> <span class="s2">&quot;triangular&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-                <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
-                <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;act/pa5/f090&quot;</span><span class="p">,</span> <span class="s2">&quot;act/pa5/f150&quot;</span><span class="p">]}</span>
-
-<span class="n">Array</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">stripe_array</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>(<a class="reference download internal" download="" href="../../../_downloads/c78884d63b5cd076254320017a9f17c4/arrays-5.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/618cc7a96bc9debb90f8a25be9d7250e/arrays-5.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/708be4925c20cef841ac44e1bf277d7c/arrays-5.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../../../_downloads/4b8518bd47f8adad3d14fc0ef29c9f3c/arrays-5.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
-<figure class="align-default">
-<img alt="../../../_images/arrays-5.png" class="plot-directive" src="../../../_images/arrays-5.png" />
-</figure>
-</section>
 </section>
 
         </article>
@@ -436,12 +302,12 @@ By default, the spacing between the beams will be 1.5 times the FWHM, but we can
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../sites.html">
+          <a class="next-page" href="arrays/generation.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Sites</div>
+                <div class="title">Generation</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -474,29 +340,8 @@ By default, the spacing between the beams will be 1.5 times the FWHM, but we can
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Arrays</a><ul>
-<li><a class="reference internal" href="#multiple-arrays">Multiple arrays</a></li>
-<li><a class="reference internal" href="#polarized-arrays">Polarized arrays</a></li>
-<li><a class="reference internal" href="#array-shapes-and-packings">Array shapes and packings</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
