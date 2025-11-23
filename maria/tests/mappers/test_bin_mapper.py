@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import maria
+import matplotlib.pyplot as plt
 from maria.instrument import Band
 from maria.io import fetch
 from maria.mappers import BinMapper
