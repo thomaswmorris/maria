@@ -307,8 +307,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-23 20:12:38.599 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits
-Downloading: 100%|████████████████| 2.00M/2.00M [00:00&lt;00:00, 22.0MB/s]
+2025-11-23 21:08:27.746 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits
+Downloading: 100%|████████████████| 2.00M/2.00M [00:00&lt;00:00, 73.9MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -363,9 +363,9 @@ ProjectionMap:
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 900 s):
-                           start_time duration    target(ra,dec)   center(az,el)
+                           start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2025-11-24 04:44:32.262 +00:00    900 s  (83.63°, 22.02°)  (117°, 61.36°)
+0      2025-11-24 04:45:58.897 +00:00    900 s  (83.63°, 22.02°)  (117.4°, 61.61°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -429,10 +429,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-23 20:12:49.408 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
-Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 119MB/s]
-2025-11-23 20:12:50.778 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
-Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 85.1MB/s]
+2025-11-23 21:08:37.398 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 157MB/s]
+2025-11-23 21:08:38.486 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 158MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -459,15 +459,15 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 900 s):
-│                            start_time duration    target(ra,dec)   center(az,el)
+│                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2025-11-24 04:44:32.262 +00:00    900 s  (83.63°, 22.02°)  (117°, 61.36°)
+│ 0      2025-11-24 04:45:58.897 +00:00    900 s  (83.63°, 22.02°)  (117.4°, 61.61°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (1, 1, 1, 500, 500)
     stokes: I
     nu: [93.] GHz
-    t: [1.76392876e+09]
+    t: [1.76393211e+09]
     z: naive
     quantity: rayleigh_jeans_temperature
     units: K_RJ
@@ -497,14 +497,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-23 20:12:51.430 INFO: Simulating observation 1 of 1
+2025-11-23 21:08:39.052 INFO: Simulating observation 1 of 1
 Constructing atmosphere: 100%|████████████████| 8/8 [00:01&lt;00:00,  6.29it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 22.21it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.01it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.16s/it, band=m2/f093]
-Sampling map: 100%|████████████████| 1/1 [00:16&lt;00:00, 16.14s/it, band=m2/f093]
-Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.53s/it, band=m2/f093]
-2025-11-23 20:13:44.147 INFO: Simulated observation 1 of 1 in 52.71 s
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 21.94it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.32it/s]
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.02it/s, band=m2/f093]
+Sampling map: 100%|████████████████| 1/1 [00:08&lt;00:00,  8.82s/it, band=m2/f093]
+Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.03it/s, band=m2/f093]
+2025-11-23 21:09:08.019 INFO: Simulated observation 1 of 1 in 28.96 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -543,13 +543,13 @@ Generating noise: 100%|████████████████| 1/1 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-23 20:13:55.415 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ31.71ˢ&#39;, &#39;dec&#39;: &#39;22°01’2.57”&#39;} for mapper.
-2025-11-23 20:13:55.428 INFO: Inferring mapper width 12.77’ for mapper from observation patch.
-2025-11-23 20:13:55.428 INFO: Inferring mapper height 12.77’ to match supplied width.
-2025-11-23 20:13:55.440 INFO: Inferring mapper resolution 5.985” for mapper from observation patch.
-2025-11-23 20:13:55.442 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:02&lt;00:00,  2.37s/it]
-Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.86s/it, tod=1/1]
+2025-11-23 21:09:16.143 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ31.74ˢ&#39;, &#39;dec&#39;: &#39;22°01’4.22”&#39;} for mapper.
+2025-11-23 21:09:16.156 INFO: Inferring mapper width 12.97’ for mapper from observation patch.
+2025-11-23 21:09:16.157 INFO: Inferring mapper height 12.97’ to match supplied width.
+2025-11-23 21:09:16.170 INFO: Inferring mapper resolution 6.08” for mapper from observation patch.
+2025-11-23 21:09:16.172 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.44s/it]
+Mapping: 100%|██████████| 1/1 [00:01&lt;00:00,  1.96s/it, tod=1/1]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
