@@ -7,5 +7,5 @@ Tutorials
 
    tutorials/custom-map-simulations
    tutorials/polarized-observations
-   tutorials/mustang-galaxy
+   tutorials/mustang-nebula
    tutorials/maximum-likelihood-mapper
