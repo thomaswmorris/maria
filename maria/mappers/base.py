@@ -254,7 +254,7 @@ class BaseProjectionMapper(BaseMapper):
                 logger.info(f"Inferring mapper height {height} for mapper from observation patch.")
 
         if resolution is None:
-            resolution = Quantity(width / 100, "rad")
+            resolution = Quantity(width / 128, "rad")
             logger.info(f"Inferring mapper resolution {resolution} for mapper from observation patch.")
 
         super().__init__(

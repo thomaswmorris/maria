@@ -46,4 +46,4 @@ def test_ml_mapper():
     mapper.fit()
     mapper.map.to("Jy/beam").plot()
 
-    plt.close()
+    plt.close("all")

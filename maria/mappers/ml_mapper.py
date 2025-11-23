@@ -122,12 +122,13 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         self.update_noise_model()
 
     def update_noise_model(self):
-        sol_sum = 0
-        sol_wgt = 0
-
         self.tod_list = []
 
-        for tod_index, tod in tqdm(enumerate(self.tods), desc="Computing noise model"):
+        pbar = tqdm(enumerate(self.tods), desc="Computing noise model")
+
+        for tod_index, tod in pbar:
+            pbar.set_postfix(tod=f"{tod_index + 1}/{len(self.tods)}")
+
             t = {"tod": tod}
 
             t["k"] = max(self.k, 1)
@@ -255,7 +256,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             frame=self.frame.name,
             units=self.map_units,
             beam=self.beam,
-        )
+        ).to(self.map_units)
 
     def fit(self, epochs: int = 4, steps_per_epoch: int = 64, lr: float = 1e-1):
         if not hasattr(self, "optimizer"):

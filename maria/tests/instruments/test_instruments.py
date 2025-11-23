@@ -57,7 +57,7 @@ def test_get_instrument(instrument_name):
 
     instrument.plot()
 
-    plt.close()
+    plt.close("all")
 
 
 # @pytest.mark.parametrize(

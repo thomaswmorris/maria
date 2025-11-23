@@ -16,7 +16,7 @@ def test_pattern(scan_pattern):
     plan.plot()
     plan.plot_counts()
 
-    plt.close()
+    plt.close("all")
 
 
 @pytest.mark.parametrize("scan_pattern", scan_patterns.index)
