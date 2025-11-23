@@ -26,7 +26,7 @@ OPERATION_KWARGS = {
         "method": {"dtype": str, "aliases": ["filter_method"]},
     },
     "remove_modes": {
-        "modes_to_remove": {"dtype": list, "aliases": ["modes_to_remove"]},
+        "modes_to_remove": {"dtype": int, "aliases": ["modes_to_remove"]},
     },
     "remove_spline": {
         "knot_spacing": {"dtype": float, "aliases": ["remove_spline_knot_spacing"]},
@@ -170,8 +170,11 @@ def process_tod(tod, config=None, **kwargs):
         remove_modes_start_s = ttime.monotonic()
 
         modes_to_remove = config["remove_modes"]["modes_to_remove"]
+        if not isinstance(modes_to_remove, int):
+            raise TypeError("'modes_to_remove' must be an integer.")
+
         A, B = utils.signal.decompose(D, k=np.max(modes_to_remove) + 1)
-        D -= A[:, modes_to_remove] @ B[modes_to_remove]
+        D -= A[:, :modes_to_remove] @ B[:modes_to_remove]
 
         logger.debug(f'Completed tod operation "remove_modes" in {humanize_time(ttime.monotonic() - remove_modes_start_s)}.')
         if np.isnan(D).any():

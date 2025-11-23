@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 import maria
+import matplotlib.pyplot as plt
 import pytest
 from maria import all_maps
 from maria.io import fetch
@@ -24,3 +25,4 @@ def test_change_cache_dir():
 def test_all_maps(filename):
     m = maria.map.load(filename=fetch(filename), width=0.1, center=(150, 10))  # noqa
     m.plot()
+    plt.close()

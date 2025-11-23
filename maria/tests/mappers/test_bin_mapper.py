@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import os
-
 import maria
+import matplotlib.pyplot as plt
 from maria.instrument import Band
 from maria.io import fetch
 from maria.mappers import BinMapper
 
-here, this_filename = os.path.split(__file__)
 
-
-def test_map_sim():
+def test_bin_mapper():
     map_filename = fetch("maps/cluster1.fits", refresh=True)
 
     f090 = Band(center=90e9, width=20e9, NET_RJ=5e-5)
@@ -52,7 +49,7 @@ def test_map_sim():
         tod_preprocessing={
             "window": {"name": "tukey"},
             "filter": {"f_lower": 0.08},
-            "remove_modes": {"modes_to_remove": (0,)},
+            "remove_modes": {"modes_to_remove": 1},
             "remove_spline": {"knot_spacing": 10},
         },
         map_postprocessing={
@@ -64,3 +61,5 @@ def test_map_sim():
 
     output_map = mapper.run()
     output_map.to("Jy/beam").plot()
+
+    plt.close()

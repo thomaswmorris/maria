@@ -188,6 +188,38 @@ frequency:
       min_prefix_power: 0
       max_prefix_power: 12
 
+beam:
+  long_name: beam
+  short_name: beam
+  math_name: beam
+  base_unit: beam
+  base_unit_prefix: ""
+  recipe:
+    beam: 1
+  units:
+    beam:
+      factor: 1
+      long_name: beam
+      math_name: beam
+      min_prefix_power: 0
+      max_prefix_power: 0
+
+pixel:
+  long_name: pixel
+  short_name: pixel
+  math_name: pixel
+  base_unit: pixel
+  base_unit_prefix: ""
+  recipe:
+    pixel: 1
+  units:
+    pixel:
+      factor: 1
+      long_name: pixel
+      math_name: pixel
+      min_prefix_power: 0
+      max_prefix_power: 0
+
 energy:
   long_name: energy
   short_name: E

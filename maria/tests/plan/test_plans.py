@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import maria
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from maria.plan import scan_patterns
@@ -14,6 +15,8 @@ def test_pattern(scan_pattern):
 
     plan.plot()
     plan.plot_counts()
+
+    plt.close()
 
 
 @pytest.mark.parametrize("scan_pattern", scan_patterns.index)

@@ -58,7 +58,7 @@ def parse_scan_kwargs(scan_kwargs, default_radius: float = 1.0):
             scan_kwargs["y_throw"] = scan_kwargs["x_throw"]
 
     if "speed" not in scan_kwargs:
-        scan_kwargs["speed"] = max(scan_kwargs["x_throw"], scan_kwargs["y_throw"]) / 5
+        scan_kwargs["speed"] = max(scan_kwargs["x_throw"], scan_kwargs["y_throw"]) / 4
 
     logger.debug(f"Parsed scan pattern kwargs {scan_kwargs}")
 
