@@ -102,7 +102,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             timestep=timestep,
             degrees=False,
             tod_preprocessing={
-                "remove_modes": {"modes_to_remove": [0, 1, 2]},
+                "remove_modes": {"modes_to_remove": 3},
                 "remove_spline": {"knot_spacing": 5, "remove_el_gradient": True},
             },
             map_postprocessing={},
@@ -254,6 +254,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             degrees=False,
             frame=self.frame.name,
             units=self.map_units,
+            beam=self.beam,
         )
 
     def fit(self, epochs: int = 4, steps_per_epoch: int = 64, lr: float = 1e-1):

@@ -62,7 +62,7 @@ def test_tod_preprocessing_with_config():
     pp_config = {
         "window": {"name": "tukey", "kwargs": {"alpha": 0.25}},
         "filter": {"f_lower": 0.5},
-        "remove_modes": {"modes_to_remove": [0]},
+        "remove_modes": {"modes_to_remove": 1},
         "remove_spline": {"knot_spacing": 0.5},
     }
 

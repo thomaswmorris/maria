@@ -44,7 +44,7 @@ def test_polarized_map_sim():
         tod_preprocessing={
             "window": {"name": "tukey", "kwargs": {"alpha": 0.1}},
             "remove_spline": {"knot_spacing": 30, "remove_el_gradient": True},
-            "remove_modes": {"modes_to_remove": [0]},
+            "remove_modes": {"modes_to_remove": 1},
         },
         map_postprocessing={
             "gaussian_filter": {"sigma": 1},

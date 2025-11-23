@@ -6,7 +6,7 @@ from maria.io import fetch
 from maria.mappers import MaximumLikelihoodMapper
 
 
-def test_bin_mapper():
+def test_ml_mapper():
     map_filename = fetch("maps/cluster1.fits", refresh=True)
 
     f090 = Band(center=90e9, width=20e9, NET_RJ=5e-5)
@@ -42,5 +42,5 @@ def test_bin_mapper():
         tods=tods,
     )
 
-    output_map = mapper.fit()
-    output_map.to("Jy/beam").plot()
+    mapper.fit()
+    mapper.map.to("Jy/beam").plot()

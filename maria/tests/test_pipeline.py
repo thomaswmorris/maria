@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pytest
 
@@ -7,6 +9,8 @@ import maria
 from maria import Simulation, all_instruments, all_sites, get_plan
 from maria.mappers import BinMapper
 from maria.utils import read_yaml
+
+here, this_filename = os.path.split(__file__)
 
 all_test_plan_configs = list(read_yaml(f"{here}/configs/test_plans.yml").values())
 
@@ -29,8 +33,8 @@ def test_pipeline(instrument, site):
         scan_pattern="daisy",
         scan_options={"radius": 0.5, "speed": 0.1},  # in degrees
         duration=10,  # in seconds
-        sample_rate=25,  # in Hz
-        scan_center=(31, 62),
+        sample_rate=15,  # in Hz
+        scan_center=(np.random.uniform(0, 360), np.random.uniform(30, 90)),
         frame="az/el",
     )
 
@@ -54,7 +58,7 @@ def test_pipeline(instrument, site):
         tod_preprocessing={
             "window": {"name": "tukey", "kwargs": {"alpha": 0.1}},
             "remove_spline": {"knot_spacing": 30, "remove_el_gradient": True},
-            "remove_modes": {"modes_to_remove": [0]},
+            "remove_modes": {"modes_to_remove": 1},
         },
         map_postprocessing={
             "gaussian_filter": {"sigma": 1},

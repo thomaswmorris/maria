@@ -48,7 +48,7 @@ def test_bin_mapper():
         tod_preprocessing={
             "window": {"name": "tukey"},
             "filter": {"f_lower": 0.08},
-            "remove_modes": {"modes_to_remove": (0,)},
+            "remove_modes": {"modes_to_remove": 1},
             "remove_spline": {"knot_spacing": 10},
         },
         map_postprocessing={
