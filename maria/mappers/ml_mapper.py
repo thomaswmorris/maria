@@ -254,7 +254,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             center=self.center,
             degrees=False,
             frame=self.frame.name,
-            units=self.map_units,
+            units=self.tod_units,
             beam=self.beam,
         ).to(self.map_units)
 
