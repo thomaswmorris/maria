@@ -43,6 +43,10 @@ class AtmosphericSpectrum:
             self.side_zenith_pwv = f["side_zenith_pwv_mm"][:].astype(float)
             self.side_nu = f["side_nu_Hz"][:].astype(float)
 
+            # set the max elevation to 90.1 degrees
+            # because sometimes rounded 32-bit types overrun 90 degrees in the interpolator
+            self.side_elevation[-1] = np.radians(90.1)
+
             for key, mapping in key_mapping.items():
                 d = f[key][:]
 

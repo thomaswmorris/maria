@@ -57,6 +57,8 @@ def test_get_instrument(instrument_name):
 
     instrument.plot()
 
+    plt.close()
+
 
 # @pytest.mark.parametrize(
 #     "dets", [subarray_dets, predefined_bands, predefined_dets, beam_packing_dets]

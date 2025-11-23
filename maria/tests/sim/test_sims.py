@@ -39,11 +39,7 @@ def test_pipeline(instrument, site, az, el):
     )
 
     sim = Simulation(
-        instrument=instrument,
-        site=site,
-        plans=[plan],
-        atmosphere="2d",
-        cmb="generate",
+        instrument=instrument, site=site, plans=[plan], atmosphere="2d", cmb="generate", cmb_kwargs={"nside": 256}
     )
 
     tod = sim.run()[0]

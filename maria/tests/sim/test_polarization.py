@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import maria
+import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 from maria import Planner, Simulation, all_instruments
 from maria.io import fetch
 from maria.mappers import BinMapper
@@ -54,4 +54,8 @@ def test_polarized_map_sim():
         tods=[tod],
     )
 
-    mapper.run()
+    output_map = mapper.run()
+
+    output_map.to("Jy/pixel").plot()
+
+    plt.close()

@@ -36,6 +36,7 @@ def test_maps(map_path):
         assert np.allclose(new_m_fits.resolution.arcsec, m.resolution.arcsec)
 
     m.plot()
+    plt.close()
 
 
 def test_map_operations():
@@ -122,3 +123,4 @@ def test_time_ordered_map_sim():
     sim = maria.Simulation(instrument="test/1deg", site="cerro_toco", plans=plan, map=input_map)
     tods = sim.run()
     tods[0].to("K_RJ").plot()
+    plt.close()
