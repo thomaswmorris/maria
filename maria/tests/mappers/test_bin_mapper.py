@@ -62,4 +62,4 @@ def test_bin_mapper():
     output_map = mapper.run()
     output_map.to("Jy/beam").plot()
 
-    plt.close()
+    plt.close("all")

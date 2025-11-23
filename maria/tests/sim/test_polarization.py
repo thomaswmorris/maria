@@ -58,4 +58,4 @@ def test_polarized_map_sim():
 
     output_map.to("Jy/pixel").plot()
 
-    plt.close()
+    plt.close("all")

@@ -60,6 +60,7 @@ def generate_cmb_patch(
     height: float = None,
     center: tuple[float, float] = None,
     resolution: float = None,
+    frame: str = "ra/dec",
     degrees: bool = True,
     buffer: int = 2,
 ):
@@ -95,4 +96,6 @@ def generate_cmb_patch(
     complex_map = np.fft.ifft2(np.sqrt(PS) * np.fft.fft2(np.random.standard_normal((ny_gen, nx_gen))))
     m = complex_map.real[:nx, :ny]
 
-    return ProjectionMap(data=(m - m.mean())[None], center=center, width=width, nu=148e9, units="K_CMB", degrees=False)
+    return ProjectionMap(
+        data=(m - m.mean())[None], center=center, width=width, nu=148e9, frame=frame, units="K_CMB", degrees=False
+    )

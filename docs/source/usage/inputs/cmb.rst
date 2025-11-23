@@ -41,4 +41,4 @@ To simulate CMB observations at high resolution, we can generate a small patch a
 
     cmb_patch.plot(cmap="cmb")
 
-which can then be passed as an input map to a ``Simulation``.
+which can then be passed as an input ``Map`` to a ``Simulation``.
