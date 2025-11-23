@@ -163,11 +163,11 @@ class Map:
 
     @property
     def nu_bins(self):
-        return np.array([0, *(self.nu.Hz[1:] + self.nu.Hz[:-1]), 1e6])
+        return np.array([0, *(self.nu.Hz[1:] + self.nu.Hz[:-1]) / 2, np.inf])
 
     @property
     def nu_side(self):
-        return (self.nu_bins[:-1] + self.nu_bins[1:]) / 2
+        return self.nu.Hz
 
     @property
     def t_bins(self):

@@ -15,7 +15,7 @@ from ..coords import frames
 from ..units import Quantity
 from .base import MAP_QUANTITIES, Map, concatenate  # noqa
 from .healpix import HEALPixMap  # noqa
-from .projected import ProjectedMap  # noqa
+from .projection import ProjectionMap  # noqa
 
 here, this_filename = os.path.split(__file__)
 
@@ -61,9 +61,9 @@ def load(filename: str, format: str = "auto", **map_kwargs) -> Map:
         metadata = {k: v for k, v in metadata.items() if k not in MAP_SIZE_KWARGS}
 
     metadata.update(map_kwargs)
-    logger.debug(f"Loading ProjectedMap with metadata {metadata}")
+    logger.debug(f"Loading ProjectionMap with metadata {metadata}")
 
-    return ProjectedMap(data=data, **metadata)
+    return ProjectionMap(data=data, **metadata)
 
 
 def read_hdf(filename: str):

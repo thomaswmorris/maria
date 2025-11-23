@@ -15,8 +15,10 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from skimage.measure import block_reduce
 
+from ..array import Array
 from ..coords import FRAMES, Coordinates, Frame
 from ..io import repr_phi_theta
+from ..tod import TOD
 from ..units import Quantity, get_factor_and_base_units_vector
 from ..utils import compute_pointing_matrix_sparse_indices, unpack_implicit_slice
 from .base import Map
@@ -25,7 +27,7 @@ here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
 
-class ProjectedMap(Map):
+class ProjectionMap(Map):
     """
     A rectangular map projected on the sphere. It has shape (stokes, nu, t, y, x).
     """
@@ -132,11 +134,41 @@ class ProjectedMap(Map):
                 x_list=(offsets[..., 0], offsets[..., 1]), bins_list=(self.x_bins, self.y_bins[::-1])
             )
 
-    def pointing_matrix(self, coords: Coordinates):
-        sample_index, pixel_index, n_pixels = self._pointing_matrix_sparse_indices(coords=coords)
-        return sp.sparse.csr_array(
-            (np.ones(len(pixel_index), dtype=np.uint8), (sample_index, pixel_index)), shape=(coords.size, n_pixels)
-        )
+    def compute_pointing_matrix_sparse_indices(self, coords: Coordinates, dets: Array):
+        nd, nt = coords.shape
+        offsets = coords.offsets(frame=self.frame, center=self.center)
+
+        dim_index = {}
+
+        dim_index["x"] = np.digitize(offsets[..., 0], self.x_bins).ravel() - 1
+        dim_index["y"] = np.digitize(offsets[..., 1], self.y_bins[::-1]).ravel() - 1
+        dim_index["t"] = np.digitize(coords._t, self.t_bins).ravel() - 1
+        dim_index["nu"] = np.digitize(np.repeat(dets.band_center, nt), self.nu_bins) - 1
+
+        cum_dim = 1
+        map_index = 0
+        mask = True
+        for dim, index in dim_index.items():
+            n = self.dims[dim]
+            mask &= (index > -1) & (index < n)
+            map_index += cum_dim * index
+            cum_dim *= n
+        pixel_index = map_index[mask]
+        sample_index = np.arange(coords.size)[mask]
+
+        values_list = []
+        pixel_index_list = []
+        sample_index_list = []
+        M = dets.mueller()
+        for stokes_index, stokes in enumerate(self.stokes):
+            values_list.append(np.repeat(M[:, 0, "IQUV".index(stokes)], nt)[mask])
+            pixel_index_list.append(pixel_index + cum_dim * stokes_index)
+            sample_index_list.append(sample_index)
+        return np.concatenate(values_list), np.concatenate(pixel_index_list), np.concatenate(sample_index_list)
+
+    def pointing_matrix(self, coords: Coordinates, dets: Array):
+        values, pixel_index, sample_index = self.compute_pointing_matrix_sparse_indices(coords=coords, dets=dets)
+        return sp.sparse.csr_array((values, (sample_index, pixel_index)), shape=(coords.size, self.data.size))
 
     def header(self):
         header = ap.io.fits.header.Header()
@@ -183,7 +215,7 @@ class ProjectedMap(Map):
                 self.compute_stats()
             return self.stats[attr]
 
-        raise AttributeError(f"'ProjectedMap' object has no attribute '{attr}'")
+        raise AttributeError(f"'ProjectionMap' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
         if not hasattr(key, "__iter__"):
@@ -212,7 +244,7 @@ class ProjectedMap(Map):
         package["y_res"] *= explicit_slices[-2].step or 1
         package["x_res"] *= explicit_slices[-1].step or 1
 
-        return ProjectedMap(**package).to(self.units)
+        return ProjectionMap(**package).to(self.units)
 
     def downsample(self, reduce: tuple, func: Callable = np.mean):
         if reduce:
@@ -230,7 +262,7 @@ class ProjectedMap(Map):
             package["x_res"] *= self.n_x / new_n_x
             package["y_res"] *= self.n_y / new_n_y
 
-            return ProjectedMap(**package).to(self.units)
+            return ProjectionMap(**package).to(self.units)
 
     @property
     def points(self):
@@ -297,7 +329,7 @@ class ProjectedMap(Map):
     def resolution(self):
         if not np.isclose(self.x_res.rad, self.y_res.rad, rtol=1e-3):
             RuntimeError(
-                "Cannot return attribute 'resolution'; ProjectedMap has x-resolution"
+                "Cannot return attribute 'resolution'; ProjectionMap has x-resolution"
                 f" {self.x_res}° and y-resolution {self.x_res}°."
             )
         return self.x_res
@@ -371,9 +403,7 @@ class ProjectedMap(Map):
 
         if "stokes" in self.dims:
             if stokes not in self.stokes:
-                raise ValueError(
-                    f"Invalid stokes parameter '{stokes}'; available Stokes parameters for this map are {self.stokes}."
-                )
+                raise ValueError(f"Invalid stokes parameter '{stokes}'. This map has stokes parameters '{self.stokes}'.")
             stokes_index = self.stokes.index(stokes)
             d, w = d[stokes_index], w[stokes_index]
 

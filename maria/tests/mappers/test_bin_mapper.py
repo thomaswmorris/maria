@@ -6,7 +6,7 @@ from maria.io import fetch
 from maria.mappers import BinMapper
 
 
-def test_mapper_inference():
+def test_bin_mapper():
     map_filename = fetch("maps/cluster1.fits", refresh=True)
 
     f090 = Band(center=90e9, width=20e9, NET_RJ=5e-5)
@@ -20,6 +20,8 @@ def test_mapper_inference():
 
     input_map = maria.map.load(filename=map_filename, nu=150e9, width=0.1, center=(150, 10))
 
+    input_map.data *= 1e3
+
     planner = maria.Planner(target=input_map, site="cerro_toco", constraints={"el": (45, 90)})
 
     plans = planner.generate_plans(
@@ -31,11 +33,30 @@ def test_mapper_inference():
         plans=plans,
         site="llano_de_chajnantor",
         map=input_map,
+        atmosphere="2d",
     )
 
     tods = sim.run()
 
-    BinMapper(tods=tods).run()
-    BinMapper(center=(-45, 45), tods=tods).run()
-    BinMapper(width=0.45, tods=tods).run()
-    BinMapper(resolution=input_map.width.deg / 10, tods=tods).run()
+    mapper = BinMapper(
+        center=(150.01, 10.01),
+        frame="ra/dec",
+        width=0.1,
+        height=0.1,
+        resolution=0.001,
+        degrees=True,
+        tod_preprocessing={
+            "window": {"name": "tukey"},
+            "filter": {"f_lower": 0.08},
+            "remove_modes": {"modes_to_remove": (0,)},
+            "remove_spline": {"knot_spacing": 10},
+        },
+        map_postprocessing={
+            "gaussian_filter": {"sigma": 1},
+            "median_filter": {"size": 1},
+        },
+        tods=tods,
+    )
+
+    output_map = mapper.run()
+    output_map.to("Jy/beam").plot()

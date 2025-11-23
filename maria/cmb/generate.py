@@ -8,7 +8,7 @@ import pandas as pd
 import scipy as sp
 
 from ..io import fetch
-from ..map import ProjectedMap
+from ..map import ProjectionMap
 from ..units import Quantity
 from .cmb import CMB
 
@@ -95,4 +95,4 @@ def generate_cmb_patch(
     complex_map = np.fft.ifft2(np.sqrt(PS) * np.fft.fft2(np.random.standard_normal((ny_gen, nx_gen))))
     m = complex_map.real[:nx, :ny]
 
-    return ProjectedMap(data=(m - m.mean())[None], center=center, width=width, nu=148e9, units="K_CMB", degrees=False)
+    return ProjectionMap(data=(m - m.mean())[None], center=center, width=width, nu=148e9, units="K_CMB", degrees=False)

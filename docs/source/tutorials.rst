@@ -8,3 +8,4 @@ Tutorials
    tutorials/custom-map-simulations
    tutorials/polarized-observations
    tutorials/mustang-galaxy
+   tutorials/maximum-likelihood-mapper

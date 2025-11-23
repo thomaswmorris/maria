@@ -180,12 +180,13 @@ def get_orthogonal_transform(signature, entries):
     return sp.linalg.expm(S - S.T)
 
 
-def compute_aligning_transform(points, signature, axes=None):
+def compute_aligning_transform(points, signature, axes=None, n_init: int = 16):
     """
     Find a transform for some (..., n_dim) array of points so that the volume over all but the first axis is minimized.
     """
     *input_shape, n_dim = points.shape
     axes = axes or tuple(range(1, n_dim))
+    args = points.reshape(-1, n_dim)
 
     def loss(entries, *args):
         tp = args[0] @ get_orthogonal_transform(signature=signature, entries=entries)
@@ -196,11 +197,15 @@ def compute_aligning_transform(points, signature, axes=None):
             return np.log(np.ptp(tp[..., 1:]))
 
     n_axes = sum(signature)
+    n_dof = int(n_axes * (n_axes - 1) / 2)
+    x0_samples = np.random.standard_normal(size=(n_init, n_dof))
+    best_index = np.argmin([loss(x0, args) for x0 in x0_samples])
+
     res = sp.optimize.minimize(
         loss,
-        x0=np.zeros(int(n_axes * (n_axes - 1) / 2)),
-        args=points.reshape(-1, n_dim),
-        tol=1e-3,
+        x0=x0_samples[best_index],
+        args=args,
+        tol=1e-6,
         method="SLSQP",
     )
 
