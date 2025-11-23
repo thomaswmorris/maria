@@ -25,4 +25,5 @@ def test_change_cache_dir():
 def test_all_maps(filename):
     m = maria.map.load(filename=fetch(filename), width=0.1, center=(150, 10))  # noqa
     m.plot()
-    plt.close()
+
+    plt.close("all")
