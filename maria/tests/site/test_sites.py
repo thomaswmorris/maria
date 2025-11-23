@@ -16,3 +16,4 @@ def test_get_site(site_name):
 def test_site_plot():
     site = maria.get_site("cerro_toco")
     site.plot()
+    plt.close()
