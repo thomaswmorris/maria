@@ -102,8 +102,8 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             timestep=timestep,
             degrees=False,
             tod_preprocessing={
-                "remove_modes": {"modes_to_remove": 3},
-                "remove_spline": {"knot_spacing": 5, "remove_el_gradient": True},
+                "remove_modes": {"modes_to_remove": 1},
+                "remove_spline": {"knot_spacing": 10, "remove_el_gradient": True},
             },
             map_postprocessing={},
             progress_bars=False,
