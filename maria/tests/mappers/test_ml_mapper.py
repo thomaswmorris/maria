@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-import os
-
 import maria
 from maria.instrument import Band
 from maria.io import fetch
-from maria.mappers import BinMapper
-
-here, this_filename = os.path.split(__file__)
+from maria.mappers import MaximumLikelihoodMapper
 
 
-def test_map_sim():
+def test_bin_mapper():
     map_filename = fetch("maps/cluster1.fits", refresh=True)
 
     f090 = Band(center=90e9, width=20e9, NET_RJ=5e-5)
@@ -42,25 +38,9 @@ def test_map_sim():
 
     tods = sim.run()
 
-    mapper = BinMapper(
-        center=(150.01, 10.01),
-        frame="ra/dec",
-        width=0.1,
-        height=0.1,
-        resolution=0.001,
-        degrees=True,
-        tod_preprocessing={
-            "window": {"name": "tukey"},
-            "filter": {"f_lower": 0.08},
-            "remove_modes": {"modes_to_remove": (0,)},
-            "remove_spline": {"knot_spacing": 10},
-        },
-        map_postprocessing={
-            "gaussian_filter": {"sigma": 1},
-            "median_filter": {"size": 1},
-        },
+    mapper = MaximumLikelihoodMapper(
         tods=tods,
     )
 
-    output_map = mapper.run()
+    output_map = mapper.fit()
     output_map.to("Jy/beam").plot()

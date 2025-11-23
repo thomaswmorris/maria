@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import maria
 import numpy as np
 import pytest
@@ -9,8 +7,6 @@ from maria import Planner, Simulation, all_instruments
 from maria.io import fetch
 from maria.mappers import BinMapper
 from maria.utils import read_yaml
-
-here, this_filename = os.path.split(__file__)
 
 
 def test_polarized_map_sim():

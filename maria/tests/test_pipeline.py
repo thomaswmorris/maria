@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import numpy as np
 import pytest
 
@@ -9,8 +7,6 @@ import maria
 from maria import Simulation, all_instruments, all_sites, get_plan
 from maria.mappers import BinMapper
 from maria.utils import read_yaml
-
-here, this_filename = os.path.split(__file__)
 
 all_test_plan_configs = list(read_yaml(f"{here}/configs/test_plans.yml").values())
 
