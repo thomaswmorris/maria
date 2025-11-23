@@ -44,7 +44,7 @@ class BaseMapper:
     ):
         u = parse_units(units)
         self.tod_units = units if u["quantity"] in TOD_QUANTITIES else "K_RJ"
-        self.map_units = "K_RJ"
+        self.map_units = units
 
         if stokes is None:
             stokes = "IQUV" if any([tod.dets.polarized for tod in tods]) else "I"
