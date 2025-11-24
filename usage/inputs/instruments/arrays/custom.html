@@ -295,13 +295,13 @@
          <span class="s2">&quot;sky_x&quot;</span><span class="p">:</span> <span class="n">sky_x</span><span class="p">,</span>
          <span class="s2">&quot;sky_y&quot;</span><span class="p">:</span> <span class="n">sky_y</span><span class="p">,</span>
          <span class="s2">&quot;pol_angle&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">22.5</span><span class="p">,</span> <span class="mf">112.5</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mf">87.5</span><span class="p">,</span> <span class="mf">157.5</span><span class="p">],</span>
-         <span class="s2">&quot;band_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;my_first_band&quot;</span><span class="p">,</span> <span class="s2">&quot;my_first_band&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s2">&quot;my_other_band&quot;</span><span class="p">,</span> <span class="s2">&quot;my_other_band&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;band_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;my_first_band_name&quot;</span><span class="p">,</span> <span class="s2">&quot;my_first_band_name&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s2">&quot;my_other_band_name&quot;</span><span class="p">,</span> <span class="s2">&quot;my_other_band_name&quot;</span><span class="p">],</span>
          <span class="s2">&quot;degrees&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">sky_x</span></code> and <code class="docutils literal notranslate"><span class="pre">sky_y</span></code> are each a one-dimensional array of focal plane offsets in the x and y directions, and where
 each value in the <code class="docutils literal notranslate"><span class="pre">band_name</span></code> parameter matches the name of one of the bands in the supplied <code class="docutils literal notranslate"><span class="pre">bands</span></code> parameter.</p>
-<p>Similarly, custom baselines can be supplied as</p>
+<p>Similarly, custom baselines can be supplied as e.g.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f090</span><span class="p">,</span> <span class="n">f150</span><span class="p">],</span>
          <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
          <span class="s2">&quot;baseline_x&quot;</span><span class="p">:</span> <span class="n">baseline_x</span><span class="p">,</span>
