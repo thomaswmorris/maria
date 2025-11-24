@@ -105,7 +105,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                 "remove_modes": {"modes_to_remove": 1},
                 "remove_spline": {"knot_spacing": 10, "remove_el_gradient": True},
             },
-            map_postprocessing={},
+            map_postprocessing={"gaussian_filter": {"sigma": 2}},
             progress_bars=False,
         )
 
@@ -196,11 +196,11 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
 
             t["residual_ps"] = (t["fd"]).square().abs().float()
 
-            n_bin = 32
+            n_bin = 64
             mid_f = np.geomspace(t["abs_f"][t["abs_f"] > 0].min() * 0.99, t["abs_f"].max() * 1.01, n_bin)
             dlogf = np.exp(np.gradient(np.log(mid_f)).mean())
             bin_f = np.geomspace(mid_f[0] / np.sqrt(dlogf), mid_f[-1] * np.sqrt(dlogf), n_bin + 1)
-            bin_y = sp.stats.binned_statistic(t["abs_f"], t["residual_ps"].log(), bins=bin_f).statistic
+            bin_y = sp.stats.binned_statistic(t["abs_f"], t["residual_ps"], bins=bin_f).statistic
 
             use = ~np.isnan(bin_y).any(axis=0)
             t["int_ps"] = torch.tensor(
@@ -208,7 +208,9 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                     mid_f[use], np.median(bin_y[:, use], axis=0), axis=0, bounds_error=False, fill_value="extrapolate"
                 )(t["abs_f"]),
                 dtype=torch.float,
-            ).exp()  # * torch.ones_like(t["d"])
+            )  # * torch.ones_like(t["d"])
+
+            t["int_ps"] = t["residual_ps"].mean(axis=0)
 
             # t["V"] = (t["a"].T.unsqueeze(-1) * t["b"].unsqueeze(-2)).reshape(t["k"], -1)
             # t["ViA"] = (t["V"].reshape(t["k"], *t["d"].shape) / t["int_ps"]).reshape(t["k"], -1)

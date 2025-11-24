@@ -14,13 +14,13 @@ We can generate an array with pre-defined focal plane offsets with a config
              "sky_x": sky_x, 
              "sky_y": sky_y,
              "pol_angle": [22.5, 112.5, ..., 87.5, 157.5],
-             "band_name": ["my_first_band", "my_first_band", ..., "my_other_band", "my_other_band"],
+             "band_name": ["my_first_band_name", "my_first_band_name", ..., "my_other_band_name", "my_other_band_name"],
              "degrees": True}
 
 where ``sky_x`` and ``sky_y`` are each a one-dimensional array of focal plane offsets in the x and y directions, and where 
 each value in the ``band_name`` parameter matches the name of one of the bands in the supplied ``bands`` parameter.
 
-Similarly, custom baselines can be supplied as
+Similarly, custom baselines can be supplied as e.g.
 
 .. code-block:: python
 
