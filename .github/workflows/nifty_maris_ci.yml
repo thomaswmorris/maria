@@ -29,10 +29,20 @@ jobs:
           curl -fsSL https://pixi.sh/install.sh | bash
           echo "$HOME/.pixi/bin" >> $GITHUB_PATH
 
+      - name: Remove maria dependencies from pixi.toml
+        run: |
+          cd CMB_denoising
+          pixi remove pypi-dependencies.maria
+          pixi remove feature.cpu.pypi-dependencies.maria
+
       - name: Set up pixi cpu environment
         run: |
           cd CMB_denoising
           pixi install -e cpu
+
+      - name: Install maria in pixi environment
+        run: |
+          pixi run pip install -e maria/
 
       - name: Run tests with pixi
         run: |
