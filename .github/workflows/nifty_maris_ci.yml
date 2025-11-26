@@ -30,14 +30,14 @@ jobs:
           curl -fsSL https://pixi.sh/install.sh | bash
           echo "$HOME/.pixi/bin" >> $GITHUB_PATH
 
-      - name: Install maria in pixi environment
-        run: |
-          pixi run pip install -e maria/
-
       - name: Set up pixi test cpu no maria environment
         run: |
           cd CMB_denoising
           pixi install -e test
+
+      - name: Install maria in pixi environment
+        run: |
+          pixi run pip install -e maria/
 
       - name: Run tests with pixi
         run: |
