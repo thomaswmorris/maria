@@ -37,6 +37,8 @@ def test_maps(map_path):
 
     m.plot()
 
+    plt.close("all")
+
 
 def test_map_operations():
     map_filename = fetch("maps/cluster1.fits")
@@ -122,3 +124,5 @@ def test_time_ordered_map_sim():
     sim = maria.Simulation(instrument="test/1deg", site="cerro_toco", plans=plan, map=input_map)
     tods = sim.run()
     tods[0].to("K_RJ").plot()
+
+    plt.close("all")

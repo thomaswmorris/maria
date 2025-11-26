@@ -15,11 +15,12 @@ from matplotlib import pyplot as plt
 
 from .. import coords
 from ..coords import Coordinates, Frame, frames, get_center_phi_theta, phi_theta_to_offsets
+from ..instrument import Instrument, get_instrument
 from ..io import DEFAULT_TIME_FORMAT, repr_lat_lon, repr_phi_theta
 from ..site import Site, get_site
 from ..units import Quantity
 from ..utils import compute_diameter, read_yaml
-from .patterns import get_scan_pattern_generator, scan_patterns
+from .patterns import get_scan_pattern_generator, parse_scan_kwargs, scan_patterns
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
@@ -87,9 +88,10 @@ class Plan:
         #     self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
 
         # this is in pointing_units
+
         scan_offsets = get_scan_pattern_generator(scan_pattern)(
             time,
-            **scan_options,
+            **parse_scan_kwargs(scan_options),
         )
 
         assert not np.isnan(scan_offsets).any()
@@ -292,6 +294,8 @@ class Plan:
 
         ax.plot(q_offsets.value[:, 0], q_offsets.value[:, 1], lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=f"{cphi_repr}\n{ctheta_repr}")
+        ax.set_xlim(min(-1e-10, q_offsets.value[:, 0].min()), max(-1e-10, q_offsets.value[:, 0].max()))
+        ax.set_ylim(min(-1e-10, q_offsets.value[:, 1].min()), max(-1e-10, q_offsets.value[:, 1].max()))
 
         ax.legend(loc="upper right")
 
@@ -330,6 +334,7 @@ class Plan:
 
             ax.scatter(az[0].deg, el[0].deg, color="g", marker="+")
             ax.scatter(az[-1].deg, el[-1].deg, color="r", marker="+")
+
             ax.annotate(
                 xy=(az[0].deg, el[0].deg),
                 xytext=start_xytext,
@@ -355,7 +360,10 @@ class Plan:
             ax.yaxis.tick_right()
             ax.yaxis.set_label_position("right")
 
-    def map_counts(self, instrument=None, x_bins=64, y_bins=64):
+    def map_counts(self, instrument: Instrument | str = None, x_bins=64, y_bins=64):
+        if isinstance(instrument, str):
+            instrument = get_instrument(instrument)
+
         array_offsets = np.zeros((1, 1, 2)) if instrument is None else instrument.offsets[:, None]
 
         OFFSETS = self.offsets()[None] + array_offsets
@@ -386,8 +394,8 @@ class Plan:
         q_y = Quantity(y, "rad")
 
         heatmap = ax.pcolormesh(q_x.value, q_y.value, counts, cmap="turbo", vmin=0)
-        ax.set_xlabel(rf"$\Delta \theta_x$ [{q_x.u['math_name']}]")
-        ax.set_ylabel(rf"$\Delta \theta_y$ [{q_y.u['math_name']}]")
+        ax.set_xlabel(rf"$\Delta \theta_x$ [${q_x.u['math_name']}$]")
+        ax.set_ylabel(rf"$\Delta \theta_y$ [${q_y.u['math_name']}$]")
 
         cbar = fig.colorbar(heatmap, location="right")
         cbar.set_label("counts")

@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-import os
-
 import maria
+import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 from maria import Planner, Simulation, all_instruments
 from maria.io import fetch
 from maria.mappers import BinMapper
 from maria.utils import read_yaml
-
-here, this_filename = os.path.split(__file__)
 
 
 def test_polarized_map_sim():
@@ -48,7 +44,7 @@ def test_polarized_map_sim():
         tod_preprocessing={
             "window": {"name": "tukey", "kwargs": {"alpha": 0.1}},
             "remove_spline": {"knot_spacing": 30, "remove_el_gradient": True},
-            "remove_modes": {"modes_to_remove": [0]},
+            "remove_modes": {"modes_to_remove": 1},
         },
         map_postprocessing={
             "gaussian_filter": {"sigma": 1},
@@ -58,4 +54,8 @@ def test_polarized_map_sim():
         tods=[tod],
     )
 
-    mapper.run()
+    output_map = mapper.run()
+
+    output_map.to("Jy/pixel").plot()
+
+    plt.close("all")

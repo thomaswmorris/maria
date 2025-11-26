@@ -11,6 +11,7 @@ from ..errors import NoSuitablePlansError, PointingError
 from ..site import Site, get_site
 from ..units import Quantity
 from ..utils import get_day_hour, great_circle_distance, grouper
+from .patterns import parse_scan_kwargs
 from .plan import Plan
 from .plan_list import PlanList
 
@@ -151,7 +152,7 @@ class Planner:
             if "el" in self.constraints:
                 chunk_el = self.target_el_test[start:end]
                 debug_str_parts.append(f"el = {chunk_el.mean()} ± {chunk_el.std()}")
-            logger.debug(f"found good chunk ({', '.join(debug_str_parts)})")
+            logger.debug(f"Found good chunk ({', '.join(debug_str_parts)})")
 
             chunk_start = self.start_time.shift(seconds=self.delta_t_test[start])
             chunks.append({"start_time": chunk_start, "duration": this_chunk_duration})
@@ -163,9 +164,11 @@ class Planner:
         return chunks
 
     def generate_plans(
-        self, total_duration: float, max_chunk_duration: float = 600, scan_options: Mapping = {}, **plan_kwargs
+        self, total_duration: float, max_chunk_duration: float = 1800, scan_options: Mapping = {}, **plan_kwargs
     ):
-        scan_options["radius"] = scan_options.get("radius", self.target.width.deg / 2)
+        scan_options = parse_scan_kwargs(scan_options, default_radius=self.target.width.deg / 2)
+
+        # scan_options["radius"] = scan_options.get("radius", self.target.width.deg / 2)
 
         chunks = self.generate_obs_intervals(total_duration=total_duration, max_chunk_duration=max_chunk_duration)
         total_duration_of_chunks = sum([chunk["duration"] for chunk in chunks])

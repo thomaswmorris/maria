@@ -23,6 +23,19 @@ from .generation import generate_2d_pattern
 
 here, this_filename = os.path.split(__file__)
 
+
+PER_DET_KWARGS = [
+    "sky_x",
+    "sky_y",
+    "baseline_x",
+    "baseline_y",
+    "baseline_z",
+    "pol_angle",
+    "band_name",
+    "bath_temp",
+]
+
+
 ALLOWED_ARRAY_KWARGS = [
     "band",
     "bands",
@@ -31,6 +44,7 @@ ALLOWED_ARRAY_KWARGS = [
     "baseline_spacing",
     "bath_temp",
     "beam_spacing",
+    "degrees",
     "field_of_view",
     "file",
     "focal_plane_offset",
@@ -44,6 +58,7 @@ ALLOWED_ARRAY_KWARGS = [
     "primary_size",
     "rotation",
     "shape",
+    *PER_DET_KWARGS,
 ]
 
 
@@ -127,8 +142,8 @@ class Array:
         return self._subset(self.mask(**kwargs))
 
     def _subset(self, mask):
-        df = self.dets.loc[mask]
-        return Array(name=self.name, dets=df, bands=[b for b in self.bands if b.name in df.band_name.values])  # noqa
+        dets = self.dets.loc[mask]
+        return Array(name=self.name, dets=dets, bands=[b for b in self.bands if b.name in dets.band_name.values])  # noqa
 
     def one_detector_from_each_band(self):
         first_det_mask = np.isin(
@@ -287,38 +302,68 @@ class Array:
         return cls.from_config(kwargs)
 
     @classmethod
-    def from_config(cls, c):
-        config = copy.deepcopy(c)
-        if "key" in config:
-            config = get_array_config(key=config.pop("key"))
-        config.update(c)
+    def from_config(cls, config):
+        c = copy.deepcopy(config)
+
+        degrees = c.get("degrees", True)
+
+        if "array_name" in config:
+            c.update(get_array_config(key=c.pop("array_name")))
 
         logging.debug(f"Generating array with config {c}")
 
-        bad_keys = [key for key in config if key not in ALLOWED_ARRAY_KWARGS]
-        if bad_keys:
-            raise ValueError(f"Bad kwargs {bad_keys}.")
+        disallowed_array_kwargs = [key for key in c if key not in ALLOWED_ARRAY_KWARGS]
+        if disallowed_array_kwargs:
+            raise ValueError(f"Invalid array kwargs {disallowed_array_kwargs}.")
 
-        if "file" in config:
-            df = pd.read_csv(f"{here}/{config['file']}")
-        else:
-            df = pd.DataFrame()
+        if "file" in c:
+            file = c.pop("file")
+            try:
+                dets = pd.read_csv(f"{here}/{file}")
+            except FileNotFoundError:
+                dets = pd.read_csv(file)
 
-        if "primary_size" in df.columns:
-            primary_sizes = list(np.unique(df.primary_size.values))
-        elif "primary_size" in config:
-            primary_sizes = list(np.atleast_1d(config["primary_size"]))
+            for col in dets.columns:
+                c[col] = dets[col].values
+
+        bands = None
+        if "bands" in c:
+            bands = BandList(c["bands"])
+        elif "band" in c:
+            bands = BandList([Band(c["band"])])
+        elif "band_name" not in c:
+            raise ValueError("Missing parameter 'bands'.")
+
+        # check that these match known bands
+        if "band_name" in c:
+            if bands is not None:
+                for band_name in np.unique(c["band_name"]):
+                    if band_name not in bands.name:
+                        raise ValueError(
+                            f"Band name {band_name} in the supplied 'band_name' parameter does "
+                            f"not match any band in the supplied 'bands' parameter ()."
+                        )
+            else:
+                bands = BandList(sorted(list(np.unique(c["band_name"]))))
+
+        if "primary_size" in c:
+            primary_sizes = np.atleast_1d(c.pop("primary_size"))
         else:
             raise ValueError("Missing array parameter 'primary_size'.")
 
-        if "bands" in config:
-            bands = BandList(config["bands"])
-        elif "band" in config:
-            bands = BandList([Band(config["band"])])
-        else:
-            raise ValueError("You must specify 'band' or 'bands' to generate an array.")
+        if degrees:
+            for param in ["sky_x", "sky_y", "field_of_view", "pol_angle", "rotation"]:
+                if param in c:
+                    c[param] = np.radians(c[param])
 
-        if "file" not in config:
+        if ("sky_x" in c) and ("sky_y" in c):
+            if (c["sky_x"].ndim != 1) or (c["sky_y"].ndim != 1):
+                raise ValueError("Parameters 'sky_{x,y}' must be broadcastable one-dimensional arrays.")
+        elif ("baseline_x" in c) and ("baseline_y" in c):
+            if (c["baseline_x"].ndim != 1) or (c["baseline_y"].ndim != 1):
+                raise ValueError("Parameters 'baseline_{x,y}' must be broadcastable one-dimensional arrays.")
+
+        else:
             max_resolution = max(
                 [
                     compute_angular_fwhm(primary_size, z=np.inf, nu=band.center.Hz)
@@ -332,14 +377,14 @@ class Array:
 
             pattern_kwargs = {}
 
-            n_kwargs = {k: config.get(k) for k in ["n", "n_col", "n_row"] if config.get(k) is not None}
+            n_kwargs = {k: c.get(k) for k in ["n", "n_col", "n_row"] if c.get(k) is not None}
             n_explicit = ("n" in n_kwargs) or (("n_col" in n_kwargs) and ("n_row" in n_kwargs))
-            n_focal_plane_kwargs = sum([n_explicit, "field_of_view" in config, "focal_plane_spacing" in config])
+            n_focal_plane_kwargs = sum([n_explicit, "field_of_view" in c, "focal_plane_spacing" in c])
             n_baseline_kwargs = sum(
                 [
                     n_explicit,
-                    "max_baseline" in config,
-                    "baseline_spacing" in config,
+                    "max_baseline" in c,
+                    "baseline_spacing" in c,
                 ]
             )
 
@@ -352,21 +397,21 @@ class Array:
                     mode = "focal_plane"
                     pattern_kwargs["spacing"] = 0.0
 
-                elif ("field_of_view" in config) or ("beam_spacing" in config):
+                elif ("field_of_view" in c) or ("beam_spacing" in c):
                     # we can only use one if n is explicit
                     mode = "focal_plane"
-                    if "field_of_view" in config:
-                        pattern_kwargs["max_diameter"] = np.radians(config["field_of_view"])
+                    if "field_of_view" in c:
+                        pattern_kwargs["max_diameter"] = c["field_of_view"]
                     else:
-                        pattern_kwargs["spacing"] = config.get("beam_spacing", 1.5) * max_resolution
+                        pattern_kwargs["spacing"] = c.get("beam_spacing", 1.5) * max_resolution
 
-                elif "max_baseline" in config:
+                elif "max_baseline" in c:
                     mode = "baseline"
-                    pattern_kwargs["max_diameter"] = config["max_baseline"]
+                    pattern_kwargs["max_diameter"] = c["max_baseline"]
 
-                elif "baseline_spacing" in config:
+                elif "baseline_spacing" in c:
                     mode = "baseline"
-                    pattern_kwargs["spacing"] = config["baseline_spacing"]
+                    pattern_kwargs["spacing"] = c["baseline_spacing"]
 
                 else:
                     raise ValueError(
@@ -376,15 +421,15 @@ class Array:
 
             else:
                 pattern_kwargs = {}
-                if "field_of_view" in config:
+                if "field_of_view" in c:
                     mode = "focal_plane"
-                    pattern_kwargs["max_diameter"] = np.radians(config["field_of_view"])
-                    pattern_kwargs["spacing"] = config.get("beam_spacing", 1.5) * max_resolution
+                    pattern_kwargs["max_diameter"] = c["field_of_view"]
+                    pattern_kwargs["spacing"] = c.get("beam_spacing", 1.5) * max_resolution
 
-                elif ("max_baseline" in config) and ("baseline_spacing" in config):
+                elif ("max_baseline" in c) and ("baseline_spacing" in c):
                     mode = "baseline"
-                    pattern_kwargs["max_diameter"] = config["max_baseline"]
-                    pattern_kwargs["spacing"] = config["baseline_spacing"]
+                    pattern_kwargs["max_diameter"] = c["max_baseline"]
+                    pattern_kwargs["spacing"] = c["baseline_spacing"]
 
                 else:
                     raise ValueError(
@@ -394,68 +439,68 @@ class Array:
 
             X = generate_2d_pattern(
                 **pattern_kwargs,
-                shape=config.get("shape", "hexagon"),
-                packing=config.get("packing", "triangular"),
-                rotation=np.radians(config.get("rotation", 0)),
+                shape=c.get("shape", "hexagon"),
+                packing=c.get("packing", "triangular"),
+                rotation=c.get("rotation", 0),
             )
 
             if mode == "focal_plane":
-                df = pd.DataFrame(X, columns=["sky_x", "sky_y"])
+                c["sky_x"], c["sky_y"] = X[..., 0], X[..., 1]
             else:
-                df = pd.DataFrame(X, columns=["baseline_x", "baseline_y"])
+                c["baseline_x"], c["baseline_y"] = X[..., 0], X[..., 1]
 
-            df.loc[:, "bath_temp"] = config.get("bath_temp", 0)
+        dets = pd.DataFrame({col: c[col] for col in c if col in PER_DET_KWARGS})
+        dets.loc[:, "base_det_index"] = np.arange(len(dets))
+        dets.loc[:, "primary_size"] = primary_sizes * np.ones(len(dets))
 
-        df.loc[:, "base_det_index"] = np.arange(len(df))
+        for key, default in [("bath_temp", 0), ("time_constant", 0)]:
+            if (key not in dets) or (key in c):
+                dets[key] = np.array(c.get(key, default) * np.ones(len(dets)))
 
-        for key in ["primary_size", "bath_temp"]:
-            if (key in config) and (key not in df.columns):
-                df.loc[:, key] = config[key]
-
-        baseline_offset = config.get("baseline_offset", (0.0, 0.0, 0.0))
-        focal_plane_offset = config.get("focal_plane_offset", (0.0, 0.0))
+        baseline_offset = c.get("baseline_offset", (0.0, 0.0, 0.0))
+        focal_plane_offset = c.get("focal_plane_offset", (0.0, 0.0))
 
         for i in range(3):
             dim = "xyz"[i]
-            if f"baseline_{dim}" not in df.columns:
-                df.loc[:, f"baseline_{dim}"] = 0.0
-            df.loc[:, f"baseline_{dim}"] += baseline_offset[i]
+            if f"baseline_{dim}" not in dets.columns:
+                dets.loc[:, f"baseline_{dim}"] = 0.0
+            dets.loc[:, f"baseline_{dim}"] += baseline_offset[i]
             if dim == "z":
                 continue
-            if f"sky_{dim}" not in df.columns:
-                df.loc[:, f"sky_{dim}"] = 0.0
-            df.loc[:, f"sky_{dim}"] += np.radians(focal_plane_offset[i])
+            if f"sky_{dim}" not in dets.columns:
+                dets.loc[:, f"sky_{dim}"] = 0.0
+            dets.loc[:, f"sky_{dim}"] += np.radians(focal_plane_offset[i])
 
-        if config.get("polarized", False):
-            df.loc[:, "pol_angle"] = np.random.uniform(
-                low=0,
-                high=np.pi,
-                size=len(df),
-            )
-            df.loc[:, "pol_label"] = "A"
+        if "pol_angle" not in dets:
+            if c.get("polarized", False):
+                dets.loc[:, "pol_angle"] = np.random.uniform(
+                    low=0,
+                    high=np.pi,
+                    size=len(dets),
+                )
+                dets.loc[:, "pol_label"] = "A"
+                other_dets = dets.copy()
+                other_dets.loc[:, "pol_angle"] = (dets.pol_angle + np.pi / 2) % np.pi
+                other_dets.loc[:, "pol_label"] = "B"
+                dets = pd.concat([dets, other_dets])
 
-            other_df = df.copy()
-            other_df.loc[:, "pol_angle"] = (df.pol_angle + np.pi / 2) % np.pi
-            other_df.loc[:, "pol_label"] = "B"
-            df = pd.concat([df, other_df])
+            else:
+                dets.loc[:, "pol_angle"] = np.nan
 
-        else:
-            df.loc[:, "pol_angle"] = None
-
-        if "band_name" not in df.columns:
-            band_dfs = []
+        if "band_name" not in dets.columns:
+            band_dets_list = []
             for band in bands:
-                band_df = df.copy()
-                band_df.loc[:, "band_name"] = band.name
-                band_dfs.append(band_df)
-            df = pd.concat(band_dfs)
+                band_dets = dets.copy()
+                band_dets.loc[:, "band_name"] = band.name
+                band_dets_list.append(band_dets)
+            dets = pd.concat(band_dets_list)
 
-        df = df.sort_values(["band_name", "base_det_index"], ascending=True)
+        dets = dets.sort_values(["band_name", "base_det_index"], ascending=True)
 
-        for col in df.columns:
-            df[col] = df[col].astype(DET_COLUMN_TYPES.get(col, str))
+        for col in dets.columns:
+            dets[col] = dets[col].astype(DET_COLUMN_TYPES.get(col, str))
 
-        return cls(dets=df, bands=bands, name=config.get("name", str(uuid.uuid4())[:8]))
+        return cls(dets=dets, bands=bands, name=c.get("name", str(uuid.uuid4())[:8]))
 
     def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=False):
         # if plot_baseline == "infer":
@@ -585,9 +630,9 @@ class ArrayList:
     def combine(self):
         array_dets = []
         for array in self.arrays:
-            df = copy.deepcopy(array.dets)
-            df.loc[:, "array_name"] = array.name
-            array_dets.append(df)
+            dets = copy.deepcopy(array.dets)
+            dets.loc[:, "array_name"] = array.name
+            array_dets.append(dets)
         return Array(name="", dets=pd.concat(array_dets), bands=self.bands)
 
     def one_detector_from_each_band(self):

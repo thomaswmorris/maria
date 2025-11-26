@@ -353,6 +353,9 @@ class Atmosphere:
                         method="linear",
                     )(transformed_lpp[..., :2])
 
+                    if np.isnan(y).any():
+                        raise RuntimeError(f"Layer {layer_index} in process {k} introduced nans into PWV simulation.")
+
                     # y = y
 
                     self.zenith_scaled_pwv += layer.pwv_rms * y
