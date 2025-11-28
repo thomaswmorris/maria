@@ -295,9 +295,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">maria.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch</span>
 
 <span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster2.fits&quot;</span><span class="p">),</span> <span class="n">nu</span><span class="o">=</span><span class="mf">150e9</span><span class="p">)</span>
-<span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">5e1</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">2e1</span>
 
-<span class="n">input_map</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">256</span><span class="p">:</span><span class="o">-</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">:</span><span class="o">-</span><span class="mi">256</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;cmb&quot;</span><span class="p">)</span>
+<span class="n">input_map</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">256</span><span class="p">:</span><span class="o">-</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">:</span><span class="o">-</span><span class="mi">256</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;cmb&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -307,8 +307,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-28 07:46:22.203 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
-Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 109MB/s]
+2025-11-28 16:48:32.425 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
+Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 57.1MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -324,9 +324,9 @@ ProjectionMap:
   z: naive
   quantity: spectral_flux_density_per_pixel
   units: Jy/pixel
-    min: -5.777e-04
-    max: -1.459e-07
-    rms: 7.352e-05
+    min: -2.311e-04
+    max: -5.838e-08
+    rms: 2.941e-05
   center:
     ra: 17ʰ20ᵐ0.00ˢ
     dec: -10°00’0.00”
@@ -366,9 +366,9 @@ ProjectionMap:
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 900 s):
-                           start_time duration   target(ra,dec)     center(az,el)
+                           start_time duration target(ra,dec)     center(az,el)
 chunk
-0      2025-11-28 16:18:15.976 +00:00    900 s  (260°, -9.999°)  (48.02°, 71.47°)
+0      2025-11-28 16:48:33.810 +00:00    900 s   (260°, -10°)  (25.97°, 75.74°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -392,9 +392,9 @@ chunk
     <span class="n">knee</span><span class="o">=</span><span class="mf">1e1</span><span class="p">,</span>
     <span class="n">gain_error</span><span class="o">=</span><span class="mf">2e-2</span><span class="p">)</span>
 
-<span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
-         <span class="s2">&quot;beam_spacing&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
-         <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+<span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+         <span class="s2">&quot;beam_spacing&quot;</span><span class="p">:</span> <span class="mf">1.25</span><span class="p">,</span>
+         <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
          <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;circle&quot;</span><span class="p">,</span>
          <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f150</span><span class="p">]}</span>
 
@@ -413,11 +413,11 @@ chunk
 Instrument(1 array)
 ├ arrays:
 │            n     FOV baseline   bands polarized
-│  array1  756  6.056’      0 m  [f150]     False
+│  array1  678  11.91’      0 m  [f150]     False
 │
 └ bands:
-      name   center   width    η         NEP      NET_RJ         NET_CMB   FWHM
-   0  f150  150 GHz  30 GHz  0.5  6.125 aW√s  30 uK_RJ√s  52.02 uK_CMB√s  10.5”
+      name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
+   0  f150  150 GHz  30 GHz  0.5  6.125 aW√s  30 uK_RJ√s  52.02 uK_CMB√s  0.3499’
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -453,11 +453,11 @@ Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
 │ │            n     FOV baseline   bands polarized
-│ │  array1  756  6.056’      0 m  [f150]     False
+│ │  array1  678  11.91’      0 m  [f150]     False
 │ │
 │ └ bands:
-│       name   center   width    η         NEP      NET_RJ         NET_CMB   FWHM
-│    0  f150  150 GHz  30 GHz  0.5  6.125 aW√s  30 uK_RJ√s  52.02 uK_CMB√s  10.5”
+│       name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
+│    0  f150  150 GHz  30 GHz  0.5  6.125 aW√s  30 uK_RJ√s  52.02 uK_CMB√s  0.3499’
 ├ Site:
 │   region: chajnantor
 │   timezone: America/Santiago
@@ -468,21 +468,21 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 900 s):
-│                            start_time duration   target(ra,dec)     center(az,el)
+│                            start_time duration target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2025-11-28 16:18:15.976 +00:00    900 s  (260°, -9.999°)  (48.02°, 71.47°)
+│ 0      2025-11-28 16:48:33.810 +00:00    900 s   (260°, -10°)  (25.97°, 75.74°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (1, 1, 1, 1024, 1024)
     stokes: I
     nu: [150.] GHz
-    t: [1.76431598e+09]
+    t: [1.76434851e+09]
     z: naive
     quantity: spectral_flux_density_per_pixel
     units: Jy/pixel
-      min: -5.777e-04
-      max: -1.459e-07
-      rms: 7.352e-05
+      min: -2.311e-04
+      max: -5.838e-08
+      rms: 2.941e-05
     center:
       ra: 17ʰ20ᵐ0.00ˢ
       dec: -10°00’0.00”
@@ -506,14 +506,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-28 07:46:32.072 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:06&lt;00:00,  1.16it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 17.57it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:04&lt;00:00,  1.65it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.04it/s, band=f150]
-Sampling map: 100%|████████████████| 1/1 [00:16&lt;00:00, 16.12s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.37s/it, band=f150]
-2025-11-28 07:47:25.359 INFO: Simulated observation 1 of 1 in 53.28 s
+2025-11-28 16:48:42.347 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:13&lt;00:00,  1.72s/it]
+Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  7.88it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:05&lt;00:00,  1.35it/s]
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.51s/it, band=f150]
+Sampling map: 100%|████████████████| 1/1 [00:13&lt;00:00, 13.79s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.30s/it, band=f150]
+2025-11-28 16:49:39.837 INFO: Simulated observation 1 of 1 in 57.48 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -530,9 +530,10 @@ Generating noise: 100%|████████████████| 1/1 [00
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaximumLikelihoodMapper</span>
 
 <span class="n">ml_mapper</span> <span class="o">=</span> <span class="n">MaximumLikelihoodMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
-                                    <span class="n">width</span><span class="o">=</span><span class="mf">0.8</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
-                                    <span class="n">height</span><span class="o">=</span><span class="mf">0.8</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">height</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
-                                    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">)</span>
+                                    <span class="n">width</span><span class="o">=</span><span class="mf">0.75</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+                                    <span class="n">height</span><span class="o">=</span><span class="mf">0.75</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">height</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+                                    <span class="n">resolution</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+                                    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mK_RJ&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">loss</span><span class="p">()</span><span class="w"> </span><span class="si">= }</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -542,12 +543,11 @@ Generating noise: 100%|████████████████| 1/1 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-28 07:47:35.577 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.42ˢ&#39;, &#39;dec&#39;: &#39;-9°59’55.32”&#39;} for mapper.
-2025-11-28 07:47:35.591 INFO: Inferring mapper resolution 0.375’ for mapper from observation patch.
-2025-11-28 07:47:35.593 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.43s/it]
-Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.34s/it, tod=1/1]
-Computing noise model: 100%|██████████| 1/1 [00:06&lt;00:00,  6.30s/it, tod=1/1]
+2025-11-28 16:49:49.335 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.18ˢ&#39;, &#39;dec&#39;: &#39;-10°00’10.52”&#39;} for mapper.
+2025-11-28 16:49:49.337 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.35s/it]
+Mapping: 100%|██████████| 1/1 [00:02&lt;00:00,  2.88s/it, tod=1/1]
+Computing noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.75s/it, tod=1/1]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -555,7 +555,7 @@ Computing noise model: 100%|██████████| 1/1 [00:06&lt;00:00,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ml_mapper.loss() = tensor(2457065.5000, grad_fn=&lt;AddBackward0&gt;)
+ml_mapper.loss() = tensor(0.0557, grad_fn=&lt;AddBackward0&gt;)
 </pre></div></div>
 </div>
 <p>The initial map is a “guess” constructing by heavily filtering the input TODs:</p>
@@ -574,23 +574,23 @@ ml_mapper.loss() = tensor(2457065.5000, grad_fn=&lt;AddBackward0&gt;)
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  shape(stokes, nu, t, y, x): (1, 1, 1, 128, 128)
+  shape(stokes, nu, t, y, x): (1, 1, 1, 76, 76)
   stokes: I
   nu: [150.] GHz
-  t: [1.76434715e+09]
+  t: [1.76434896e+09]
   z: naive
-  quantity: spectral_flux_density_per_pixel
-  units: Jy/pixel
-    min: -3.891e-02
-    max: 2.037e-02
-    rms: 4.275e-03
+  quantity: rayleigh_jeans_temperature
+  units: mK_RJ
+    min: -4.102e-01
+    max: 1.357e-01
+    rms: 6.770e-02
   center:
-    ra: 17ʰ19ᵐ59.42ˢ
-    dec: -9°59’55.32”
-  size(y, x): (0.8°, 0.8°)
-  resolution(y, x): (0.375’, 0.375’)
-  beam(maj, min, rot): [[[[10.4977129 10.4977129  0.       ]]]]”
-  memory: 0.2621 MB
+    ra: 17ʰ20ᵐ0.18ˢ
+    dec: -10°00’10.52”
+  size(y, x): (0.7422°, 0.7422°)
+  resolution(y, x): (0.5859’, 0.5859’)
+  beam(maj, min, rot): [[[[0.34992376 0.34992376 0.        ]]]]’
+  memory: 92.42 kB
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -605,7 +605,7 @@ ProjectionMap:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">steps_per_epoch</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">steps_per_epoch</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">2e-1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -614,10 +614,10 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-epoch 1/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.85s/it, loss=3.133e+04]
-epoch 2/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.86s/it, loss=1.185e+04]
-epoch 3/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.86s/it, loss=5.845e+03]
-epoch 4/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.85s/it, loss=5.016e+03]
+epoch 1/4: 100%|████████████████| 32/32 [01:51&lt;00:00,  3.48s/it, loss=3.680e-03]
+epoch 2/4: 100%|████████████████| 32/32 [01:51&lt;00:00,  3.48s/it, loss=1.065e-03]
+epoch 3/4: 100%|████████████████| 32/32 [01:51&lt;00:00,  3.48s/it, loss=5.771e-04]
+epoch 4/4: 100%|████████████████| 32/32 [01:51&lt;00:00,  3.47s/it, loss=3.561e-04]
 </pre></div></div>
 </div>
 <p>which gives us an improved map</p>
