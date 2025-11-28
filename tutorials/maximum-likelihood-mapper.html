@@ -307,8 +307,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-24 21:00:20.672 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
-Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 23.9MB/s]
+2025-11-28 07:46:22.203 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
+Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 109MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -368,7 +368,7 @@ ProjectionMap:
 PlanList(1 plans, 900 s):
                            start_time duration   target(ra,dec)     center(az,el)
 chunk
-0      2025-11-25 16:29:25.956 +00:00    900 s  (260°, -9.998°)  (48.37°, 71.36°)
+0      2025-11-28 16:18:15.976 +00:00    900 s  (260°, -9.999°)  (48.02°, 71.47°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -470,13 +470,13 @@ Simulation
 ├ PlanList(1 plans, 900 s):
 │                            start_time duration   target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2025-11-25 16:29:25.956 +00:00    900 s  (260°, -9.998°)  (48.37°, 71.36°)
+│ 0      2025-11-28 16:18:15.976 +00:00    900 s  (260°, -9.999°)  (48.02°, 71.47°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (1, 1, 1, 1024, 1024)
     stokes: I
     nu: [150.] GHz
-    t: [1.76401802e+09]
+    t: [1.76431598e+09]
     z: naive
     quantity: spectral_flux_density_per_pixel
     units: Jy/pixel
@@ -488,7 +488,7 @@ Simulation
       dec: -10°00’0.00”
     size(y, x): (1°, 1°)
     resolution(y, x): (3.516”, 3.516”)
-    beam(maj, min, rot): [[0. 0. 0.]] rad
+    beam(maj, min, rot): [[[[0. 0. 0.]]]] rad
     memory: 16.78 MB
 </pre></div></div>
 </div>
@@ -506,14 +506,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-24 21:00:30.554 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:08&lt;00:00,  1.01s/it]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 16.91it/s]
+2025-11-28 07:46:32.072 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:06&lt;00:00,  1.16it/s]
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 17.57it/s]
 Sampling turbulence: 100%|████████████████| 8/8 [00:04&lt;00:00,  1.65it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=f150]
-Sampling map: 100%|████████████████| 1/1 [00:16&lt;00:00, 16.08s/it, band=f150]
-Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.31s/it, band=f150]
-2025-11-24 21:01:22.871 INFO: Simulated observation 1 of 1 in 52.31 s
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.04it/s, band=f150]
+Sampling map: 100%|████████████████| 1/1 [00:16&lt;00:00, 16.12s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.37s/it, band=f150]
+2025-11-28 07:47:25.359 INFO: Simulated observation 1 of 1 in 53.28 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -530,8 +530,8 @@ Generating noise: 100%|████████████████| 1/1 [00
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaximumLikelihoodMapper</span>
 
 <span class="n">ml_mapper</span> <span class="o">=</span> <span class="n">MaximumLikelihoodMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
-                                    <span class="n">width</span><span class="o">=</span><span class="mf">0.8</span><span class="o">*</span><span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
-                                    <span class="n">height</span><span class="o">=</span><span class="mf">0.8</span><span class="o">*</span><span class="n">input_map</span><span class="o">.</span><span class="n">height</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+                                    <span class="n">width</span><span class="o">=</span><span class="mf">0.8</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+                                    <span class="n">height</span><span class="o">=</span><span class="mf">0.8</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">height</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
                                     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Jy/pixel&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">loss</span><span class="p">()</span><span class="w"> </span><span class="si">= }</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -542,12 +542,12 @@ Generating noise: 100%|████████████████| 1/1 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-24 21:01:32.995 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.51ˢ&#39;, &#39;dec&#39;: &#39;-9°59’53.06”&#39;} for mapper.
-2025-11-24 21:01:33.008 INFO: Inferring mapper resolution 0.375’ for mapper from observation patch.
-2025-11-24 21:01:33.010 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.41s/it]
-Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.32s/it, tod=1/1]
-Computing noise model: 100%|██████████| 1/1 [00:06&lt;00:00,  6.09s/it, tod=1/1]
+2025-11-28 07:47:35.577 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.42ˢ&#39;, &#39;dec&#39;: &#39;-9°59’55.32”&#39;} for mapper.
+2025-11-28 07:47:35.591 INFO: Inferring mapper resolution 0.375’ for mapper from observation patch.
+2025-11-28 07:47:35.593 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.43s/it]
+Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.34s/it, tod=1/1]
+Computing noise model: 100%|██████████| 1/1 [00:06&lt;00:00,  6.30s/it, tod=1/1]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -555,7 +555,7 @@ Computing noise model: 100%|██████████| 1/1 [00:06&lt;00:00,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ml_mapper.loss() = tensor(2564628.2500, grad_fn=&lt;AddBackward0&gt;)
+ml_mapper.loss() = tensor(2457065.5000, grad_fn=&lt;AddBackward0&gt;)
 </pre></div></div>
 </div>
 <p>The initial map is a “guess” constructing by heavily filtering the input TODs:</p>
@@ -577,19 +577,19 @@ ProjectionMap:
   shape(stokes, nu, t, y, x): (1, 1, 1, 128, 128)
   stokes: I
   nu: [150.] GHz
-  t: [1.76408862e+09]
+  t: [1.76434715e+09]
   z: naive
   quantity: spectral_flux_density_per_pixel
   units: Jy/pixel
-    min: -4.125e-02
-    max: 1.966e-02
-    rms: 4.380e-03
+    min: -3.891e-02
+    max: 2.037e-02
+    rms: 4.275e-03
   center:
-    ra: 17ʰ20ᵐ0.51ˢ
-    dec: -9°59’53.06”
+    ra: 17ʰ19ᵐ59.42ˢ
+    dec: -9°59’55.32”
   size(y, x): (0.8°, 0.8°)
   resolution(y, x): (0.375’, 0.375’)
-  beam(maj, min, rot): [[[10.4977129 10.4977129  0.       ]]]”
+  beam(maj, min, rot): [[[[10.4977129 10.4977129  0.       ]]]]”
   memory: 0.2621 MB
 </pre></div></div>
 </div>
@@ -614,10 +614,10 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-epoch 1/4: 100%|████████████████| 32/32 [02:34&lt;00:00,  4.83s/it, loss=3.229e+04]
-epoch 2/4: 100%|████████████████| 32/32 [02:34&lt;00:00,  4.83s/it, loss=1.158e+04]
-epoch 3/4: 100%|████████████████| 32/32 [02:34&lt;00:00,  4.83s/it, loss=5.354e+03]
-epoch 4/4: 100%|████████████████| 32/32 [02:34&lt;00:00,  4.84s/it, loss=4.478e+03]
+epoch 1/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.85s/it, loss=3.133e+04]
+epoch 2/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.86s/it, loss=1.185e+04]
+epoch 3/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.86s/it, loss=5.845e+03]
+epoch 4/4: 100%|████████████████| 32/32 [02:35&lt;00:00,  4.85s/it, loss=5.016e+03]
 </pre></div></div>
 </div>
 <p>which gives us an improved map</p>
