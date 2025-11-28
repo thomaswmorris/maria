@@ -1,19 +1,12 @@
-try:
-    import torch
-
-    torch.set_num_threads(1)
-except ImportError:
-    raise ImportError("To do maximum likelihood mapping in maria, please install PyTorch (pip install torch)")
-
 from collections.abc import Sequence
 
 import numpy as np
 import scipy as sp
+import torch
 from tqdm import tqdm, trange
 
 from ..map import ProjectionMap
 from ..tod import TOD
-from ..utils import decompose
 from .base import BaseProjectionMapper
 from .bin_mapper import BinMapper
 
@@ -103,7 +96,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             degrees=False,
             tod_preprocessing={
                 "remove_modes": {"modes_to_remove": 1},
-                "remove_spline": {"knot_spacing": 10, "remove_el_gradient": True},
+                "remove_spline": {"knot_spacing": 20, "remove_el_gradient": True},
             },
             map_postprocessing={"gaussian_filter": {"sigma": 2}},
             progress_bars=False,
