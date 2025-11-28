@@ -11,9 +11,6 @@ jobs:
     steps:
       - name: Checkout maria
         uses: actions/checkout@v4
-        with:
-          path: maria
-
 
       - name: Checkout nifty_maria (inside CMB_denoising)
         uses: actions/checkout@v4
