@@ -21,6 +21,7 @@ dependencies = [
   "requests",
   "scipy",
   "scikit-image",
+  "torch",
   "tqdm",
 ]
 requires-python = ">=3.9"
@@ -46,9 +47,6 @@ classifiers = [  # Optional
 ]
 
 [project.optional-dependencies] # Optional
-mapping = [
-  "torch",
-]
 pre-commit = [
   "ruff",
   "import-linter",
@@ -78,7 +76,6 @@ dev = [
   "types-PyYAML",
   "mypy",
 ]
-all = ["maria[mapping,dev]"]
 
 [project.urls]
 "Homepage" = "https://github.com/thomaswmorris/maria"
