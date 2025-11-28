@@ -1,0 +1,64 @@
+name: Test Nifty Maria
+
+on: 
+  push:
+  pull_request:
+
+jobs:
+  test-nifty-maria:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout maria
+        uses: actions/checkout@v4
+        with:
+          path: maria
+
+
+      - name: Checkout nifty_maria (inside CMB_denoising)
+        uses: actions/checkout@v4
+        with:
+          repository: jwuerzinger/CMB_denoising
+          path: CMB_denoising
+          ref: pixi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pixi
+        run: |
+          cd CMB_denoising
+          curl -fsSL https://pixi.sh/install.sh | bash
+          echo "$HOME/.pixi/bin" >> $GITHUB_PATH
+
+      - name: Set up pixi test cpu no maria environment
+        run: |
+          cd CMB_denoising
+          pixi install -e test
+
+      - name: Install maria in pixi environment
+        run: |
+          cd CMB_denoising
+          pixi run -e test pip install -e ../
+
+      - name: Run tests with pixi
+        run: |
+          cd CMB_denoising/nifty_maria
+          pixi run -e test pytest -q
+
+      - name: Run atmos test
+        run: |
+          cd CMB_denoising/nifty_maria/steering
+          pixi run -e test python test_steering.py --config test --fit_atmos True --fit_map False
+
+      - name: Run map test
+        run: |
+          cd CMB_denoising/nifty_maria/steering
+          pixi run -e test python test_steering.py --config test --fit_atmos False --fit_map True
+      
+      - name: Run both atmos and map test
+        run: |
+          cd CMB_denoising/nifty_maria/steering
+          pixi run -e test python test_steering.py --config test --fit_atmos True --fit_map True
