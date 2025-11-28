@@ -70,7 +70,6 @@ class BaseMapper:
         else:
             self.timestep = timestep
             time_bins = np.arange(min_time, max_time + timestep, timestep)
-            time_bins += mean_time - self.time_bins.mean()
             self.t = (time_bins[1:] + time_bins[:-1]) / 2
 
         self.bands = BandList([])
@@ -78,13 +77,13 @@ class BaseMapper:
         self.tods = []
         self.add_tods(tods)
 
-        beam_sum = np.zeros((len(self.bands), 1, 3))
-        beam_wgt = np.zeros((len(self.bands), 1, 3))
+        beam_sum = np.zeros((len(self.nu), 1, 3))
+        beam_wgt = np.zeros((len(self.nu), 1, 3))
 
-        for band_index, band in enumerate(self.bands):
+        for nu_index, nu in enumerate(self.nu):
             for tod in self.tods:
-                beam_sum[band_index] += tod.duration * tod.dets.beams[tod.dets.band_name == band.name].mean(axis=0)
-                beam_wgt[band_index] += tod.duration
+                beam_sum[nu_index] += tod.duration * tod.dets.beams[tod.dets.band_center == nu].mean(axis=0)
+                beam_wgt[nu_index] += tod.duration
 
         self.beam = beam_sum / beam_wgt
 

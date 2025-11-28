@@ -131,9 +131,7 @@ class Map:
         if np.shape(beam)[-1] != 3:
             raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
 
-        beam = beam * np.ones((1, 3) if "nu" in self.dims else 3)
-
-        self.beam = Quantity(beam, "deg" if degrees else "rad")
+        self.beam = Quantity(beam * np.ones((*self.slice_dims.values(), 3)), "deg" if degrees else "rad")
 
         if self.u["quantity"] == "spectral_flux_density_per_beam":
             if not np.all(self.beam_area > 0):
@@ -174,12 +172,11 @@ class Map:
         """
         This might break in the year 3000.
         """
-        t_min = arrow.get("0001-01-01").timestamp()
-        t_max = arrow.get("3000-01-01").timestamp()
+        # t_min = arrow.get("0001-01-01").timestamp()
+        # t_max = arrow.get("3000-01-01").timestamp()
+        # return np.array([-np.inf, *(self.t[1:] + self.t[:-1]) / 2, np.inf])
 
-        return np.array([t_min, *(self.t[1:] + self.t[:-1]) / 2, t_max])
-
-        # return np.array([-np.inf, *(self.t[1:] + self.t[:-1])/2, np.inf])
+        return np.array([-np.inf, *(self.t[1:] + self.t[:-1]) / 2, np.inf])
 
     @property
     def t_side(self):
@@ -226,7 +223,7 @@ class Map:
             raise Exception(f"{self.__class__.__name__} already has dimension '{dim}'")
 
         new_dim_index = 0
-        for d in ["stokes", "nu", "t"]:
+        for d in ["stokes", "nu", "t", "z"]:
             if d == dim:
                 break
             if d in self.dims:
@@ -235,6 +232,8 @@ class Map:
         package = self.package()
         package["data"] = np.expand_dims(package["data"], new_dim_index)
         package["weight"] = np.expand_dims(package["weight"], new_dim_index)
+        package["beam"] = np.expand_dims(package["beam"], new_dim_index)
+
         if value is None:
             value = SLICE_DIMS[dim]["default"]
         package[dim] = value
@@ -247,7 +246,8 @@ class Map:
         Returns the beam area in steradians
         """
         area = (np.pi / 4) * self.beam[..., 0].radians * self.beam[..., 1].radians
-        return Quantity(area * np.ones(tuple(self.slice_dims.values())), "sr")
+        area = np.expand_dims(area, axis=(-1, -2)[: len(self.map_dims)])
+        return Quantity(area, "sr")
 
     def to(self, units: str, **calibration_kwargs: Mapping):
         if units == self.units:

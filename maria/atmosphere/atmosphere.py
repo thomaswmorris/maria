@@ -77,35 +77,35 @@ class Atmosphere:
 
         self._initialized = False
 
-    def initialize(self, instrument, boresight, site):
+    def initialize(self, obs):
         """
         Simulate a realization of PWV.
         """
 
         self.layers = generate_layers(
-            instrument=instrument,
-            boresight=boresight,
+            instrument=obs.instrument,
+            boresight=obs.boresight,
             weather=self.weather,
-            site=site,
+            site=obs.site,
             mode=self.model,
             angular=self.angular,
             max_height=self.max_height,
         )
 
         if self.timestep is None:
-            min_fwhm = instrument.dets.angular_fwhm(z=self.max_height).min()
+            min_fwhm = obs.instrument.dets.angular_fwhm(z=self.max_height).min()
             max_wind = Quantity((self.layers.wind_speed / self.layers.h).values, "rad/s").max()
-            self.timestep = (min_fwhm / max_wind).s
+            self.timestep = max(1e-1, (min_fwhm / max_wind).s)
 
-        self.boresight = boresight.downsample(timestep=self.timestep)
+        self.boresight = obs.boresight.downsample(timestep=self.timestep)
         self.coords = self.boresight.broadcast(
-            instrument.dets.offsets,
+            obs.instrument.dets.offsets,
             frame="az/el",
         )
 
         # this is a smaller version of the sim coords
         outer_coords = self.boresight.broadcast(
-            instrument.dets.outer().offsets,
+            obs.instrument.dets.outer().offsets,
             frame="az/el",
         )
 
@@ -206,23 +206,34 @@ class Atmosphere:
                 self.layers.loc[in_process].iterrows(),
             ):
                 # this algorithm probably works
-                res = layer.res
-                wide_lp_x_dense = np.linspace(min_ty, max_ty, 10000)
-                wide_lp_z_dense = layer.h * np.ones(len(wide_lp_x_dense))
-                wide_lp_dense = np.c_[wide_lp_x_dense, wide_lp_z_dense]
-                interior = triangulation.find_simplex(wide_lp_dense) > -1
-                # interior = interior if interior.any() else np.ones_like(interior, dtype=bool)
-                lp_dense_x = wide_lp_x_dense[interior]
-                lp_x_min = lp_dense_x.min() - 2 * res
-                lp_x_max = lp_dense_x.max() + 2 * res
-                n_lp = np.maximum(3, int((lp_x_max - lp_x_min) / res))
-                lp_x = np.linspace(lp_x_min, lp_x_max, n_lp)
-                lp_z = layer.h * np.ones(len(lp_x))
-                lp = np.c_[lp_x, lp_z]
-                n_lp = len(lp)
+                n_cross_section = int(np.maximum(2, (np.ptp(tp[:, 1]) + 2 * layer.res) / layer.res))
+                cross_section_points = np.stack(
+                    [
+                        np.linspace(tp[:, 1].min() - layer.res, tp[:, 1].max() + layer.res, n_cross_section),
+                        layer.h * np.ones(n_cross_section),
+                    ]
+                ).T
 
-                layer_labels.extend(n_lp * [layer_index])
-                cross_section_points_list.append(lp)
+                layer_labels.extend(n_cross_section * [layer_index])
+                cross_section_points_list.append(cross_section_points)
+
+                # res = layer.res
+                # wide_lp_x_dense = np.linspace(min_ty, max_ty, 10000)
+                # wide_lp_z_dense = layer.h * np.ones(len(wide_lp_x_dense))
+                # wide_lp_dense = np.c_[wide_lp_x_dense, wide_lp_z_dense]
+                # interior = triangulation.find_simplex(wide_lp_dense) > -1
+                # # interior = interior if interior.any() else np.ones_like(interior, dtype=bool)
+                # lp_dense_x = wide_lp_x_dense[interior]
+                # lp_x_min = lp_dense_x.min() - 2 * res
+                # lp_x_max = lp_dense_x.max() + 2 * res
+                # n_lp = np.maximum(3, int((lp_x_max - lp_x_min) / res))
+                # lp_x = np.linspace(lp_x_min, lp_x_max, n_lp)
+                # lp_z = layer.h * np.ones(len(lp_x))
+                # lp = np.c_[lp_x, lp_z]
+                # n_lp = len(lp)
+
+                # layer_labels.extend(n_lp * [layer_index])
+                # cross_section_points_list.append(lp)
 
             cross_section_points = np.concatenate(cross_section_points_list, axis=0)
 

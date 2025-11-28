@@ -72,7 +72,6 @@ class ProjectionMap(Map):
             raise ValueError("'center' must be a two-tuple of numbers")
 
         self.frame = Frame(frame)
-        beam = beam if beam is not None else 0.0
 
         super().__init__(
             data=data,
@@ -105,9 +104,13 @@ class ProjectionMap(Map):
                     y_res = height / self.n_y
                 else:
                     y_res = x_res
-            else:
+            elif height is not None:
                 # here height must not be None
                 x_res = y_res = height / self.n_y
+            else:
+                raise ValueError(
+                    f"{self.__class__.__name__} needs one of ['width', 'height', 'resolution', 'x_res', 'y_res']."
+                )
 
         self.x_res = Quantity(x_res, "deg" if degrees else "rad")
         self.y_res = Quantity(y_res, "deg" if degrees else "rad")
@@ -218,33 +221,32 @@ class ProjectionMap(Map):
         raise AttributeError(f"'ProjectionMap' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
-        if not hasattr(key, "__iter__"):
-            key = (key,)
+        key = key if isinstance(key, tuple) else (key,)
 
         explicit_slices = unpack_implicit_slice(key, ndims=self.ndim)
-
-        _, dimensions = get_factor_and_base_units_vector(self.units)
-        if all([dimensions[dim] == 0 for dim in ["pixel", "rad"]]):
-            # don't convert if in resolution-neutral units (like temperature)
-            package = self.package()
-        else:
-            # convert if in non-resolution-neutral units (like spectral flux)
-            package = self.to("K_RJ").package()
+        package = self.package()
 
         package["data"] = package["data"][key]
         package["weight"] = package["weight"][key]
+        package["beam"] = package["beam"][explicit_slices[: -len(self.map_dims)]]
 
         for axis, (dim, naxis) in enumerate(self.dims.items()):
             if dim not in "xy":
-                package[dim] = package[dim][explicit_slices[axis]]
+                if isinstance(explicit_slices[axis], int):
+                    package.pop(dim)
+                else:
+                    package[dim] = package[dim][explicit_slices[axis]]
 
-            if dim in "nu":
-                package["beam"] = package["beam"][explicit_slices[axis]]
+        x_res_factor = explicit_slices[-1].step or 1.0
+        y_res_factor = explicit_slices[-2].step or 1.0
 
-        package["y_res"] *= explicit_slices[-2].step or 1
-        package["x_res"] *= explicit_slices[-1].step or 1
+        _, dimensions = get_factor_and_base_units_vector(self.units)
 
-        return ProjectionMap(**package).to(self.units)
+        package["y_res"] *= y_res_factor
+        package["x_res"] *= x_res_factor
+        package["data"] *= (x_res_factor * y_res_factor) ** dimensions.pixel
+
+        return ProjectionMap(**package)
 
     def downsample(self, reduce: tuple, func: Callable = np.mean):
         if reduce:
