@@ -41,7 +41,7 @@ jobs:
       - name: Install maria in pixi environment
         run: |
           cd CMB_denoising
-          pixi run -e test pip install -e ../../
+          pixi run -e test pip install -e ../
 
       - name: Run tests with pixi
         run: |
