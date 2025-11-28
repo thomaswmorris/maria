@@ -84,10 +84,6 @@ class MapMixin:
             band_coords = obs.coords[band_mask]
             band_dets = obs.instrument.dets[band_mask]
 
-            pointing_s = ttime.monotonic()
-            P = self.map.pointing_matrix(coords=band_coords, dets=band_dets)
-            logger.debug(f"Computed pointing matrix for band {band.name} in {humanize_time(ttime.monotonic() - pointing_s)}")
-
             band_fwhm = Quantity(
                 compute_angular_fwhm(
                     fwhm_0=obs.instrument.dets.primary_size.mean(),
@@ -102,9 +98,12 @@ class MapMixin:
 
             for channel_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
                 channel_s = ttime.monotonic()
-                channel_map = smoothed_map.to("K_RJ", band=band).data[:, channel_index]
+                channel_map = smoothed_map.to("K_RJ", band=band)[:, [channel_index]]
                 qchannel = (nu_min, nu_max)
                 channel_string = f"{qchannel}"
+
+                if (band.nu.Hz.max() < nu_min.Hz) or (nu_max.Hz < band.nu.Hz.min()):
+                    continue
 
                 spectrum_kwargs = (
                     {
@@ -128,6 +127,8 @@ class MapMixin:
                     f"{humanize_time(ttime.monotonic() - calibration_s)}"
                 )
 
+                bands_pbar.set_postfix(band=band.name, channel=channel_string)
+
                 # for stokes_index, stokes in enumerate(getattr(self.map, "stokes", "I")):
                 #    bands_pbar.set_postfix(band=band.name, channel=channel_string, stokes=stokes)
 
@@ -150,7 +151,13 @@ class MapMixin:
                 # flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
                 # flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
 
-                pW = pW_per_K_RJ * (P @ channel_map.ravel()).reshape(band_coords.shape)
+                pointing_s = ttime.monotonic()
+                P = channel_map.pointing_matrix(coords=band_coords, dets=band_dets)
+                logger.debug(
+                    f"Computed pointing matrix for band {band.name} in {humanize_time(ttime.monotonic() - pointing_s)}"
+                )
+
+                pW = pW_per_K_RJ * (P @ channel_map.data.ravel()).reshape(band_coords.shape)
 
                 map_loading[band_mask] += pW
 
