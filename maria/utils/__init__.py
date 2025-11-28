@@ -89,6 +89,7 @@ def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, 
 
 
 def unpack_implicit_slice(key, ndims):
+    key = key if isinstance(key, tuple) else tuple(key)
     explicit_slices = []
     for s in key:
         if s == Ellipsis:

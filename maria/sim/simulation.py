@@ -200,7 +200,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         if hasattr(obs, "atmosphere"):
             atmosphere_sim_start_s = ttime.monotonic()
-            obs.atmosphere.initialize(instrument=obs.instrument, boresight=obs.boresight, site=obs.site)
+            obs.atmosphere.initialize(obs)
             self._simulate_atmosphere(obs)
             obs.loading["atmosphere"] = self._compute_atmospheric_loading(obs)
             logger.debug(f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}.")

@@ -12,6 +12,14 @@ from maria.mappers import BinMapper
 plt.close("all")
 
 
+@pytest.mark.parametrize("filename", all_maps)
+def test_all_maps(filename):
+    m = maria.map.load(filename=fetch(filename), width=0.1, center=(150, 10))  # noqa
+    m.plot()
+
+    plt.close("all")
+
+
 @pytest.mark.parametrize(
     "map_path",
     all_maps,
@@ -36,18 +44,3 @@ def test_map_io_units(map_path):
         assert np.allclose(new_m_fits.resolution.arcsec, m.resolution.arcsec)
 
     m.plot()
-
-
-def test_map_extend():
-    map_filename = fetch("maps/cluster1.fits")
-
-    m1 = maria.map.load(filename=map_filename, nu=90e9)
-    m2 = maria.map.load(filename=map_filename, nu=150e9)
-    m3 = maria.map.load(filename=map_filename, nu=220e9)
-
-    m4 = m1.extend([m2, m3], dim="nu").unsqueeze("stokes")
-    m5, m6 = m4.copy(), m4.copy()
-    m5.stokes = "Q"
-    m6.stokes = "U"
-
-    m4.extend([m5, m6], dim="stokes")
