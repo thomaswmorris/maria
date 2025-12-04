@@ -17,7 +17,6 @@ jobs:
         with:
           repository: jwuerzinger/CMB_denoising
           path: CMB_denoising
-          ref: pixi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -46,17 +45,32 @@ jobs:
           cd CMB_denoising/nifty_maria
           pixi run -e test pytest -q
 
-      - name: Run atmos test
+      - name: Run atmos mustang test
         run: |
           cd CMB_denoising/nifty_maria/steering
           pixi run -e test python test_steering.py --config test --fit_atmos True --fit_map False
 
-      - name: Run map test
+      - name: Run map mustang test
         run: |
           cd CMB_denoising/nifty_maria/steering
           pixi run -e test python test_steering.py --config test --fit_atmos False --fit_map True
       
-      - name: Run both atmos and map test
+      - name: Run both mustang atmos and map test
         run: |
           cd CMB_denoising/nifty_maria/steering
           pixi run -e test python test_steering.py --config test --fit_atmos True --fit_map True
+      
+      #- name: Run atmos atlast test
+      #  run: |
+      #    cd CMB_denoising/nifty_maria/steering
+      #    pixi run -e test python test_steering.py --config test_atlast --fit_atmos True --fit_map False
+
+      #- name: Run map atlast test
+      #  run: |
+      #    cd CMB_denoising/nifty_maria/steering
+      #    pixi run -e test python test_steering.py --config test_atlast --fit_atmos False --fit_map True
+      
+      #- name: Run both atlast atmos and map test
+      #  run: |
+      #    cd CMB_denoising/nifty_maria/steering
+      #    pixi run -e test python test_steering.py --config test_atlast --fit_atmos True --fit_map True
