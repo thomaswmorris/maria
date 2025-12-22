@@ -34,6 +34,7 @@ jobs:
         run: |
           cd CMB_denoising
           pixi install -e test
+          pixi run -e test pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install maria in pixi environment
         run: |
