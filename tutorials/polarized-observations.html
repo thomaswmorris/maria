@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Simulating observations with MUSTANG-2" href="mustang-nebula.html"><link rel="prev" title="Custom map simulations" href="custom-map-simulations.html">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Polarized observations - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
@@ -383,8 +383,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-28 16:58:36.230 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 41.8MB/s]
+2026-01-21 18:24:37.284 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 16.9MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -415,9 +415,9 @@ Downloading: 100%|████████████████| 931k/931k [0
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 900 s):
-                           start_time duration target(ra,dec)    center(az,el)
+                           start_time duration  target(ra,dec)     center(az,el)
 chunk
-0      2025-11-28 21:51:09.905 +00:00    900 s   (360°, -23°)  (95.7°, 62.09°)
+0      2026-01-21 18:24:40.927 +00:00    900 s  (5.501”, -23°)  (95.38°, 63.42°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -469,15 +469,15 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 900 s):
-│                            start_time duration target(ra,dec)    center(az,el)
+│                            start_time duration  target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2025-11-28 21:51:09.905 +00:00    900 s   (360°, -23°)  (95.7°, 62.09°)
+│ 0      2026-01-21 18:24:40.927 +00:00    900 s  (5.501”, -23°)  (95.38°, 63.42°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (4, 1, 1, 685, 685)
     stokes: IQUV
     nu: [90.] GHz
-    t: [1.76434911e+09]
+    t: [1.76901988e+09]
     z: naive
     quantity: rayleigh_jeans_temperature
     units: K_RJ
@@ -518,14 +518,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-28 16:58:47.411 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:22&lt;00:00,  2.84s/it]
-Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  4.29it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:07&lt;00:00,  1.01it/s]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.17s/it, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:15&lt;00:00,  7.70s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.49it/s, band=f150]
-2025-11-28 16:59:59.744 INFO: Simulated observation 1 of 1 in 72.32 s
+2026-01-21 18:24:48.360 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:18&lt;00:00,  2.37s/it]
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00,  8.04it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:07&lt;00:00,  1.04it/s]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.16s/it, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:15&lt;00:00,  7.57s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.60it/s, band=f150]
+2026-01-21 18:25:54.124 INFO: Simulated observation 1 of 1 in 65.75 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -533,7 +533,7 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2025-11-28 22:06:09.884 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2025-11-28T16:59:41.803236+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 278.706})]
+[TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-01-21 18:39:40.907 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-01-21T18:25:37.485650+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 279.872})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -575,13 +575,13 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2025-11-28 17:00:11.001 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.13ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.86”&#39;} for mapper.
-2025-11-28 17:00:11.015 INFO: Inferring mapper width 1.47° for mapper from observation patch.
-2025-11-28 17:00:11.016 INFO: Inferring mapper height 1.47° to match supplied width.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:02&lt;00:00,  2.22s/it]
-Mapping: 100%|██████████| 1/1 [00:07&lt;00:00,  7.10s/it, tod=1/1]
-2025-11-28 17:00:20.600 WARNING: No counts for map (stokes=V, nu=90 GHz)
-2025-11-28 17:00:20.609 WARNING: No counts for map (stokes=V, nu=150 GHz)
+2026-01-21 18:26:05.431 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.37ˢ&#39;, &#39;dec&#39;: &#39;-23°00’10.35”&#39;} for mapper.
+2026-01-21 18:26:05.450 INFO: Inferring mapper width 1.455° for mapper from observation patch.
+2026-01-21 18:26:05.451 INFO: Inferring mapper height 1.455° to match supplied width.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:02&lt;00:00,  2.23s/it]
+Mapping: 100%|██████████| 1/1 [00:06&lt;00:00,  6.09s/it, tod=1/1]
+2026-01-21 18:26:14.088 WARNING: No counts for map (stokes=V, nu=90 GHz)
+2026-01-21 18:26:14.100 WARNING: No counts for map (stokes=V, nu=150 GHz)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -590,20 +590,20 @@ Mapping: 100%|██████████| 1/1 [00:07&lt;00:00,  7.10s/it, to
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  shape(stokes, nu, t, y, x): (4, 2, 1, 352, 352)
+  shape(stokes, nu, t, y, x): (4, 2, 1, 349, 349)
   stokes: IQUV
   nu: [ 90. 150.] GHz
-  t: [1.76436712e+09]
+  t: [1.76902033e+09]
   z: naive
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -1.134e+02
-    max: 1.436e+02
+    min: -1.128e+02
+    max: 1.429e+02
     rms: nan
   center:
-    ra: 23ʰ59ᵐ59.13ˢ
-    dec: -22°59’58.86”
-  size(y, x): (1.467°, 1.467°)
+    ra: 00ʰ00ᵐ0.37ˢ
+    dec: -23°00’10.35”
+  size(y, x): (1.454°, 1.454°)
   resolution(y, x): (15”, 15”)
   beam(maj, min, rot): [[[[1.45801568 1.45801568 0.        ]]
 
@@ -623,7 +623,7 @@ ProjectionMap:
  [[[1.45801568 1.45801568 0.        ]]
 
   [[0.87480941 0.87480941 0.        ]]]]’
-  memory: 15.86 MB
+  memory: 15.59 MB
 </pre></div></div>
 </div>
 <p>Note that we can’t see any of the circular polarization, since our instrument isn’t sensitive to it.</p>
@@ -694,13 +694,13 @@ ProjectionMap:
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     </body>
 </html>
