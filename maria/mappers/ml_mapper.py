@@ -98,7 +98,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                 "remove_modes": {"modes_to_remove": 1},
                 "remove_spline": {"knot_spacing": 20, "remove_el_gradient": True},
             },
-            map_postprocessing={"gaussian_filter": {"sigma": 2}},
+            # map_postprocessing={"gaussian_filter": {"sigma": 2}},
             progress_bars=False,
         )
 
