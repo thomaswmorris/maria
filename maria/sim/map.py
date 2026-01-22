@@ -96,6 +96,8 @@ class MapMixin:
             # ideally we would do this for each nu bin, but that's slow
             smoothed_map = self.map.smooth(fwhm=band_fwhm)
 
+            logger.debug(f"Convolved map with beam width {band_fwhm} for band {band.name}")
+
             for channel_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
                 channel_s = ttime.monotonic()
                 channel_map = smoothed_map.to("K_RJ", band=band)[:, [channel_index]]

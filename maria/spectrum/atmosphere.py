@@ -70,9 +70,9 @@ class AtmosphericSpectrum:
   altitude: {Quantity(self.altitude, "m")}"""
 
     def _interpolate_quantity(self, quantity, nu, pwv=None, base_temperature=None, elevation=None):
-        pwv = pwv or np.median(self.side_zenith_pwv)
-        base_temperature = base_temperature or np.median(self.side_base_temperature)
-        elevation = elevation or np.radians(45)
+        pwv = pwv if pwv is not None else np.median(self.side_zenith_pwv)
+        base_temperature = base_temperature if base_temperature is not None else np.median(self.side_base_temperature)
+        elevation = elevation if elevation is not None else np.radians(45)
 
         min_pwv = self.side_zenith_pwv.min()
         max_pwv = self.side_zenith_pwv.max()
