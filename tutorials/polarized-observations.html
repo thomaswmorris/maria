@@ -383,8 +383,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-01-21 18:24:37.284 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 16.9MB/s]
+2026-02-13 17:19:05.691 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 12.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -415,9 +415,9 @@ Downloading: 100%|████████████████| 931k/931k [0
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 900 s):
-                           start_time duration  target(ra,dec)     center(az,el)
+                           start_time duration target(ra,dec)  center(az,el)
 chunk
-0      2026-01-21 18:24:40.927 +00:00    900 s  (5.501”, -23°)  (95.38°, 63.42°)
+0      2026-02-13 17:19:09.342 +00:00    900 s   (360°, -23°)  (94°, 69.15°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -469,15 +469,15 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 900 s):
-│                            start_time duration  target(ra,dec)     center(az,el)
+│                            start_time duration target(ra,dec)  center(az,el)
 │ chunk
-│ 0      2026-01-21 18:24:40.927 +00:00    900 s  (5.501”, -23°)  (95.38°, 63.42°)
+│ 0      2026-02-13 17:19:09.342 +00:00    900 s   (360°, -23°)  (94°, 69.15°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (4, 1, 1, 685, 685)
     stokes: IQUV
     nu: [90.] GHz
-    t: [1.76901988e+09]
+    t: [1.77100314e+09]
     z: naive
     quantity: rayleigh_jeans_temperature
     units: K_RJ
@@ -518,14 +518,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-01-21 18:24:48.360 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:18&lt;00:00,  2.37s/it]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00,  8.04it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:07&lt;00:00,  1.04it/s]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.16s/it, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:15&lt;00:00,  7.57s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.60it/s, band=f150]
-2026-01-21 18:25:54.124 INFO: Simulated observation 1 of 1 in 65.75 s
+2026-02-13 17:19:16.756 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:16&lt;00:00,  2.12s/it]
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00,  8.02it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:06&lt;00:00,  1.17it/s]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.05s/it, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:13&lt;00:00,  6.83s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.69it/s, band=f150]
+2026-02-13 17:20:16.383 INFO: Simulated observation 1 of 1 in 59.61 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -533,7 +533,7 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-01-21 18:39:40.907 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-01-21T18:25:37.485650+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 279.872})]
+[TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-02-13 17:34:09.321 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-02-13T17:20:01.150836+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 279.735})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -575,13 +575,13 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-01-21 18:26:05.431 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.37ˢ&#39;, &#39;dec&#39;: &#39;-23°00’10.35”&#39;} for mapper.
-2026-01-21 18:26:05.450 INFO: Inferring mapper width 1.455° for mapper from observation patch.
-2026-01-21 18:26:05.451 INFO: Inferring mapper height 1.455° to match supplied width.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:02&lt;00:00,  2.23s/it]
-Mapping: 100%|██████████| 1/1 [00:06&lt;00:00,  6.09s/it, tod=1/1]
-2026-01-21 18:26:14.088 WARNING: No counts for map (stokes=V, nu=90 GHz)
-2026-01-21 18:26:14.100 WARNING: No counts for map (stokes=V, nu=150 GHz)
+2026-02-13 17:20:26.825 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-23°00’3.33”&#39;} for mapper.
+2026-02-13 17:20:26.843 INFO: Inferring mapper width 1.465° for mapper from observation patch.
+2026-02-13 17:20:26.844 INFO: Inferring mapper height 1.465° to match supplied width.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:02&lt;00:00,  2.04s/it]
+Mapping: 100%|██████████| 1/1 [00:06&lt;00:00,  6.43s/it, tod=1/1]
+2026-02-13 17:20:35.638 WARNING: No counts for map (stokes=V, nu=90 GHz)
+2026-02-13 17:20:35.650 WARNING: No counts for map (stokes=V, nu=150 GHz)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -590,20 +590,20 @@ Mapping: 100%|██████████| 1/1 [00:06&lt;00:00,  6.09s/it, to
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  shape(stokes, nu, t, y, x): (4, 2, 1, 349, 349)
+  shape(stokes, nu, t, y, x): (4, 2, 1, 351, 351)
   stokes: IQUV
   nu: [ 90. 150.] GHz
-  t: [1.76902033e+09]
+  t: [1.7710036e+09]
   z: naive
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -1.128e+02
-    max: 1.429e+02
+    min: -1.143e+02
+    max: 1.438e+02
     rms: nan
   center:
-    ra: 00ʰ00ᵐ0.37ˢ
-    dec: -23°00’10.35”
-  size(y, x): (1.454°, 1.454°)
+    ra: 23ʰ59ᵐ59.39ˢ
+    dec: -23°00’3.33”
+  size(y, x): (1.462°, 1.462°)
   resolution(y, x): (15”, 15”)
   beam(maj, min, rot): [[[[1.45801568 1.45801568 0.        ]]
 
@@ -623,7 +623,7 @@ ProjectionMap:
  [[[1.45801568 1.45801568 0.        ]]
 
   [[0.87480941 0.87480941 0.        ]]]]’
-  memory: 15.59 MB
+  memory: 15.77 MB
 </pre></div></div>
 </div>
 <p>Note that we can’t see any of the circular polarization, since our instrument isn’t sensitive to it.</p>

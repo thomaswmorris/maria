@@ -357,9 +357,9 @@ ProjectionMap:
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 3600 s):
-                           start_time duration target(ra,dec)     center(az,el)
+                           start_time duration   target(ra,dec)     center(az,el)
 chunk
-0      2026-01-22 12:42:33.862 +00:00   3600 s   (260°, -10°)  (32.31°, 74.95°)
+0      2026-02-14 11:14:30.041 +00:00   3600 s  (260°, -9.999°)  (30.33°, 75.23°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -459,15 +459,15 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 3600 s):
-│                            start_time duration target(ra,dec)     center(az,el)
+│                            start_time duration   target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-01-22 12:42:33.862 +00:00   3600 s   (260°, -10°)  (32.31°, 74.95°)
+│ 0      2026-02-14 11:14:30.041 +00:00   3600 s  (260°, -9.999°)  (30.33°, 75.23°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (1, 1, 1, 1024, 1024)
     stokes: I
     nu: [150.] GHz
-    t: [1.76901915e+09]
+    t: [1.77100242e+09]
     z: naive
     quantity: rayleigh_jeans_temperature
     units: uK_RJ
@@ -497,14 +497,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-01-21 18:12:42.959 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:31&lt;00:00,  3.92s/it]
-Generating turbulence: 100%|████████████████| 8/8 [00:02&lt;00:00,  3.72it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:06&lt;00:00,  1.30it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.34s/it, band=f150]
-Sampling map: 100%|████████████████| 1/1 [00:17&lt;00:00, 17.12s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.28s/it, band=f150]
-2026-01-21 18:14:03.624 INFO: Simulated observation 1 of 1 in 80.65 s
+2026-02-13 17:07:09.769 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:32&lt;00:00,  4.09s/it]
+Generating turbulence: 100%|████████████████| 8/8 [00:02&lt;00:00,  3.33it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:07&lt;00:00,  1.11it/s]
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.53s/it, band=f150]
+Sampling map: 100%|████████████████| 1/1 [00:16&lt;00:00, 16.67s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.24s/it, band=f150]
+2026-02-13 17:08:33.615 INFO: Simulated observation 1 of 1 in 83.83 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -534,11 +534,11 @@ Generating noise: 100%|████████████████| 1/1 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-01-21 18:14:14.355 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.97ˢ&#39;, &#39;dec&#39;: &#39;-9°59’57.75”&#39;} for mapper.
-2026-01-21 18:14:14.357 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.41s/it]
-Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.26s/it, tod=1/1]
-Computing noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.37s/it, tod=1/1]
+2026-02-13 17:08:43.746 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.87ˢ&#39;, &#39;dec&#39;: &#39;-9°59’56.77”&#39;} for mapper.
+2026-02-13 17:08:43.749 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.38s/it]
+Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.04s/it, tod=1/1]
+Computing noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.30s/it, tod=1/1]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -546,7 +546,7 @@ Computing noise model: 100%|██████████| 1/1 [00:05&lt;00:00,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ml_mapper.loss() = tensor(0.0137, grad_fn=&lt;AddBackward0&gt;)
+ml_mapper.loss() = tensor(0.0134, grad_fn=&lt;AddBackward0&gt;)
 </pre></div></div>
 </div>
 <p>The initial map is a “guess” constructing by heavily filtering the input TODs:</p>
@@ -568,16 +568,16 @@ ProjectionMap:
   shape(stokes, nu, t, y, x): (1, 1, 1, 81, 81)
   stokes: I
   nu: [150.] GHz
-  t: [1.76908755e+09]
+  t: [1.77106947e+09]
   z: naive
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -1.117e-01
-    max: 8.590e-02
-    rms: 2.086e-02
+    min: -1.255e-01
+    max: 7.352e-02
+    rms: 2.145e-02
   center:
-    ra: 17ʰ19ᵐ59.97ˢ
-    dec: -9°59’57.75”
+    ra: 17ʰ19ᵐ59.87ˢ
+    dec: -9°59’56.77”
   size(y, x): (0.791°, 0.791°)
   resolution(y, x): (0.5859’, 0.5859’)
   beam(maj, min, rot): [[[[0.34992376 0.34992376 0.        ]]]]’
@@ -605,10 +605,10 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-epoch 1/4: 100%|████████████████| 32/32 [02:14&lt;00:00,  4.20s/it, loss=1.050e-03]
-epoch 2/4: 100%|████████████████| 32/32 [02:14&lt;00:00,  4.19s/it, loss=3.014e-04]
-epoch 3/4: 100%|████████████████| 32/32 [02:14&lt;00:00,  4.19s/it, loss=1.675e-04]
-epoch 4/4: 100%|████████████████| 32/32 [02:14&lt;00:00,  4.20s/it, loss=1.208e-04]
+epoch 1/4: 100%|████████████████| 32/32 [02:15&lt;00:00,  4.25s/it, loss=9.850e-04]
+epoch 2/4: 100%|████████████████| 32/32 [02:15&lt;00:00,  4.23s/it, loss=2.755e-04]
+epoch 3/4: 100%|████████████████| 32/32 [02:14&lt;00:00,  4.19s/it, loss=1.477e-04]
+epoch 4/4: 100%|████████████████| 32/32 [02:13&lt;00:00,  4.17s/it, loss=1.026e-04]
 </pre></div></div>
 </div>
 <p>which gives us an improved map</p>
