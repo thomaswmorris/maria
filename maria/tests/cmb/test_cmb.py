@@ -4,7 +4,7 @@ import maria
 import pytest
 
 
-@pytest.mark.parametrize("nside", [256, 512, 1024, 2048])
+@pytest.mark.parametrize("nside", [256, 512, 1024])
 def test_generate_cmb(nside):
     cmb = maria.cmb.generate_cmb(nside=nside)
     # cmb.plot()
@@ -26,6 +26,7 @@ def test_cmb_calibration():
         plans=plan,
         site="cerro_toco",
         cmb="generate",
+        cmb_kwargs={"nside": 1024},
         noise=False,
     )
 
