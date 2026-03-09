@@ -19,10 +19,19 @@
     "import maria\n",
     "from maria.io import fetch\n",
     "\n",
-    "input_map = maria.map.load(fetch(\"maps/crab_nebula.fits\"), nu=93e9)\n",
+    "input_map = maria.map.load(fetch(\"maps/m1.h5\"))\n",
     "\n",
-    "input_map.plot()\n",
+    "input_map.plot(nu_index=[0, 1, 2])\n",
     "print(input_map)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "input_map = maria.map.load(fetch(\"maps/m1.h5\"))"
    ]
   },
   {
@@ -89,17 +98,13 @@
     "\n",
     "mapper = BinMapper(\n",
     "    tod_preprocessing={\n",
-    "        \"remove_modes\": {\"modes_to_remove\": 1},\n",
-    "        \"remove_spline\": {\"knot_spacing\": 60, \"remove_el_gradient\": True},\n",
-    "    },\n",
-    "    map_postprocessing={\n",
-    "        \"gaussian_filter\": {\"sigma\": 1},\n",
+    "        # \"remove_modes\": {\"modes_to_remove\": 1},\n",
+    "        \"remove_spline\": {\"knot_spacing\": 10, \"remove_el_gradient\": True},\n",
     "    },\n",
     "    units=\"uK_RJ\",\n",
     "    tods=tods,\n",
+    "    resolution=2 * input_map.resolution,\n",
     ")\n",
-    "\n",
-    "self = mapper\n",
     "\n",
     "output_map = mapper.run()"
    ]
@@ -130,7 +135,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.13.2"
+   "version": "3.13.9"
   }
  },
  "nbformat": 4,

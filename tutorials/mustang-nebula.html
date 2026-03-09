@@ -295,9 +295,9 @@
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">maria.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch</span>
 
-<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/crab_nebula.fits&quot;</span><span class="p">),</span> <span class="n">nu</span><span class="o">=</span><span class="mf">93e9</span><span class="p">)</span>
+<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/m1.h5&quot;</span><span class="p">))</span>
 
-<span class="n">input_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nu_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -307,8 +307,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:18:08.445 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/crab_nebula.fits
-Downloading: 100%|████████████████| 2.00M/2.00M [00:00&lt;00:00, 21.4MB/s]
+2026-03-09 20:51:23.342 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/m1.h5
+Downloading: 100%|████████████████| 4.54M/4.54M [00:00&lt;00:00, 34.2MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -317,23 +317,23 @@ Downloading: 100%|████████████████| 2.00M/2.00M 
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  shape(nu, y, x): (1, 500, 500)
-  stokes: naive
-  nu: [93.] GHz
+  shape(stokes, nu, y, x): (1, 3, 805, 787)
+  stokes: I
+  nu: [149.8962 214.1375 272.5386] GHz
   t: naive
   z: naive
   quantity: rayleigh_jeans_temperature
   units: K_RJ
-    min: 0.000e+00
-    max: 5.876e-02
-    rms: 9.295e-03
+    min: -2.429e-02
+    max: 3.824e-01
+    rms: 3.907e-02
   center:
-    ra: 05ʰ34ᵐ31.80ˢ
-    dec: 22°01’3.00”
-  size(y, x): (8.83’, 8.83’)
-  resolution(y, x): (1.06”, 1.06”)
-  beam(maj, min, rot): [[0. 0. 0.]] rad
-  memory: 4 MB
+    ra: 05ʰ34ᵐ31.95ˢ
+    dec: 22°00’52.16”
+  size(y, x): (13.42’, 13.12’)
+  resolution(y, x): (1”, 1”)
+  beam(maj, min, rot): [0. 0. 0.] rad
+  memory: 30.41 MB
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -343,8 +343,16 @@ ProjectionMap:
 <img alt="../_images/tutorials_mustang-nebula_1_2.png" src="../_images/tutorials_mustang-nebula_1_2.png" />
 </div>
 </div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/m1.h5&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Planner</span>
@@ -365,18 +373,18 @@ ProjectionMap:
 PlanList(1 plans, 900 s):
                            start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2026-02-13 23:23:47.230 +00:00    900 s  (83.63°, 22.02°)  (117.5°, 61.64°)
+0      2026-03-09 21:47:42.062 +00:00    900 s  (83.63°, 22.02°)  (116.9°, 61.34°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_mustang-nebula_2_1.png" src="../_images/tutorials_mustang-nebula_2_1.png" />
+<img alt="../_images/tutorials_mustang-nebula_3_1.png" src="../_images/tutorials_mustang-nebula_3_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="s2">&quot;MUSTANG-2&quot;</span><span class="p">)</span>
@@ -405,11 +413,11 @@ Instrument(1 array)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_mustang-nebula_3_1.png" src="../_images/tutorials_mustang-nebula_3_1.png" />
+<img alt="../_images/tutorials_mustang-nebula_4_1.png" src="../_images/tutorials_mustang-nebula_4_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
@@ -429,10 +437,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:18:18.224 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
-Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 114MB/s]
-2026-02-13 17:18:19.459 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
-Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 75.0MB/s]
+2026-03-09 20:51:35.445 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Downloading: 100%|████████████████| 22.0M/22.0M [00:00&lt;00:00, 80.2MB/s]
+2026-03-09 20:51:36.429 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+Downloading: 100%|████████████████| 12.0M/12.0M [00:00&lt;00:00, 56.2MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -461,30 +469,30 @@ Simulation
 ├ PlanList(1 plans, 900 s):
 │                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-02-13 23:23:47.230 +00:00    900 s  (83.63°, 22.02°)  (117.5°, 61.64°)
+│ 0      2026-03-09 21:47:42.062 +00:00    900 s  (83.63°, 22.02°)  (116.9°, 61.34°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
-    shape(stokes, nu, t, y, x): (1, 1, 1, 500, 500)
+    shape(stokes, nu, t, y, x): (1, 3, 1, 805, 787)
     stokes: I
-    nu: [93.] GHz
-    t: [1.77100309e+09]
+    nu: [149.8962 214.1375 272.5386] GHz
+    t: [1.77308948e+09]
     z: naive
     quantity: rayleigh_jeans_temperature
     units: K_RJ
-      min: 0.000e+00
-      max: 5.876e-02
-      rms: 9.295e-03
+      min: -2.429e-02
+      max: 3.824e-01
+      rms: 3.907e-02
     center:
-      ra: 05ʰ34ᵐ31.80ˢ
-      dec: 22°01’3.00”
-    size(y, x): (8.83’, 8.83’)
-    resolution(y, x): (1.06”, 1.06”)
-    beam(maj, min, rot): [[[[0. 0. 0.]]]] rad
-    memory: 4 MB
+      ra: 05ʰ34ᵐ31.95ˢ
+      dec: 22°00’52.16”
+    size(y, x): (13.42’, 13.12’)
+    resolution(y, x): (1”, 1”)
+    beam(maj, min, rot): [0. 0. 0.] rad
+    memory: 30.41 MB
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -497,42 +505,38 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:18:20.243 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:01&lt;00:00,  7.22it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 17.99it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.28it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.24it/s, band=m2/f093]
-Sampling map: 100%|████████████████| 1/1 [00:07&lt;00:00,  7.92s/it, band=m2/f093, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.10it/s, band=m2/f093]
-2026-02-13 17:18:47.091 INFO: Simulated observation 1 of 1 in 26.83 s
+2026-03-09 20:51:37.269 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:01&lt;00:00,  7.89it/s]
+Generating turbulence: 100%|████████████████| 8/8 [00:00&lt;00:00, 20.24it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:03&lt;00:00,  2.21it/s]
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.01it/s, band=m2/f093]
+Sampling map: 100%|████████████████| 1/1 [00:08&lt;00:00,  8.17s/it, band=m2/f093, channel=(0 Hz, 182 GHz)]
+Generating noise: 100%|████████████████| 1/1 [00:00&lt;00:00,  1.09it/s, band=m2/f093]
+2026-03-09 20:52:04.824 INFO: Simulated observation 1 of 1 in 27.54 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_mustang-nebula_5_1.png" src="../_images/tutorials_mustang-nebula_5_1.png" />
+<img alt="../_images/tutorials_mustang-nebula_6_1.png" src="../_images/tutorials_mustang-nebula_6_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
     <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;modes_to_remove&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
-    <span class="p">},</span>
-    <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="c1"># &quot;remove_modes&quot;: {&quot;modes_to_remove&quot;: 1},</span>
+        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
     <span class="p">},</span>
     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_RJ&quot;</span><span class="p">,</span>
     <span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
 <span class="p">)</span>
-
-<span class="bp">self</span> <span class="o">=</span> <span class="n">mapper</span>
 
 <span class="n">output_map</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
@@ -543,17 +547,16 @@ Generating noise: 100%|████████████████| 1/1 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:18:54.754 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ31.84ˢ&#39;, &#39;dec&#39;: &#39;22°01’4.23”&#39;} for mapper.
-2026-02-13 17:18:54.773 INFO: Inferring mapper width 12.72’ for mapper from observation patch.
-2026-02-13 17:18:54.774 INFO: Inferring mapper height 12.72’ to match supplied width.
-2026-02-13 17:18:54.792 INFO: Inferring mapper resolution 5.962” for mapper from observation patch.
-2026-02-13 17:18:54.794 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.35s/it]
-Mapping: 100%|██████████| 1/1 [00:01&lt;00:00,  1.79s/it, tod=1/1]
+2026-03-09 20:52:12.292 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ32.00ˢ&#39;, &#39;dec&#39;: &#39;22°00’54.82”&#39;} for mapper.
+2026-03-09 20:52:12.310 INFO: Inferring mapper width 17.05’ for mapper from observation patch.
+2026-03-09 20:52:12.311 INFO: Inferring mapper height 17.05’ to match supplied width.
+2026-03-09 20:52:12.314 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.58s/it]
+Mapping: 100%|██████████| 1/1 [00:01&lt;00:00,  1.92s/it, tod=1/1]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -564,7 +567,7 @@ Mapping: 100%|██████████| 1/1 [00:01&lt;00:00,  1.79s/it, to
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_mustang-nebula_7_0.png" src="../_images/tutorials_mustang-nebula_7_0.png" />
+<img alt="../_images/tutorials_mustang-nebula_8_0.png" src="../_images/tutorials_mustang-nebula_8_0.png" />
 </div>
 </div>
 </section>

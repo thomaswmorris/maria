@@ -337,13 +337,13 @@ beams, with a relative spacing determined by the <code class="docutils literal n
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│             n      FOV baseline        bands polarized
-│  array1  1798  0.4957°      0 m  [f090,f150]     False
+│             n     FOV baseline        bands polarized
+│  array1  1798  29.74’      0 m  [f090,f150]     False
 │
 └ bands:
       name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  0.5832’
-   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  0.3499’
+   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s      21”
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -386,8 +386,8 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:04:40.419 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
-Downloading: 100%|████████████████| 7.34M/7.34M [00:00&lt;00:00, 59.1MB/s]
+2026-03-09 20:37:08.509 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
+Downloading: 100%|████████████████| 7.34M/7.34M [00:00&lt;00:00, 131MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -422,8 +422,8 @@ Downloading: 100%|████████████████| 7.34M/7.34M 
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:04:42.326 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits
-Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 36.8MB/s]
+2026-03-09 20:37:10.151 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits
+Downloading: 100%|████████████████| 4.20M/4.20M [00:00&lt;00:00, 32.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -447,7 +447,7 @@ ProjectionMap:
     dec: -31°13’48.00”
   size(y, x): (1°, 1°)
   resolution(y, x): (3.516”, 3.516”)
-  beam(maj, min, rot): [[0. 0. 0.]] rad
+  beam(maj, min, rot): [0. 0. 0.] rad
   memory: 16.78 MB
 </pre></div></div>
 </div>
@@ -521,10 +521,10 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:04:59.513 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/chajnantor.h5
-Downloading: 100%|████████████████| 32.9M/32.9M [00:00&lt;00:00, 130MB/s]
-2026-02-13 17:05:01.738 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5
-Downloading: 100%|████████████████| 8.00M/8.00M [00:00&lt;00:00, 59.6MB/s]
+2026-03-09 20:37:25.209 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/chajnantor.h5
+Downloading: 100%|████████████████| 32.9M/32.9M [00:00&lt;00:00, 102MB/s]
+2026-03-09 20:37:26.558 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5
+Downloading: 100%|████████████████| 4.05M/4.05M [00:00&lt;00:00, 83.7MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -535,13 +535,13 @@ Downloading: 100%|████████████████| 8.00M/8.00M 
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │             n      FOV baseline        bands polarized
-│ │  array1  1798  0.4957°      0 m  [f090,f150]     False
+│ │             n     FOV baseline        bands polarized
+│ │  array1  1798  29.74’      0 m  [f090,f150]     False
 │ │
 │ └ bands:
 │       name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
 │    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  0.5832’
-│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  0.3499’
+│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s      21”
 ├ Site:
 │   region: chajnantor
 │   timezone: America/Santiago
@@ -561,7 +561,7 @@ Simulation
     shape(stokes, nu, t, y, x): (1, 1, 1, 1024, 1024)
     stokes: I
     nu: [150.] GHz
-    t: [1.77100228e+09]
+    t: [1.77308863e+09]
     z: naive
     quantity: spectral_flux_density_per_pixel
     units: Jy/pixel
@@ -573,7 +573,7 @@ Simulation
       dec: -31°13’48.00”
     size(y, x): (1°, 1°)
     resolution(y, x): (3.516”, 3.516”)
-    beam(maj, min, rot): [[[[0. 0. 0.]]]] rad
+    beam(maj, min, rot): [0. 0. 0.] rad
     memory: 16.78 MB
 </pre></div></div>
 </div>
@@ -594,22 +594,22 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:05:03.595 INFO: Simulating observation 1 of 2
-Constructing atmosphere: 100%|████████████████| 8/8 [00:05&lt;00:00,  1.41it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  7.10it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:09&lt;00:00,  1.23s/it]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.39s/it, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:06&lt;00:00,  3.23s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  3.19it/s, band=f150]
-2026-02-13 17:05:38.513 INFO: Simulated observation 1 of 2 in 34.9 s
-2026-02-13 17:05:38.514 INFO: Simulating observation 2 of 2
-Constructing atmosphere: 100%|████████████████| 8/8 [00:05&lt;00:00,  1.42it/s]
-Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  6.82it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:09&lt;00:00,  1.24s/it]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.21s/it, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:04&lt;00:00,  2.50s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  7.17it/s, band=f150]
-2026-02-13 17:06:10.696 INFO: Simulated observation 2 of 2 in 32.17 s
+2026-03-09 20:37:28.304 INFO: Simulating observation 1 of 2
+Constructing atmosphere: 100%|████████████████| 8/8 [00:05&lt;00:00,  1.52it/s]
+Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  7.52it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:09&lt;00:00,  1.18s/it]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.25s/it, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:06&lt;00:00,  3.06s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  3.28it/s, band=f150]
+2026-03-09 20:38:01.004 INFO: Simulated observation 1 of 2 in 32.68 s
+2026-03-09 20:38:01.004 INFO: Simulating observation 2 of 2
+Constructing atmosphere: 100%|████████████████| 8/8 [00:04&lt;00:00,  1.79it/s]
+Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  7.59it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:09&lt;00:00,  1.14s/it]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.27s/it, band=f150]
+Sampling map: 100%|████████████████| 2/2 [00:04&lt;00:00,  2.24s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|████████████████| 2/2 [00:00&lt;00:00,  7.00it/s, band=f150]
+2026-03-09 20:38:30.458 INFO: Simulated observation 2 of 2 in 29.44 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -617,7 +617,7 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-02-13T17:05:32.575598+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.7}), TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-02-13T17:06:05.272786+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.925, &#39;base_temperature&#39;: 272.683})]
+[TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-03-09T20:37:55.751669+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.616}), TOD(shape=(1798, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-03-09T20:38:25.161763+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.911, &#39;base_temperature&#39;: 272.594})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -687,14 +687,14 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-02-13 17:06:18.284 INFO: Inferring center {&#39;ra&#39;: &#39;19ʰ24ᵐ38.02ˢ&#39;, &#39;dec&#39;: &#39;-31°14’8.10”&#39;} for mapper.
-2026-02-13 17:06:18.304 INFO: Inferring mapper width 1.134° for mapper from observation patch.
-2026-02-13 17:06:18.305 INFO: Inferring mapper height 1.134° to match supplied width.
-2026-02-13 17:06:18.323 INFO: Inferring mapper resolution 0.5316’ for mapper from observation patch.
-2026-02-13 17:06:18.326 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.11s/it]
-Preprocessing TODs: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.13s/it]
-Mapping: 100%|██████████| 4/4 [00:05&lt;00:00,  1.29s/it, tod=1/4]
+2026-03-09 20:38:37.813 INFO: Inferring center {&#39;ra&#39;: &#39;19ʰ24ᵐ38.02ˢ&#39;, &#39;dec&#39;: &#39;-31°14’8.15”&#39;} for mapper.
+2026-03-09 20:38:37.832 INFO: Inferring mapper width 1.12° for mapper from observation patch.
+2026-03-09 20:38:37.832 INFO: Inferring mapper height 1.12° to match supplied width.
+2026-03-09 20:38:37.850 INFO: Inferring mapper resolution 0.5252’ for mapper from observation patch.
+2026-03-09 20:38:37.853 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.14s/it]
+Preprocessing TODs: 100%|████████████████| 2/2 [00:02&lt;00:00,  1.08s/it]
+Mapping: 100%|██████████| 4/4 [00:05&lt;00:00,  1.36s/it, tod=1/4]
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
