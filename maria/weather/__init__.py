@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 
-from ..constants import g
-from ..io import DEFAULT_TIME_FORMAT, fetch
+from ..constants import DRY_AIR_SPECIFIC_GAS_CONSTANT, WATER_VAPOR_SPECIFIC_GAS_CONSTANT, g
+from ..io import fetch
 from ..site import REGIONS, InvalidRegionError, all_regions
 from ..units import Quantity
 from ..utils import get_utc_day_hour, get_utc_year_day
@@ -20,37 +20,44 @@ WEATHER_CACHE_BASE = "/tmp/maria-data/weather"
 WEATHER_SOURCE_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather"  # noqa F401
 
 
-def get_vapor_pressure(air_temp, rel_hum):  # units are (°K, %)
-    T = air_temp - 273.15  # in °C
+def vapor_pressure(temperature, humidity):  # units are (°K, %)
+    T = temperature - 273.15  # in °C
     a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C
-    gamma = np.log(1e-2 * rel_hum) + b * T / (c + T)
+    gamma = np.log(humidity) + b * T / (c + T)
     return a * np.exp(gamma)
 
 
-def get_saturation_pressure(air_temp):  # units are (°K, %)
-    T = air_temp - 273.15  # in °C
+def saturation_pressure(temperature):  # units are (°K, %)
+    T = temperature - 273.15  # in °C
     a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C
     return a * np.exp(b * T / (c + T))
 
 
-def get_dew_point(air_temp, rel_hum):  # units are (°K, %)
+def dew_point(temperature, humidity):  # units are (°K, %)
     a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C
-    p_vap = get_vapor_pressure(air_temp, rel_hum)
+    p_vap = vapor_pressure(temperature, humidity)
     return c * np.log(p_vap / a) / (b - np.log(p_vap / a)) + 273.15
 
 
-def get_relative_humidity(air_temp, dew_point):
-    T, DP = air_temp - 273.15, dew_point - 273.15  # in °C
+def dew_point_to_relative_humidity(temperature, dew_point):
+    T, DP = temperature - 273.15, dew_point - 273.15  # in °C
     b, c = 17.67, 238.88
     return 1e2 * np.exp(b * DP / (c + DP) - b * T / (c + T))
 
 
-def relative_to_absolute_humidity(air_temp, rel_hum):
-    return 1e-2 * rel_hum * get_saturation_pressure(air_temp) / (461.5 * air_temp)
+def air_density(pressure, temperature, humidity):
+    vp = vapor_pressure(temperature, humidity)
+    return vp / (WATER_VAPOR_SPECIFIC_GAS_CONSTANT * temperature) + (pressure - vp) / (
+        DRY_AIR_SPECIFIC_GAS_CONSTANT * temperature
+    )
 
 
-def absolute_to_relative_humidity(air_temp, abs_hum):
-    return 1e2 * 461.5 * air_temp * abs_hum / get_saturation_pressure(air_temp)
+def relative_to_absolute_humidity(temperature, humidity):
+    return humidity * saturation_pressure(temperature) / (461.5 * temperature)
+
+
+def absolute_to_relative_humidity(temperature, abs_hum):
+    return 461.5 * temperature * abs_hum / saturation_pressure(temperature)
 
 
 class Weather:
@@ -127,6 +134,8 @@ class Weather:
                 )((self.utc_year_day, self.utc_day_hour, self.quantiles.get(attr, 0.5)))
                 self.data[attr] = y
 
+        self.humidity *= 1e-2
+
         wind_speed_correction_factor = self.wind_speed / np.sqrt(
             self.wind_east**2 + self.wind_north**2,
         )
@@ -154,7 +163,7 @@ class Weather:
 
     @property
     def dew_point(self):
-        return get_dew_point(self.temperature, self.humidity)
+        return dew_point(self.temperature, self.humidity)
 
     @property
     def wind_bearing(self):

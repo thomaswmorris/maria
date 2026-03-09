@@ -94,7 +94,8 @@ def download_from_url(
 
 
 def fetch(
-    source_path: str,
+    source_path: str = None,
+    source_url: str = None,
     cache_path: str = None,
     max_age: float = 7 * 86400,
     refresh: bool = False,
@@ -108,7 +109,15 @@ def fetch(
 
     cache_dir = os.environ.get("MARIA_CACHE_DIR", f"/tmp/maria-data")
     cache_path = cache_path or f"{cache_dir}/{source_path}"
-    source_url = f"{url_base}/{source_path}"
+
+    if source_path:
+        source_url = f"{url_base}/{source_path}"
+        cache_path = cache_path or f"{cache_dir}/{source_path}"
+    elif source_url is not None:
+        _, tail = os.path.split(source_url)
+        cache_path = cache_path or f"{cache_dir}/{tail}"
+    else:
+        raise RuntimeError("You must supply either 'source_url' or 'source_path'.")
 
     # do we need to do anything?
     status = cache_status(cache_path, max_age=max_age, refresh=refresh)

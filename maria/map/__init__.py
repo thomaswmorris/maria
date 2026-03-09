@@ -82,16 +82,16 @@ def read_hdf(filename: str):
     return data, metadata
 
 
-def read_fits(filename: str, index: int = 0):
+def read_fits(filename: str, index: int | None = None):
     if not os.path.exists(filename):
         raise FileNotFoundError(filename)
 
     with fits.open(filename) as hdul:
-        indices_with_image = [index for index, h in enumerate(hdul) if h.data is not None]
-        if len(indices_with_image) == 0:
-            raise ValueError(f"FITS file '{filename}' has no images.")
-
-        index = index or indices_with_image[0]
+        if index is None:
+            indices_with_image = [index for index, h in enumerate(hdul) if h.data is not None]
+            if len(indices_with_image) == 0:
+                raise ValueError(f"Could not infer HDU index (FITS file '{filename}' has no images).")
+            index = indices_with_image[0]
 
         hdu = hdul[index]
         header_dict = dict(hdu.header)

@@ -205,9 +205,11 @@ class Band:
         return f"Band({', '.join([f'{index}={entry}' for index, entry in self.summary().items()])})"
 
     def plot(self):
+        nu_values = self.nu.to(self.nu.units)
+
         fig, ax = plt.subplots(1, 1)
-        ax.plot(self.nu.Hz, self.tau, label=self.name)
-        ax.set_xlim(self.nu.Hz.min(), self.nu.Hz.max())
+        ax.plot(nu_values, self.tau, label=self.name)
+        ax.set_xlim(nu_values.min(), nu_values.max())
         ax.set_xlabel(rf"$\nu$ [${self.nu.u['math_name']}$]")
         ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
         ax.legend()

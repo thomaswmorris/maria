@@ -40,6 +40,9 @@ class CMBMixin:
         else:
             raise ValueError(f"Invalid value for cmb '{cmb}'.")
 
+        if self.cmb.units != "K_CMB":
+            self.cmb = self.cmb.to("K_CMB")
+
     def _compute_cmb_loading(self, obs: Observation, eps: float = 1e-6):
         cmb_loading = np.zeros(obs.shape, dtype=self.dtype)
 

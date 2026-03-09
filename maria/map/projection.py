@@ -138,6 +138,17 @@ class ProjectionMap(Map):
             )
 
     def compute_pointing_matrix_sparse_indices(self, coords: Coordinates, dets: Array):
+        """
+        Docstring for compute_pointing_matrix_sparse_indices
+
+        :param self: Description
+        :param coords: Description
+        :type coords: Coordinates
+        :param dets: Description
+        :type dets: Array
+
+        Returns values list, pixel index list, coord index list
+        """
         nd, nt = coords.shape
         offsets = coords.offsets(frame=self.frame, center=self.center)
 
@@ -170,6 +181,10 @@ class ProjectionMap(Map):
         return np.concatenate(values_list), np.concatenate(pixel_index_list), np.concatenate(sample_index_list)
 
     def pointing_matrix(self, coords: Coordinates, dets: Array):
+        values, pixel_index, sample_index = self.compute_pointing_matrix_sparse_indices(coords=coords, dets=dets)
+        return sp.sparse.csr_array((values, (sample_index, pixel_index)), shape=(coords.size, self.data.size))
+
+    def pointing_matrix_jax(self, coords: Coordinates, dets: Array):
         values, pixel_index, sample_index = self.compute_pointing_matrix_sparse_indices(coords=coords, dets=dets)
         return sp.sparse.csr_array((values, (sample_index, pixel_index)), shape=(coords.size, self.data.size))
 
@@ -296,7 +311,7 @@ class ProjectionMap(Map):
   {center_repr}
   size(y, x): ({self.height}, {self.width})
   resolution(y, x): ({self.y_res}, {self.x_res})
-  beam(maj, min, rot): {self.beam}
+  beam(maj, min, rot): {self.beam_repr()}
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
 
     def package(self):

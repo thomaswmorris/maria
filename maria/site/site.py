@@ -11,7 +11,7 @@ import pandas as pd
 from astropy.coordinates import EarthLocation
 from matplotlib import pyplot as plt
 
-from ..constants import earth_radius
+from ..constants import EARTH_RADIUS
 from ..io import fetch, repr_lat_lon
 from ..units import Quantity
 
@@ -119,8 +119,8 @@ class Site:
         cmap.set_bad("royalblue", 1.0)
 
         wide_mesh = axes[0].pcolormesh(
-            1e-3 * earth_radius * np.radians(wide_size) * np.linspace(-0.5, 0.5, wide_map.shape[0]),
-            1e-3 * earth_radius * np.radians(wide_size) * np.linspace(-0.5, 0.5, wide_map.shape[1]),
+            1e-3 * EARTH_RADIUS * np.radians(wide_size) * np.linspace(-0.5, 0.5, wide_map.shape[0]),
+            1e-3 * EARTH_RADIUS * np.radians(wide_size) * np.linspace(-0.5, 0.5, wide_map.shape[1]),
             wide_map,
             cmap=cmap,
             vmax=wide_vmax,
@@ -130,8 +130,8 @@ class Site:
         cbar.set_label("Height [meters]")
 
         zoom_mesh = axes[1].pcolormesh(
-            1e-3 * earth_radius * np.radians(zoom_size) * np.linspace(-0.5, 0.5, zoom_map.shape[0]),
-            1e-3 * earth_radius * np.radians(zoom_size) * np.linspace(-0.5, 0.5, zoom_map.shape[1]),
+            1e-3 * EARTH_RADIUS * np.radians(zoom_size) * np.linspace(-0.5, 0.5, zoom_map.shape[0]),
+            1e-3 * EARTH_RADIUS * np.radians(zoom_size) * np.linspace(-0.5, 0.5, zoom_map.shape[1]),
             zoom_map,
             cmap=cmap,
             vmax=zoom_vmax,

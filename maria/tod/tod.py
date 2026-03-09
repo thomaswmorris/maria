@@ -116,7 +116,7 @@ class TOD:
 
         cal_start_s = ttime.monotonic()
 
-        # make sure that all Array have a band that the TOD knows about
+        # make sure that all detectors have a band that the TOD knows about
         for band_name in np.unique(self.dets.band_name):
             if band_name not in self.dets.bands.name:
                 raise ValueError(f"No band defined for detector with band '{band_name}'.")

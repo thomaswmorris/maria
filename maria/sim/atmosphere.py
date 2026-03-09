@@ -51,12 +51,15 @@ class AtmosphereMixin:
 
             band_index = obs.instrument.dets.mask(band_name=band.name)
 
-            atmosphere_loading[band_index] = band.atmosphere_power(
+            p = band.atmosphere_power(
                 spectrum=obs.atmosphere.spectrum,
                 base_temperature=obs.atmosphere.weather.temperature[0],
                 zenith_pwv=obs.atmosphere.zenith_scaled_pwv[band_index],
                 elevation=obs.atmosphere.coords.el[band_index].clip(max=np.pi / 2),
             )
+
+            band_mueller = obs.instrument.dets[band_index].mueller()
+            atmosphere_loading[band_index] = band_mueller[..., 0, 0][:, None] * p
 
             logger.debug(
                 f"Computed atmospheric emission for band {band.name} in {humanize_time(ttime.monotonic() - emission_s)}."

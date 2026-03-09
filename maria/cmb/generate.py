@@ -19,7 +19,7 @@ CMB_SPECTRUM_CACHE_PATH = "/tmp/maria-data/cmb/spectrum.txt"
 CMB_SPECTRUM_CACHE_MAX_AGE = 30 * 86400  # one month
 
 CMB_SOURCES = {
-    "planck": {"spectrum": "cmb/spectra/planck.csv"},
+    "lensed": {"spectrum": "cmb/spectra/lensed.csv"},
     "camb": {"spectrum": "cmb/spectra/camb.csv"},
 }
 
@@ -33,15 +33,17 @@ def get_cmb_spectrum(source="camb"):
     return pd.read_csv(cmb_spectrum_path, index_col=0)
 
 
-def generate_cmb(nside: int = 2048, seed=123456, **kwargs):
+def generate_cmb(nside: int = 1024, lmax: int = None, source: str = "lensed", seed: int = 123456, **kwargs):
     """
     Generate a new CMB.
 
     Taken from https://www.zonca.dev/posts/2020-09-30-planck-spectra-healpy.html
     """
 
-    cl = get_cmb_spectrum(source="planck")
-    lmax = cl.ell.max()
+    np.random.seed(seed)
+
+    cl = get_cmb_spectrum(source=source)
+    lmax = lmax or int(np.pi / hp.pixelfunc.nside2resol(nside))
 
     alm = hp.synalm((cl.TT, cl.EE, cl.BB, cl.TE), lmax=lmax, new=True)
     cmb_data = hp.alm2map(alm, nside=nside, lmax=lmax)

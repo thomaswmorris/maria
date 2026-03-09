@@ -249,6 +249,11 @@ class Map:
         area = np.expand_dims(area, axis=(-1, -2)[: len(self.map_dims)])
         return Quantity(area, "sr")
 
+    def beam_repr(self):
+        slice_axes = tuple(range(self.beam.ndim - 1))
+        ragged_beam = any(self.beam.std(axis=slice_axes) > 0)
+        return "ragged" if ragged_beam else self.beam.mean(axis=slice_axes)
+
     def to(self, units: str, **calibration_kwargs: Mapping):
         if units == self.units:
             return self

@@ -210,7 +210,7 @@ class Quantity:
         abs_finite_value = np.where((abs_value > 0) & np.isfinite(abs_value), abs_value, np.nan)
 
         if (abs_finite_value > 0).any():
-            fid_x = 2 * np.nanquantile(abs_finite_value, q=0.99)
+            fid_x = np.nanquantile(abs_finite_value, q=0.99)
 
             # all the named units that work for these dimensions
             raw_quantity_units = self.known_compatible_units()
@@ -231,8 +231,8 @@ class Quantity:
                 if ideal_mask.sum() > 0:
                     repr_units = prefixed_quantity_units.loc[ideal_mask].sort_values("value").iloc[0].name
                 else:
-                    score = np.abs(np.log(prefixed_quantity_units.value / 16))
-                    repr_units = prefixed_quantity_units.iloc[score.argmin()].name
+                    loss = np.abs(np.log(prefixed_quantity_units.value / np.sqrt(0.5 * 500)))
+                    repr_units = prefixed_quantity_units.iloc[loss.argmin()].name
                 return repr_units
 
         return self.base_units

@@ -27,7 +27,7 @@ class HEALPixMap(Map):
         nu: float = None,
         t: float = None,
         z: float = None,
-        beam: tuple[float, float, float] = None,
+        beam: tuple[float, float, float] = 0.0,
         frame: str = "ra/dec",
         units: str = "K_RJ",
         degrees: bool = True,
@@ -41,7 +41,7 @@ class HEALPixMap(Map):
 
         map_dims = {"npix": data.shape[-1]}
 
-        beam = beam if beam is not None else 0.0
+        # beam = beam if beam is not None else 0.0
 
         super().__init__(
             data=data,
@@ -63,14 +63,14 @@ class HEALPixMap(Map):
         self.nside = hp.pixelfunc.npix2nside(self.npix)
         self.frame = Frame(frame)
 
-        if not hasattr(beam, "__len__"):
-            beam = beam or self.resolution
-            beam = (beam, beam, 0)
+        # if not hasattr(beam, "__len__"):
+        #     beam = beam or self.resolution
+        #     beam = (beam, beam, 0)
 
-        if len(beam) != 3:
-            raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
+        # if len(beam) != 3:
+        #     raise ValueError("'beam' must be either a number or a tuple of (major, minor, angle)")
 
-        self.beam = tuple(np.radians(beam) if degrees else beam)
+        # self.beam = tuple(np.radians(beam) if degrees else beam)
 
     def pointing_matrix(self, coords: Coordinates):
         pixel_index = hp.ang2pix(
@@ -96,7 +96,7 @@ class HEALPixMap(Map):
         return self.dims["npix"]
 
     def package(self):
-        return {
+        package = {
             "data": self.data,
             "weight": self.weight,
             "stokes": self.stokes,
@@ -105,6 +105,12 @@ class HEALPixMap(Map):
             "frame": self.frame.name,
             "units": self.units,
         }
+
+        for dim in ["stokes", "nu", "t"]:
+            if dim not in self.dims:
+                package.pop(dim)
+
+        return package
 
     @property
     def X(self):
@@ -174,4 +180,5 @@ class HEALPixMap(Map):
     min: {np.nanmin(self.data).compute():.03e}
     max: {np.nanmax(self.data).compute():.03e}
   resolution: {Quantity(self.resolution, "rad")}
+  beam(maj, min, rot): {self.beam_repr()}
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""

@@ -7,6 +7,7 @@ from tqdm import tqdm, trange
 
 from ..map import ProjectionMap
 from ..tod import TOD
+from ..utils import decompose, highpass
 from .base import BaseProjectionMapper
 from .bin_mapper import BinMapper
 
@@ -112,12 +113,10 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         self.mask = ~torch.tensor(init_sol).isnan()
         self.sol = MaximumLikelihoodSolution(data=torch.tensor(init_sol).float(), mask=self.mask)
 
-        self.update_noise_model()
-
     def update_noise_model(self):
         self.tod_list = []
 
-        pbar = tqdm(enumerate(self.tods), desc="Computing noise model", total=len(self.tods))
+        pbar = tqdm(enumerate(self.tods), desc="Updating noise model", total=len(self.tods))
 
         for tod_index, tod in pbar:
             pbar.set_postfix(tod=f"{tod_index + 1}/{len(self.tods)}")
@@ -149,13 +148,23 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
 
             ntip = int(0.5 * t["tod"].sample_rate)
             d = tod.signal.compute()
-            d = remove_ends(d)
+
+            # a, b = decompose(d, k=1)
+            # d -= a @ b
+
+            d = remove_ends(d, ntip=1)
+            d = highpass(d, fc=1e-1, sample_rate=t["tod"].sample_rate)
+
+            #
+            # d -= d.mean(axis=1)[..., None]
+
+            # d -= d.mean(axis=0)
             # d = d - np.linspace(d[:, :ntip].mean(axis=-1), d[:, -ntip:].mean(axis=-1), d.shape[-1]).T
 
             # a, b = decompose(d, k=1)
             t["d"] = torch.tensor(d, dtype=torch.float)
 
-            t["w"] = torch.tensor(sp.signal.windows.tukey(M=t["d"].shape[-1], alpha=0.1), dtype=torch.float)
+            t["w"] = torch.tensor(sp.signal.windows.tukey(M=t["d"].shape[-1], alpha=0.5), dtype=torch.float)
             t["f"] = np.fft.fftfreq(n=t["d"].shape[-1], d=1 / t["tod"].sample_rate)
             t["abs_f"] = np.abs(t["f"])
 
@@ -177,53 +186,69 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                 indices=indices, values=torch.tensor(values, dtype=torch.float), size=(t["tod"].coords.size, self.map_size)
             )
 
-            # project the fitted map out of the data
+            # project the fitted map out of the data for noise modeling
             t["d_no_map"] = t["d"] - (t["P"] @ self.sol.x()).reshape(t["d"].shape).detach()
-            t["fd"] = torch.fft.fft(t["w"] * torch.tensor(remove_ends(t["d"].numpy())))
-            # t["a"], t["b"] = [torch.tensor(x, dtype=torch.complex64) for x in decompose(t["fd"].numpy(), k=self.k)]
-            # t["a"] = torch.ones((t["d"].shape[0], self.k), dtype=torch.complex64)
 
-            # t["b"] = torch.linalg.inv(t["a"].T @ t["a"]) @ t["a"].T @ t["fd"]
-            # if self.k > 0 else torch.zeros((1, t["nt"]), dtype=torch.complex64)
-            # t["b"] = torch.tensor(sp.ndimage.gaussian_filter1d(t["b"], sigma=1, axis=-1))
+            t["wd"] = t["w"] * t["d_no_map"]
+            t["fwd"] = torch.fft.fft(t["wd"])
 
-            t["residual_ps"] = (t["fd"]).square().abs().float()
+            # t["fwd_no_map"] = torch.fft.fft(t["wd_no_map"])
 
-            n_bin = 64
+            t["a"], t["b"] = [torch.tensor(x, dtype=torch.complex64) for x in decompose(t["wd"].numpy(), k=t["k"])]
+            if self.k == 0:
+                t["a"] *= 0
+            t["fb"] = torch.fft.fft(t["b"])
+
+            t["rfwd"] = t["fwd"] - t["a"] @ t["fb"]
+
+            n_bin = 32
             mid_f = np.geomspace(t["abs_f"][t["abs_f"] > 0].min() * 0.99, t["abs_f"].max() * 1.01, n_bin)
             dlogf = np.exp(np.gradient(np.log(mid_f)).mean())
             bin_f = np.geomspace(mid_f[0] / np.sqrt(dlogf), mid_f[-1] * np.sqrt(dlogf), n_bin + 1)
-            bin_y = sp.stats.binned_statistic(t["abs_f"], t["residual_ps"], bins=bin_f).statistic
+            bin_y = sp.stats.binned_statistic(t["abs_f"], t["rfwd"].abs().square(), bins=bin_f).statistic
 
             use = ~np.isnan(bin_y).any(axis=0)
-            t["int_ps"] = torch.tensor(
-                sp.interpolate.interp1d(
-                    mid_f[use], np.median(bin_y[:, use], axis=0), axis=0, bounds_error=False, fill_value="extrapolate"
-                )(t["abs_f"]),
-                dtype=torch.float,
+            t["inv_diag"] = 1 / torch.tensor(
+                sp.interpolate.interp1d(mid_f[use], bin_y[:, use], axis=-1, bounds_error=False, fill_value="extrapolate")(
+                    t["abs_f"]
+                ),
+                dtype=torch.complex64,
             )  # * torch.ones_like(t["d"])
 
-            t["int_ps"] = t["residual_ps"].mean(axis=0)
+            t["inv_diag"] = 1 / t["rfwd"].abs().square().float().mean(axis=0)
+            # t["inv_diag"]
 
-            # t["V"] = (t["a"].T.unsqueeze(-1) * t["b"].unsqueeze(-2)).reshape(t["k"], -1)
-            # t["ViA"] = (t["V"].reshape(t["k"], *t["d"].shape) / t["int_ps"]).reshape(t["k"], -1)
-            # t["B"] = torch.linalg.inv(torch.eye(t["k"]) - t["ViA"] @ t["V"].T)
+            bin_y = sp.stats.binned_statistic(t["abs_f"], np.abs(t["fb"]) ** 2, bins=bin_f).statistic
+
+            use = ~np.isnan(bin_y).any(axis=0)
+            t["b_ps_sqrt"] = torch.tensor(
+                sp.interpolate.interp1d(mid_f[use], bin_y[:, use], axis=-1, bounds_error=False, fill_value="extrapolate")(
+                    t["abs_f"]
+                ),
+                dtype=torch.complex64,
+            ).sqrt()
+
+            t["b_ps_sqrt"] = t["fb"].abs().float()  # .mean(axis=0).unsqueeze(1)
+
+            t["kAB"] = (t["a"].unsqueeze(2) * t["b_ps_sqrt"].unsqueeze(0)).moveaxis(1, 0)
+            t["C"] = torch.eye(t["k"]) + torch.tensordot(t["kAB"] * t["inv_diag"], t["kAB"].conj(), dims=[[1, 2], [1, 2]])
+            t["invC"] = torch.linalg.inv(t["C"])
+
+            if self.k > 0:
+                t["Q"] = torch.linalg.cholesky(t["invC"]) @ (t["kAB"] * t["inv_diag"]).reshape(self.k, -1)
 
             t["PNd"] = t["P"].T @ self.apply_inverse_noise_covariance(t["d"], t)
 
             self.tod_list.append(t)
 
     def apply_inverse_noise_covariance(self, d, t):
-        fd = torch.fft.fft(t["w"] * d, axis=-1)  # (n x t)
-
-        Nfd1 = fd / t["int_ps"]
+        fwd = torch.fft.fft(t["w"] * d)
+        Nfwd = t["inv_diag"] * fwd
 
         if self.k > 0:
-            Nfd2 = (t["ViA"].T @ (t["B"] @ (t["ViA"] @ fd.ravel()))).reshape(fd.shape)
-        else:
-            Nfd2 = 0.0
+            Nfwd -= ((t["Q"] @ fwd.ravel()) @ t["Q"]).reshape(d.shape)
 
-        return torch.fft.ifft(Nfd1 - Nfd2).real.ravel()
+        return torch.fft.ifft(Nfwd).real.ravel()
 
     @property
     def naive_map(self):
@@ -254,13 +279,22 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         ).to(self.map_units)
 
     def fit(self, epochs: int = 4, steps_per_epoch: int = 64, lr: float = 1e-1):
-        if not hasattr(self, "optimizer"):
+        if not hasattr(self, "optimizer") or lr != getattr(self, "lr", None):
+            self.lr = lr
             self.optimizer = torch.optim.Adam(self.sol.parameters(), lr=lr)
 
         self.sol.train()
 
         for epoch in range(epochs):
-            pbar = trange(steps_per_epoch, bar_format="{l_bar}{bar:16}{r_bar}{bar:-10b}", desc=f"epoch {epoch + 1}/{epochs}")
+            self.update_noise_model()
+
+            pbar = trange(
+                steps_per_epoch,
+                bar_format="{l_bar}{bar:16}{r_bar}{bar:-10b}",
+                desc=f"Fitting map (epoch {epoch + 1}/{epochs})",
+                ncols=250,
+            )
+            pbar.set_postfix(loss=None)
 
             try:
                 for step in pbar:
