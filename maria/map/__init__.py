@@ -12,6 +12,7 @@ from astropy.io import fits
 from matplotlib.colors import ListedColormap
 
 from ..coords import frames
+from ..io import fetch
 from ..units import Quantity
 from .base import MAP_QUANTITIES, Map, concatenate  # noqa
 from .healpix import HEALPixMap  # noqa
@@ -40,6 +41,10 @@ FITS_KEYWORD_MAPPING = {
     "units": ["BUNIT", "BUNITS"],
     "nu": ["RESTFREQ"],
 }
+
+
+def get(name: str, **kwargs):
+    return load(fetch(name), **kwargs)
 
 
 def load(filename: str, format: str = "auto", **map_kwargs) -> Map:

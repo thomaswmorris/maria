@@ -14,8 +14,8 @@ from tqdm import tqdm
 
 from ..beam import compute_angular_fwhm
 from ..constants import k_B
-from ..io import DEFAULT_BAR_FORMAT, DEFAULT_TIME_FORMAT, fetch, humanize_time
-from ..map import HEALPixMap, Map, ProjectionMap, load
+from ..io import DEFAULT_BAR_FORMAT, DEFAULT_TIME_FORMAT, humanize_time
+from ..map import Map, get
 from ..units import Quantity
 
 here, this_filename = os.path.split(__file__)
@@ -31,7 +31,7 @@ class MapMixin:
 
     def _initialize_map(self, map: str | Map, **map_kwargs):
         if isinstance(map, str):
-            self.map = load(fetch(map), **map_kwargs)
+            self.map = get(map, **map_kwargs)
         elif isinstance(map, Map):
             self.map = map
         else:

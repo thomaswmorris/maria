@@ -4,13 +4,12 @@ import maria
 import matplotlib.pyplot as plt
 import numpy as np
 from maria import Planner, Simulation, all_instruments
-from maria.io import fetch
 from maria.mappers import BinMapper
 from maria.utils import read_yaml
 
 
 def test_polarized_map_sim():
-    einstein = maria.map.load(fetch("maps/einstein.h5"))
+    einstein = maria.map.get("maps/einstein.h5")
     planner = Planner(target=einstein, site="llano_de_chajnantor", constraints={"el": (60, 90)})
     plans = planner.generate_plans(total_duration=10, sample_rate=50)  # in Hz
 

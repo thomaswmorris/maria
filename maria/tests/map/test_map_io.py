@@ -25,7 +25,7 @@ def test_all_maps(filename):
     all_maps,
 )  # noqa
 def test_map_io_units(map_path):
-    m = maria.map.load(fetch(map_path))
+    m = maria.map.get(map_path)
     if "nu" not in m.dims:
         m = m.unsqueeze("nu", 150e9)
     assert np.allclose(m.to("K_RJ").to("Jy/pixel").to(m.units).data, m.data).compute()
