@@ -286,10 +286,14 @@ class ProjectionMap(Map):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
     def compute_stats(self):
+        d = np.where(np.isfinite(self.data), self.data, 0)
+        w = np.where(np.isfinite(self.data), self.weight, 0)
+        md = np.sum(d * w) / np.sum(w)
+
         self.stats = {
-            "min": np.nanmin(self.data).compute(),
-            "max": np.nanmax(self.data).compute(),
-            "rms": np.sqrt(np.sum(np.square(self.data - self.data.mean()) * self.weight / self.weight.sum())).compute(),
+            "min": np.min(d).compute(),
+            "max": np.max(d).compute(),
+            "rms": np.sqrt(np.sum(np.square(d - md) * w / w.sum())).compute(),
         }
 
     def __repr__(self):

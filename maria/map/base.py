@@ -11,7 +11,7 @@ import scipy as sp
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ
 from ..errors import FrequencyOutOfBoundsError, ShapeError
-from ..units import Quantity, parse_units
+from ..units import Quantity, get_factor_and_base_units_vector, parse_units
 
 logger = logging.getLogger("maria")
 
@@ -64,11 +64,14 @@ class Map:
         degrees: bool = True,  # noqa
         dtype: type = np.float32,
     ):
-        self.data = da.asarray(data).astype(dtype)
+        units_factor, base_units_vector = get_factor_and_base_units_vector(units)
+        q = Quantity(units_factor, base_units_vector)
+        self.units = q.units
+        self.data = da.asarray(q.value * data).astype(dtype)
         self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
         self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
 
-        self.units = parse_units(units)["units"]
+        # self.units = parse_units(units)["units"]
 
         self.map_dims = map_dims
 

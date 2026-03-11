@@ -9,5 +9,6 @@ maps/einstein.h5
 maps/m1.h5
 maps/maria.h5
 maps/monoceros_R2.h5
+maps/orion_A.h5
 maps/protoplanetary_disk.fits
 maps/sun.h5
