@@ -17,21 +17,11 @@
    "outputs": [],
    "source": [
     "import maria\n",
-    "from maria.io import fetch\n",
     "\n",
-    "input_map = maria.map.load(fetch(\"maps/m1.h5\"))\n",
+    "input_map = maria.map.get(\"maps/m1.h5\")\n",
     "\n",
     "input_map.plot(nu_index=[0, 1, 2])\n",
     "print(input_map)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "input_map = maria.map.load(fetch(\"maps/m1.h5\"))"
    ]
   },
   {
