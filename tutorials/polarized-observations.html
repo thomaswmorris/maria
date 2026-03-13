@@ -328,8 +328,8 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-          n     FOV baseline        bands polarized
-array1  652  28.68’      0 m  [f090,f150]      True
+          n     FOV         baseline        bands polarized
+array1  652  28.68’  0          m     [f090,f150]      True
 </pre></div></div>
 </div>
 <p>We can see the resulting polarization footprint in the instrument plot:</p>
@@ -349,13 +349,13 @@ array1  652  28.68’      0 m  [f090,f150]      True
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│            n     FOV baseline        bands polarized
-│  array1  652  28.68’      0 m  [f090,f150]      True
+│            n     FOV         baseline        bands polarized
+│  array1  652  28.68’  0          m     [f090,f150]      True
 │
 └ bands:
-      name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
-   0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s   1.458’
-   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  0.8748’
+      name   center   width    η         NEP      NET_RJ         NET_CMB    FWHM
+   0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  1.458’
+   1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  52.49”
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -381,8 +381,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-03-12 00:17:15.716 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 34.3MB/s]
+2026-03-13 22:56:26.964 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|████████████████| 931k/931k [00:00&lt;00:00, 43.3MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -413,9 +413,9 @@ Downloading: 100%|████████████████| 931k/931k [0
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 900 s):
-                           start_time duration target(ra,dec)    center(az,el)
+                           start_time duration target(ra,dec)     center(az,el)
 chunk
-0      2026-03-12 15:02:19.390 +00:00    900 s   (360°, -23°)  (95.69°, 62.1°)
+0      2026-03-14 14:54:38.351 +00:00    900 s   (360°, -23°)  (95.67°, 62.13°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -450,32 +450,32 @@ chunk
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │            n     FOV baseline        bands polarized
-│ │  array1  652  28.68’      0 m  [f090,f150]      True
+│ │            n     FOV         baseline        bands polarized
+│ │  array1  652  28.68’  0          m     [f090,f150]      True
 │ │
 │ └ bands:
-│       name   center   width    η         NEP      NET_RJ         NET_CMB     FWHM
-│    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s   1.458’
-│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  0.8748’
+│       name   center   width    η         NEP      NET_RJ         NET_CMB    FWHM
+│    0  f090   90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  1.458’
+│    1  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s    104 uK_CMB√s  52.49”
 ├ Site:
 │   region: chajnantor
 │   timezone: America/Santiago
 │   location:
 │     longitude: 67°45’17.28” W
 │     latitude:  23°01’45.84” S
-│     altitude: 5064 m
+│     altitude: 5.064 km
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 900 s):
-│                            start_time duration target(ra,dec)    center(az,el)
+│                            start_time duration target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-03-12 15:02:19.390 +00:00    900 s   (360°, -23°)  (95.69°, 62.1°)
+│ 0      2026-03-14 14:54:38.351 +00:00    900 s   (360°, -23°)  (95.67°, 62.13°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (4, 1, 1, 685, 685)
     stokes: IQUV
     nu: [90.] GHz
-    t: [1.77327463e+09]
+    t: [1.77344258e+09]
     z: naive
     quantity: rayleigh_jeans_temperature
     units: K_RJ
@@ -487,7 +487,7 @@ Simulation
       dec: -23°00’0.00”
     size(y, x): (1°, 1°)
     resolution(y, x): (5.255”, 5.255”)
-    beam(maj, min, rot): [0. 0. 0.] rad
+    beam(maj, min, rot): [0. 0. 0.]            rad
     memory: 30.03 MB
 </pre></div></div>
 </div>
@@ -507,14 +507,18 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-03-12 00:17:27.220 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:09&lt;00:00,  1.25s/it]
-Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  6.38it/s]
-Sampling turbulence: 100%|████████████████| 8/8 [00:05&lt;00:00,  1.34it/s]
-Computing atmospheric emission: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.00it/s, band=f150]
-Sampling map: 100%|████████████████| 2/2 [00:14&lt;00:00,  7.10s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.59it/s, band=f150]
-2026-03-12 00:18:22.299 INFO: Simulated observation 1 of 1 in 55.06 s
+2026-03-13 22:56:38.981 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:09&lt;00:00,  1.18s/it]
+Generating turbulence: 100%|████████████████| 8/8 [00:01&lt;00:00,  6.31it/s]
+Sampling turbulence: 100%|████████████████| 8/8 [00:06&lt;00:00,  1.31it/s]
+Computing atmospheric emission: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.01it/s, band=f150]
+Sampling map:   0%|                | 0/2 [00:00&lt;?, ?it/s, band=f090]               /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4596: RuntimeWarning: invalid value encountered in subtract
+  diff_b_a = b - a
+Sampling map:  50%|████████        | 1/2 [00:07&lt;00:07,  7.50s/it, band=f150]                                                /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4596: RuntimeWarning: invalid value encountered in subtract
+  diff_b_a = b - a
+Sampling map: 100%|████████████████| 2/2 [00:13&lt;00:00,  6.89s/it, band=f150, channel=(0  Hz           , inf  Hz           )]
+Generating noise: 100%|████████████████| 2/2 [00:01&lt;00:00,  1.67it/s, band=f150]
+2026-03-13 22:57:30.994 INFO: Simulated observation 1 of 1 in 51.99 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -522,7 +526,7 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-03-12 15:17:19.369 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-03-12T00:18:04.410022+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 279.564})]
+[TOD(shape=(652, 45000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-03-14 15:09:38.330 +00:00, duration=900.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-03-13T22:57:15.417325+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 279.5})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -564,13 +568,13 @@ Generating noise: 100%|████████████████| 2/2 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-03-12 00:18:32.899 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.37ˢ&#39;, &#39;dec&#39;: &#39;-23°00’0.51”&#39;} for mapper.
-2026-03-12 00:18:32.917 INFO: Inferring mapper width 1.472° for mapper from observation patch.
-2026-03-12 00:18:32.918 INFO: Inferring mapper height 1.472° to match supplied width.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:02&lt;00:00,  2.08s/it]
-Mapping: 100%|██████████| 1/1 [00:04&lt;00:00,  4.88s/it, tod=1/1]
-2026-03-12 00:18:40.199 WARNING: No counts for map (stokes=V, nu=90 GHz)
-2026-03-12 00:18:40.210 WARNING: No counts for map (stokes=V, nu=150 GHz)
+2026-03-13 22:57:41.161 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.94ˢ&#39;, &#39;dec&#39;: &#39;-22°59’48.58”&#39;} for mapper.
+2026-03-13 22:57:41.180 INFO: Inferring mapper width 1.469° for mapper from observation patch.
+2026-03-13 22:57:41.181 INFO: Inferring mapper height 1.469° to match supplied width.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:02&lt;00:00,  2.09s/it]
+Mapping: 100%|██████████| 1/1 [00:04&lt;00:00,  4.82s/it, tod=1/1]
+2026-03-13 22:57:49.069 WARNING: No counts for map (stokes=V, nu=90 GHz)
+2026-03-13 22:57:49.083 WARNING: No counts for map (stokes=V, nu=150 GHz)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -579,23 +583,23 @@ Mapping: 100%|██████████| 1/1 [00:04&lt;00:00,  4.88s/it, to
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  shape(stokes, nu, t, y, x): (4, 2, 1, 353, 353)
+  shape(stokes, nu, t, y, x): (4, 2, 1, 352, 352)
   stokes: IQUV
   nu: [ 90. 150.] GHz
-  t: [1.77332819e+09]
+  t: [1.77350053e+09]
   z: naive
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -1.128e+02
-    max: 1.422e+02
-    rms: 2.691e+01
+    min: -1.121e+02
+    max: 1.454e+02
+    rms: 2.669e+01
   center:
-    ra: 23ʰ59ᵐ59.37ˢ
-    dec: -23°00’0.51”
-  size(y, x): (1.471°, 1.471°)
+    ra: 23ʰ59ᵐ59.94ˢ
+    dec: -22°59’48.58”
+  size(y, x): (1.467°, 1.467°)
   resolution(y, x): (15”, 15”)
   beam(maj, min, rot): ragged
-  memory: 15.95 MB
+  memory: 15.86 MB
 </pre></div></div>
 </div>
 <p>Note that we can’t see any of the circular polarization, since our instrument isn’t sensitive to it.</p>

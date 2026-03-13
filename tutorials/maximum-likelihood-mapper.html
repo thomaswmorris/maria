@@ -323,7 +323,7 @@ ProjectionMap:
     dec: -10°00’0.00”
   size(y, x): (1°, 1°)
   resolution(y, x): (3.516”, 3.516”)
-  beam(maj, min, rot): [0. 0. 0.] rad
+  beam(maj, min, rot): [0. 0. 0.]            rad
   memory: 16.78 MB
 </pre></div></div>
 </div>
@@ -359,7 +359,7 @@ ProjectionMap:
 PlanList(1 plans, 3600 s):
                            start_time duration target(ra,dec)     center(az,el)
 chunk
-0      2026-03-12 09:30:11.972 +00:00   3600 s   (260°, -10°)  (32.08°, 74.98°)
+0      2026-03-14 09:20:46.801 +00:00   3600 s   (260°, -10°)  (33.34°, 74.79°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -402,8 +402,8 @@ chunk
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│            n     FOV baseline   bands polarized
-│  array1  380  8.878’      0 m  [f150]     False
+│            n     FOV         baseline   bands polarized
+│  array1  380  8.878’  0          m     [f150]     False
 │
 └ bands:
       name   center   width    η         NEP      NET_RJ         NET_CMB FWHM
@@ -442,8 +442,8 @@ Instrument(1 array)
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │            n     FOV baseline   bands polarized
-│ │  array1  380  8.878’      0 m  [f150]     False
+│ │            n     FOV         baseline   bands polarized
+│ │  array1  380  8.878’  0          m     [f150]     False
 │ │
 │ └ bands:
 │       name   center   width    η         NEP      NET_RJ         NET_CMB FWHM
@@ -454,19 +454,19 @@ Simulation
 │   location:
 │     longitude: 67°47’16.08” W
 │     latitude:  22°57’30.96” S
-│     altitude: 5190 m
+│     altitude: 5.19 km
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 3600 s):
 │                            start_time duration target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-03-12 09:30:11.972 +00:00   3600 s   (260°, -10°)  (32.08°, 74.98°)
+│ 0      2026-03-14 09:20:46.801 +00:00   3600 s   (260°, -10°)  (33.34°, 74.79°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     shape(stokes, nu, t, y, x): (1, 1, 1, 1024, 1024)
     stokes: I
     nu: [150.] GHz
-    t: [1.77327383e+09]
+    t: [1.77344179e+09]
     z: naive
     quantity: rayleigh_jeans_temperature
     units: uK_RJ
@@ -478,7 +478,7 @@ Simulation
       dec: -10°00’0.00”
     size(y, x): (1°, 1°)
     resolution(y, x): (3.516”, 3.516”)
-    beam(maj, min, rot): [0. 0. 0.] rad
+    beam(maj, min, rot): [0. 0. 0.]            rad
     memory: 16.78 MB
 </pre></div></div>
 </div>
@@ -496,14 +496,16 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-03-12 00:04:06.775 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|████████████████| 8/8 [00:37&lt;00:00,  4.65s/it]
-Generating turbulence: 100%|████████████████| 8/8 [00:02&lt;00:00,  2.80it/s]
+2026-03-13 22:43:27.204 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|████████████████| 8/8 [00:33&lt;00:00,  4.21s/it]
+Generating turbulence: 100%|████████████████| 8/8 [00:02&lt;00:00,  2.76it/s]
 Sampling turbulence: 100%|████████████████| 8/8 [00:06&lt;00:00,  1.25it/s]
-Computing atmospheric emission: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.38s/it, band=f150]
-Sampling map: 100%|████████████████| 1/1 [00:17&lt;00:00, 17.57s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.29s/it, band=f150]
-2026-03-12 00:05:34.326 INFO: Simulated observation 1 of 1 in 87.54 s
+Computing atmospheric emission: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.19s/it, band=f150]
+Sampling map:   0%|                | 0/1 [00:00&lt;?, ?it/s, band=f150]               /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:4596: RuntimeWarning: invalid value encountered in subtract
+  diff_b_a = b - a
+Sampling map: 100%|████████████████| 1/1 [00:18&lt;00:00, 18.92s/it, band=f150, channel=(0  Hz           , inf  Hz           )]
+Generating noise: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.24s/it, band=f150]
+2026-03-13 22:44:51.027 INFO: Simulated observation 1 of 1 in 83.81 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -532,10 +534,10 @@ Generating noise: 100%|████████████████| 1/1 [00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-03-12 00:05:44.107 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.09ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.46”&#39;} for mapper.
-2026-03-12 00:05:44.110 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
-Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.33s/it]
-Mapping: 100%|██████████| 1/1 [00:02&lt;00:00,  2.98s/it, tod=1/1]
+2026-03-13 22:45:00.791 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.91ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.67”&#39;} for mapper.
+2026-03-13 22:45:00.796 INFO: Inferring mapper stokes parameters &#39;I&#39; for mapper.
+Preprocessing TODs: 100%|████████████████| 1/1 [00:01&lt;00:00,  1.36s/it]
+Mapping: 100%|██████████| 1/1 [00:02&lt;00:00,  2.99s/it, tod=1/1]
 </pre></div></div>
 </div>
 <p>The initial map is a “guess” constructing by binning the input TODs:</p>
@@ -557,18 +559,18 @@ ProjectionMap:
   shape(stokes, nu, t, y, x): (1, 1, 1, 51, 51)
   stokes: I
   nu: [150.] GHz
-  t: [1.77330961e+09]
+  t: [1.77348185e+09]
   z: naive
   quantity: rayleigh_jeans_temperature
   units: mK_RJ
-    min: -2.646e-01
-    max: 1.226e-01
-    rms: 3.832e-02
+    min: -2.734e-01
+    max: 1.689e-01
+    rms: 3.860e-02
   center:
-    ra: 17ʰ20ᵐ0.09ˢ
-    dec: -9°59’59.46”
-  size(y, x): (0.7969°, 0.7969°)
-  resolution(y, x): (0.9375’, 0.9375’)
+    ra: 17ʰ19ᵐ59.91ˢ
+    dec: -9°59’59.67”
+  size(y, x): (47.81’, 47.81’)
+  resolution(y, x): (56.25”, 56.25”)
   beam(maj, min, rot): [20.99542581 20.99542581  0.        ]”
   memory: 41.62 kB
 </pre></div></div>
@@ -594,14 +596,14 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:07&lt;00:00,  7.82s/it, tod=1/1]
-Fitting map (epoch 1/4): 100%|████████████████| 32/32 [02:26&lt;00:00,  4.57s/it, loss=8.216e+01]
-Updating noise model: 100%|██████████| 1/1 [00:07&lt;00:00,  7.13s/it, tod=1/1]
-Fitting map (epoch 2/4): 100%|████████████████| 32/32 [02:25&lt;00:00,  4.54s/it, loss=4.970e+01]
+Updating noise model: 100%|██████████| 1/1 [00:07&lt;00:00,  7.87s/it, tod=1/1]
+Fitting map (epoch 1/4): 100%|████████████████| 32/32 [02:24&lt;00:00,  4.51s/it, loss=1.426e+02]
+Updating noise model: 100%|██████████| 1/1 [00:07&lt;00:00,  7.27s/it, tod=1/1]
+Fitting map (epoch 2/4): 100%|████████████████| 32/32 [02:24&lt;00:00,  4.50s/it, loss=5.856e+01]
 Updating noise model: 100%|██████████| 1/1 [00:07&lt;00:00,  7.19s/it, tod=1/1]
-Fitting map (epoch 3/4): 100%|████████████████| 32/32 [02:25&lt;00:00,  4.55s/it, loss=4.290e+01]
-Updating noise model: 100%|██████████| 1/1 [00:06&lt;00:00,  6.99s/it, tod=1/1]
-Fitting map (epoch 4/4): 100%|████████████████| 32/32 [02:24&lt;00:00,  4.53s/it, loss=4.564e+01]
+Fitting map (epoch 3/4): 100%|████████████████| 32/32 [02:24&lt;00:00,  4.50s/it, loss=3.392e+01]
+Updating noise model: 100%|██████████| 1/1 [00:07&lt;00:00,  7.17s/it, tod=1/1]
+Fitting map (epoch 4/4): 100%|████████████████| 32/32 [02:23&lt;00:00,  4.48s/it, loss=4.096e+01]
 </pre></div></div>
 </div>
 <p>which gives us an improved map</p>
