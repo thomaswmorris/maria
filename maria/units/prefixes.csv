@@ -1,4 +1,4 @@
-,symbol,symbol_latex,long_name,power,factor
+,symbol,math_name,long_name,power,factor
 q,q,\text{q},quecto,-30,1e-30
 r,r,\text{r},ronto,-27,1e-27
 y,y,\text{y},yocto,-24,1e-24
