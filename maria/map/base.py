@@ -65,7 +65,12 @@ class Map:
         dtype: type = np.float32,
     ):
         # check that map units are valid
-        parse_units(units)
+        u = parse_units(units)
+
+        if u["physical_quantity"] not in MAP_DIMENSIONS:
+            raise ValueError(
+                f"Units '{units}' (with associated physical quantity '{u['physical_quantity']}') are not valid map units"
+            )
 
         self.units = units
         self.data = da.asarray(data).astype(dtype)
@@ -264,7 +269,7 @@ class Map:
 
         if u["physical_quantity"] not in MAP_DIMENSIONS:
             raise ValueError(
-                f"Units '{units}' (with associated quantity '{u['physical_quantity']}') are not valid map units"
+                f"Units '{units}' (with associated physical quantity '{u['physical_quantity']}') are not valid map units"
             )
 
         package = self.package().copy()

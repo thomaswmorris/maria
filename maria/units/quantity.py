@@ -67,6 +67,7 @@ def repr_power(thing: str, power: float, math: bool = False):
         return ""
     if power == 1:
         return thing
+
     return f"{thing}^{exp_string}"
 
 

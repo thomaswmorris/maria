@@ -121,7 +121,7 @@ temperature:
 beam:
   long_name: beam
   short_name: beam
-  math_name: beam
+  math_name: \text{beam}
   base_unit: beam
   base_unit_prefix: ""
   vector:
@@ -132,14 +132,14 @@ beam:
       aliases:
       - BEAM
       long_name: beam
-      math_name: beam
+      math_name: \text{beam}
       min_prefix_power: 0
       max_prefix_power: 0
 
 pixel:
   long_name: pixel
   short_name: pixel
-  math_name: pixel
+  math_name: \text{pixel}
   base_unit: pixel
   base_unit_prefix: ""
   vector:
@@ -150,7 +150,7 @@ pixel:
       aliases:
       - PIXEL
       long_name: pixel
-      math_name: pixel
+      math_name: \text{pixel}
       min_prefix_power: 0
       max_prefix_power: 0
 
