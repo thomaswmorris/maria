@@ -1,0 +1,131 @@
+mass:
+  long_name: mass
+  short_name: m
+  math_name: m
+  base_unit: g
+  base_unit_prefix: k
+  min_prefix_power: -30
+  max_prefix_power: 0
+  vector:
+    kg: 1
+  units:
+    g:
+      factor: 1e-3
+      long_name: grams
+      math_name: \text{g}
+      min_prefix_power: -30
+      max_prefix_power: 3
+      human: False
+
+velocity:
+  long_name: velocity
+  short_name: v
+  math_name: v
+  base_unit: m/s
+  base_unit_prefix: ""
+  vector:
+    m: 1
+    s: -1
+
+angular_velocity:
+  long_name: angular_velocity
+  short_name: ω
+  math_name: \omega
+  base_unit: rad/s
+  base_unit_prefix: ""
+  vector:
+    rad: 1
+    s: -1
+  units:
+    rad/s:
+      factor: 1
+      long_name: radians per second
+      math_name: \text{rad}/\text{s}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    deg/s:
+      factor: 1.7453292519943295e-02
+      long_name: degrees per second
+      math_name: \text{deg}/\text{s}
+      min_prefix_power: 0
+      max_prefix_power: 0
+    arcmin/s:
+      factor: 2.9088820867e-04
+      long_name: arcminutes per second
+      math_name: \text{arcmin}/\text{s}
+      min_prefix_power: 0
+      max_prefix_power: 0
+    arcsec/s:
+      factor: 4.8481368111e-06
+      long_name: arcseconds per second
+      math_name: \text{arcsec}/\text{s}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+
+energy:
+  long_name: energy
+  short_name: E
+  math_name: E
+  base_unit: J
+  base_unit_prefix: ""
+  vector:
+    kg: 1
+    m: 2
+    s: -2
+  units:
+    J:
+      factor: 1
+      long_name: joules
+      math_name: \text{J}
+      min_prefix_power: -30
+      max_prefix_power: 30
+    erg:
+      factor: 1e-7
+      long_name: ergs
+      math_name: \text{erg}
+      min_prefix_power: -30
+      max_prefix_power: 30
+
+power:
+  long_name: power
+  short_name: P
+  math_name: P
+  base_unit: W
+  base_unit_prefix: ""
+  vector:
+    kg: 1
+    m: 2
+    s: -3
+  units:
+    W:
+      factor: 1
+      long_name: watts
+      math_name: \text{W}
+      min_prefix_power: -30
+      max_prefix_power: 30
+
+solid_angle:
+  long_name: solid angle
+  short_name: Omega
+  math_name: \Omega
+  base_unit: sr
+  base_unit_prefix: ""
+  vector:
+    rad: 2
+  units:
+    sr:
+      factor: 1
+      long_name: steradians
+      math_name: \text{sr}
+      aliases:
+      - JY
+      min_prefix_power: 0
+      max_prefix_power: 0
+    deg²:
+      factor: 0.00030461741978670857
+      long_name: square degrees
+      math_name: \text{deg}^2
+      min_prefix_power: 0
+      max_prefix_power: 0

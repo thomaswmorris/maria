@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from maria.units import Quantity
+from maria.units import Quantity, parse_units
 
 
 def test_units_repr():
@@ -38,3 +38,13 @@ def test_casting():
     ]:
         q = Quantity(nu, "Hz")
         assert all(q.GHz == [90, 150, 220])
+
+
+def test_parsing():
+    patterns = [
+        "kg m^-1 s^-7 Hz^4",
+        "kg/m^2",
+    ]
+
+    for pattern in patterns:
+        parse_units(pattern)

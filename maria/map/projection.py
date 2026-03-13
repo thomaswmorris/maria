@@ -19,7 +19,7 @@ from ..array import Array
 from ..coords import FRAMES, Coordinates, Frame
 from ..io import repr_phi_theta
 from ..tod import TOD
-from ..units import Quantity, get_factor_and_base_units_vector
+from ..units import Quantity, parse_units
 from ..utils import compute_pointing_matrix_sparse_indices, unpack_implicit_slice
 from .base import Map
 
@@ -223,18 +223,6 @@ class ProjectionMap(Map):
 
         return header
 
-    def __getattr__(self, attr):
-        broadcasted_attrs = ["STOKES", "NU", "T", "Y", "X"]
-        if attr in broadcasted_attrs:
-            broadcasted_attr_values = np.meshgrid(self.stokes, self.nu.Hz, self.t, self.y_side, self.x_side)
-            return broadcasted_attr_values[broadcasted_attrs.index(attr)]
-        if attr in ["min", "max", "rms"]:
-            if not hasattr(self, "stats"):
-                self.compute_stats()
-            return self.stats[attr]
-
-        raise AttributeError(f"'ProjectionMap' object has no attribute '{attr}'")
-
     def __getitem__(self, key):
         key = key if isinstance(key, tuple) else (key,)
 
@@ -255,7 +243,7 @@ class ProjectionMap(Map):
         x_res_factor = explicit_slices[-1].step or 1.0
         y_res_factor = explicit_slices[-2].step or 1.0
 
-        _, dimensions = get_factor_and_base_units_vector(self.units)
+        dimensions = parse_units(self.units)["dimension_vector"]
 
         package["y_res"] *= y_res_factor
         package["x_res"] *= x_res_factor
@@ -285,17 +273,6 @@ class ProjectionMap(Map):
     def points(self):
         return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
 
-    def compute_stats(self):
-        d = np.where(np.isfinite(self.data), self.data, 0)
-        w = np.where(np.isfinite(self.data), self.weight, 0)
-        md = np.sum(d * w) / np.sum(w)
-
-        self.stats = {
-            "min": np.min(d).compute(),
-            "max": np.max(d).compute(),
-            "rms": np.sqrt(np.sum(np.square(d - md) * w / w.sum())).compute(),
-        }
-
     def __repr__(self):
         # beam_repr = self.beam
         center_repr = "center:"
@@ -307,7 +284,7 @@ class ProjectionMap(Map):
   nu: {self.nu if "nu" in self.dims else "naive"}
   t: {self.t if "t" in self.dims else "naive"}
   z: {self.z if "z" in self.dims else "naive"}
-  quantity: {self.u["quantity"]}
+  quantity: {self.u["physical_quantity"]}
   units: {self.units}
     min: {self.min:.03e}
     max: {self.max:.03e}
@@ -453,7 +430,7 @@ class ProjectionMap(Map):
             if norm_method == "slice":
                 subset = np.random.choice(d.size, size=min(d.size, 20000), replace=False)
                 auto_vmin, auto_vmax = np.nanquantile(
-                    map_slice_qdata.value.ravel()[subset],
+                    map_slice_qdata.human_value.ravel()[subset],
                     weights=w.ravel()[subset].compute(),
                     q=(rel_vmin, rel_vmax),
                     method="inverted_cdf",
@@ -485,7 +462,7 @@ class ProjectionMap(Map):
         ax.pcolormesh(
             getattr(x, grid_u["units"]),
             getattr(y, grid_u["units"]),
-            map_slice_qdata.value,
+            map_slice_qdata.human_value,
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
@@ -507,7 +484,7 @@ class ProjectionMap(Map):
             pad=0,
         )
 
-        label = rf"${map_slice_qdata.u['math_name']}$"
+        label = rf"${map_slice_qdata.hu['math_name']}$"
         if "stokes" in self.dims:
             label += f" Stokes {stokes}"
         if "nu" in self.dims:
@@ -549,8 +526,8 @@ class ProjectionMap(Map):
         grid_u = Quantity(X, "rad").u
 
         header = fits.header.Header()
-        header["CDELT1"] = -np.degrees(grid_u["factor"])
-        header["CDELT2"] = np.degrees(grid_u["factor"])
+        header["CDELT1"] = -np.degrees(grid_u["base_units_factor"])
+        header["CDELT2"] = np.degrees(grid_u["base_units_factor"])
         header["CRPIX1"] = 1
         header["CRPIX2"] = 1
         header["CTYPE1"] = "RA---SIN"
@@ -627,7 +604,7 @@ class ProjectionMap(Map):
         if self.dims.get("nu", np.nan) > 1:
             raise RuntimeError("Cannot write multifrequency maps to FITS")
 
-        m = self  # .to(self.u["base_unit"])
+        m = self  # .to(self.hu["base_unit"])
 
         data = m.data[::-1, :]  # FITS counts from the bottom, while normal people count from the top
         if self.frame.name in ["ra/dec", "galatic"]:

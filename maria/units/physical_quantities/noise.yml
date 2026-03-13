@@ -1,0 +1,54 @@
+noise_equivalent_rayleigh_jeans_temperature:
+  long_name: noise equivalent Rayleigh-Jeans temperature
+  short_name: NET_RJ
+  math_name: \text{NET}_\text{RJ}
+  base_unit: K_RJ√s
+  base_unit_prefix: ""
+  vector:
+    K_RJ: 1
+    s: 0.5
+  units:
+    K_RJ√s:
+      factor: 1
+      long_name: kelvin Rayleigh-Jeans per square root hertz
+      math_name: \text{K}_\text{RJ}\sqrt{\text{s}}
+      human: True
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+      
+noise_equivalent_cmb_temperature_anisotropy:
+  long_name: noise equivalent CMB temperature anisotropy
+  short_name: NET_CMB
+  math_name: \text{NET}_\text{CMB}
+  base_unit: K_CMB√s
+  base_unit_prefix: ""
+  vector:
+    K_CMB: 1
+    s: 0.5
+  units:
+    K_CMB√s:
+      factor: 1
+      long_name: kelvin CMB per square root hertz
+      math_name: \text{K}_\text{CMB}\sqrt{\text{s}}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+
+noise_equivalent_power:
+  long_name: noise equivalent power
+  short_name: NEP
+  math_name: \text{NEP}
+  base_unit: W√s
+  base_unit_prefix: ""
+  vector:
+    kg: 1
+    m: 2
+    s: -2.5
+  units:
+    W√s:
+      factor: 1
+      long_name: watts per square root hertz
+      math_name: \text{W}\sqrt{\text{s}}
+      min_prefix_power: -30
+      max_prefix_power: 30

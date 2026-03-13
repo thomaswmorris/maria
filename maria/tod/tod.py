@@ -28,7 +28,7 @@ from ..utils import unpack_implicit_slice
 
 logger = logging.getLogger("maria")
 
-TOD_QUANTITIES = ["rayleigh_jeans_temperature", "cmb_temperature_anisotropy", "radiant_flux"]
+TOD_DIMENSIONS = ["rayleigh_jeans_temperature", "cmb_temperature_anisotropy", "power"]
 
 
 class TOD:
@@ -109,9 +109,10 @@ class TOD:
         """
 
         u = parse_units(units)
-        if u["quantity"] not in TOD_QUANTITIES:
+        if u["physical_quantity"] not in TOD_DIMENSIONS:
             raise ValueError(
-                f"Cannot convert map to units '{units}' (associated quantity '{u['quantity']}' is not a valid TOD quantity)"
+                f"Cannot convert map to units '{units}' (associated quantity '{u['physical_quantity']}' \
+                is not a valid TOD quantity)"
             )
 
         cal_start_s = ttime.monotonic()

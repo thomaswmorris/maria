@@ -1,0 +1,179 @@
+
+
+
+angle:
+  long_name: angle
+  short_name: theta
+  math_name: \theta
+  base_unit: rad
+  base_unit_prefix: ""
+  min_prefix_power: -30
+  max_prefix_power: 0
+  vector:
+    rad: 1
+  units:
+    rad:
+      factor: 1
+      long_name: radians
+      math_name: \text{rad}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    deg:
+      factor: 1.7453292519943295e-02
+      long_name: degrees
+      math_name: \text{deg}
+      symbol: °
+      min_prefix_power: 0
+      max_prefix_power: 0
+    arcmin:
+      factor: 2.9088820867e-04
+      long_name: arcminutes
+      math_name: \text{arcmin}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      symbol: ’
+    arcsec:
+      factor: 4.8481368111e-06
+      long_name: arcseconds
+      math_name: \text{arcsec}
+      min_prefix_power: -30
+      max_prefix_power: 0
+      symbol: ”
+
+time:
+  long_name: time
+  short_name: t
+  math_name: t
+  base_unit: s
+  base_unit_prefix: ""
+  vector:
+    s: 1
+  units:
+    s:
+      factor: 1
+      long_name: seconds
+      math_name: \text{s}
+      min_prefix_power: -30
+      max_prefix_power: 0
+    min:
+      factor: 60
+      long_name: minutes
+      math_name: \text{min}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    hr:
+      factor: 3600
+      long_name: hours
+      math_name: \text{hrs}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    day:
+      factor: 86400
+      long_name: days
+      math_name: \text{days}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    year:
+      factor: 31536000
+      long_name: years
+      math_name: \text{years}
+      min_prefix_power: 0
+      max_prefix_power: 30
+      human: False
+
+frequency:
+  long_name: frequency
+  short_name: nu
+  math_name: \nu
+  base_unit: Hz
+  base_unit_prefix: ""
+  vector:
+    Hz: 1
+  units:
+    Hz:
+      factor: 1
+      long_name: hertz
+      math_name: \text{Hz}
+      min_prefix_power: 0
+      max_prefix_power: 12
+
+temperature:
+  long_name: temperature
+  short_name: T
+  math_name: T
+  base_unit: K
+  base_unit_prefix: ""
+  vector:
+    K: 1
+  units:
+    K:
+      factor: 1
+      long_name: kelvin
+      math_name: \text{K}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+
+beam:
+  long_name: beam
+  short_name: beam
+  math_name: beam
+  base_unit: beam
+  base_unit_prefix: ""
+  vector:
+    beam: 1
+  units:
+    beam:
+      factor: 1
+      aliases:
+      - BEAM
+      long_name: beam
+      math_name: beam
+      min_prefix_power: 0
+      max_prefix_power: 0
+
+pixel:
+  long_name: pixel
+  short_name: pixel
+  math_name: pixel
+  base_unit: pixel
+  base_unit_prefix: ""
+  vector:
+    pixel: 1
+  units:
+    pixel:
+      factor: 1
+      aliases:
+      - PIXEL
+      long_name: pixel
+      math_name: pixel
+      min_prefix_power: 0
+      max_prefix_power: 0
+
+
+information:
+  long_name: Information
+  short_name: S
+  math_name: S
+  base_unit: b
+  base_unit_prefix: ""
+  vector:
+    b: 1
+  units:
+    b:
+      factor: 1
+      long_name: Bits
+      math_name: \text{bit}
+      min_prefix_power: 0
+      max_prefix_power: 30
+      human: False
+    B:
+      factor: 1
+      long_name: Bytes
+      math_name: \text{byte}
+      min_prefix_power: 0
+      max_prefix_power: 30

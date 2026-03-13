@@ -230,7 +230,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
 
         cbar = fig.colorbar(ec, ax=ax, shrink=0.8, location="bottom")
 
-        cbar.set_label(f"{band_qdata.q['long_name']} [${band_qdata.u['math_name']}$]")
+        cbar.set_label(f"[${band_qdata.hu['math_name']}$]")
 
         subplots[band] = {
             "ax": ax,
@@ -240,7 +240,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
             "time": tod.time[frame_index] - time_offset,
             "az": tod.boresight.az[frame_index],
             "el": tod.boresight.el[frame_index],
-            "data": band_qdata.value,
+            "data": band_qdata.human_value,
         }
 
     for ax in axes_iterator:

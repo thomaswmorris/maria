@@ -5,19 +5,19 @@ import yaml
 
 from ..io import leftpad
 from ..spectrum import AtmosphericSpectrum
-from ..units import DIMENSIONS, Quantity, parse_units
+from ..units import QUANTITY_DIMENSION_VECTORS, Quantity, parse_units
 from .conversion import (
     brightness_temperature_to_cmb_temperature_anisotropy,
-    brightness_temperature_to_radiant_flux,
+    brightness_temperature_to_power,
     cmb_temperature_anisotropy_to_brightness_temperature,
-    cmb_temperature_anisotropy_to_radiant_flux,
+    cmb_temperature_anisotropy_to_power,
     # cmb_temperature_anisotropy_to_rayleigh_jeans_temperature,
     identity,
-    radiant_flux_to_brightness_temperature,
-    radiant_flux_to_cmb_temperature_anisotropy,
-    radiant_flux_to_rayleigh_jeans_temperature,
+    power_to_brightness_temperature,
+    power_to_cmb_temperature_anisotropy,
+    power_to_rayleigh_jeans_temperature,
     # rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
-    rayleigh_jeans_temperature_to_radiant_flux,
+    rayleigh_jeans_temperature_to_power,
     rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
     spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel,
     spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature,
@@ -30,23 +30,23 @@ here, this_filename = os.path.split(__file__)
 
 conversions = {}
 conversions["brightness_temperature"] = {
-    "radiant_flux": {"f": brightness_temperature_to_radiant_flux, "linear": False},
+    "power": {"f": brightness_temperature_to_power, "linear": False},
     "cmb_temperature_anisotropy": {"f": brightness_temperature_to_cmb_temperature_anisotropy, "linear": False},
 }
 
-conversions["radiant_flux"] = {
-    "rayleigh_jeans_temperature": {"f": radiant_flux_to_rayleigh_jeans_temperature, "linear": True},
-    "cmb_temperature_anisotropy": {"f": radiant_flux_to_cmb_temperature_anisotropy, "linear": True},
-    "brightness_temperature": {"f": radiant_flux_to_brightness_temperature, "linear": False},
+conversions["power"] = {
+    "rayleigh_jeans_temperature": {"f": power_to_rayleigh_jeans_temperature, "linear": True},
+    "cmb_temperature_anisotropy": {"f": power_to_cmb_temperature_anisotropy, "linear": True},
+    "brightness_temperature": {"f": power_to_brightness_temperature, "linear": False},
 }
 conversions["rayleigh_jeans_temperature"] = {
-    "radiant_flux": {"f": rayleigh_jeans_temperature_to_radiant_flux, "linear": True},
+    "power": {"f": rayleigh_jeans_temperature_to_power, "linear": True},
     # "cmb_temperature_anisotropy": {"f": rayleigh_jeans_temperature_to_cmb_temperature_anisotropy, "linear": False},
     "spectral_flux_density_per_pixel": {"f": rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel, "linear": False},
 }
 
 conversions["cmb_temperature_anisotropy"] = {
-    "radiant_flux": {"f": cmb_temperature_anisotropy_to_radiant_flux, "linear": True},
+    "power": {"f": cmb_temperature_anisotropy_to_power, "linear": True},
     "brightness_temperature": {"f": cmb_temperature_anisotropy_to_brightness_temperature, "linear": False},
     # "rayleigh_jeans_temperature": {"f": cmb_temperature_anisotropy_to_rayleigh_jeans_temperature, "linear": False},
 }
@@ -171,7 +171,7 @@ class Calibration:
     def __call__(self, x) -> float:
         y = Quantity(x, self.in_units).base_units_value
 
-        # if self.config.loc["quantity", "in"] == self.config.loc["quantity", "out"]:
+        # if self.config.loc["physical_quantity", "in"] == self.config.loc["physical_quantity", "out"]:
         #     return x * self.in_factor / self.out_factor
 
         # y = x * self.in_factor
@@ -179,7 +179,7 @@ class Calibration:
         for f in self.function_chain():
             y = f(y, **self.kwargs)
 
-        return Quantity(y, DIMENSIONS.loc[self.qchain()[-1]]).to(self.out_units)
+        return Quantity(y, QUANTITY_DIMENSION_VECTORS.loc[self.qchain()[-1]]).to(self.out_units)
 
     @property
     def in_units(self) -> float:
@@ -199,11 +199,11 @@ class Calibration:
 
     @property
     def in_quantity(self) -> float:
-        return self.config.loc["quantity", "in"]
+        return self.config.loc["physical_quantity", "in"]
 
     @property
     def out_quantity(self) -> float:
-        return self.config.loc["quantity", "out"]
+        return self.config.loc["physical_quantity", "out"]
 
     @property
     def in_to_K_RJ(self) -> float:

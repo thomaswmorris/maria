@@ -175,10 +175,11 @@ class HEALPixMap(Map):
   z: {self.z if "z" in self.dims else "naive"}
   nside: {self.nside}
   frame: {self.frame.name}
-  quantity: {self.u["quantity"]}
+  quantity: {self.u["physical_quantity"]}
   units: {self.units}
-    min: {np.nanmin(self.data).compute():.03e}
-    max: {np.nanmax(self.data).compute():.03e}
+    min: {self.min:.03e}
+    max: {self.max:.03e}
+    rms: {self.rms:.03e}
   resolution: {Quantity(self.resolution, "rad")}
   beam(maj, min, rot): {self.beam_repr()}
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""

@@ -210,7 +210,7 @@ class Band:
         fig, ax = plt.subplots(1, 1)
         ax.plot(nu_values, self.tau, label=self.name)
         ax.set_xlim(nu_values.min(), nu_values.max())
-        ax.set_xlabel(rf"$\nu$ [${self.nu.u['math_name']}$]")
+        ax.set_xlabel(rf"$\nu$ [${self.nu.hu['math_name']}$]")
         ax.set_ylabel(r"$\tau(\nu)$ [Rayleigh-Jeans]")
         ax.legend()
 

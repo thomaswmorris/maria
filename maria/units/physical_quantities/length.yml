@@ -1,0 +1,64 @@
+length:
+  long_name: length
+  short_name: x
+  math_name: x
+  base_unit: m
+  base_unit_prefix: ""
+  vector:
+    m: 1
+  units:
+    m:
+      factor: 1
+      long_name: meters
+      math_name: \text{m}
+      min_prefix_power: -30
+      max_prefix_power: 3
+      human: True
+    miles:
+      factor: 1609.34
+      long_name: mi
+      math_name: \text{mi}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+
+area:
+  long_name: area
+  short_name: A
+  math_name: A
+  base_unit: m^2
+  base_unit_prefix: ""
+  vector:
+    m: 2
+  units:
+    acre:
+      factor: 4046.86
+      long_name: acre
+      math_name: \text{acre}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+    
+volume:
+  long_name: volume
+  short_name: V
+  math_name: V
+  base_unit: m^3
+  base_unit_prefix: ""
+  vector:
+    m: 3
+  units:
+    liter:
+      factor: 0.001
+      long_name: l
+      math_name: \text{l}
+      min_prefix_power: -30
+      max_prefix_power: 30
+      human: False
+    gallon:
+      factor: 0.003785412534257983
+      long_name: gal
+      math_name: \text{gal}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False

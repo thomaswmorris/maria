@@ -14,8 +14,8 @@ from tqdm import tqdm
 from ..coords import FRAMES, Frame, infer_center_width_height
 from ..instrument import BandList
 from ..io import DEFAULT_BAR_FORMAT, repr_phi_theta
-from ..map import MAP_QUANTITIES, ProjectionMap
-from ..tod import TOD, TOD_QUANTITIES
+from ..map import MAP_DIMENSIONS, ProjectionMap
+from ..tod import TOD, TOD_DIMENSIONS
 from ..units import Quantity, parse_units
 
 # np.seterr(invalid="ignore")
@@ -43,15 +43,17 @@ class BaseMapper:
         progress_bars: bool,
     ):
         u = parse_units(units)
-        self.tod_units = units if u["quantity"] in TOD_QUANTITIES else "K_RJ"
+        self.tod_units = units if u["physical_quantity"] in TOD_DIMENSIONS else "K_RJ"
         self.map_units = units
 
         if stokes is None:
             stokes = "IQUV" if any([tod.dets.polarized for tod in tods]) else "I"
             logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
 
-        if u["quantity"] not in MAP_QUANTITIES:
-            raise ValueError(f"Units '{units}' (with associated quantity '{u['quantity']}') are not valid map units")
+        if u["physical_quantity"] not in MAP_DIMENSIONS:
+            raise ValueError(
+                f"Units '{units}' (with associated quantity '{u['physical_quantity']}') are not valid map units"
+            )
 
         self.resolution = resolution
         self.units = units

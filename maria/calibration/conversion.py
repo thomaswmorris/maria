@@ -33,7 +33,7 @@ def brightness_temperature_to_rayleigh_jeans_temperature(T_b, nu, **kwargs):
     return inverse_rayleigh_jeans_spectrum(I_nu=I_nu, nu=nu)
 
 
-def rayleigh_jeans_temperature_to_radiant_flux(
+def rayleigh_jeans_temperature_to_power(
     T_RJ,
     band,
     polarized: bool = False,
@@ -58,7 +58,7 @@ def rayleigh_jeans_temperature_to_radiant_flux(
     return (0.5 if polarized else 1.0) * k_B * integral * T_RJ
 
 
-def radiant_flux_to_rayleigh_jeans_temperature(P, band, polarized: bool = False, spectrum=None, **kwargs):
+def power_to_rayleigh_jeans_temperature(P, band, polarized: bool = False, spectrum=None, **kwargs):
     """
     nu: frequency, in Hz
     passband: response to a Rayleigh-Jeans source
@@ -78,9 +78,7 @@ def radiant_flux_to_rayleigh_jeans_temperature(P, band, polarized: bool = False,
     return P / ((0.5 if polarized else 1.0) * k_B * integral)
 
 
-def brightness_temperature_to_radiant_flux_explicit(
-    T_b, band, polarized: bool = False, spectrum=None, eps: float = 1e-4, **kwargs
-):
+def brightness_temperature_to_power_explicit(T_b, band, polarized: bool = False, spectrum=None, eps: float = 1e-4, **kwargs):
     if T_b.ndim > 1:
         raise ShapeError("'T_b' must be one-dimensional")
 
@@ -122,12 +120,12 @@ def brightness_temperature_to_radiant_flux_explicit(
     return (0.5 if polarized else 1.0) * k_B * integral
 
 
-def brightness_temperature_to_radiant_flux(T_b, band, polarized: bool = False, spectrum=None, eps: float = 1e-4, **kwargs):
+def brightness_temperature_to_power(T_b, band, polarized: bool = False, spectrum=None, eps: float = 1e-4, **kwargs):
     T_b_lo = np.min(T_b) - eps / 2
     T_b_hi = np.min(T_b) + eps / 2
 
     # this has shape (*kwargs.shape, 2)
-    P = brightness_temperature_to_radiant_flux_explicit(
+    P = brightness_temperature_to_power_explicit(
         T_b=np.array([T_b_lo, T_b_hi]), band=band, polarized=polarized, spectrum=spectrum, **kwargs
     )
 
@@ -135,7 +133,7 @@ def brightness_temperature_to_radiant_flux(T_b, band, polarized: bool = False, s
     return t * P[..., 1] + (1 - t) * P[..., 0]
 
 
-def radiant_flux_to_brightness_temperature(P, **kwargs):
+def power_to_brightness_temperature(P, **kwargs):
     raise NotImplementedError()
 
 
@@ -160,17 +158,15 @@ def spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature(E: float, nu: 
 
 def dP_dT_CMB(band, polarized=False, spectrum=None, eps=1e-4, **kwargs):
     sample_T_b = np.array([T_CMB - eps / 2, T_CMB + eps / 2])
-    P = brightness_temperature_to_radiant_flux_explicit(
-        T_b=sample_T_b, band=band, polarized=polarized, spectrum=spectrum, **kwargs
-    )
+    P = brightness_temperature_to_power_explicit(T_b=sample_T_b, band=band, polarized=polarized, spectrum=spectrum, **kwargs)
     return (P[..., 1] - P[..., 0]) / eps
 
 
-def cmb_temperature_anisotropy_to_radiant_flux(T_b, band, polarized=False, spectrum=None, **kwargs):
+def cmb_temperature_anisotropy_to_power(T_b, band, polarized=False, spectrum=None, **kwargs):
     return T_b * dP_dT_CMB(band=band, polarized=polarized, spectrum=spectrum, **kwargs)
 
 
-def radiant_flux_to_cmb_temperature_anisotropy(P, band, polarized=False, spectrum=None, **kwargs):
+def power_to_cmb_temperature_anisotropy(P, band, polarized=False, spectrum=None, **kwargs):
     return P / dP_dT_CMB(band=band, polarized=polarized, spectrum=spectrum, **kwargs)
 
 
@@ -188,7 +184,7 @@ def T_RJ_per_T_CMB(
         nu=band.nu.Hz,
     )
     P = k_B * np.trapezoid(T_RJ * band.passband(band.nu.Hz), x=band.nu.Hz, axis=-1)
-    return radiant_flux_to_rayleigh_jeans_temperature((P[1] - P[0]) / eps, spectrum=None, band=band)
+    return power_to_rayleigh_jeans_temperature((P[1] - P[0]) / eps, spectrum=None, band=band)
 
 
 def cmb_temperature_anisotropy_to_rayleigh_jeans_temperature(

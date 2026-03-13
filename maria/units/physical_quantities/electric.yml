@@ -1,0 +1,51 @@
+charge:
+  long_name: electric charge
+  short_name: Q
+  math_name: Q
+  base_unit: C
+  base_unit_prefix: ""
+  vector:
+    C: 1
+  units:
+    C:
+      factor: 1
+      long_name: Coulomb
+      math_name: \text{C}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+current:
+  long_name: electric current
+  short_name: I
+  math_name: I
+  base_unit: A
+  base_unit_prefix: ""
+  vector:
+    C: 1
+    s: -1
+  units:
+    A:
+      factor: 1
+      long_name: ampere
+      math_name: \text{A}
+      min_prefix_power: -30
+      max_prefix_power: 0
+
+electric_potential:
+  long_name: electric potential
+  short_name: Φ
+  math_name: \Phi
+  base_unit: V
+  base_unit_prefix: ""
+  vector:
+    kg: 1
+    m: 2
+    s: -2
+    C: -1
+  units:
+   V:
+      factor: 1
+      long_name: volt
+      math_name: \text{V}
+      min_prefix_power: -30
+      max_prefix_power: 0

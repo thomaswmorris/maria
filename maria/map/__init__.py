@@ -14,7 +14,7 @@ from matplotlib.colors import ListedColormap
 from ..coords import frames
 from ..io import fetch
 from ..units import Quantity
-from .base import MAP_QUANTITIES, Map, concatenate  # noqa
+from .base import MAP_DIMENSIONS, Map, concatenate  # noqa
 from .healpix import HEALPixMap  # noqa
 from .projection import ProjectionMap  # noqa
 

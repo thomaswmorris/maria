@@ -273,8 +273,8 @@ class Plan:
         center = self.center()
 
         header = fits.header.Header()
-        header["CDELT1"] = -np.degrees(q_offsets.u["factor"])
-        header["CDELT2"] = np.degrees(q_offsets.u["factor"])
+        header["CDELT1"] = -np.degrees(q_offsets.hu["base_units_factor"])
+        header["CDELT2"] = np.degrees(q_offsets.hu["base_units_factor"])
         header["CRPIX1"] = 1
         header["CRPIX2"] = 1
         header["CTYPE1"] = "RA---SIN"
@@ -292,10 +292,10 @@ class Plan:
 
         cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame.name, join=True)
 
-        ax.plot(q_offsets.value[:, 0], q_offsets.value[:, 1], lw=5e-1)
+        ax.plot(q_offsets.human_value[:, 0], q_offsets.human_value[:, 1], lw=5e-1)
         ax.scatter(0, 0, c="r", marker="x", label=f"{cphi_repr}\n{ctheta_repr}")
-        ax.set_xlim(min(-1e-10, q_offsets.value[:, 0].min()), max(-1e-10, q_offsets.value[:, 0].max()))
-        ax.set_ylim(min(-1e-10, q_offsets.value[:, 1].min()), max(-1e-10, q_offsets.value[:, 1].max()))
+        ax.set_xlim(min(-1e-10, q_offsets.human_value[:, 0].min()), max(-1e-10, q_offsets.human_value[:, 0].max()))
+        ax.set_ylim(min(-1e-10, q_offsets.human_value[:, 1].min()), max(-1e-10, q_offsets.human_value[:, 1].max()))
 
         ax.legend(loc="upper right")
 
@@ -305,13 +305,13 @@ class Plan:
         ax.tick_params(axis="y", left=True, right=False, rotation=90)
 
         ax2 = ax.secondary_xaxis("top")
-        ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.u['math_name']}$]")
+        ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.hu['math_name']}$]")
         ax.set_xlabel(rf"{self.frame.phi_long_name}")
         ax.set_ylabel(rf"{self.frame.theta_long_name}")
 
         if not two_panel:
             ay2 = ax.secondary_yaxis("right")
-            ay2.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.u['math_name']}$]")
+            ay2.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.hu['math_name']}$]")
 
         if two_panel:
             az = Quantity(np.unwrap(self.coords.az), "rad")
@@ -393,9 +393,9 @@ class Plan:
         q_x = Quantity(x, "rad")
         q_y = Quantity(y, "rad")
 
-        heatmap = ax.pcolormesh(q_x.value, q_y.value, counts, cmap="turbo", vmin=0)
-        ax.set_xlabel(rf"$\Delta \theta_x$ [${q_x.u['math_name']}$]")
-        ax.set_ylabel(rf"$\Delta \theta_y$ [${q_y.u['math_name']}$]")
+        heatmap = ax.pcolormesh(q_x.human_value, q_y.human_value, counts, cmap="turbo", vmin=0)
+        ax.set_xlabel(rf"$\Delta \theta_x$ [${q_x.hu['math_name']}$]")
+        ax.set_ylabel(rf"$\Delta \theta_y$ [${q_y.hu['math_name']}$]")
 
         cbar = fig.colorbar(heatmap, location="right")
         cbar.set_label("counts")

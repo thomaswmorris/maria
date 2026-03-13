@@ -11,7 +11,7 @@ import scipy as sp
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ
 from ..errors import FrequencyOutOfBoundsError, ShapeError
-from ..units import Quantity, get_factor_and_base_units_vector, parse_units
+from ..units import Quantity, parse_units
 
 logger = logging.getLogger("maria")
 
@@ -36,7 +36,7 @@ SLICE_DIMS = {
     },
 }
 
-MAP_QUANTITIES = [
+MAP_DIMENSIONS = [
     "rayleigh_jeans_temperature",
     "cmb_temperature_anisotropy",
     "spectral_flux_density_per_pixel",
@@ -64,14 +64,13 @@ class Map:
         degrees: bool = True,  # noqa
         dtype: type = np.float32,
     ):
-        units_factor, base_units_vector = get_factor_and_base_units_vector(units)
-        q = Quantity(units_factor, base_units_vector)
-        self.units = q.units
-        self.data = da.asarray(q.value * data).astype(dtype)
+        # check that map units are valid
+        parse_units(units)
+
+        self.units = units
+        self.data = da.asarray(data).astype(dtype)
         self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
         self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
-
-        # self.units = parse_units(units)["units"]
 
         self.map_dims = map_dims
 
@@ -136,7 +135,7 @@ class Map:
 
         self.beam = Quantity(beam * np.ones((*self.slice_dims.values(), 3)), "deg" if degrees else "rad")
 
-        if self.u["quantity"] == "spectral_flux_density_per_beam":
+        if self.u["physical_quantity"] == "spectral_flux_density_per_beam":
             if not np.all(self.beam_area > 0):
                 raise ValueError(
                     f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
@@ -263,19 +262,21 @@ class Map:
 
         u = parse_units(units)
 
-        if u["quantity"] not in MAP_QUANTITIES:
-            raise ValueError(f"Units '{units}' (with associated quantity '{u['quantity']}') are not valid map units")
+        if u["physical_quantity"] not in MAP_DIMENSIONS:
+            raise ValueError(
+                f"Units '{units}' (with associated quantity '{u['physical_quantity']}') are not valid map units"
+            )
 
         package = self.package().copy()
 
         # this is just a scaling by some factor
-        if u["quantity"] == self.u["quantity"]:
-            package["data"] *= self.u["factor"] / u["factor"]
+        if u["physical_quantity"] == self.u["physical_quantity"]:
+            package["data"] *= self.u["base_units_factor"] / u["base_units_factor"]
 
         else:
             if "nu" not in self.dims:
                 raise ValueError(
-                    f"Cannot convert from quantity {self.u['quantity']} to quantity {u['quantity']} "
+                    f"Cannot convert from quantity {self.u['physical_quantity']} to quantity {u['physical_quantity']} "
                     f"when map has no frequency."
                 )
 
@@ -318,6 +319,29 @@ class Map:
 
     def copy(self):
         return type(self)(**self.package().copy())
+
+    def compute_stats(self):
+        d = np.where(np.isfinite(self.data), self.data, 0)
+        w = np.where(np.isfinite(self.data), self.weight, 0)
+        md = np.sum(d * w) / np.sum(w)
+
+        self._stats = {
+            "min": np.min(d).compute(),
+            "max": np.max(d).compute(),
+            "rms": np.sqrt(np.sum(np.square(d - md) * w / w.sum())).compute(),
+        }
+
+    def __getattr__(self, attr):
+        broadcasted_attrs = ["STOKES", "NU", "T", "Y", "X"]
+        if attr in broadcasted_attrs:
+            broadcasted_attr_values = np.meshgrid(self.stokes, self.nu.Hz, self.t, self.y_side, self.x_side)
+            return broadcasted_attr_values[broadcasted_attrs.index(attr)]
+        if attr in ["min", "max", "rms"]:
+            if not hasattr(self, "_stats"):
+                self.compute_stats()
+            return self._stats[attr]
+
+        raise AttributeError(f"{type(self)} object has no attribute '{attr}'")
 
 
 def concatenate(maps: list[Map], dim: str) -> Map:

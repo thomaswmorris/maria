@@ -519,7 +519,7 @@ class Array:
         nu_min, nu_max = self.bands.nu_min, self.bands.nu_max
 
         nu = Quantity(np.linspace(self.bands.nu_min.Hz, self.bands.nu_max.Hz, 1024), "Hz")
-        nu_min, nu_max = nu.value.min(), nu.value.max()
+        nu_min, nu_max = nu.human_value.min(), nu.human_value.max()
 
         for ia, array in enumerate(self.split()):
             for ib, band in enumerate(array.bands):
@@ -556,7 +556,7 @@ class Array:
                     ),
                 )
 
-                band_ax.plot(nu.value, band.passband(nu.Hz), color=c)
+                band_ax.plot(nu.human_value, band.passband(nu.Hz), color=c)
 
                 legend_handles.append(
                     Patch(
@@ -579,7 +579,7 @@ class Array:
         focal_ax.set_ylabel(rf"$\theta_y$ offset [{focal_plane_units}]")
         focal_ax.legend(handles=legend_handles, fontsize=8)
 
-        band_ax.set_xlabel(rf"$\nu$ [${nu.u['math_name']}$]")
+        band_ax.set_xlabel(rf"$\nu$ [${nu.hu['math_name']}$]")
         band_ax.set_ylabel(rf"Passband response")
         band_ax.legend(handles=band_legend_handles, fontsize=8)
 
