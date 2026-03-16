@@ -258,8 +258,10 @@ class Map:
 
     def beam_repr(self):
         slice_axes = tuple(range(self.beam.ndim - 1))
-        ragged_beam = any(self.beam.std(axis=slice_axes) > 0)
-        return "ragged" if ragged_beam else self.beam.mean(axis=slice_axes)
+        if any(self.beam.std(axis=slice_axes) > 0):
+            return "ragged"
+        b = self.beam.mean(axis=slice_axes)
+        return (b[0], b[1], b[2])
 
     def to(self, units: str, **calibration_kwargs: Mapping):
         if units == self.units:
