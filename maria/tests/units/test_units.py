@@ -44,6 +44,8 @@ def test_parsing():
     patterns = [
         "kg m^-1 s^-7 Hz^4",
         "kg/m^2",
+        "m /s",
+        "m /s**3",
     ]
 
     for pattern in patterns:

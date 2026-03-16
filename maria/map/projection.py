@@ -451,7 +451,8 @@ class ProjectionMap(Map):
             vmax = vmax or auto_vmax
 
         X = np.r_[self.x_bins, self.y_bins]
-        grid_u = Quantity(X, "rad").u
+        qX = Quantity(X, "rad")
+        grid_u, grid_hu = qX.u, qX.hu
 
         x = Quantity(self.x_bins, "rad")
         y = Quantity(self.y_bins, "rad")
@@ -460,8 +461,8 @@ class ProjectionMap(Map):
         # ax = fig.add_subplot(nx, ny, index, projection=WCS(header))
 
         ax.pcolormesh(
-            getattr(x, grid_u["units"]),
-            getattr(y, grid_u["units"]),
+            getattr(x, grid_hu["units"]),
+            getattr(y, grid_hu["units"]),
             map_slice_qdata.human_value,
             cmap=cmap,
             vmin=vmin,
@@ -523,11 +524,11 @@ class ProjectionMap(Map):
         vmax: float = None,
     ):
         X = np.r_[self.x_bins, self.y_bins]
-        grid_u = Quantity(X, "rad").u
+        grid_hu = Quantity(X, "rad").hu
 
         header = fits.header.Header()
-        header["CDELT1"] = -np.degrees(grid_u["base_units_factor"])
-        header["CDELT2"] = np.degrees(grid_u["base_units_factor"])
+        header["CDELT1"] = -np.degrees(grid_hu["base_units_factor"])
+        header["CDELT2"] = np.degrees(grid_hu["base_units_factor"])
         header["CRPIX1"] = 1
         header["CRPIX2"] = 1
         header["CTYPE1"] = "RA---SIN"
@@ -575,7 +576,7 @@ class ProjectionMap(Map):
                 #     ay2.set_ylabel(rf"$\Delta\,\theta_y$ [{grid_u['units']}]")
                 if r == 0:
                     ax2 = ax.secondary_xaxis("top")
-                    ax2.set_xlabel(rf"$\Delta\,\theta$ [{grid_u['units']}]")
+                    ax2.set_xlabel(rf"$\Delta\,\theta$ [{grid_hu['units']}]")
                 if r < nrows - 1:
                     ax.coords[0].set_ticks_visible(False)
                     ax.coords[0].set_ticklabel_visible(False)

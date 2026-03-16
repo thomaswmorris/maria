@@ -513,8 +513,8 @@ class Array:
         legend_handles = []
         band_legend_handles = []
 
-        focal_plane_units = Quantity(self.offsets, "rad").units
-        resolution_units = Quantity(self.fwhm, "rad").units
+        focal_plane_units = Quantity(self.offsets, "rad").hu["units"]
+        resolution_units = Quantity(self.fwhm, "rad").hu["units"]
 
         nu_min, nu_max = self.bands.nu_min, self.bands.nu_max
 

@@ -14,7 +14,7 @@ from tqdm import tqdm
 from ..coords import FRAMES, Frame, infer_center_width_height
 from ..instrument import BandList
 from ..io import DEFAULT_BAR_FORMAT, repr_phi_theta
-from ..map import MAP_DIMENSIONS, ProjectionMap
+from ..map import VALID_MAP_QUANTITIES, ProjectionMap
 from ..tod import TOD, TOD_DIMENSIONS
 from ..units import Quantity, parse_units
 
@@ -50,7 +50,7 @@ class BaseMapper:
             stokes = "IQUV" if any([tod.dets.polarized for tod in tods]) else "I"
             logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
 
-        if u["physical_quantity"] not in MAP_DIMENSIONS:
+        if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
             raise ValueError(
                 f"Units '{units}' (with associated quantity '{u['physical_quantity']}') are not valid map units"
             )

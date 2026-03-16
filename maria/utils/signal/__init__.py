@@ -56,29 +56,33 @@ def downsample(DATA, rate, axis=-1, method=None):
         )
 
 
-def decompose(D, k=64, batch=True):
-    *batch_shape, n_d, n_t = D.shape
+def decompose(D, k: int = 64, batch: bool = True, norm: str = "var"):
+    *batch_shape, n_dets, n_samples = D.shape
     dnorm = D.std(axis=-1)
 
     if batch_shape:
         if batch:
             A_list, B_list = [], []
-            for d in D.reshape(-1, n_d, n_t):
+            for d in D.reshape(-1, n_dets, n_samples):
                 A, B = decompose(d)
                 A_list.append(A)
                 B_list.append(B)
             return (
-                np.stack(A_list, axis=0).reshape(*batch_shape, n_d, k),
-                np.stack(B_list, axis=0).reshape(*batch_shape, k, n_t),
+                np.stack(A_list, axis=0).reshape(*batch_shape, n_dets, k),
+                np.stack(B_list, axis=0).reshape(*batch_shape, k, n_samples),
             )
 
         else:
-            A, B = decompose(D.reshape(-1, n_t))
-            return A.reshape(*batch_shape, n_d, -1), B
+            A, B = decompose(D.reshape(-1, n_samples))
+            return A.reshape(*batch_shape, n_dets, -1), B
 
     dnorm = np.sqrt(np.sum(np.square(D), axis=-1))
     u, s, v = sp.sparse.linalg.svds(D / dnorm[..., None], k=k)
     vnorm = np.sqrt(np.sum(np.square(v), axis=-1))
+    if norm == "var":
+        vnorm /= np.sqrt(n_samples)
+    elif norm != "sum":
+        raise ValueError(f"Invalid norm '{norm}'.")
     mode_sort = np.argsort(-s)
     return (dnorm[:, None] * u * s * vnorm)[..., mode_sort], (v / vnorm[..., None])[mode_sort]
 

@@ -75,7 +75,7 @@ def repr_dim_vec(dim_vec: pd.Series) -> str:
     base_unit_parts = []
     for unit, power in dim_vec.items():
         part = repr_power(unit, power)
-        if part is not None:
+        if part:
             base_unit_parts.append(part)
     return " ".join(base_unit_parts)
 

@@ -36,7 +36,7 @@ SLICE_DIMS = {
     },
 }
 
-MAP_DIMENSIONS = [
+VALID_MAP_QUANTITIES = [
     "rayleigh_jeans_temperature",
     "cmb_temperature_anisotropy",
     "spectral_flux_density_per_pixel",
@@ -67,7 +67,7 @@ class Map:
         # check that map units are valid
         u = parse_units(units)
 
-        if u["physical_quantity"] not in MAP_DIMENSIONS:
+        if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
             raise ValueError(
                 f"Units '{units}' (with associated physical quantity '{u['physical_quantity']}') are not valid map units"
             )
@@ -267,7 +267,7 @@ class Map:
 
         u = parse_units(units)
 
-        if u["physical_quantity"] not in MAP_DIMENSIONS:
+        if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
             raise ValueError(
                 f"Units '{units}' (with associated physical quantity '{u['physical_quantity']}') are not valid map units"
             )
