@@ -10,6 +10,7 @@ import scipy as sp
 
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ
+from ..coords import Frame
 from ..errors import FrequencyOutOfBoundsError, ShapeError
 from ..units import Quantity, parse_units
 
@@ -61,6 +62,7 @@ class Map:
         beam: tuple[float, float, float],  # noqa
         map_dims: dict,
         units: str = "K_RJ",
+        frame: str = "ra/dec",
         degrees: bool = True,  # noqa
         dtype: type = np.float32,
     ):
@@ -73,6 +75,8 @@ class Map:
             )
 
         self.units = units
+        self.frame = Frame(frame)
+
         self.data = da.asarray(data).astype(dtype)
         self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
         self.data, self.weight = np.broadcast_arrays(self.data, self.weight)

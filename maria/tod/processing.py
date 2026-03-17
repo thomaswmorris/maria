@@ -118,8 +118,8 @@ def process_tod(tod, config=None, **kwargs):
             rel_el = (el - el.min()) / el_ptp
             B = np.concatenate([B * rel_el[None], B * (1 - rel_el)[None]], axis=0)
 
-        A = np.linalg.inv(B @ B.T) @ B @ D.T
-        D -= A.T @ B
+        A = (np.linalg.inv(B @ B.T) @ B @ D.swapaxes(-2, -1)).swapaxes(-2, -1)
+        D -= A @ B
 
         logger.debug(
             f'Completed tod operation "remove_spline" in {humanize_time(ttime.monotonic() - remove_spline_start_s)}.'

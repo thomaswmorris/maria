@@ -33,6 +33,7 @@ class BaseMapper:
         self,
         tods: Sequence[TOD],
         resolution: Quantity,
+        frame: str,
         units: str,
         stokes: str,
         min_time: float,
@@ -218,6 +219,7 @@ class BaseProjectionMapper(BaseMapper):
         degrees: bool,
         progress_bars: bool,
     ):
+
         center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
         width = (Quantity(width, "deg" if degrees else "rad")) if width is not None else None
         height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else None
@@ -261,6 +263,7 @@ class BaseProjectionMapper(BaseMapper):
         super().__init__(
             tods=tods,
             resolution=resolution,
+            frame=frame,
             units=units,
             stokes=stokes,
             min_time=min_time,

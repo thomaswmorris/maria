@@ -16,9 +16,8 @@ from astropy.wcs import WCS
 from skimage.measure import block_reduce
 
 from ..array import Array
-from ..coords import FRAMES, Coordinates, Frame
+from ..coords import Coordinates
 from ..io import repr_phi_theta
-from ..tod import TOD
 from ..units import Quantity, parse_units
 from ..utils import compute_pointing_matrix_sparse_indices, unpack_implicit_slice
 from .base import Map
@@ -47,9 +46,9 @@ class ProjectionMap(Map):
         y_res: float = None,
         center: tuple[float, float] = (0.0, 0.0),
         beam: tuple[float, float, float] = 0.0,
+        units: str = "K_RJ",
         frame: str = "ra/dec",
         degrees: bool = True,
-        units: str = "K_RJ",
         dtype: type = np.float32,
     ):
         # give it five dimensions
@@ -71,8 +70,6 @@ class ProjectionMap(Map):
         except Exception:
             raise ValueError("'center' must be a two-tuple of numbers")
 
-        self.frame = Frame(frame)
-
         super().__init__(
             data=data,
             weight=weight,
@@ -83,6 +80,7 @@ class ProjectionMap(Map):
             beam=beam,
             map_dims=map_dims,
             units=units,
+            frame=frame,
             degrees=degrees,
             dtype=dtype,
         )
@@ -376,7 +374,12 @@ class ProjectionMap(Map):
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
         x_sigma_pixels = sigma / self.x_res
         y_sigma_pixels = sigma / self.y_res
-        package["data"] = sp.ndimage.gaussian_filter(self.data, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
+
+        numer = sp.ndimage.gaussian_filter(self.data * self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
+        denom = sp.ndimage.gaussian_filter(self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
+
+        package["data"] = numer / denom
+        package["weight"] = numer
 
         return type(self)(**package)
 

@@ -57,8 +57,8 @@ class TOD:
         self.data = {}
 
         for field, field_data in data.items():
-            if field_data.ndim != 2:
-                raise ValueError("Only two-dimensional TODs are currently supported.")
+            # if field_data.ndim != 2:
+            #     raise ValueError("Only two-dimensional TODs are currently supported.")
 
             self.data[field] = da.asarray(field_data, dtype=dtype) if distributed else field_data.astype(dtype)
 
@@ -133,7 +133,7 @@ class TOD:
             cal = band.cal(f"{self.units} -> {units}", **self.calibration_kwargs(band))
 
             for field in self.fields:
-                content["data"][field][band_mask] = cal(self.data[field][band_mask])
+                content["data"][field][..., band_mask, :] = cal(self.data[field][..., band_mask, :])
 
         content["units"] = units
 
@@ -212,9 +212,9 @@ class TOD:
         content = self.content
         content.update(
             {
-                "data": {field: self.data[field][det_mask][..., time_mask].compute() for field in fields},
-                "weight": self.weight[det_mask][..., time_mask].compute(),
-                "coords": self.coords[det_mask][..., time_mask],
+                "data": {field: self.data[field][..., det_mask, :][..., time_mask].compute() for field in fields},
+                "weight": self.weight[..., det_mask, :][..., time_mask].compute(),
+                "coords": self.coords[..., det_mask, :][..., time_mask],
                 "dets": self.dets._subset(det_mask),
             }
         )

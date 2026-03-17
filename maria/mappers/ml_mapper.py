@@ -21,22 +21,6 @@ def remove_ends(data, ntip=16):
 
 
 class MaximumLikelihoodSolution(torch.nn.Module):
-    def __init__(self, data: torch.Tensor, mask: torch.Tensor, dtype: type = torch.float):
-        super(MaximumLikelihoodSolution, self).__init__()
-
-        data_std = data[mask].detach().std()
-        data_std = data_std if data_std > 0 else torch.tensor(1.0)
-        self.log_scale = torch.nn.Parameter(data_std.log())
-        self.unscaled_x = torch.nn.Parameter(data[mask] / data_std)
-        self.mask = mask
-
-    def x(self):
-        x = torch.zeros_like(self.mask, dtype=torch.float)
-        x[self.mask] = self.log_scale.exp() * self.unscaled_x
-        return x
-
-
-class MaximumLikelihoodSolution(torch.nn.Module):
     def __init__(self, data: torch.Tensor, mask: torch.Tensor = None, dtype: type = torch.float):
         super(MaximumLikelihoodSolution, self).__init__()
 
@@ -171,7 +155,9 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             t["P"] = self.P_list[tod_index]
 
             # project the fitted map out of the data for noise modeling
-            t["d_no_map"] = t["d"] - (t["P"] @ self.sol.x().detach()).reshape(t["d"].shape).detach()
+            m = torch.tensor(self.map.smooth(sigma=self.map.resolution).data.compute().ravel(), dtype=torch.float)
+
+            t["d_no_map"] = t["d"] - (t["P"] @ m).reshape(t["d"].shape).detach()
             t["wd"] = t["w"] * t["d_no_map"]
             t["fwd"] = torch.fft.fft(t["wd"])
 
@@ -184,9 +170,24 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                 t["noise"] = t["fwd"]
 
             t["raw_ps"] = t["noise"].square().abs()
-            # ps = sp.ndimage.gaussian_filter(t["raw_ps"], sigma=2, axes=-1)
-            # t["A_inv"] = torch.tensor(1 / ps)
-            t["A_inv"] = 1 / t["raw_ps"].mean(dim=0).unsqueeze(0)
+
+            # log_ps = sp.ndimage.gaussian_filter(t["raw_ps"].log(), sigma=4, axes=-1, truncate=1)
+            ps = torch.tensor(sp.ndimage.gaussian_filter(t["raw_ps"], sigma=4, axes=-1, truncate=1), dtype=torch.float)
+            t["A_inv"] = 1 / ps
+
+            # t["A_inv"] = 1 / t["raw_ps"].mean(dim=0).unsqueeze(0)
+
+            # f_bins = np.geomspace(t["abs_f"][1] / 1.00001, t["abs_f"].max() * 1.00001, 64)
+            # f_vals = sp.stats.binned_statistic(t["abs_f"], t["abs_f"], bins=f_bins, statistic="mean").statistic
+            # p_vals = sp.stats.binned_statistic(t["abs_f"], t["raw_ps"], bins=f_bins, statistic="mean").statistic
+
+            # # pad
+            # f_vals = np.array([0, *f_vals])
+            # p_vals = np.concatenate([np.zeros((t["nd"], 1)), p_vals], axis=1)
+
+            # use_bin = ~np.isnan(p_vals).any(axis=0)
+            # t["ps"] = sp.interpolate.interp1d(f_vals[use_bin], p_vals[..., use_bin], fill_value="extrapolate")(t["abs_f"])
+            # t["A_inv"] = torch.tensor(1 / np.where(t["abs_f"] > 0, t["ps"], t["raw_ps"]), dtype=torch.complex64)
 
             if self.k > 0:
                 t["Q"] = t["a"].T.unsqueeze(-1)
@@ -240,10 +241,24 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             beam=self.beam,
         ).to(self.map_units)
 
-    def fit(self, epochs: int = 4, steps_per_epoch: int = 64, lr: float = 1e-1, plot: bool = False):
-        if not hasattr(self, "optimizer") or lr != getattr(self, "lr", None):
-            self.lr = lr
-            self.optimizer = torch.optim.Adam(self.sol.parameters(), lr=lr)
+    def fit(self, epochs: int = 4, steps_per_epoch: int = 64, lr: float = 1e-1, optimizer: str = "adam", plot: bool = False):
+
+        keep_optimizer = False
+        if hasattr(self, "optimizer"):
+            if self.optimizer_config["lr"] == lr:
+                if self.optimizer_config["optimizer"] == optimizer:
+                    keep_optimizer = False
+
+        if not keep_optimizer:
+            self.optimizer_config = {
+                "optimizer": optimizer,
+                "lr": lr,
+            }
+
+            if optimizer == "adam":
+                self.optimizer = torch.optim.Adam(self.sol.parameters(), lr=lr)
+            if optimizer == "sgd":
+                self.optimizer = torch.optim.SGD(self.sol.parameters(), lr=lr)
 
         self.sol.train()
 

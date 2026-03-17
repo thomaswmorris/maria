@@ -64,7 +64,7 @@ def decompose(D, k: int = 64, batch: bool = True, norm: str = "var"):
         if batch:
             A_list, B_list = [], []
             for d in D.reshape(-1, n_dets, n_samples):
-                A, B = decompose(d)
+                A, B = decompose(d, k=k)
                 A_list.append(A)
                 B_list.append(B)
             return (
