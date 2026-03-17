@@ -153,7 +153,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
     def update_noise_model(self):
         self.tod_list = []
 
-        pbar = tqdm(enumerate(self.tods), desc="Updating noise model")
+        pbar = tqdm(enumerate(self.tods), desc="Updating noise model", total=len(self.tods))
 
         for tod_index, tod in pbar:
             pbar.set_postfix(tod=f"{tod_index + 1}/{len(self.tods)}")

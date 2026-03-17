@@ -180,9 +180,9 @@ class Quantity:
             physical_quantity_units = UNITS.loc[UNITS.physical_quantity == self.u["physical_quantity"]]
 
             units_loss = np.inf
-            fid_x = np.array([x for x in lazy_nanquantile(np.abs(self.base_units_value), q=[0.001, 0.5, 0.999]) if x > 0])
+            fid_x = lazy_nanquantile(np.abs(self.base_units_value), q=0.99)
 
-            if len(fid_x):
+            if fid_x > 0:
                 for unit_name, unit in physical_quantity_units.iterrows():
                     if not unit.human:
                         continue
