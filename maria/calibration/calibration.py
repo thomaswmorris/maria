@@ -221,7 +221,7 @@ class Calibration:
 
         qkwargs = {}
         for k, v in self.kwargs.items():
-            if k in ["spectrum", "band"]:
+            if k in ["spectrum", "band", "polarized"]:
                 continue
             qkwargs[k] = str(Quantity(v, KWARGS_UNITS[k]))
 

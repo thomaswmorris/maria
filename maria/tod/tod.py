@@ -122,7 +122,7 @@ class TOD:
             if band_name not in self.dets.bands.name:
                 raise ValueError(f"No band defined for detector with band '{band_name}'.")
 
-        content = self.content
+        content = self.content()
         for band in self.dets.bands:
             band_mask = self.dets.band_name == band.name
 
@@ -209,7 +209,7 @@ class TOD:
             if not (len(det_mask) == self.nd):
                 raise ValueError("The detector mask must have shape (n_dets,).")
 
-        content = self.content
+        content = self.content()
         content.update(
             {
                 "data": {field: self.data[field][..., det_mask, :][..., time_mask].compute() for field in fields},
@@ -446,12 +446,14 @@ class TOD:
             gc.collect()
             return tod
 
-    def plot(self, detrend="mean", max_dets: int = 1, n_freq_bins: int = 1024):
+    def plot(self, detrend="mean", max_dets: int = 1, n_freq_bins: int = 1024, lw: float = 1e0, units: str = None):
         plot_tod(
             self,
             detrend=detrend,
             n_freq_bins=n_freq_bins,
             max_dets=max_dets,
+            lw=lw,
+            units=units,
         )
 
     def twinkle(self, filename=None, **kwargs):
@@ -495,7 +497,6 @@ class TOD:
         parts.append(f"metadata={self.metadata}")
         return f"TOD({', '.join(parts)})"
 
-    @property
     def content(self):
         res = {"data": {}}
         for field in self.fields:
@@ -509,7 +510,7 @@ class TOD:
         """
         Copy yourself.
         """
-        return TOD(**self.content)
+        return TOD(**self.content())
 
 
 def check_nested_keys(keys_found, data, keys):

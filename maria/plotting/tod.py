@@ -30,6 +30,7 @@ def plot_tod(
     lw: float = 1e0,
     fontsize: float = 10,
     figsize: tuple[float, float] = (10, 5),
+    units: str = None,
 ):
     fig, axes = plt.subplots(
         ncols=2,
@@ -56,6 +57,18 @@ def plot_tod(
 
     tod_u = parse_units(tod.units)
 
+    if units is None:
+        max_abs_data = tod.signal.max()
+        if detrend:
+            max_abs_data -= tod.signal.mean()
+
+        q_max_abs_data = Quantity(np.abs(max_abs_data).compute(), units=tod.units).max()
+        tod_plot_u = q_max_abs_data.hu
+
+        logger.debug(f"inferring plot units '{tod_plot_u['units']}' from tod")
+    else:
+        tod_plot_u = parse_units(units)
+
     for field_index, field in enumerate(tod.fields):
         data = tod.data[field]
 
@@ -79,14 +92,6 @@ def plot_tod(
 
             if detrend == "linear":
                 field_plot_data[band_name] = detrend_signal(field_plot_data[band_name], order=1)
-
-        max_abs_signal = Quantity(
-            [np.abs(field_plot_data[band_name]).max().compute() for band_name in tod_ubands], units=tod.units
-        ).max()
-        field_u = max_abs_signal.u
-        logger.debug(
-            f"inferring units '{max_abs_signal.u['units']}' for field '{field}' from max abs signal '{max_abs_signal}'"
-        )
 
         for band_index, band_name in enumerate(tod_ubands):
             color = next(colors)
@@ -113,13 +118,13 @@ def plot_tod(
             ps_ax.plot(
                 f_mids[use],
                 binned_ps[use],
-                lw=5e-1,
+                lw=lw,
                 color=color,
             )
             tod_ax.plot(
                 tod.time,
-                Quantity(field_plot_data[band_name].T, units=tod.units).to(field_u["units"]),
-                lw=5e-1,
+                Quantity(field_plot_data[band_name].T, units=tod.units).to(tod_plot_u["units"]),
+                lw=lw,
                 color=color,
                 zorder=-band_index,
             )
@@ -127,7 +132,7 @@ def plot_tod(
             handles.append(Patch(color=color, label=f"{field_label} ({band_name}, $n_\\text{{det}} = {band_mask.sum()}$)"))
 
         tod_ax.set_xlim(tod.time.min(), tod.time.max() + 1e-1)
-        tod_ax.set_ylabel(f"{field_label} [${field_u['math_name']}$]", fontsize=fontsize)
+        tod_ax.set_ylabel(f"{field_label} [${tod_plot_u['math_name']}$]", fontsize=fontsize)
 
         if field_index == 0:
             time_label_ax = tod_ax.twiny()
