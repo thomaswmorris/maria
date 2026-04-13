@@ -1,0 +1,54 @@
+b1:
+    center: 90.e9,  # in Hz
+    width: 35.e9,  # in Hz
+    NET_RJ: 40.e-6,  # in K sqrt(s)
+    knee: 1.0,    # in Hz
+    shape: top_hat,
+    efficiency: 0.5,
+    gain_error: 5.e-2
+
+b2 :
+    center: 150.e9,
+    width: 47.e9,
+    NET_RJ: 60.e-6,
+    knee: 1.0,
+    shape: top_hat,
+    efficiency: 0.5,
+    gain_error: 5.e-2
+
+b3 :
+    center: 230.e9,
+    width: 45.e9,
+    NET_RJ: 100.e-6,
+    knee: 1.0,
+    shape: top_hat,
+    efficiency: 0.5,
+    gain_error: 5.e-2
+
+b4 :
+    center: 275.e9,
+    width: 40.e9,
+    NET_RJ: 100.e-6,
+    knee: 1.0,
+    shape: top_hat,
+    efficiency: 0.5,
+    gain_error: 5.e-2
+
+b5 :
+    center: 350.e9,
+    width: 34.e9,
+    NET_RJ: 300.e-6,
+    knee: 1.0,
+    shape: top_hat,
+    efficiency: 0.5,
+    gain_error: 5.e-2
+
+b6 :
+    center: 400.e9,
+    width: 30.e9,
+    NET_RJ: 400.e-6,
+    knee: 1.0,
+    shape: top_hat,
+    efficiency: 0.5,
+    gain_error: 5.e-2
+
