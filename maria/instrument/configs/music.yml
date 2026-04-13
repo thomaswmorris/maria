@@ -1,11 +1,11 @@
 NEW-MUSIC:
-  aliases: ["new-music"]
-  description: NEW-MUSIC
+  aliases: ["music"]
+  description: MUSIC
   arrays:
     array-1:
       n: 16
       shape: square
-      bands: [atlast/f093]
+      bands: [music/b1]
       polarized: False
       bath_temp: 100.e-3 # in K
       field_of_view: 0.117 # in degrees
@@ -13,7 +13,7 @@ NEW-MUSIC:
     array-2:
       n: 16
       shape: square
-      bands: [atlast/f150]
+      bands: [music/b2]
       polarized: False
       bath_temp: 100.e-3 # in K
       field_of_view: 0.117 # in degrees
@@ -21,7 +21,7 @@ NEW-MUSIC:
     array-3:
       n: 64
       shape: square
-      bands: [atlast/f220]
+      bands: [music/b3]
       polarized: False
       bath_temp: 100.e-3 # in K
       field_of_view: 0.117 # in degrees
@@ -29,7 +29,7 @@ NEW-MUSIC:
     array-4:
       n: 64
       shape: square
-      bands: [atlast/f280]
+      bands: [music/b4]
       polarized: False
       bath_temp: 100.e-3 # in K
       field_of_view: 0.117 # in degrees
@@ -37,7 +37,7 @@ NEW-MUSIC:
     array-5:
       n: 256
       shape: square
-      bands: [atlast/f350]
+      bands: [music/b5]
       polarized: False
       bath_temp: 100.e-3 # in K
       field_of_view: 0.117 # in degrees
@@ -45,7 +45,7 @@ NEW-MUSIC:
     array-6:
       n: 256
       shape: square
-      bands: [atlast/f400]
+      bands: [music/b6]
       polarized: False
       bath_temp: 100.e-3 # in K
       field_of_view: 0.117 # in degrees
