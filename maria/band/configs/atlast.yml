@@ -107,4 +107,3 @@ f850:
   gain_error: 5.e-2
   NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
-
