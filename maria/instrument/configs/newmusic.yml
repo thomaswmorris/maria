@@ -1,52 +1,52 @@
 NEW-MUSIC:
-  aliases: ["music"]
-  description: MUSIC
+  aliases: ["new-music"]
+  description: NEW-MUSIC
   arrays:
     array-1:
-      n: 16
+      n: 64
       shape: square
       bands: [music/b1]
       polarized: False
       bath_temp: 100.e-3 # in K
-      field_of_view: 0.117 # in degrees
+      field_of_view: 0.234 # in degrees
       primary_size: 10.4 # in meters
     array-2:
-      n: 16
+      n: 64
       shape: square
       bands: [music/b2]
       polarized: False
       bath_temp: 100.e-3 # in K
-      field_of_view: 0.117 # in degrees
+      field_of_view: 0.234 # in degrees
       primary_size: 10.4 # in meters
     array-3:
-      n: 64
+      n: 256
       shape: square
       bands: [music/b3]
       polarized: False
       bath_temp: 100.e-3 # in K
-      field_of_view: 0.117 # in degrees
+      field_of_view: 0.234 # in degrees
       primary_size: 10.4 # in meters
     array-4:
-      n: 64
+      n: 256
       shape: square
       bands: [music/b4]
       polarized: False
       bath_temp: 100.e-3 # in K
-      field_of_view: 0.117 # in degrees
+      field_of_view: 0.234 # in degrees
       primary_size: 10.4 # in meters
     array-5:
-      n: 256
+      n: 1024
       shape: square
       bands: [music/b5]
       polarized: False
       bath_temp: 100.e-3 # in K
-      field_of_view: 0.117 # in degrees
+      field_of_view: 0.234 # in degrees
       primary_size: 10.4 # in meters
     array-6:
-      n: 256
+      n: 1024
       shape: square
       bands: [music/b6]
       polarized: False
       bath_temp: 100.e-3 # in K
-      field_of_view: 0.117 # in degrees
+      field_of_view: 0.234 # in degrees
       primary_size: 10.4 # in meters
