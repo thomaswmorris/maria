@@ -1,6 +1,6 @@
 
-AtLAST:
-  aliases: ["atlast"]
+AtLAST-M2-like:
+  aliases: ["atlast","atlast-m2"]
   description: Atacama Large Aperture Submillimeter Telescope
   array:
     primary_size: 50 # in meters
@@ -8,5 +8,23 @@ AtLAST:
     field_of_view: 0.07
     shape: hexagon
     bath_temp: 100.e-3 # in K
-    bands: [atlast/f027, atlast/f039, atlast/f093, atlast/f150, atlast/f220, atlast/f280]
-  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
+    bands: [atlast/f042, atlast/f093, atlast/f150, atlast/f220, atlast/f280, atlast/f350, atlast/f400, atlast/f650, atlast/f850]
+  documentation: https://www.atlast.uio.no/
+
+# formula for a hex-packed array of m rows and n total detectors:
+# n = 3*m**2 - 3*m + 1
+# 
+# for example 
+# m = np.arange(9,201,3); n = 3*m**2 - 3*m + 1; print(n)
+
+AtLAST-SZ:
+  aliases: ["atlast-sz"]
+  description: Atacama Large Aperture Submillimeter Telescope
+  array:
+    primary_size: 50 # in meters
+    n: 2107 # 27 rows
+    field_of_view: 0.5
+    shape: hexagon
+    bath_temp: 100.e-3 # in K
+    bands: [atlast/f042, atlast/f093, atlast/f150, atlast/f220, atlast/f280, atlast/f350, atlast/f400, atlast/f650, atlast/f850]
+  documentation: https://www.atlast.uio.no/
