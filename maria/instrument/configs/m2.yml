@@ -6,6 +6,6 @@ MUSTANG-2:
     field_of_view: 0.07
     shape: hexagon
     bands: [m2/f093]
-    bath_temp: 100.e-3 # in K
+    bath_temp: 300.e-3 # in K
     primary_size: 100 # in meters
-  documentation: https://www.atlast.uio.no/
+  documentation: https://gbtdocs.readthedocs.io/en/latest/references/receivers/mustang2.html
