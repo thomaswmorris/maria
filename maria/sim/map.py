@@ -110,15 +110,12 @@ class MapMixin:
     def _sample_maps(self, obs):
         map_loading = jnp.zeros(obs.coords.shape, dtype=self.dtype)
         instrument = obs.instrument
-        disable_progress_bars = self.disable_progress_bars
         coords = obs.coords
-        map = self.map
-        atmosphere = obs.atmosphere
 
         bands_pbar = tqdm(
             instrument.dets.bands,
             desc="Sampling map",
-            disable=disable_progress_bars,
+            disable=self.disable_progress_bars,
             bar_format=DEFAULT_BAR_FORMAT,
             ncols=250,
             postfix={"band": "", "channel": "", "stokes": ""},
@@ -148,10 +145,10 @@ class MapMixin:
             )
 
             # input for forward model is smoothed map and not unsmoothed
-            smoothed_map = map.smooth(fwhm=band_fwhm)
+            smoothed_map = self.map.smooth(fwhm=band_fwhm)
             logger.debug(f"Convolved map with beam width {band_fwhm} for band {band.name}")
 
-            for channel_index, (nu_min, nu_max) in enumerate(map.nu_bin_bounds):
+            for channel_index, (nu_min, nu_max) in enumerate(self.map.nu_bin_bounds):
                 channel_map = smoothed_map.to("K_RJ", band=band)[:, [channel_index]]
                 qchannel = (nu_min, nu_max)
                 channel_string = f"{qchannel}"
@@ -161,9 +158,9 @@ class MapMixin:
 
                 spectrum_kwargs = (
                     {
-                        "spectrum": atmosphere.spectrum,
+                        "spectrum": obs.atmosphere.spectrum,
                         "zenith_pwv": obs.zenith_scaled_pwv[band_mask].compute(),
-                        "base_temperature": atmosphere.weather.temperature[0],
+                        "base_temperature": obs.atmosphere.weather.temperature[0],
                         "elevation": coords.el[band_mask],
                     }
                     if getattr(obs, "atmosphere", None)
