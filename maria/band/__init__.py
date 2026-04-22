@@ -5,7 +5,7 @@ import os
 
 import pandas as pd
 
-from ..utils import flatten_config, read_yaml
+from ..io import flatten_config, read_yaml
 from .band import Band, get_band, parse_band  # noqa
 from .band_list import BandList  # noqa
 
