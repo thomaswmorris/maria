@@ -6,17 +6,15 @@ import time as ttime
 
 import arrow
 import dask.array as da
+import jax
+import jax.lax as lax
+import jax.numpy as jnp
 import numpy as np
 import scipy as sp
-import jax
-import jax.numpy as jnp
-import jax.lax as lax
 from jax import jit
 from jax import scipy as jsp
 from jax.experimental import sparse as jsparse
 from tqdm import tqdm
-from functools import partial
-import matplotlib.pyplot as plt
 
 from ..beam import compute_angular_fwhm
 from ..constants import k_B
@@ -27,9 +25,11 @@ from ..units import Quantity
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
+
 @jax.jit(static_argnames=["band_coords_shape"])
 def apply_pointing(P, map_vec, pW_per_K_RJ, band_coords_shape):
     return pW_per_K_RJ * (P @ map_vec).reshape(band_coords_shape)
+
 
 @jax.jit(static_argnames=["band_coords_shape"])
 def _sample_maps_jax(
