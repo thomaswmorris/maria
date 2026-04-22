@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import time as ttime
+from functools import partial
 
 import arrow
 import dask.array as da
@@ -26,12 +27,12 @@ here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
 
-@jax.jit(static_argnames=["band_coords_shape"])
+@partial(jax.jit, static_argnames=["band_coords_shape"])
 def apply_pointing(P, map_vec, pW_per_K_RJ, band_coords_shape):
     return pW_per_K_RJ * (P @ map_vec).reshape(band_coords_shape)
 
 
-@jax.jit(static_argnames=["band_coords_shape"])
+@partial(jax.jit, static_argnames=["band_coords_shape"])
 def _sample_maps_jax(
     map_loading,
     band_coords_shape,
