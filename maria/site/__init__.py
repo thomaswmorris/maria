@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 from astropy.coordinates import EarthLocation
 
-from ..utils import read_yaml
+from ..io import read_yaml
 from .site import REGIONS, InvalidRegionError, Site, all_regions  # noqa
 
 here, this_filename = os.path.split(__file__)

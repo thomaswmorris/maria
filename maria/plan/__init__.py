@@ -19,9 +19,9 @@ from matplotlib import pyplot as plt
 
 from .. import coords
 from ..coords import Coordinates, frames
-from ..io import DEFAULT_TIME_FORMAT, repr_lat_lon, repr_phi_theta
+from ..io import DEFAULT_TIME_FORMAT, read_yaml, repr_lat_lon, repr_phi_theta
 from ..units import Quantity
-from ..utils import compute_diameter, read_yaml
+from ..utils import compute_diameter
 from .patterns import get_scan_pattern_generator, scan_patterns
 from .plan import Plan
 from .plan_list import PlanList  # noqa

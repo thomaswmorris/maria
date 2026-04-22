@@ -13,8 +13,9 @@ from matplotlib.patches import Patch
 from ..array import Array, ArrayList, get_array_config  # noqa
 from ..band import BAND_CONFIGS, Band, BandList, parse_band  # noqa
 from ..beam import compute_angular_fwhm
+from ..io import flatten_config, read_yaml
 from ..units import Quantity
-from ..utils import HEX_CODE_LIST, flatten_config, get_rotation_matrix_2d, read_yaml  # noqa
+from ..utils import HEX_CODE_LIST
 
 here, this_filename = os.path.split(__file__)
 

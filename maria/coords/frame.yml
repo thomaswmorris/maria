@@ -1,7 +1,8 @@
 
 
 az/el:
-  aliases:
+  long_name: ""
+  aliases: 
   - altaz
   - alt_az
   - az/el
@@ -20,6 +21,7 @@ az/el:
     theta: alt
 
 ra/dec:
+  long_name: ICRS J2000
   aliases:
   - icrs
   - ra_dec
@@ -40,6 +42,7 @@ ra/dec:
     theta: dec
 
 galactic:
+  long_name: ""
   aliases:
   - l/b
   phi: 

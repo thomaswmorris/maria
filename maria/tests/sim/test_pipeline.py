@@ -6,8 +6,8 @@ import maria
 import numpy as np
 import pytest
 from maria import Simulation, all_instruments, all_sites, get_plan
+from maria.io import read_yaml
 from maria.mappers import BinMapper
-from maria.utils import read_yaml
 
 here, this_filename = os.path.split(__file__)
 

@@ -16,10 +16,10 @@ from matplotlib import pyplot as plt
 from .. import coords
 from ..coords import Coordinates, Frame, frames, get_center_phi_theta, phi_theta_to_offsets
 from ..instrument import Instrument, get_instrument
-from ..io import DEFAULT_TIME_FORMAT, repr_lat_lon, repr_phi_theta
+from ..io import DEFAULT_TIME_FORMAT, read_yaml, repr_lat_lon, repr_phi_theta
 from ..site import Site, get_site
 from ..units import Quantity
-from ..utils import compute_diameter, read_yaml
+from ..utils import compute_diameter
 from .patterns import get_scan_pattern_generator, parse_scan_kwargs, scan_patterns
 
 here, this_filename = os.path.split(__file__)

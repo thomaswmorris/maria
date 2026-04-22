@@ -1,91 +1,25 @@
 from __future__ import annotations
 
-# nothing in here should import from other maria module (so no double dots)
+# nothing in here should import from other maria module (so no double dots!!)
 import jax
 import jax.numpy as jnp
 import numpy as np
 import scipy as sp
 
-# from ..units.prefixes import *  # noqa
 from .coords import *  # noqa
-from .io import *  # noqa
+from .functions import *  # noqa
 from .linalg import *  # noqa
 from .plotting import *  # noqa
+from .rotations import *  # noqa
+from .rounding import *  # noqa
 from .signal import *  # noqa
 from .time import *  # noqa
-
-
-def hav(x):
-    return (1 - np.cos(x)) / 2
-
-
-def great_circle_distance(phi1, theta1, phi2, theta2):
-    hav_d = hav(theta2 - theta1) + np.cos(theta1) * np.cos(theta2) * hav(phi1 - phi2)
-    return 2 * np.sqrt(hav_d)
 
 
 @jax.jit
 def regular_digitization(x, bins):
     dx = jnp.mean(jnp.gradient(bins)) if len(bins) > 1 else 1.0
     return ((x - (bins.min() - dx)) / dx).astype(int).clip(min=0, max=len(bins))
-
-
-def compute_pointing_matrix_sparse_indices(x_list, bins_list):
-    """
-    Compute the pointing matrix for a set of points onto a Cartesian product of bins
-    """
-
-    n_samples = len(x_list[0].ravel())
-
-    if not np.all([np.all(np.diff(bins) > 0) for bins in bins_list]):
-        raise ValueError(f"Each set of bins must be strictly increasing")
-
-    map_pixel_index = 0
-    mask = np.ones_like(x_list[0].ravel(), dtype=bool)
-    cum_npix = 1
-
-    # indices_per_bin = np.zeros(())
-
-    for dim, (x, bins) in enumerate(zip(x_list, bins_list)):
-        dim_bins = np.digitize(x.ravel(), bins=bins)
-
-        # print(dim_bins.min(), dim_bins.max(), len(bins))
-
-        mask *= np.where((dim_bins > 0) & (dim_bins < len(bins)), True, False)
-        map_pixel_index += cum_npix * (dim_bins - 1)
-        cum_npix *= len(bins) - 1
-
-    if not mask.sum():
-        return [], [], cum_npix
-
-    if map_pixel_index[mask].max() >= cum_npix:
-        raise RuntimeError()
-
-    return np.arange(n_samples)[mask], map_pixel_index[mask], cum_npix
-
-
-def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, beta: float = 8 / 3):
-    kx = np.fft.fftfreq(nx, d=1 / nx)
-    ky = np.fft.fftfreq(ny, d=1 / ny)
-    KY, KX = np.meshgrid(ky, kx)
-    P = np.sqrt(k0**2 + KX**2 + KY**2) ** (-beta - 1)
-    F = np.fft.fft2(np.sqrt(P) * np.fft.ifft2(np.random.standard_normal(size=(ny, nx)))).real
-
-    return (F - F.mean()) / F.std()
-
-
-# def generate_power_law_noise(n: tuple = (256, 256), cutoff=1e0, beta=None):
-#     ndim = len(n)  # noqa
-#     beta = beta or 8 / 6
-
-#     X_list = np.meshgrid(*[np.linspace(0, 1, _n) for _n in n])
-#     K_list = np.meshgrid(*[np.fft.fftfreq(_n, d=1 / _n) for _n in n])
-
-#     P = (cutoff**2 + sum([K**2 for K in K_list])) ** -(beta / 2)
-
-#     F = np.real(np.fft.fftn(P * np.fft.ifftn(np.random.standard_normal(size=n))))
-
-#     return *X_list, (F - F.mean()) / F.std()
 
 
 def unpack_implicit_slice(key, ndims):
@@ -139,78 +73,3 @@ def compute_diameter(points, lazy=False, MAX_SAMPLE_SIZE: int = 10000, jitter: f
     i, j = np.triu_indices(len(vertices), k=1)
 
     return float(np.sqrt(np.max(np.square(vertices[i] - vertices[j]).sum(axis=-1))))
-
-
-def get_rotation_matrix_2d(a):
-    G = np.array([[0, -1], [1, 0]])  # generator
-    A = np.expand_dims(a, axis=(-1, -2))  # angles
-    return sp.linalg.expm(A * G)
-
-
-def get_rotation_matrix_3d(**rotations):
-    """
-    A list of tuples [(dim, angle), ...] where we successively rotate around dim by angle.
-    """
-    dims = {"x": 0, "y": 1, "z": 2}
-    R = np.eye(3)
-    for axis, angle in rotations.items():
-        i, j = (index for dim, index in dims.items() if dim != axis)
-        S = np.zeros((*np.shape(angle), 3, 3))
-        S[..., i, j] = angle
-        R = sp.linalg.expm(S - np.swapaxes(S, -2, -1)) @ R
-    return R
-
-
-def get_orthogonal_transform(signature, entries):
-    """
-    A list of tuples [(dim, angle), ...] where we successively rotate around dim by angle.
-    """
-
-    axes = np.where(signature)[0]
-    n_dim = len(signature)
-    n_axes = sum(signature)
-
-    if n_axes * (n_axes - 1) / 2 != len(entries):
-        raise ValueError(
-            f"Bad shape for entries (for signature {signature} we expect len(entries) = {int(n_axes * (n_axes - 1) / 2)}.",
-        )
-
-    i, j = np.triu_indices(n=n_axes, k=1)
-    S = np.zeros((n_dim, n_dim))
-    S[axes[i], axes[j]] = entries
-    return sp.linalg.expm(S - S.T)
-
-
-def compute_aligning_transform(points, signature, axes=None, n_init: int = 16):
-    """
-    Find a transform for some (..., n_dim) array of points so that the volume over all but the first axis is minimized.
-    """
-    *input_shape, n_dim = points.shape
-    axes = axes or tuple(range(1, n_dim))
-    args = points.reshape(-1, n_dim)
-
-    def loss(entries, *args):
-        tp = args[0] @ get_orthogonal_transform(signature=signature, entries=entries)
-        if n_dim > 2:
-            ch = sp.spatial.ConvexHull(tp[..., 1:])
-            return np.log(ch.volume)
-        else:
-            return np.log(np.ptp(tp[..., 1:]))
-
-    n_axes = sum(signature)
-    n_dof = int(n_axes * (n_axes - 1) / 2)
-    x0_samples = np.random.standard_normal(size=(n_init, n_dof))
-    best_index = np.argmin([loss(x0, args) for x0 in x0_samples])
-
-    res = sp.optimize.minimize(
-        loss,
-        x0=x0_samples[best_index],
-        args=args,
-        tol=1e-6,
-        method="SLSQP",
-    )
-
-    if not res.success:
-        raise RuntimeError("Could not find optimal rotation.")
-
-    return get_orthogonal_transform(signature=signature, entries=res.x)

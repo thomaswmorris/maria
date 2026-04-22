@@ -15,9 +15,9 @@ from jax import scipy as jsp
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c, k_B
 from ..errors import FrequencyOutOfBoundsError
+from ..io import flatten_config, read_yaml
 from ..spectrum import AtmosphericSpectrum
 from ..units import Quantity
-from ..utils import flatten_config, read_yaml
 
 here, this_filename = os.path.split(__file__)
 

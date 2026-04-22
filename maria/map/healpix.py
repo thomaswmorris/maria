@@ -168,18 +168,10 @@ class HEALPixMap(Map):
 
     def __repr__(self):
         return f"""{self.__class__.__name__}:
-  shape{self.dims_string}: {self.data.shape}
-  stokes: {self.stokes if "stokes" in self.dims else "naive"}
-  nu: {self.nu if "nu" in self.dims else "naive"}
-  t: {self.t if "t" in self.dims else "naive"}
-  z: {self.z if "z" in self.dims else "naive"}
-  nside: {self.nside}
+{self.__repr_base__()}
+  pixels({self.npix}):
+    nside: {self.nside}
+    resolution: {Quantity(self.resolution, "rad")}
   frame: {self.frame.name}
-  quantity: {self.u["physical_quantity"]}
-  units: {self.units}
-    min: {self.min:.03e}
-    max: {self.max:.03e}
-    rms: {self.rms:.03e}
-  resolution: {Quantity(self.resolution, "rad")}
   beam(maj, min, rot): {self.beam_repr()}
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""

@@ -12,7 +12,9 @@ from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ
 from ..coords import Frame
 from ..errors import FrequencyOutOfBoundsError, ShapeError
+from ..io import leftpad
 from ..units import Quantity, parse_units
+from ..utils import compute_resolution_precision
 
 logger = logging.getLogger("maria")
 
@@ -353,6 +355,42 @@ class Map:
             return self._stats[attr]
 
         raise AttributeError(f"{type(self)} object has no attribute '{attr}'")
+
+    @staticmethod
+    def __repr_stokes__(stokes):
+        return f"stokes({len(stokes)}):\n  components: {stokes}"
+
+    @staticmethod
+    def __repr_nu__(nu):
+        if nu.size < 4:
+            return f"nu({len(nu)}):\n  values: {nu}"
+
+        dnu = np.gradient(nu.human_value)
+        res = "irregular" if np.std(dnu) / np.ptp(nu.human_value) > 1e-6 else Quantity(np.mean(dnu), nu.human_units)
+        prec = compute_resolution_precision(np.sort(nu.human_value)[[0, -1]])
+        return f"""nu({len(nu)}):
+  min: {nu.min().__repr__(prec)}
+  max: {nu.max().__repr__(prec)}
+  res: {res}"""
+
+    def __repr_base__(self):
+        repr_slice_parts = [
+            f"""data{self.data.shape}:
+  min: {self.min:.03e}
+  max: {self.max:.03e}
+  units: {self.units}
+  quantity: {self.u["physical_quantity"]}"""
+        ]
+        if "stokes" in self.dims:
+            repr_slice_parts.append(self.__repr_stokes__(self.stokes))
+        if "nu" in self.dims:
+            repr_slice_parts.append(self.__repr_nu__(self.nu))
+        if "t" in self.dims:
+            repr_slice_parts.append(f"t({len(self.t)}): {self.t}")
+        if "z" in self.dims:
+            repr_slice_parts.append(f"z({len(self.z)}): {self.z}")
+
+        return leftpad("\n".join(repr_slice_parts), 2, " ")
 
 
 def concatenate(maps: list[Map], dim: str) -> Map:

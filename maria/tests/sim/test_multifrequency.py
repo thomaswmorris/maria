@@ -4,10 +4,9 @@ import maria
 import matplotlib.pyplot as plt
 import numpy as np
 from maria import Planner, Simulation, all_instruments
-from maria.io import fetch
+from maria.io import fetch, read_yaml
 from maria.map import ProjectionMap
 from maria.mappers import BinMapper
-from maria.utils import read_yaml
 
 
 def test_polarized_map_sim():

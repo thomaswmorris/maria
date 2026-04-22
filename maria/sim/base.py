@@ -10,11 +10,10 @@ import numpy as np
 
 from ..coords import Coordinates
 from ..instrument import Instrument, get_instrument
-from ..io import humanize_time
+from ..io import humanize_time, read_yaml
 from ..plan import Plan, PlanList, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
-from ..utils import read_yaml
 
 here, this_filename = os.path.split(__file__)
 

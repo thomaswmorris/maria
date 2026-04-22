@@ -1,6 +1,6 @@
 import os
 
-from maria.utils.io import read_yaml
+from ..io import read_yaml
 
 here, this_filename = os.path.split(__file__)
 

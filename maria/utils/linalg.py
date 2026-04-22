@@ -3,44 +3,39 @@ from __future__ import annotations
 import numpy as np
 import scipy as sp
 
-# def extrude(
-#     values: np.array,
-#     A: np.array,
-#     B: np.array,
-#     n_steps: int,
-#     n_i: int,
-#     n_j: int,
-#     i_sample_index: int,
-#     j_sample_index: int,
-# ):
-#     # muy rapido
-#     BUFFER = np.zeros((n_steps + n_i) * n_j)
-#     BUFFER[n_steps * n_j :] = values
 
-#     # remember that (e, c) -> n_c * e + c
-#     for buffer_index in np.arange(n_steps)[::-1]:
-#         BUFFER[buffer_index * n_j + np.arange(n_j)] = A @ BUFFER[
-#             n_j * (buffer_index + 1 + i_sample_index) + j_sample_index
-#         ] + B @ np.random.standard_normal(size=n_j)
+def compute_pointing_matrix_sparse_indices(x_list, bins_list):
+    """
+    Compute the pointing matrix for a set of points onto a Cartesian product of bins
+    """
 
-#     return BUFFER[: n_steps * n_j]
+    n_samples = len(x_list[0].ravel())
 
+    if not np.all([np.all(np.diff(bins) > 0) for bins in bins_list]):
+        raise ValueError(f"Each set of bins must be strictly increasing")
 
-# def get_rotation_matrix_2d(a):
-#     S = np.atleast_1d(a)[..., None, None] * np.array([[0.0, 1.0], [-1.0, 0.0]])
-#     R = sp.linalg.expm(S)
-#     return R.reshape(*np.shape(a), 2, 2)
+    map_pixel_index = 0
+    mask = np.ones_like(x_list[0].ravel(), dtype=bool)
+    cum_npix = 1
 
+    # indices_per_bin = np.zeros(())
 
-# def get_rotation_matrix_3d(angles, axis=0):
-#     shaped_angles = np.atleast_1d(angles)
-#     R = np.ones(shaped_angles.shape)[..., None, None] * np.eye(3)
-#     j = [i for i in [0, 1, 2] if not i == axis]
-#     j0, j1 = np.meshgrid(j, j)
-#     R[..., j0, j1] = sp.linalg.expm(
-#         np.array([[0, -1], [+1, 0]]) * shaped_angles[..., None, None],
-#     )
-#     return R.reshape(*np.shape(angles), 3, 3)
+    for dim, (x, bins) in enumerate(zip(x_list, bins_list)):
+        dim_bins = np.digitize(x.ravel(), bins=bins)
+
+        # print(dim_bins.min(), dim_bins.max(), len(bins))
+
+        mask *= np.where((dim_bins > 0) & (dim_bins < len(bins)), True, False)
+        map_pixel_index += cum_npix * (dim_bins - 1)
+        cum_npix *= len(bins) - 1
+
+    if not mask.sum():
+        return [], [], cum_npix
+
+    if map_pixel_index[mask].max() >= cum_npix:
+        raise RuntimeError()
+
+    return np.arange(n_samples)[mask], map_pixel_index[mask], cum_npix
 
 
 def fast_psd_inverse(M):

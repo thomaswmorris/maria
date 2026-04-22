@@ -277,20 +277,16 @@ class ProjectionMap(Map):
         for key, value in repr_phi_theta(self.center[0].rad, self.center[1].rad, frame=self.frame.name).items():
             center_repr += f"\n    {key}: {value}"
         return f"""{self.__class__.__name__}:
-  shape{self.dims_string}: {self.data.shape}
-  stokes: {self.stokes if "stokes" in self.dims else "naive"}
-  nu: {self.nu if "nu" in self.dims else "naive"}
-  t: {self.t if "t" in self.dims else "naive"}
-  z: {self.z if "z" in self.dims else "naive"}
-  quantity: {self.u["physical_quantity"]}
-  units: {self.units}
-    min: {self.min:.03e}
-    max: {self.max:.03e}
-    rms: {self.rms:.03e}
+{self.__repr_base__()}
+  y({self.dims["y"]}):
+    height: {self.height}
+    res: {self.y_res}
+  x({self.dims["x"]}): 
+    width: {self.width}
+    res: {self.x_res}
+  frame: {self.frame.name}
   {center_repr}
-  size(y, x): ({self.height}, {self.width})
-  resolution(y, x): ({self.y_res}, {self.x_res})
-  beam(maj, min, rot): {self.beam_repr()}
+  beam(maj, min, psi): {self.beam_repr()}
   memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
 
     def package(self):

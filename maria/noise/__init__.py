@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import partial
 
 import jax
+import numpy as np
 from jax import numpy as jnp
 
 
@@ -34,3 +35,13 @@ def generate_noise_with_knee(
         )
 
     return noise
+
+
+def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, beta: float = 8 / 3):
+    kx = np.fft.fftfreq(nx, d=1 / nx)
+    ky = np.fft.fftfreq(ny, d=1 / ny)
+    KY, KX = np.meshgrid(ky, kx)
+    P = np.sqrt(k0**2 + KX**2 + KY**2) ** (-beta - 1)
+    F = np.fft.fft2(np.sqrt(P) * np.fft.ifft2(np.random.standard_normal(size=(ny, nx)))).real
+
+    return (F - F.mean()) / F.std()

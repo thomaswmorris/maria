@@ -17,8 +17,9 @@ from scipy.spatial import QhullError
 
 from ..band import Band, BandList  # noqa
 from ..beam import compute_angular_fwhm
+from ..io import flatten_config, read_yaml
 from ..units import Quantity
-from ..utils import HEX_CODE_LIST, compute_diameter, flatten_config, get_rotation_matrix_2d, read_yaml
+from ..utils import HEX_CODE_LIST, compute_diameter, get_rotation_matrix_2d
 from .generation import generate_2d_pattern
 
 here, this_filename = os.path.split(__file__)

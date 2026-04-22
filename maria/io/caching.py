@@ -3,13 +3,15 @@ import os
 import shutil
 import time as ttime
 
+import astropy as ap
+import h5py
 import numpy as np
+import pandas as pd
 import requests
 from requests import HTTPError
 from tqdm import tqdm
 
-from ..constants import DEFAULT_BAR_FORMAT
-from ..utils.io import test_file
+from .logging import DEFAULT_BAR_FORMAT
 
 logger = logging.getLogger("maria")
 here, this_filename = os.path.split(__file__)
@@ -24,6 +26,25 @@ def copy_file(source, destination):
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir, exist_ok=True)
     shutil.copy(source, destination)
+
+
+def test_file(path) -> bool:
+    ext = path.split(".")[-1]
+    try:
+        if ext in ["h5"]:
+            with h5py.File(path, "r") as f:
+                f.keys()
+        elif ext in ["csv"]:
+            pd.read_csv(path)
+        elif ext in ["txt", "dat"]:
+            with open(path) as f:
+                f.read()
+        elif ext in ["fits"]:
+            ap.io.fits.open(path)
+    except Exception:
+        return False
+
+    return True
 
 
 def cache_status(path: str, max_age: float = 30 * 86400, refresh: bool = False):

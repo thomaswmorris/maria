@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from ..utils import deg_to_signed_dms, deg_to_signed_hms
+from ..utils import compute_resolution_precision, deg_to_signed_dms, deg_to_signed_hms, round_sig_figs
 from .prefixes import PREFIXES
 
 here, this_filename = os.path.split(__file__)
@@ -226,19 +226,15 @@ class Quantity:
             pinned_quantity.pin(units, inplace=True)
             return pinned_quantity
 
-    def __repr__(self) -> str:
-        # if not hasattr(self, "value"):
-        #     if not self.composite():
-        #         self.units = self.compute_human_units()
-        #         self.value = self.to(self.units)
-        #     else:
-        #         self.units = self.base_units
-        #         self.value = self.base_units_value
-
+    def __repr__(self, prec: int = None) -> str:
         if self.physical_quantity == "time":
             if np.any(self.s > 3600):
                 return self.timestring
-        value_repr = f"{self.human_value:.04g}" if np.isscalar(self.human_value) else self.human_value
+        if self.size > 1 or (prec is not None):
+            prec = prec if prec is not None else compute_resolution_precision(self.human_value)
+            value_repr = np.round(self.human_value, prec)
+        else:
+            value_repr = f"{self.human_value:.04g}"
         return f"{value_repr}{UNITS['symbol'].get(self.human_units) or f' {self.human_units}'}"
 
     def __neg__(self):
@@ -302,7 +298,7 @@ class Quantity:
         parts.append(f"{t:.03f}s")
         return " ".join(parts)
 
-    def repr(self, format: str) -> str:
+    def repr_angle(self, format: str) -> str:
         if format == "dms":
             if self.physical_quantity != "angle":
                 raise ValueError("string format 'dms' is only for angles")

@@ -74,11 +74,10 @@ def xyz_to_phi_theta(xyz):
     )
 
 
-@partial(jax.jit, static_argnames=["keep_dims"])
 def get_center_phi_theta(phi, theta, keep_dims=()):
     """ """
 
-    xyz = phi_theta_to_xyz(jnp.atleast_1d(phi), jnp.atleast_1d(theta))
+    xyz = phi_theta_to_xyz(np.atleast_1d(phi), np.atleast_1d(theta))
 
     axes = list(range(xyz.ndim - 1))
 
