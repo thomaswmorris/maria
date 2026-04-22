@@ -33,14 +33,7 @@ def apply_pointing(P, map_vec, pW_per_K_RJ, band_coords_shape):
 
 
 @partial(jax.jit, static_argnames=["band_coords_shape"])
-def _sample_maps_jax(
-    map_loading,
-    band_coords_shape,
-    pW_per_K_RJ_all,
-    P_all,
-    map_vec_all,
-    band_indices
-):
+def _sample_maps_jax(map_loading, band_coords_shape, pW_per_K_RJ_all, P_all, map_vec_all, band_indices):
 
     def band_step(map_loading, inputs):
         band_idx = inputs
