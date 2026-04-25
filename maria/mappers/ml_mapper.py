@@ -6,36 +6,14 @@ import torch
 from matplotlib import pyplot as plt
 from tqdm import tqdm, trange
 
+from ..io import DEFAULT_BAR_FORMAT
 from ..map import ProjectionMap
 from ..tod import TOD
 from ..utils import decompose
 from .base import BaseProjectionMapper
 from .bin_mapper import BinMapper
 
-
-def remove_ends(data, ntip=16):
-    start_values = data[..., :ntip].mean(axis=-1)
-    end_values = data[..., -ntip:].mean(axis=-1)
-
-    return data - np.linspace(start_values, end_values, data.shape[-1]).T
-
-
-class MaximumLikelihoodSolution(torch.nn.Module):
-    def __init__(self, data: torch.Tensor, mask: torch.Tensor = None, dtype: type = torch.float):
-        super(MaximumLikelihoodSolution, self).__init__()
-
-        mask = mask if mask is not None else torch.ones_like(data, dtype=torch.bool)
-
-        data_std = data[mask].detach().std()
-        data_std = data_std if data_std > 0 else torch.tensor(1.0)
-        self.log_scale = torch.nn.Parameter(data_std.log())
-        self.unscaled_x = torch.nn.Parameter(data[mask] / data_std)
-        self.mask = mask
-
-    def x(self):
-        x = torch.zeros_like(self.mask, dtype=torch.float)
-        x[self.mask] = self.log_scale.exp() * self.unscaled_x
-        return x
+torch.set_num_threads(16)
 
 
 class MaximumLikelihoodMapper(BaseProjectionMapper):
@@ -95,49 +73,102 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             height=self.height,
             resolution=self.resolution,
             frame=self.frame,
-            tods=self.tods,
+            tods=self.tods,  # already preprocessed
             units=self.units,
             min_time=min_time,
             max_time=max_time,
             timestep=timestep,
             degrees=False,
             # tod_preprocessing=tod_preprocessing,
-            # map_postprocessing=map_postprocessing,
+            # map_postprocessing={"gaussian_filter": {"sigma": 8}},
             progress_bars=False,
         )
 
         # # self.update_deprojection()
 
-        self.sol = MaximumLikelihoodSolution(data=torch.zeros(self.map_shape))
+        self.sol = torch.tensor(np.zeros(self.map_shape).ravel(), requires_grad=True, dtype=torch.float)
 
         self.P_list = []
+        self.PT_list = []
 
         self.hits = torch.zeros(np.prod(self.map_shape))
 
-        for tod in self.tods:
-            values, pixel_index, sample_index = self.map.compute_pointing_matrix_sparse_indices(
-                coords=tod.coords, dets=tod.dets
+        for tod in tqdm(self.tods, "Computing pointing matrices", bar_format=DEFAULT_BAR_FORMAT):
+            weights, samples, pixels, n_samples, n_pixels = self.map._stokes_weighted_pointing_matrix_ingredients(
+                coords=tod.coords, dets=tod.dets, bilinear=False
             )
-            indices = torch.stack(
-                [torch.tensor(sample_index, dtype=torch.long), torch.tensor(pixel_index, dtype=torch.long)], dim=0
-            )
+
+            indices = torch.stack([torch.tensor(samples, dtype=torch.long), torch.tensor(pixels, dtype=torch.long)], dim=0)
             P = torch.sparse_coo_tensor(
-                indices=indices, values=torch.tensor(values, dtype=torch.float), size=(tod.coords.size, self.map_size)
-            )
+                indices=indices, values=torch.tensor(weights, dtype=torch.float), size=(n_samples, n_pixels)
+            ).coalesce()
+
+            PT = P.T
+
+            # P = torch.sparse_csr_tensor(
+            #     torch.tensor(samples, dtype=torch.long),
+            #     torch.tensor(pixels, dtype=torch.long),
+            #     torch.tensor(weights, dtype=torch.float),
+            #     size=(n_samples, n_pixels)
+            # )
+
+            # PT = torch.sparse_csc_tensor(
+            #     torch.tensor(pixels, dtype=torch.long),
+            #     torch.tensor(samples, dtype=torch.long),
+            #     torch.tensor(weights, dtype=torch.float),
+            #     size=(n_pixels, n_samples)
+            # )
 
             self.P_list.append(P)
-            self.hits += P.sum(axis=0).to_dense()
+            self.PT_list.append(PT)
 
-        naive_sol = self.naive_map.ravel()
-        init_sol = naive_sol * (self.hits / self.hits.max()).sqrt()
+            self.hits += P.sum(axis=0, keepdim=True)[0].to_dense()
 
-        self.mask = ~init_sol.isnan()
-        self.sol = MaximumLikelihoodSolution(data=init_sol.float(), mask=self.mask)
+        # naive_sol = self.naive_map.ravel()
+        # init_sol = naive_sol * (self.hits / self.hits.max()).sqrt()
+        self.reset_sol()
 
-    def update_noise_model(self):
+    def reset_step_size(self):
+
+        self.reset_sol()
+        loss1 = self.loss()
+        loss1.backward()
+        grad = self.sol.grad.data.clone()
+
+        map_scale = self.sol.detach().square().median().sqrt()
+        self.step_size = 1e-3 * map_scale / grad.square().median().sqrt()
+
+        for attempt in range(10):
+            self.sol.data = self.sol.data - self.step_size * grad
+
+            if self.loss() < loss1:
+                break
+
+            self.sol.data = self.sol.data + self.step_size * grad
+            self.step_size *= 1e-1
+
+    def reset_sol(self):
+
+        M = self.naive_map.reshape(self.map_shape)
+        H = self.hits.reshape(self.map_shape)
+        M = M.where(H > 0, 0.0)
+
+        numer = sp.ndimage.gaussian_filter(M * H, sigma=1, axes=(-1, -2))
+        denom = sp.ndimage.gaussian_filter(H, sigma=1, axes=(-1, -2))
+
+        naive_sol = torch.tensor(numer / denom).where(H > 0, 0.0).ravel()
+
+        init_sol = naive_sol.where(naive_sol.isfinite(), 0)
+
+        # self.mask = ~init_sol.isnan()
+        # self.sol = MaximumLikelihoodSolution(data=init_sol.float(), mask=self.mask)
+
+        self.sol = torch.tensor(init_sol.numpy(), requires_grad=True, dtype=torch.float)
+
+    def update_noise_model(self, subtract_map: bool = True):
         self.tod_list = []
 
-        pbar = tqdm(enumerate(self.tods), desc="Updating noise model", total=len(self.tods))
+        pbar = tqdm(enumerate(self.tods), desc="Updating noise model", total=len(self.tods), bar_format=DEFAULT_BAR_FORMAT)
 
         for tod_index, tod in pbar:
             pbar.set_postfix(tod=f"{tod_index + 1}/{len(self.tods)}")
@@ -153,12 +184,18 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             t["f"] = np.fft.fftfreq(n=t["d"].shape[-1], d=1 / t["tod"].sample_rate)
             t["abs_f"] = np.abs(t["f"])
             t["P"] = self.P_list[tod_index]
+            t["PT"] = self.PT_list[tod_index]
 
             # project the fitted map out of the data for noise modeling
-            m = torch.tensor(self.map.smooth(sigma=self.map.resolution).data.compute().ravel(), dtype=torch.float)
+            # m = torch.tensor(self.map.smooth(sigma=self.map.resolution).data.compute().ravel(), dtype=torch.float)
+            m = torch.tensor(self.map.data.compute().ravel(), dtype=torch.float)
 
             t["d_no_map"] = t["d"] - (t["P"] @ m).reshape(t["d"].shape).detach()
-            t["wd"] = t["w"] * t["d_no_map"]
+            if subtract_map:
+                t["wd"] = t["w"] * t["d_no_map"]
+            else:
+                t["wd"] = t["w"] * t["d"]
+
             t["fwd"] = torch.fft.fft(t["wd"])
 
             if self.k > 0:
@@ -172,7 +209,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             t["raw_ps"] = t["noise"].square().abs()
 
             # log_ps = sp.ndimage.gaussian_filter(t["raw_ps"].log(), sigma=4, axes=-1, truncate=1)
-            ps = torch.tensor(sp.ndimage.gaussian_filter(t["raw_ps"], sigma=4, axes=-1, truncate=1), dtype=torch.float)
+            ps = torch.tensor(sp.ndimage.gaussian_filter(t["raw_ps"], sigma=32, axes=-1, truncate=1), dtype=torch.float)
             t["A_inv"] = 1 / ps
 
             # t["A_inv"] = 1 / t["raw_ps"].mean(dim=0).unsqueeze(0)
@@ -195,7 +232,10 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                     torch.eye(self.k) - ((t["A_inv"] * t["Q"]).sum(axis=-1) @ t["Q"]).squeeze(-1)
                 )
 
-            t["PNd"] = t["P"].T @ self.apply_inverse_noise_covariance(t["d"], t)
+            # t["preconditioner"] = ((t["A_inv"].ravel() * t["PT"]) @ t["P"]) ** -1
+
+            t["PNd"] = t["PT"] @ self.apply_inverse_noise_covariance(t["d"], t)
+            # t["pPNd"] = t["preconditioner"] @ t["PNd"]
 
             self.tod_list.append(t)
 
@@ -217,18 +257,16 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             self._naive_map = self.binner.run()
         return torch.tensor(self._naive_map.data.compute().ravel())
 
-        # return sp.ndimage.median_filter(self._naive_map.data.compute(), size=3, axes=(-2, -1)).ravel()
-
     def forward(self, t):
-        return t["P"].T @ self.apply_inverse_noise_covariance((t["P"] @ self.sol.x()).reshape(t["d"].shape), t)
+        return t["PT"] @ self.apply_inverse_noise_covariance((t["P"] @ self.sol).reshape(t["d"].shape), t)
 
     def loss(self):
-        return sum([(self.forward(t) - t["PNd"]).square().sum() for t in self.tod_list])
+        return sum([(self.forward(t) - t["PNd"]).square().sum() for t in self.tod_list]).log()
 
     @property
     def map(self):
         return ProjectionMap(
-            data=self.sol.x().detach().numpy().reshape(self.map_shape),
+            data=self.sol.detach().numpy().reshape(self.map_shape),
             weight=self.hits.numpy().reshape(self.map_shape),
             stokes=self.stokes,
             t=self.t,
@@ -241,49 +279,76 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             beam=self.beam,
         ).to(self.map_units)
 
-    def fit(self, epochs: int = 4, steps_per_epoch: int = 64, lr: float = 1e-1, optimizer: str = "adam", plot: bool = False):
+    def fit(self, epochs: int = 4, steps_per_epoch: int = 64, plot: bool = False, plot_kwargs: dict = {}):
 
-        keep_optimizer = False
-        if hasattr(self, "optimizer"):
-            if self.optimizer_config["lr"] == lr:
-                if self.optimizer_config["optimizer"] == optimizer:
-                    keep_optimizer = False
-
-        if not keep_optimizer:
-            self.optimizer_config = {
-                "optimizer": optimizer,
-                "lr": lr,
-            }
-
-            if optimizer == "adam":
-                self.optimizer = torch.optim.Adam(self.sol.parameters(), lr=lr)
-            if optimizer == "sgd":
-                self.optimizer = torch.optim.SGD(self.sol.parameters(), lr=lr)
-
-        self.sol.train()
+        self.grad_hist = {}
+        self.step_hist = {}
+        self.loss_hist = {}
 
         for epoch in range(epochs):
             self.update_noise_model()
 
+            if not hasattr(self, "step_size"):
+                self.reset_step_size()
+
+            self.grad_hist[epoch] = []
+            self.step_hist[epoch] = []
+            self.loss_hist[epoch] = []
+
             pbar = trange(
                 steps_per_epoch,
-                bar_format="{l_bar}{bar:16}{r_bar}{bar:-10b}",
+                bar_format="{desc}: {percentage:3.0f}%|{bar:10}| {n_fmt}/{total_fmt} [{elapsed}<{remaining} {postfix}]",
                 desc=f"Fitting map (epoch {epoch + 1}/{epochs})",
                 ncols=250,
             )
             pbar.set_postfix(loss=None)
 
             try:
-                for step in pbar:
+                for step_index in pbar:
+                    # compute loss and gradients
                     loss = self.loss()
                     loss.backward()
-                    self.optimizer.step()
-                    self.optimizer.zero_grad()
-                    pbar.set_postfix(loss=f"{loss.item():.03e}")
+
+                    # compute map gradient
+                    grad = self.sol.grad.data.clone()
+                    self.sol.grad.data.zero_()
+
+                    # save for analysis
+                    self.loss_hist[epoch].append(loss.item())
+                    self.step_hist[epoch].append(self.step_size)
+                    self.grad_hist[epoch].append(grad)
+                    # self.grad_hist[epoch] = self.grad_hist[epoch][:-2]
+
+                    postfix = {"loss": f"{loss.item():.03f}", "step": f"{self.step_size:.03e}"}
+
+                    # adjust the step size
+                    if step_index > 2:
+                        G1 = self.grad_hist[epoch][-2]
+                        G2 = self.grad_hist[epoch][-1]
+                        nG1 = G1 / G1.square().sum(dim=-1, keepdim=True).sqrt()
+                        nG2 = G2 / G2.square().sum(dim=-1, keepdim=True).sqrt()
+                        p = (nG1 * nG2).sum()
+
+                        postfix["momentum"] = f"{p:.03f}"
+
+                        if p > 0.9999:
+                            self.step_size *= 1.2
+                        elif p > 0.999:
+                            self.step_size *= 1.05
+                        elif p > 0.99:
+                            self.step_size *= 0.95
+                        elif p > 0.9:
+                            self.step_size *= 0.8
+                        else:
+                            self.step_size *= 0.5
+
+                    # apply the step
+                    self.sol.data = self.sol.data - self.step_size * grad
+                    pbar.set_postfix(**postfix)
 
             except KeyboardInterrupt:
                 break
 
             if plot:
-                self.map.plot(cmap="cmb")
+                self.map.plot(**plot_kwargs)
                 plt.show()

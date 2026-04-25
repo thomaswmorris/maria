@@ -43,7 +43,7 @@ def test_ml_mapper():
         tods=tods,
     )
 
-    mapper.fit()
+    mapper.fit(epochs=1)
     mapper.map.to("Jy/beam").plot()
 
     plt.close("all")

@@ -8,8 +8,8 @@ import arrow
 import numpy as np
 from tqdm import tqdm
 
-from ..atmosphere import DEFAULT_ATMOSPHERE_KWARGS, Atmosphere
-from ..cmb import CMB, DEFAULT_CMB_KWARGS, generate_cmb, get_cmb
+from ..atmosphere import DEFAULT_ATMOSPHERE_SIM_KWARGS, Atmosphere
+from ..cmb import CMB, DEFAULT_CMB_SIM_KWARGS, generate_cmb, get_cmb
 from ..coords import Coordinates
 from ..errors import PointingError
 from ..instrument import Instrument, get_instrument
@@ -130,7 +130,7 @@ class Observation:
 #         cmb_start_s = ttime.monotonic()
 
 #         if cmb:
-#             self.cmb_kwargs = DEFAULT_CMB_KWARGS.copy()
+#             self.cmb_kwargs = DEFAULT_CMB_SIM_KWARGS.copy()
 #             self.cmb_kwargs.update(cmb_kwargs)
 
 #             if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:
@@ -190,7 +190,7 @@ class Observation:
 #         if atmosphere:
 #             atmosphere_init_start_s = ttime.monotonic()
 
-#             self.atmosphere_kwargs = DEFAULT_ATMOSPHERE_KWARGS.copy()
+#             self.atmosphere_kwargs = DEFAULT_ATMOSPHERE_SIM_KWARGS.copy()
 #             self.atmosphere_kwargs.update(atmosphere_kwargs)
 
 #             # do some checks

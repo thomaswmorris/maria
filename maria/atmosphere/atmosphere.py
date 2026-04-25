@@ -27,7 +27,7 @@ logger = logging.getLogger("maria")
 
 SUPPORTED_MODELS_LIST = ["2d", "3d"]
 
-DEFAULT_ATMOSPHERE_KWARGS = {}
+DEFAULT_ATMOSPHERE_SIM_KWARGS = {}
 
 
 class Atmosphere:

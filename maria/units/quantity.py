@@ -230,7 +230,7 @@ class Quantity:
         if self.physical_quantity == "time":
             if np.any(self.s > 3600):
                 return self.timestring
-        if self.size > 1 or (prec is not None):
+        if self.size > 1 or self.ndim > 0 or (prec is not None):
             prec = prec if prec is not None else compute_resolution_precision(self.human_value)
             value_repr = np.round(self.human_value, prec)
         else:

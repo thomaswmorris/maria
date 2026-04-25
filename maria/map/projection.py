@@ -19,7 +19,7 @@ from ..array import Array
 from ..coords import Coordinates
 from ..io import repr_phi_theta
 from ..units import Quantity, parse_units
-from ..utils import compute_pointing_matrix_sparse_indices, unpack_implicit_slice
+from ..utils import compute_pointing_matrix_ingredients, unpack_implicit_slice
 from .base import Map
 
 here, this_filename = os.path.split(__file__)
@@ -123,68 +123,103 @@ class ProjectionMap(Map):
         if all(x is None for x in [width, height, resolution, x_res, y_res]):
             raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'x_res', or 'y_res'.")
 
-    def _pointing_matrix_sparse_indices(self, coords: Coordinates):
+    def _pointing_matrix_ingredients(self, coords: Coordinates, bilinear: bool = True):
         offsets = coords.offsets(center=(self.center[0].rad, self.center[1].rad), frame=self.frame.name)
 
-        if "t" in self.dims:
-            return compute_pointing_matrix_sparse_indices(
-                x_list=(offsets[..., 0], offsets[..., 1], coords._t), bins_list=(self.x_bins, self.y_bins[::-1], self.t_bins)
-            )
-        else:
-            return compute_pointing_matrix_sparse_indices(
-                x_list=(offsets[..., 0], offsets[..., 1]), bins_list=(self.x_bins, self.y_bins[::-1])
-            )
+        return compute_pointing_matrix_ingredients(
+            x_list=(
+                coords._t,
+                offsets[..., 1],
+                offsets[..., 0],
+            ),
+            side_list=(self.t, self.y_side[::-1], self.x_side),
+            bilinear=bilinear,
+        )
 
-    def compute_pointing_matrix_sparse_indices(self, coords: Coordinates, dets: Array):
-        """
-        Docstring for compute_pointing_matrix_sparse_indices
+    def _stokes_weighted_pointing_matrix_ingredients(self, coords: Coordinates, dets: Array, bilinear: bool = True):
 
-        :param self: Description
-        :param coords: Description
-        :type coords: Coordinates
-        :param dets: Description
-        :type dets: Array
-
-        Returns values list, pixel index list, coord index list
-        """
-        nd, nt = coords.shape
-        offsets = coords.offsets(frame=self.frame, center=self.center)
-
-        dim_index = {}
-
-        dim_index["x"] = np.digitize(offsets[..., 0], self.x_bins).ravel() - 1
-        dim_index["y"] = np.digitize(offsets[..., 1], self.y_bins[::-1]).ravel() - 1
-        dim_index["t"] = np.digitize(coords._t, self.t_bins).ravel() - 1
-        dim_index["nu"] = np.digitize(np.repeat(dets.band_center, nt), self.nu_bins) - 1
-
-        cum_dim = 1
-        map_index = 0
-        mask = True
-        for dim, index in dim_index.items():
-            n = self.dims[dim]
-            mask &= (index > -1) & (index < n)
-            map_index += cum_dim * index
-            cum_dim *= n
-        pixel_index = map_index[mask]
-        sample_index = np.arange(coords.size)[mask]
-
-        values_list = []
-        pixel_index_list = []
-        sample_index_list = []
         M = dets.mueller()
-        for stokes_index, stokes in enumerate(self.stokes):
-            values_list.append(np.repeat(M[:, 0, "IQUV".index(stokes)], nt)[mask])
-            pixel_index_list.append(pixel_index + cum_dim * stokes_index)
-            sample_index_list.append(sample_index)
-        return np.concatenate(values_list), np.concatenate(pixel_index_list), np.concatenate(sample_index_list)
+        samples, pixels, weights, n_pixels, n_samples = self._pointing_matrix_ingredients(coords=coords, bilinear=bilinear)
 
-    def pointing_matrix(self, coords: Coordinates, dets: Array):
-        values, pixel_index, sample_index = self.compute_pointing_matrix_sparse_indices(coords=coords, dets=dets)
-        return sp.sparse.csr_array((values, (sample_index, pixel_index)), shape=(coords.size, self.data.size))
+        if "nu" in self.dims:
+            for nu_index, nu in enumerate(self.nu):
+                pixels[:, dets.band_center == nu.Hz] += nu_index * n_pixels
+            n_pixels *= self.dims["nu"]
 
-    def pointing_matrix_jax(self, coords: Coordinates, dets: Array):
-        values, pixel_index, sample_index = self.compute_pointing_matrix_sparse_indices(coords=coords, dets=dets)
-        return sp.sparse.csr_array((values, (sample_index, pixel_index)), shape=(coords.size, self.data.size))
+        stokes_list = self.stokes if "stokes" in self.dims else "I"
+
+        samples_list, pixels_list, weights_list = [], [], []
+        for stokes_index, stokes in enumerate(stokes_list):
+            samples_list.append(samples)
+            pixels_list.append(pixels + n_pixels * stokes_index)
+            weights_list.append(weights * M[:, 0, "IQUV".index(stokes)][:, None])
+
+        return (
+            np.concatenate(weights_list).ravel(),
+            np.concatenate(samples_list).ravel(),
+            np.concatenate(pixels_list).ravel(),
+            n_samples,
+            len(stokes_list) * n_pixels,
+        )
+
+    def stokes_weighted_pointing_matrix(self, coords: Coordinates, dets: Array, bilinear: bool = True):
+
+        weights, samples, pixels, n_samples, n_pixels = self._stokes_weighted_pointing_matrix_ingredients(
+            coords=coords, dets=dets, bilinear=bilinear
+        )
+
+        return sp.sparse.csr_array((weights, (samples, pixels)), shape=(n_samples, n_pixels))
+
+    # def compute_pointing_matrix_sparse_indices(self, coords: Coordinates, dets: Array):
+    #     """
+    #     Docstring for compute_pointing_matrix_sparse_indices
+
+    #     :param self: Description
+    #     :param coords: Description
+    #     :type coords: Coordinates
+    #     :param dets: Description
+    #     :type dets: Array
+
+    #     Returns values list, pixel index list, coord index list
+    #     """
+    #     nd, nt = coords.shape
+    #     offsets = coords.offsets(frame=self.frame, center=self.center)
+
+    #     dim_index = {}
+
+    #     dim_index["x"] = np.digitize(offsets[..., 0], self.x_bins).ravel() - 1
+    #     dim_index["y"] = np.digitize(offsets[..., 1], self.y_bins[::-1]).ravel() - 1
+    #     dim_index["t"] = np.digitize(coords._t, self.t_bins).ravel() - 1
+    #     dim_index["nu"] = np.digitize(np.repeat(dets.band_center, nt), self.nu_bins) - 1
+
+    #     cum_dim = 1
+    #     map_index = 0
+    #     mask = True
+    #     for dim, index in dim_index.items():
+    #         n = self.dims[dim]
+    #         mask &= (index > -1) & (index < n)
+    #         map_index += cum_dim * index
+    #         cum_dim *= n
+    #     pixel_index = map_index[mask]
+    #     sample_index = np.arange(coords.size)[mask]
+
+    #     values_list = []
+    #     pixel_index_list = []
+    #     sample_index_list = []
+    #     M = dets.mueller()
+    #     for stokes_index, stokes in enumerate(self.stokes):
+    #         values_list.append(np.repeat(M[:, 0, "IQUV".index(stokes)], nt)[mask])
+    #         pixel_index_list.append(pixel_index + cum_dim * stokes_index)
+    #         sample_index_list.append(sample_index)
+    #     return np.concatenate(values_list), np.concatenate(pixel_index_list), np.concatenate(sample_index_list)
+
+    # def pointing_matrix(self, coords: Coordinates, dets: Array):
+    #     values, pixel_index, sample_index = self.compute_pointing_matrix_sparse_indices(coords=coords, dets=dets)
+    #     return sp.sparse.csr_array((values, (sample_index, pixel_index)), shape=(coords.size, self.data.size))
+
+    # def pointing_matrix_jax(self, coords: Coordinates, dets: Array):
+    #     values, pixel_index, sample_index = self.compute_pointing_matrix_sparse_indices(coords=coords, dets=dets)
+    #     return sp.sparse.csr_array((values, (sample_index, pixel_index)), shape=(coords.size, self.data.size))
 
     def header(self):
         header = ap.io.fits.header.Header()

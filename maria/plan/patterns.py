@@ -22,6 +22,7 @@ VALID_SCAN_KWARGS = [
     "ratio",
     "freq_ratio",
     "miss_factor",
+    "miss_freq",
     "smoothness",
 ]
 
@@ -113,9 +114,9 @@ def daisy(
     x_throw,
     y_throw,
     speed,
-    petals=7 / np.pi,
-    miss_factor=0.15,
-    miss_freq=np.sqrt(2),
+    petals=np.sqrt(np.e),
+    miss_factor=0.2,
+    miss_freq=0.1,
     **extra_kwargs,
 ):  # noqa
     if extra_kwargs:

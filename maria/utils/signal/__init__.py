@@ -77,6 +77,7 @@ def decompose(D, k: int = 64, batch: bool = True, norm: str = "var"):
             return A.reshape(*batch_shape, n_dets, -1), B
 
     dnorm = np.sqrt(np.sum(np.square(D), axis=-1))
+    dnorm = np.where(dnorm > 0, dnorm, 1)
     u, s, v = sp.sparse.linalg.svds(D / dnorm[..., None], k=k)
     vnorm = np.sqrt(np.sum(np.square(v), axis=-1))
     if norm == "var":

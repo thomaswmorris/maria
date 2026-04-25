@@ -9,7 +9,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..cmb import CMB, DEFAULT_CMB_KWARGS, generate_cmb, get_cmb
+from ..cmb import CMB, DEFAULT_CMB_SIM_KWARGS, generate_cmb, get_cmb
 from ..constants import T_CMB, k_B
 from ..functions.radiometry import (
     inverse_planck_spectrum,
@@ -25,7 +25,7 @@ logger = logging.getLogger("maria")
 
 class CMBMixin:
     def _init_cmb(self, cmb: str | CMB, **cmb_kwargs):
-        self.cmb_kwargs = DEFAULT_CMB_KWARGS.copy()
+        self.cmb_kwargs = DEFAULT_CMB_SIM_KWARGS.copy()
         self.cmb_kwargs.update(cmb_kwargs)
 
         if cmb in ["spectrum", "power_spectrum", "generate", "generated"]:

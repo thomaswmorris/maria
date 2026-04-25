@@ -4,7 +4,7 @@ import time as ttime
 from .repr import humanize_time
 
 DEFAULT_TIME_FORMAT = "YYYY-MM-DD HH:mm:ss.SSS ZZ"
-DEFAULT_BAR_FORMAT = "{l_bar}{bar:16}{r_bar}"
+DEFAULT_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}"
 
 
 def log_duration(ref_time, message, level="debug"):

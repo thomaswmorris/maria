@@ -22,6 +22,11 @@ here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
 
+DEFAULT_MAP_SIM_KWARGS = {
+    "bilinear_sampling": True,
+}
+
+
 class MapMixin:
     """
     This simulates scanning over celestial sources.
@@ -131,30 +136,13 @@ class MapMixin:
 
                 bands_pbar.set_postfix(band=band.name, channel=channel_string)
 
-                # for stokes_index, stokes in enumerate(getattr(self.map, "stokes", "I")):
-                #    bands_pbar.set_postfix(band=band.name, channel=channel_string, stokes=stokes)
-
-                # stokes_weight = stokes_weights[band_mask, "IQUV".index(stokes), None]
-                # if np.isclose(stokes_weight, 0).all():
-                #     logger.debug(f"Skipping stokes {stokes} (no weight)")
-                #     continue
-
-                # stokes_channel_s = ttime.monotonic()
-                # channel_stokes_map = channel_map[stokes_index].compute()
-
-                # sample_T_RJ = jit(jsp.interpolate.RegularGridInterpolator(
-                #             (self.map.y_side[::-1], self.map.x_side),
-                #             channel_stokes_map[::-1],
-                #             bounds_error=False,
-                #             fill_value=0,
-                #             method="linear",
-                #         ))((dy[band_mask], dx[band_mask]))
-
-                # flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
-                # flat_padded_map = np.pad(channel_stokes_map, pad_width=((1, 1)), mode="edge").ravel()
-
                 pointing_s = ttime.monotonic()
-                P = channel_map.pointing_matrix(coords=band_coords, dets=band_dets)
+
+                P = channel_map.stokes_weighted_pointing_matrix(
+                    coords=band_coords,
+                    dets=band_dets,
+                    bilinear=self.map_kwargs.get("bilinear_sampling", DEFAULT_MAP_SIM_KWARGS["bilinear_sampling"]),
+                )
                 logger.debug(
                     f"Computed pointing matrix for band {band.name} in {humanize_time(ttime.monotonic() - pointing_s)}"
                 )

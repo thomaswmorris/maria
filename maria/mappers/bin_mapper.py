@@ -77,7 +77,7 @@ class BinMapper(BaseProjectionMapper):
             if not tod.shape[0] > 0:
                 continue
 
-            P = self.map.pointing_matrix(coords=tod.coords, dets=tod.dets)
+            P = self.map.stokes_weighted_pointing_matrix(coords=tod.coords, dets=tod.dets, bilinear=False)
             D = tod.signal.compute().ravel()
             W = tod.weight.compute().ravel()
 
