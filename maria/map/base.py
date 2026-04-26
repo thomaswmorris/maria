@@ -79,9 +79,9 @@ class Map:
         self.units = units
         self.frame = Frame(frame)
 
-        self.data = da.asarray(data).astype(dtype)
-        self.weight = (da.asarray(weight) if weight is not None else da.ones_like(self.data)).astype(dtype)
-        self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
+        self.data = da.asarray(data).astype(dtype).squeeze()
+        self.weight = (da.asarray(weight).squeeze() if weight is not None else da.ones_like(self.data)).astype(dtype)
+        # self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
 
         self.map_dims = map_dims
 
@@ -96,9 +96,7 @@ class Map:
             self.stokes = ""
 
         if nu is not None:
-            self.nu = Quantity(nu, "Hz")
-            if self.nu.ndim == 0:
-                self.nu = Quantity([self.nu.Hz], "Hz")
+            self.nu = Quantity(np.atleast_1d(nu.Hz if isinstance(nu, Quantity) else nu), "Hz")
             if self.nu.ndim > 1:
                 raise ShapeError("'nu' can be at most one-dimensional")
             bad_freqs = list(self.nu[(self.nu.Hz < MARIA_MIN_NU_HZ) | (self.nu.Hz > MARIA_MAX_NU_HZ)])
@@ -109,7 +107,9 @@ class Map:
             self.nu = Quantity([], "Hz")
 
         if t is not None:
-            self.t = np.atleast_1d(t)
+            self.t = Quantity(np.atleast_1d(t.seconds if isinstance(t, Quantity) else t), "seconds")
+            if self.t.ndim > 1:
+                raise ShapeError("'t' can be at most one-dimensional")
             self.slice_dims["t"] = len(self.t)
         else:
             self.t = np.array([])
@@ -120,23 +120,18 @@ class Map:
         else:
             self.z = np.array([])
 
-        self.data *= np.ones(list(self.dims.values()))
-        self.weight *= np.ones(list(self.dims.values()))
+        implied_shape = tuple(n for n in self.dims.values() if n > 1)
 
-        # for i, (dim, n) in enumerate(slice_dims.items()):
-        #     if self.data.shape[i] != n:
-        #         raise ValueError(
-        #             f"'{dim}' has length {n} but map has {dim} length {self.data.shape[i]}.",
-        #         )
+        if not self.data.shape == implied_shape:
+            raise ValueError(f"Dimensions imply a data shape {implied_shape}, but data has shape {self.data.shape}")
 
-        implied_shape = tuple(list(self.dims.values()))
-        # if len(implied_shape) != self.data.ndim:
-        #     raise ValueError(f"Inputs imply rank {len(self.dims)} for map data, but data has rank {self.data.ndim}")
+        if not self.weight.shape == implied_shape:
+            raise ValueError(f"Dimensions imply a data shape {implied_shape}, but data has shape {self.weight.shape}")
 
-        if implied_shape != self.data.shape:
-            raise ValueError(
-                f"Inputs imply shape {self.dims_string}={implied_shape} for map data, but data has shape {self.data.shape}"
-            )
+        for dim_index, (dim, n) in enumerate(self.slice_dims.items()):
+            if n == 1:
+                self.data = da.expand_dims(self.data, dim_index)
+                self.weight = da.expand_dims(self.weight, dim_index)
 
         if not hasattr(beam, "__len__"):
             beam = np.array([beam, beam, 0])
@@ -210,12 +205,17 @@ class Map:
         return concatenate([self, *maps], dim=dim)
 
     def squeeze(self, dims=None):
+
         dims = np.atleast_1d(dims) if dims is not None else [dim for dim, n in self.slice_dims.items() if n == 1]
         package = self.package()
         dim_indices_to_squeeze = []
 
         for dim_index, name in enumerate(dims):
+            if name in self.map_dims:
+                raise ValueError(f"Cannot squeeze dimension '{name}'")
+
             n = self.slice_dims.get(name)
+
             if n is None:
                 raise ValueError(f"{self.__class__.__name__} has no dimension '{name}'")
             if n != 1:
@@ -373,6 +373,19 @@ class Map:
   max: {nu.max().__repr__(prec)}
   res: {res}"""
 
+    @staticmethod
+    def __repr_t__(t):
+        if t.size < 4:
+            return f"t({len(t)}):\n  values: {t}"
+
+        t_seconds = t.seconds
+        dt = np.gradient(t_seconds)
+        res = "irregular" if np.std(dt) / np.ptp(t_seconds) > 1e-4 else Quantity(np.mean(dt), "seconds")
+        return f"""t({len(t)}):
+  min: {t.min().date}
+  max: {t.max().date}
+  res: {res}"""
+
     def __repr_base__(self):
         repr_slice_parts = [
             f"""data{self.data.shape}:
@@ -386,7 +399,7 @@ class Map:
         if "nu" in self.dims:
             repr_slice_parts.append(self.__repr_nu__(self.nu))
         if "t" in self.dims:
-            repr_slice_parts.append(f"t({len(self.t)}): {self.t}")
+            repr_slice_parts.append(self.__repr_t__(self.t))
         if "z" in self.dims:
             repr_slice_parts.append(f"z({len(self.z)}): {self.z}")
 

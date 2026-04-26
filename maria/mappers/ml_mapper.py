@@ -349,9 +349,10 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
 
                     pgrad_scaling = {
                         0.999: 2.0,
-                        0.99: 1.5,
-                        0.9: 1.2,
-                        0.5: 0.8,
+                        0.99: 1.2,
+                        0.9: 1.1,
+                        0.5: 0.9,
+                        -0.9: 0.8,
                         -np.inf: 0.5,
                     }
 

@@ -132,7 +132,7 @@ class ProjectionMap(Map):
                 offsets[..., 1],
                 offsets[..., 0],
             ),
-            side_list=(self.t, self.y_side[::-1], self.x_side),
+            side_list=(self.t.seconds, self.y_side[::-1], self.x_side),
             bilinear=bilinear,
         )
 
@@ -422,9 +422,10 @@ class ProjectionMap(Map):
         t_index: int = 0,
         stokes: str = "I",
         cmap: str = "default",
-        rel_vmin: float = 0.001,
-        rel_vmax: float = 0.999,
         norm_method: str = "slice",
+        contrast: float = 1e-3,
+        rel_vmin: float = None,
+        rel_vmax: float = None,
         vmin: float = None,
         vmax: float = None,
     ):
@@ -460,10 +461,13 @@ class ProjectionMap(Map):
 
         map_slice_qdata = Quantity(d.compute(), units=self.units)
 
-        if vmin is None or vmax is None:
+        rel_vmin = rel_vmin or contrast
+        rel_vmax = rel_vmax or 1.0 - contrast
+
+        if vmin is None and vmax is None:
             if norm_method == "slice":
-                subset = np.random.choice(d.size, size=min(d.size, 20000), replace=False)
-                auto_vmin, auto_vmax = np.nanquantile(
+                subset = np.random.choice(d.size, size=min(d.size, 100000), replace=False)
+                vmin, vmax = np.nanquantile(
                     map_slice_qdata.human_value.ravel()[subset],
                     weights=w.ravel()[subset].compute(),
                     q=(rel_vmin, rel_vmax),
@@ -471,8 +475,8 @@ class ProjectionMap(Map):
                 )
             elif norm_method == "total":
                 map_values = Quantity(self.data.compute(), units=self.units).to(map_slice_qdata.units)
-                subset = np.random.choice(map_values.size, size=min(d.size, 20000), replace=False)
-                auto_vmin, auto_vmax = np.nanquantile(
+                subset = np.random.choice(map_values.size, size=min(d.size, 100000), replace=False)
+                vmin, vmax = np.nanquantile(
                     map_values.ravel()[subset],
                     weights=self.weight.ravel()[subset].compute(),
                     q=(rel_vmin, rel_vmax),
@@ -480,9 +484,6 @@ class ProjectionMap(Map):
                 )
             else:
                 raise ValueError(f"Invalid normalization method '{norm_method}'")
-
-            vmin = vmin or auto_vmin
-            vmax = vmax or auto_vmax
 
         X = np.r_[self.x_bins, self.y_bins]
         qX = Quantity(X, "rad")
@@ -550,12 +551,13 @@ class ProjectionMap(Map):
         nu_index: int = 0,
         t_index: int = 0,
         cmap: str = "default",
-        rel_vmin: float = 0.001,
-        rel_vmax: float = 0.999,
         filename: str = None,
         norm_method: str = "slice",
+        contrast: str = 1e-3,
         vmin: float = None,
         vmax: float = None,
+        rel_vmin: float = None,
+        rel_vmax: float = None,
     ):
         X = np.r_[self.x_bins, self.y_bins]
         grid_hu = Quantity(X, "rad").hu
@@ -630,6 +632,7 @@ class ProjectionMap(Map):
                     norm_method=norm_method,
                     vmin=vmin,
                     vmax=vmax,
+                    contrast=contrast,
                 )
 
                 if filename is not None:
@@ -659,11 +662,14 @@ class ProjectionMap(Map):
             f.create_dataset("data", dtype=np.float32, data=self.data, **compression_kwargs)
             if not (self.weight == 1).all().compute():
                 f.create_dataset("weight", dtype=np.float32, data=self.weight, **compression_kwargs)
-            for dim in ["stokes", "t", "z"]:
-                if dim in self.dims:
-                    f.create_dataset(dim, data=getattr(self, dim))
+            if "stokes" in self.dims:
+                f.create_dataset("stokes", data=self.stokes, dtype=h5py.string_dtype())
             if "nu" in self.dims:
                 f.create_dataset("nu", data=self.nu.Hz)
+            if "t" in self.dims:
+                f.create_dataset("t", data=self.t.s)
+            if "z" in self.dims:
+                f.create_dataset("z", data=self.z)
             f.create_dataset("center", dtype=float, data=(self.center[0].deg, self.center[1].deg))
             f.create_dataset("x_res", dtype=float, data=self.x_res.deg)
             f.create_dataset("y_res", dtype=float, data=self.y_res.deg)

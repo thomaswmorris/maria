@@ -53,8 +53,8 @@ class MapMixin:
 
         if "t" in self.map.dims:
             if self.map.dims["t"] > 1:
-                map_start = arrow.get(self.map.t.min()).to("utc")
-                map_end = arrow.get(self.map.t.max()).to("utc")
+                map_start = arrow.get(self.map.t.seconds.min()).to("utc")
+                map_end = arrow.get(self.map.t.seconds.max()).to("utc")
                 if map_start > self.min_time:
                     logger.warning(
                         f"Beginning of map ({map_start.format(DEFAULT_TIME_FORMAT)}) is after the "

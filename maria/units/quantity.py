@@ -2,8 +2,8 @@ import logging
 import os
 import pathlib
 import re
-from functools import cached_property
 
+import arrow
 import numpy as np
 import pandas as pd
 import yaml
@@ -24,7 +24,7 @@ quantity_entries = {}
 dimension_vector_entries = {}
 
 
-class InvalidUnitError(Exception): ...
+class UnitError(Exception): ...
 
 
 for path in pathlib.Path(f"{here}/physical_quantities").glob("*.yml"):
@@ -89,7 +89,7 @@ def parse_units(units):
     for subunit in re.compile(r"(/?[\w\*\^\-\.√]+)").findall(units):
         match = units_pattern.search(subunit.strip("/"))
         if match is None:
-            raise InvalidUnitError(
+            raise UnitError(
                 f"Invalid units '{subunit.strip('/')}'. Valid units are a combination of an SI prefix "
                 f"(one of {prefixes_phrase}) and a base unit (one of {base_units_phrase}).",
             )
@@ -137,8 +137,10 @@ class Quantity:
 
     """
 
-    def __new__(cls, value: float, units: str | pd.Series):
+    def __new__(cls, value: float, units: str | pd.Series, metadata: dict = {}):
         self = super().__new__(cls)
+
+        self.metadata = metadata
 
         if isinstance(value, Quantity):
             units = value.units
@@ -229,9 +231,14 @@ class Quantity:
             return pinned_quantity
 
     def __repr__(self, prec: int = None) -> str:
+        repr_spec = self.metadata.get("repr_spec")
+
         if self.physical_quantity == "time":
-            if np.any(self.s > 3600):
-                return self.timestring
+            if self.ndim == 0:
+                if repr_spec == "date":
+                    return self.date
+                if np.any(self.s > 3600):
+                    return self.ydhms
         if self.size > 1 or self.ndim > 0 or (prec is not None):
             prec = prec if prec is not None else compute_resolution_precision(self.human_value)
             value_repr = np.round(self.human_value, prec)
@@ -246,7 +253,7 @@ class Quantity:
         if (self.dimension_vector == other.dimension_vector).all():
             return type(self)(self.base_units_value + other.base_units_value, units=self.dimension_vector)
         else:
-            raise RuntimeError(f"Cannot add units {self} and {other}")
+            raise UnitError(f"Cannot add units {self} and {other}")
 
     def __sub__(self, other):
         return self + -other
@@ -274,7 +281,7 @@ class Quantity:
         return other * (self**-1)
 
     def __pow__(self, power):
-        return type(self)(self.base_units_value**power, units=self.dimension_vector * power)
+        return type(self)(self.base_units_value**power, units=self.dimension_vector * power, metadata=self.metadata)
 
     # def __iter__(self):
     #     u = self.units
@@ -282,15 +289,15 @@ class Quantity:
     #         yield Quantity(x, units=u)
 
     def __copy__(self):
-        return Quantity(self.base_units_value, self.dimension_vector)
+        return Quantity(self.base_units_value, self.dimension_vector, metadata=self.metadata)
 
     def __deepcopy__(self, memo):
         return self.__copy__()
 
     @property
-    def timestring(self) -> str:
+    def ydhms(self) -> str:
         if self.physical_quantity != "time":
-            raise ValueError("'timestring' is only for times")
+            raise ValueError("'ydhms' is only for times")
         parts = []
         t = self.seconds
         for k, v in {"y": 365 * 86400, "d": 86400, "h": 3600, "m": 60}.items():
@@ -300,12 +307,30 @@ class Quantity:
         parts.append(f"{t:.03f}s")
         return " ".join(parts)
 
+    @property
+    def dms(self):
+        if self.physical_quantity != "angle":
+            raise UnitError("Attribute 'dms' can only be computed for angles")
+        sign, d, m, s = deg_to_signed_dms(self.deg)
+        return f"{int(sign * d):>02}°{int(m):>02}’{s:.02f}”"
+
+    @property
+    def hms(self):
+        if self.physical_quantity != "angle":
+            raise UnitError("Attribute 'hms' can only be computed for angles")
+        sign, h, m, s = deg_to_signed_hms(self.deg)
+        return f"{int(sign * h):>02}ʰ{int(m):>02}ᵐ{s:.02f}ˢ"
+
+    @property
+    def date(self):
+        if self.physical_quantity != "time":
+            raise UnitError("Attribute 'date' can only be computed for angles")
+        return arrow.get(self.seconds).isoformat(sep=" ", timespec="milliseconds")
+
     def repr_angle(self, format: str) -> str:
         if format == "dms":
             if self.physical_quantity != "angle":
                 raise ValueError("string format 'dms' is only for angles")
-            sign, d, m, s = deg_to_signed_dms(self.deg)
-            return f"{int(sign * d):>02}°{int(m):>02}’{s:.02f}”"
 
         if format == "hms":
             if self.physical_quantity != "angle":
@@ -319,22 +344,34 @@ class Quantity:
             return f"{self.deg:.04f}°"
 
     def mean(self, axis=None, *args, **kwargs):
-        return Quantity(np.mean(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+        return Quantity(
+            np.mean(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
 
     def median(self, axis=None, *args, **kwargs):
-        return Quantity(np.median(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+        return Quantity(
+            np.median(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
 
     def min(self, axis=None, *args, **kwargs):
-        return Quantity(np.min(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+        return Quantity(
+            np.min(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
 
     def max(self, axis=None, *args, **kwargs):
-        return Quantity(np.max(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+        return Quantity(
+            np.max(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
 
     def std(self, axis=None, *args, **kwargs):
-        return Quantity(np.std(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+        return Quantity(
+            np.std(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
 
     def ptp(self, axis=None, *args, **kwargs):
-        return Quantity(np.ptp(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units)
+        return Quantity(
+            np.ptp(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
 
     @property
     def shape(self):
@@ -361,7 +398,7 @@ class Quantity:
         raise AttributeError(f"'Quantity' object has no attribute '{attr}'")
 
     def __getitem__(self, key):
-        return Quantity(self.base_units_value[key], units=self.base_units)
+        return Quantity(self.base_units_value[key], units=self.base_units, metadata=self.metadata)
 
     def __format__(self, *args, **kwargs):
         return repr(self).__format__(*args, **kwargs)
@@ -373,7 +410,7 @@ class Quantity:
         return len(self.base_units_value)
 
     def __neg__(self):
-        return Quantity(-self.base_units_value, units=self.base_units)
+        return Quantity(-self.base_units_value, units=self.base_units, metadata=self.metadata)
 
     def convert_other(self, other):
         if isinstance(other, Quantity):

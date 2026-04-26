@@ -79,6 +79,8 @@ class BaseMapper:
         self.bands = BandList([])
 
         self.tods = []
+        self.nu = np.array([])
+
         self.add_tods(tods)
 
         beam_sum = np.zeros((len(self.nu), 1, 3))
@@ -86,14 +88,10 @@ class BaseMapper:
 
         for nu_index, nu in enumerate(self.nu):
             for tod in self.tods:
-                beam_sum[nu_index] += tod.duration * tod.dets.beams[tod.dets.band_center == nu].mean(axis=0)
+                beam_sum[nu_index] += tod.duration * tod.dets.beams[tod.dets.band_center == nu.Hz].mean(axis=0)
                 beam_wgt[nu_index] += tod.duration
 
         self.beam = beam_sum / beam_wgt
-
-    @property
-    def nu(self):
-        return np.unique([nu.Hz for nu in self.bands.center])
 
     @property
     def nu_bins(self):
@@ -127,8 +125,14 @@ class BaseMapper:
         )
         for tod in tods_pbar:
             self.tods.append(tod.process(config=self.tod_preprocessing).to(self.tod_units))
+
+        nu_Hz = []
+        for tod in self.tods:
             for band in tod.dets.bands:
-                self.bands.add(band)
+                if band.center.Hz not in nu_Hz:
+                    nu_Hz.append(band.center.Hz)
+
+        self.nu = Quantity(np.sort(nu_Hz), "Hz")
 
     def initialize_mapper(self):
         raise NotImplementedError()
@@ -302,7 +306,7 @@ class BaseProjectionMapper(BaseMapper):
             weight=self.get_map_weight().reshape(self.map_shape),
             stokes=self.stokes,
             t=self.t,
-            nu=self.bands.center,
+            nu=self.nu,
             resolution=self.resolution,
             center=self.center,
             degrees=False,
