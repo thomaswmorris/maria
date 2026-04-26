@@ -179,37 +179,39 @@ class Quantity:
         if self.u["physical_quantity"] != "composite":
             physical_quantity_units = UNITS.loc[UNITS.physical_quantity == self.u["physical_quantity"]]
 
-            units_loss = np.inf
-            fid_x = lazy_nanquantile(np.abs(self.base_units_value), q=0.99)
+            if np.isfinite(self.base_units_value).any():
+                fid_x = lazy_nanquantile(np.abs(self.base_units_value), q=0.99)
 
-            if fid_x > 0:
-                for unit_name, unit in physical_quantity_units.iterrows():
-                    if not unit.human:
-                        continue
+                if fid_x > 0:
+                    units_loss = np.inf
 
-                    for prefix_name, prefix in PREFIXES.iterrows():
-                        if prefix.power % 3 != 0:
+                    for unit_name, unit in physical_quantity_units.iterrows():
+                        if not unit.human:
                             continue
 
-                        if prefix.power < unit.min_prefix_power:
-                            continue
+                        for prefix_name, prefix in PREFIXES.iterrows():
+                            if prefix.power % 3 != 0:
+                                continue
 
-                        if prefix.power > unit.max_prefix_power:
-                            continue
+                            if prefix.power < unit.min_prefix_power:
+                                continue
 
-                        unit_value = fid_x / (unit.factor * prefix.factor)
-                        loss = np.sum(np.where(unit_value >= 1, np.log10(unit_value), 3 + abs(np.log10(unit_value))))
+                            if prefix.power > unit.max_prefix_power:
+                                continue
 
-                        if verbose:
-                            print(prefix_name, unit_name, unit_value, loss)
+                            unit_value = fid_x / (unit.factor * prefix.factor)
+                            loss = np.sum(np.where(unit_value >= 1, np.log10(unit_value), 3 + abs(np.log10(unit_value))))
 
-                        if units_loss > loss:
-                            total_factor = 1 / (unit.factor * prefix.factor)
-                            units = f"{prefix_name}{unit_name}"
-                            units_loss = loss
+                            if verbose:
+                                print(prefix_name, unit_name, unit_value, loss)
 
-                self._human_value = total_factor * self.base_units_value
-                self._human_units = units
+                            if units_loss > loss:
+                                total_factor = 1 / (unit.factor * prefix.factor)
+                                units = f"{prefix_name}{unit_name}"
+                                units_loss = loss
+
+                    self._human_value = total_factor * self.base_units_value
+                    self._human_units = units
 
     def to(self, units) -> float:
         u = parse_units(units)

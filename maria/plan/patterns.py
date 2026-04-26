@@ -172,7 +172,7 @@ def back_and_forth(t, radius=1, x_throw=None, y_throw=0, speed=1.0, max_accel=np
     return np.stack([x, y])
 
 
-def raster(time: float, x_throw: float, y_throw: float, speed: float, n: int = 21, smoothness: float = 2, **extra_kwargs):
+def raster(time: float, x_throw: float, y_throw: float, speed: float, n: int = 21, smoothness: float = 1e-1, **extra_kwargs):
     if extra_kwargs:
         logger.warning(f"Ignoring parameters {extra_kwargs} for scan pattern 'raster'.")
 
@@ -198,7 +198,9 @@ def raster(time: float, x_throw: float, y_throw: float, speed: float, n: int = 2
 
     offsets = sp.interpolate.interp1d(phase_samples, offset_samples)(phase)
 
-    return sp.ndimage.gaussian_filter1d(offsets, sigma=1, axis=-1)
+    sigma = smoothness * sample_rate
+
+    return sp.ndimage.gaussian_filter1d(offsets, sigma=sigma, axis=-1)
 
 
 def stare(time, **extra_kwargs):

@@ -14,7 +14,7 @@ def test_pattern(scan_pattern):
     print(plan)
 
     plan.plot()
-    plan.plot_counts()
+    plan.plot_hits()
 
     plt.close("all")
 
@@ -25,7 +25,7 @@ def test_pattern_speed(scan_pattern):
     #     print(plan)
 
     #     plan.plot()
-    #     plan.plot_counts()
+    #     plan.plot_hits()
 
     #     from maria.plan import scan_patterns
 

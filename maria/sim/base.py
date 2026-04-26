@@ -188,5 +188,5 @@ class BaseSimulation:
 
         return tod.to(units)
 
-    def plot_counts(self, x_bins=100, y_bins=100):
-        self.plan.plot_counts(instrument=self.instrument, x_bins=x_bins, y_bins=y_bins)
+    def plot_hits(self, x_bins=100, y_bins=100):
+        self.plan.plot_hits(instrument=self.instrument, x_bins=x_bins, y_bins=y_bins)

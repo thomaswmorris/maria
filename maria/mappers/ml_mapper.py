@@ -38,6 +38,8 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         },
         map_postprocessing: dict = {},
         progress_bars: bool = True,
+        bilinear: bool = True,
+        verbose: bool = False,
     ):
         super().__init__(
             tods=tods,
@@ -55,6 +57,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             timestep=timestep,
             degrees=degrees,
             progress_bars=progress_bars,
+            bilinear=bilinear,
         )
 
         # if center is None:
@@ -84,6 +87,8 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             progress_bars=False,
         )
 
+        self.verbose = verbose
+
         # # self.update_deprojection()
 
         self.sol = torch.tensor(np.zeros(self.map_shape).ravel(), requires_grad=True, dtype=torch.float)
@@ -95,7 +100,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
 
         for tod in tqdm(self.tods, "Computing pointing matrices", bar_format=DEFAULT_BAR_FORMAT):
             weights, samples, pixels, n_samples, n_pixels = self.map._stokes_weighted_pointing_matrix_ingredients(
-                coords=tod.coords, dets=tod.dets, bilinear=False
+                coords=tod.coords, dets=tod.dets, bilinear=self.bilinear
             )
 
             indices = torch.stack([torch.tensor(samples, dtype=torch.long), torch.tensor(pixels, dtype=torch.long)], dim=0)
@@ -199,18 +204,29 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             t["fwd"] = torch.fft.fft(t["wd"])
 
             if self.k > 0:
-                t["a"], t["b"] = [torch.tensor(_) for _ in decompose(t["fwd"].numpy(), k=self.k, norm="var")]
+                # fwd = torch.fft.fft(t["wd"])
+                t["a"], t["b"] = [
+                    torch.tensor(_, dtype=torch.complex64) for _ in decompose(t["wd"].numpy(), k=self.k, norm="var")
+                ]
+                t["noise"] = t["wd"] - t["a"] @ t["b"]
+                # fn = torch.fft.fft(noise)
+
+                # t["a"], t["b"] = [torch.tensor(_) for _ in decompose(t["fwd"].numpy(), k=self.k, norm="var")]
                 t["U"] = t["a"].T.unsqueeze(-1)
-                t["noise"] = t["fwd"] - t["a"] @ t["b"]
+                # t["noise"] = t["fwd"] - t["a"] @ t["b"]
 
             else:
-                t["noise"] = t["fwd"]
+                t["noise"] = t["wd"]
 
-            t["raw_ps"] = t["noise"].square().abs()
+            t["fn"] = torch.fft.fft(t["noise"])
+
+            t["noise_ps"] = t["fn"].square().abs()
 
             # log_ps = sp.ndimage.gaussian_filter(t["raw_ps"].log(), sigma=4, axes=-1, truncate=1)
-            ps = torch.tensor(sp.ndimage.gaussian_filter(t["raw_ps"], sigma=32, axes=-1, truncate=1), dtype=torch.float)
-            t["A_inv"] = 1 / ps
+            smooth_ps = torch.tensor(
+                sp.ndimage.gaussian_filter(t["noise_ps"], sigma=64, axes=-1, truncate=1), dtype=torch.float
+            )
+            t["A_inv"] = 1 / smooth_ps
 
             # t["A_inv"] = 1 / t["raw_ps"].mean(dim=0).unsqueeze(0)
 
@@ -291,59 +307,72 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             if not hasattr(self, "step_size"):
                 self.reset_step_size()
 
-            self.grad_hist[epoch] = []
-            self.step_hist[epoch] = []
-            self.loss_hist[epoch] = []
+            last_loss = self.loss()
+            self.sol.grad.data.zero_()
+            last_loss.backward()
+            last_grad = self.sol.grad.data.clone()
+            normed_last_grad = last_grad / last_grad.square().sum().sqrt()
+
+            self.grad_hist[epoch] = [last_grad]
+            self.step_hist[epoch] = [self.step_size]
+            self.loss_hist[epoch] = [last_loss.item()]
 
             pbar = trange(
                 steps_per_epoch,
-                bar_format="{desc}: {percentage:3.0f}%|{bar:10}| {n_fmt}/{total_fmt} [{elapsed}<{remaining} {postfix}]",
+                bar_format=DEFAULT_BAR_FORMAT,
                 desc=f"Fitting map (epoch {epoch + 1}/{epochs})",
                 ncols=250,
             )
-            pbar.set_postfix(loss=None)
+            pbar.set_postfix(loss=None, step=None, grad_p=None)
 
             try:
                 for step_index in pbar:
-                    # compute loss and gradients
-                    loss = self.loss()
-                    loss.backward()
+                    sol = self.sol.data.clone()
 
-                    # compute map gradient
-                    grad = self.sol.grad.data.clone()
+                    # do a step
+                    self.sol.data = self.sol.data - self.step_size * last_grad
+                    this_loss = self.loss()
+
+                    # if too far, go back and decrease the step size
+                    if this_loss > last_loss:
+                        self.sol.data = self.sol.data + self.step_size * last_grad
+                        self.step_size *= 0.5
+                        continue
+
+                    # compute gradient for next step
                     self.sol.grad.data.zero_()
+                    this_loss.backward()
+                    this_grad = self.sol.grad.data.clone()
+                    normed_this_grad = this_grad / this_grad.square().sum().sqrt()
 
-                    # save for analysis
-                    self.loss_hist[epoch].append(loss.item())
+                    pgrad = (normed_this_grad * normed_last_grad).sum()
+
+                    pgrad_scaling = {
+                        0.999: 2.0,
+                        0.99: 1.5,
+                        0.9: 1.2,
+                        0.5: 0.8,
+                        -np.inf: 0.5,
+                    }
+
+                    for thresh, scale in pgrad_scaling.items():
+                        if pgrad >= thresh:
+                            self.step_size *= scale
+                            break
+
+                    postfix = {
+                        "loss": f"{this_loss.item():.02f}",
+                        "step": f"{self.step_size:.01e}",
+                        "pgrad": f"{pgrad:.03f}",
+                    }
+
+                    self.loss_hist[epoch].append(this_loss.item())
                     self.step_hist[epoch].append(self.step_size)
-                    self.grad_hist[epoch].append(grad)
-                    # self.grad_hist[epoch] = self.grad_hist[epoch][:-2]
 
-                    postfix = {"loss": f"{loss.item():.03f}", "step": f"{self.step_size:.03e}"}
+                    last_loss = this_loss
+                    last_grad = this_grad
+                    normed_last_grad = normed_this_grad
 
-                    # adjust the step size
-                    if step_index > 2:
-                        G1 = self.grad_hist[epoch][-2]
-                        G2 = self.grad_hist[epoch][-1]
-                        nG1 = G1 / G1.square().sum(dim=-1, keepdim=True).sqrt()
-                        nG2 = G2 / G2.square().sum(dim=-1, keepdim=True).sqrt()
-                        p = (nG1 * nG2).sum()
-
-                        postfix["momentum"] = f"{p:.03f}"
-
-                        if p > 0.9999:
-                            self.step_size *= 1.2
-                        elif p > 0.999:
-                            self.step_size *= 1.05
-                        elif p > 0.99:
-                            self.step_size *= 0.95
-                        elif p > 0.9:
-                            self.step_size *= 0.8
-                        else:
-                            self.step_size *= 0.5
-
-                    # apply the step
-                    self.sol.data = self.sol.data - self.step_size * grad
                     pbar.set_postfix(**postfix)
 
             except KeyboardInterrupt:

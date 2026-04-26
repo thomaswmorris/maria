@@ -386,7 +386,7 @@ class Plan:
 
         return x_bins, y_bins, bs[0]
 
-    def plot_counts(self, instrument=None, x_bins=64, y_bins=64):
+    def plot_hits(self, instrument=None, x_bins=64, y_bins=64):
         fig, ax = plt.subplots(1, 1, figsize=(5, 4))
 
         x, y, counts = self.map_counts(instrument=instrument, x_bins=x_bins, y_bins=y_bins)

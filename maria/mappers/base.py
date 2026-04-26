@@ -33,7 +33,6 @@ class BaseMapper:
         self,
         tods: Sequence[TOD],
         resolution: Quantity,
-        frame: str,
         units: str,
         stokes: str,
         min_time: float,
@@ -42,6 +41,7 @@ class BaseMapper:
         tod_preprocessing: Mapping,
         map_postprocessing: Mapping,
         progress_bars: bool,
+        bilinear: bool,
     ):
         u = parse_units(units)
         self.tod_units = units if u["physical_quantity"] in TOD_DIMENSIONS else "K_RJ"
@@ -62,6 +62,7 @@ class BaseMapper:
         self.tod_preprocessing = tod_preprocessing
         self.map_postprocessing = map_postprocessing
         self.progress_bars = progress_bars
+        self.bilinear = bilinear
 
         min_time = min_time or min([tod.coords.t.min() for tod in tods])
         max_time = max_time or max([tod.coords.t.max() for tod in tods])
@@ -114,21 +115,11 @@ class BaseMapper:
     def n_t(self):
         return len(self.t)
 
-    @property
-    def map(self):
-        return ProjectionMap(
-            data=self.data.reshape(self.map_shape),
-            weight=self.weight.reshape(self.map_shape),
-            stokes=self.stokes,
-            t=self.timestamps,
-            nu=self.bands.center,
-            resolution=self.resolution,
-            center=self.center,
-            degrees=False,
-            frame=self.frame.name,
-            units=self.tod_units,
-            beam=self.beam,
-        ).to(self.map_units)
+    def get_map_data(self):
+        raise NotImplementedError()
+
+    def get_map_weight(self):
+        raise NotImplementedError()
 
     def add_tods(self, tods):
         tods_pbar = tqdm(
@@ -218,6 +209,7 @@ class BaseProjectionMapper(BaseMapper):
         timestep: float,
         degrees: bool,
         progress_bars: bool,
+        bilinear: bool,
     ):
 
         center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
@@ -260,10 +252,14 @@ class BaseProjectionMapper(BaseMapper):
             resolution = Quantity(width / 128, "rad")
             logger.info(f"Inferring mapper resolution {resolution} for mapper from observation patch.")
 
+        self.center = center
+        self.width = width
+        self.height = height
+        self.frame = Frame(frame)
+
         super().__init__(
             tods=tods,
             resolution=resolution,
-            frame=frame,
             units=units,
             stokes=stokes,
             min_time=min_time,
@@ -272,15 +268,8 @@ class BaseProjectionMapper(BaseMapper):
             tod_preprocessing=tod_preprocessing,
             map_postprocessing=map_postprocessing,
             progress_bars=progress_bars,
+            bilinear=bilinear,
         )
-
-        self.center = center
-        self.width = width
-        self.height = height
-        self.frame = Frame(frame)
-
-        self.data = np.nan * np.zeros(self.map_shape)
-        self.weight = np.nan * np.ones(self.map_shape)
 
     @property
     def n_x(self):
@@ -309,11 +298,11 @@ class BaseProjectionMapper(BaseMapper):
     @property
     def map(self):
         return ProjectionMap(
-            data=self.data,
-            weight=self.weight,
+            data=self.get_map_data().reshape(self.map_shape),
+            weight=self.get_map_weight().reshape(self.map_shape),
             stokes=self.stokes,
             t=self.t,
-            nu=self.nu,
+            nu=self.bands.center,
             resolution=self.resolution,
             center=self.center,
             degrees=False,

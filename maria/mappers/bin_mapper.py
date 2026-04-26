@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 from ..coords import infer_center_width_height
-from ..io import humanize_time, repr_phi_theta
+from ..io import DEFAULT_BAR_FORMAT, humanize_time, repr_phi_theta
 from ..map import ProjectionMap
 from ..tod import TOD
 from ..units import Quantity
@@ -39,6 +39,7 @@ class BinMapper(BaseProjectionMapper):
         tod_preprocessing: dict = {},
         map_postprocessing: dict = {},
         progress_bars: bool = True,
+        bilinear: bool = True,
     ):
         super().__init__(
             tods=tods,
@@ -56,9 +57,21 @@ class BinMapper(BaseProjectionMapper):
             timestep=timestep,
             degrees=degrees,
             progress_bars=progress_bars,
+            bilinear=bilinear,
         )
 
-    def _run(self):
+        self.res = {
+            "data": np.zeros(self.map_shape),
+            "weight": np.zeros(self.map_shape),
+        }
+
+    def get_map_data(self):
+        return self.res["data"]
+
+    def get_map_weight(self):
+        return self.res["weight"]
+
+    def run(self):
         """
         The actual mapper for the BinMapper.
         """
@@ -71,32 +84,25 @@ class BinMapper(BaseProjectionMapper):
             total=len(self.tods),
             desc=f"Mapping",
             postfix={"tod": f"1/{len(self.tods)}"},
+            bar_format=DEFAULT_BAR_FORMAT,
+            disable=not self.progress_bars,
         )
 
         for tod in pbar:
             if not tod.shape[0] > 0:
                 continue
 
-            P = self.map.stokes_weighted_pointing_matrix(coords=tod.coords, dets=tod.dets, bilinear=False)
+            P = self.map.stokes_weighted_pointing_matrix(coords=tod.coords, dets=tod.dets, bilinear=self.bilinear)
             D = tod.signal.compute().ravel()
             W = tod.weight.compute().ravel()
-
-            # stokes_weight = band_tod.dets.stokes_weight()
-
-            # for stokes_index, stokes in enumerate(self.stokes):
-            #     pbar.set_postfix(tod=f"{tod_index + 1}/{len(self.tods)}", stokes=stokes)
-
-            #     s = stokes_weight[:, "IQUV".index(stokes)][..., None]
 
             map_sum += (W * D) @ P
             map_wgt += W @ np.abs(P)
 
-            # del band_tod
-
-            # logger.info(f"Ran mapper for band {band.name} in {humanize_time(ttime.monotonic() - band_start_s)}.")
-
-        return {
-            "data": (map_sum / map_wgt).reshape(self.map_shape),
-            "weight": map_wgt.reshape(self.map_shape),
-            "sum": map_sum.reshape(self.map_shape),
+        self.res = {
+            "data": map_sum / map_wgt,
+            "weight": map_wgt,
+            "sum": map_sum,
         }
+
+        return self.map
