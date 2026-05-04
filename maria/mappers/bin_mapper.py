@@ -39,7 +39,7 @@ class BinMapper(BaseProjectionMapper):
         tod_preprocessing: dict = {},
         map_postprocessing: dict = {},
         progress_bars: bool = True,
-        bilinear: bool = True,
+        bilinear: bool = False,
     ):
         super().__init__(
             tods=tods,

@@ -141,14 +141,12 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         self.obs_list = []
         for plan in self.plans:
-            obs_weather_kwargs = self.atmosphere_kwargs.pop("weather") if "weather" in self.atmosphere_kwargs else {}
             obs = Observation(
                 instrument=self.instrument,
                 plan=plan,
                 site=self.site,
                 atmosphere=self.atmosphere,
                 atmosphere_kwargs=self.atmosphere_kwargs,
-                weather_kwargs=obs_weather_kwargs,
             )
 
             self.obs_list.append(obs)

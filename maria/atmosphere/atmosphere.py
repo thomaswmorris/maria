@@ -37,8 +37,8 @@ class Atmosphere:
         timestamp: float = arrow.now().timestamp(),
         region: str = "princeton",
         altitude: float = None,
+        weather: dict = {},
         weather_quantiles: dict = {},
-        weather_kwargs: dict = {},
         weather_source: str = "era5",
         spectrum_source: str = "am",
         pwv_rms_frac: float = 0.03,
@@ -60,8 +60,8 @@ class Atmosphere:
             time=timestamp,
             region=region,
             altitude=altitude,
+            override=weather,
             quantiles=weather_quantiles,
-            override=weather_kwargs,
             source=weather_source,
         )
 

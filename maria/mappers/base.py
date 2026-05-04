@@ -58,7 +58,6 @@ class BaseMapper:
 
         self.resolution = resolution
         self.units = units
-        self.stokes = stokes
         self.tod_preprocessing = tod_preprocessing
         self.map_postprocessing = map_postprocessing
         self.progress_bars = progress_bars
@@ -82,6 +81,17 @@ class BaseMapper:
         self.nu = np.array([])
 
         self.add_tods(tods)
+
+        if stokes is None:
+            stokes_sensitivity_mask = False
+
+            for tod in self.tods:
+                stokes_sensitivity_mask |= (tod.dets.mueller() != 0).any(axis=(0, 1))
+
+            self.stokes = "".join(np.array(list("IQUV"))[stokes_sensitivity_mask])
+
+        else:
+            self.stokes = stokes
 
         beam_sum = np.zeros((len(self.nu), 1, 3))
         beam_wgt = np.zeros((len(self.nu), 1, 3))

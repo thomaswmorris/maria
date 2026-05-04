@@ -428,6 +428,7 @@ class ProjectionMap(Map):
         rel_vmax: float = None,
         vmin: float = None,
         vmax: float = None,
+        center_zero: bool = False,
     ):
         d = self.data
         w = self.weight
@@ -460,30 +461,30 @@ class ProjectionMap(Map):
             cmap = "CMRmap" if stokes == "I" else "cmb"
 
         map_slice_qdata = Quantity(d.compute(), units=self.units)
+        map_slice_values = map_slice_qdata.human_value
 
         rel_vmin = rel_vmin or contrast
         rel_vmax = rel_vmax or 1.0 - contrast
 
         if vmin is None and vmax is None:
             if norm_method == "slice":
-                subset = np.random.choice(d.size, size=min(d.size, 100000), replace=False)
-                vmin, vmax = np.nanquantile(
-                    map_slice_qdata.human_value.ravel()[subset],
-                    weights=w.ravel()[subset].compute(),
-                    q=(rel_vmin, rel_vmax),
-                    method="inverted_cdf",
-                )
-            elif norm_method == "total":
-                map_values = Quantity(self.data.compute(), units=self.units).to(map_slice_qdata.units)
-                subset = np.random.choice(map_values.size, size=min(d.size, 100000), replace=False)
-                vmin, vmax = np.nanquantile(
-                    map_values.ravel()[subset],
-                    weights=self.weight.ravel()[subset].compute(),
-                    q=(rel_vmin, rel_vmax),
-                    method="inverted_cdf",
-                )
+                norm_values = map_slice_values
+                norm_weights = w.compute()
             else:
-                raise ValueError(f"Invalid normalization method '{norm_method}'")
+                raise ValueError(f"Invalid norm_method '{norm_method}'")
+
+            subset = np.random.choice(norm_values.size, size=min(norm_values.size, 100000), replace=False)
+            vmin, vmax = np.nanquantile(
+                norm_values.ravel()[subset],
+                weights=norm_weights.ravel()[subset],
+                q=(rel_vmin, rel_vmax),
+                method="inverted_cdf",
+            )
+            if center_zero:
+                abs_max = max(vmax, -vmin)
+                vmin, vmax = -abs_max, abs_max
+
+            logger.debug(f"Inferring (vmin, vmax) = ({vmin}, {vmax})")
 
         X = np.r_[self.x_bins, self.y_bins]
         qX = Quantity(X, "rad")
@@ -554,6 +555,7 @@ class ProjectionMap(Map):
         filename: str = None,
         norm_method: str = "slice",
         contrast: str = 1e-3,
+        center_zero: bool = False,
         vmin: float = None,
         vmax: float = None,
         rel_vmin: float = None,
@@ -633,6 +635,7 @@ class ProjectionMap(Map):
                     vmin=vmin,
                     vmax=vmax,
                     contrast=contrast,
+                    center_zero=center_zero,
                 )
 
                 if filename is not None:

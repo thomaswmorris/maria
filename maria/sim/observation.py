@@ -39,13 +39,10 @@ class Observation:
         site: Site,
         atmosphere: str = None,
         atmosphere_kwargs: dict = {},
-        weather_kwargs: dict = {},
     ):
         self.instrument = instrument
         self.plan = plan
         self.site = site
-
-        self.weather_kwargs = weather_kwargs
 
         obs_init_s = ttime.monotonic()
 
@@ -98,7 +95,6 @@ class Observation:
                 timestamp=self.plan.time.mean(),
                 region=self.site.region,
                 altitude=self.site.altitude,
-                weather_kwargs=self.weather_kwargs,
                 **self.atmosphere_kwargs,
             )
 

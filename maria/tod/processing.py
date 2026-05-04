@@ -31,6 +31,7 @@ OPERATION_KWARGS = {
     "remove_spline": {
         "knot_spacing": {"dtype": float, "aliases": ["remove_spline_knot_spacing"]},
         "remove_el_gradient": {"dtype": bool, "aliases": ["remove_el_gradient"]},
+        "remove_el_gradient_order": {"dtype": int, "aliases": ["remove_el_gradient_order"]},
         "order": {"dtype": int, "aliases": ["depline_order"]},
     },
 }
@@ -93,6 +94,8 @@ def process_tod(tod, config=None, **kwargs):
     D = tod.signal.compute()
     W = np.ones(D.shape)
 
+    n_dets, n_samples = D.shape
+
     if "remove_slope" in config:
         remove_slope_start_s = ttime.monotonic()
         D -= np.linspace(D[..., 0], D[..., -1], D.shape[-1]).T
@@ -111,12 +114,18 @@ def process_tod(tod, config=None, **kwargs):
         )
 
         if config["remove_spline"].get("remove_el_gradient", False):
+            if "remove_el_gradient_order" not in config["remove_spline"]:
+                config["remove_spline"]["remove_el_gradient_order"] = 2
+
+        if "remove_el_gradient_order" in config["remove_spline"]:
             el = tod.boresight.el
             el_ptp = el.max() - el.min()
             if el_ptp == 0:
                 raise ValueError("Cannot remove elevation gradient when elevation is constant")
             rel_el = (el - el.min()) / el_ptp
-            B = np.concatenate([B * rel_el[None], B * (1 - rel_el)[None]], axis=0)
+            B = np.concatenate(
+                [B * rel_el**i for i in range(config["remove_spline"]["remove_el_gradient_order"] + 1)], axis=0
+            )
 
         A = (np.linalg.inv(B @ B.T) @ B @ D.swapaxes(-2, -1)).swapaxes(-2, -1)
         D -= A @ B
