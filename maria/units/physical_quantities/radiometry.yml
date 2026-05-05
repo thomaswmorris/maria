@@ -135,3 +135,20 @@ spectral_flux_density_per_beam:
       min_prefix_power: -30
       max_prefix_power: 30
       human: True
+
+compton_y:
+  long_name: Compton-y
+  short_name: y
+  math_name: y
+  base_unit: compton_y
+  base_unit_prefix: ""
+  vector:
+    compton_y: 1
+  units:
+    y:
+      factor: 1
+      long_name: compton_y
+      math_name: y
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: True

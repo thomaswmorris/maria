@@ -342,7 +342,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                 desc=f"Fitting map (epoch {epoch + 1}/{epochs})",
                 ncols=250,
             )
-            pbar.set_postfix(loss=None, step=None, grad_p=None)
+            pbar.set_postfix(mll=None, step=None, grad_p=None)
 
             try:
                 for step_index in pbar:
@@ -366,11 +366,11 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                     pgrad = (normed_this_grad * normed_last_grad).sum()
 
                     pgrad_scaling = {
-                        0.999: 2.0,
-                        0.99: 1.2,
-                        0.9: 1.1,
-                        0.5: 0.9,
-                        -0.9: 0.8,
+                        0.9999: 2.0,
+                        0.999: 1.5,
+                        0.99: 1.1,
+                        0.9: 0.9,
+                        0.5: 0.8,
                         -np.inf: 0.5,
                     }
 
@@ -380,7 +380,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                             break
 
                     postfix = {
-                        "loss": f"{this_loss.item():.03f}",
+                        "mll": f"{this_loss.item():.03f}",
                         "step": f"{self.step_size:.02e}",
                         "pgrad": f"{pgrad:.03f}",
                     }

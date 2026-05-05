@@ -1,5 +1,22 @@
 
-
+mass:
+  long_name: mass
+  short_name: m
+  math_name: m
+  base_unit: g
+  base_unit_prefix: k
+  min_prefix_power: -30
+  max_prefix_power: 0
+  vector:
+    kg: 1
+  units:
+    g:
+      factor: 1e-3
+      long_name: grams
+      math_name: \text{g}
+      min_prefix_power: -30
+      max_prefix_power: 3
+      human: False
 
 angle:
   long_name: angle
@@ -130,7 +147,7 @@ beam:
     beam:
       factor: 1
       aliases:
-      - BEAM
+      - beam
       long_name: beam
       math_name: \text{beam}
       min_prefix_power: 0
@@ -148,7 +165,8 @@ pixel:
     pixel:
       factor: 1
       aliases:
-      - PIXEL
+      - pixel
+      - pix
       long_name: pixel
       math_name: \text{pixel}
       min_prefix_power: 0

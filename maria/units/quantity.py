@@ -185,6 +185,8 @@ class Quantity:
                 fid_x = lazy_nanquantile(np.abs(self.base_units_value), q=0.99)
 
                 if fid_x > 0:
+                    total_factor = 1
+                    units = self.base_units
                     units_loss = np.inf
 
                     for unit_name, unit in physical_quantity_units.iterrows():

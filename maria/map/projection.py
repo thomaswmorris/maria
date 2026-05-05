@@ -38,6 +38,7 @@ class ProjectionMap(Map):
         stokes: float = None,
         nu: Iterable[float] = None,
         t: Iterable[float] = None,
+        v: Iterable[float] = None,
         z: Iterable[float] = None,
         width: float = None,
         height: float = None,
@@ -77,6 +78,7 @@ class ProjectionMap(Map):
             nu=nu,
             t=t,
             z=z,
+            v=v,
             beam=beam,
             map_dims=map_dims,
             units=units,
@@ -330,9 +332,6 @@ class ProjectionMap(Map):
                 "degrees": True,
                 "data": self.data,
                 "weight": self.weight,
-                "stokes": self.stokes,
-                "nu": self.nu.Hz,
-                "t": self.t,
                 "center": (self.center[0].deg, self.center[1].deg),
                 "frame": self.frame.name,
                 "units": self.units,
@@ -342,9 +341,9 @@ class ProjectionMap(Map):
             }
         )
 
-        for dim in ["stokes", "nu", "t"]:
-            if dim not in self.dims:
-                package.pop(dim)
+        for dim in ["stokes", "nu", "v", "z", "t"]:
+            if dim in self.dims:
+                package[dim] = getattr(self, dim)
 
         return package
 
@@ -420,6 +419,7 @@ class ProjectionMap(Map):
         ax,
         nu_index: int = 0,
         t_index: int = 0,
+        v_index: int = 0,
         stokes: str = "I",
         cmap: str = "default",
         norm_method: str = "slice",
@@ -447,6 +447,14 @@ class ProjectionMap(Map):
             except IndexError:
                 raise IndexError(
                     f"nu_index={nu_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
+                )
+
+        if "v" in self.dims:
+            try:
+                d, w = d[v_index], w[v_index]
+            except IndexError:
+                raise IndexError(
+                    f"v_index={v_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
                 )
 
         if "t" in self.dims:

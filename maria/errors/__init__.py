@@ -14,6 +14,9 @@ class ShapeError(Exception): ...
 class ConfigurationError(Exception): ...
 
 
+class MissingConversionParametersError(Exception): ...
+
+
 class FrequencyOutOfBoundsError(Exception):
     def __init__(self, nu=None, center_and_width=None):
         qmin_nu = Quantity(MARIA_MIN_NU_HZ, units="Hz")

@@ -50,3 +50,5 @@ def test_parsing():
 
     for pattern in patterns:
         parse_units(pattern)
+
+        print(Quantity(1.0, pattern))

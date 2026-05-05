@@ -3,104 +3,12 @@ import os
 import pandas as pd
 import yaml
 
-from ..io import leftpad
+from ..errors import MissingConversionParametersError
 from ..spectrum import AtmosphericSpectrum
 from ..units import QUANTITY_DIMENSION_VECTORS, Quantity, parse_units
-from .conversion import (
-    brightness_temperature_to_cmb_temperature_anisotropy,
-    brightness_temperature_to_power,
-    cmb_temperature_anisotropy_to_brightness_temperature,
-    cmb_temperature_anisotropy_to_power,
-    # cmb_temperature_anisotropy_to_rayleigh_jeans_temperature,
-    identity,
-    power_to_brightness_temperature,
-    power_to_cmb_temperature_anisotropy,
-    power_to_rayleigh_jeans_temperature,
-    # rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
-    rayleigh_jeans_temperature_to_power,
-    rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
-    spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel,
-    spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature,
-    spectral_flux_density_per_pixel_to_spectral_flux_density_per_beam,
-    spectral_flux_density_per_pixel_to_spectral_radiance,
-    spectral_radiance_to_spectral_flux_density_per_pixel,
-)
+from .conversion import conversions
 
 here, this_filename = os.path.split(__file__)
-
-conversions = {}
-conversions["brightness_temperature"] = {
-    "power": {"f": brightness_temperature_to_power, "linear": False},
-    "cmb_temperature_anisotropy": {"f": brightness_temperature_to_cmb_temperature_anisotropy, "linear": False},
-}
-
-conversions["power"] = {
-    "rayleigh_jeans_temperature": {"f": power_to_rayleigh_jeans_temperature, "linear": True},
-    "cmb_temperature_anisotropy": {"f": power_to_cmb_temperature_anisotropy, "linear": True},
-    "brightness_temperature": {"f": power_to_brightness_temperature, "linear": False},
-}
-conversions["rayleigh_jeans_temperature"] = {
-    "power": {"f": rayleigh_jeans_temperature_to_power, "linear": True},
-    # "cmb_temperature_anisotropy": {"f": rayleigh_jeans_temperature_to_cmb_temperature_anisotropy, "linear": False},
-    "spectral_flux_density_per_pixel": {"f": rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel, "linear": False},
-}
-
-conversions["cmb_temperature_anisotropy"] = {
-    "power": {"f": cmb_temperature_anisotropy_to_power, "linear": True},
-    "brightness_temperature": {"f": cmb_temperature_anisotropy_to_brightness_temperature, "linear": False},
-    # "rayleigh_jeans_temperature": {"f": cmb_temperature_anisotropy_to_rayleigh_jeans_temperature, "linear": False},
-}
-
-conversions["spectral_flux_density_per_pixel"] = {
-    "rayleigh_jeans_temperature": {"f": spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature, "linear": False},
-    "spectral_radiance": {"f": spectral_flux_density_per_pixel_to_spectral_radiance, "linear": True},
-    "spectral_flux_density_per_beam": {
-        "f": spectral_flux_density_per_pixel_to_spectral_flux_density_per_beam,
-        "linear": True,
-    },
-}
-
-conversions["spectral_flux_density_per_beam"] = {
-    "spectral_flux_density_per_pixel": {
-        "f": spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel,
-        "linear": True,
-    },
-}
-
-conversions["spectral_radiance"] = {
-    "spectral_flux_density_per_pixel": {"f": spectral_radiance_to_spectral_flux_density_per_pixel, "linear": True},
-}
-
-quantities = list(conversions.keys())
-for q in quantities:
-    conversions[q][q] = {"f": identity, "linear": True}
-
-
-walks_dict = {}
-paths_dict = {}
-for q1 in quantities:
-    walks_dict[q1] = [[q1]]
-    paths_dict[q1] = {q: [] for q in quantities}
-
-max_steps = 10
-
-steps = 0
-while any([paths_dict[q1][q2] == [] for q2 in quantities for q1 in quantities]) and steps < max_steps:
-    for start_node in quantities:
-        extended_walks = []
-        for walk in walks_dict[start_node]:
-            for end_node in quantities:
-                if conversions.get(walk[-1], {}).get(end_node):
-                    extended_walk = [*walk, end_node]
-                    extended_walks.append(extended_walk)
-                    if not paths_dict[start_node][end_node]:
-                        function_path = [conversions[_q2][_q1] for _q1, _q2 in zip(extended_walk[:-1], extended_walk[1:])]
-                        # paths_dict[start_node][end_node] = function_path[::-1]
-                        paths_dict[start_node][end_node] = extended_walk[::-1]
-        walks_dict[start_node] = extended_walks
-    steps += 1
-
-calibration_chains = pd.DataFrame(paths_dict)
 
 
 def parse_calibration_signature(s: str):
@@ -126,6 +34,38 @@ KWARGS_UNITS = {
 }
 
 
+def compute_quantities_chain(
+    start_quantity, end_quantity, max_steps: int = 6, kwargs: dict = {}, enforce_kwargs: bool = True
+):
+    """
+    What the fuck
+    """
+    missing_kwargs = None
+    walks_and_kwargs = [([start_quantity], set())]
+    for _ in range(max_steps):
+        extended_walks_and_kwargs = []
+        while len(walks_and_kwargs):
+            walk, walk_required_kwargs = walks_and_kwargs.pop(0)
+            for quantity, quantity_config in conversions.get(walk[-1], {}).items():
+                required_kwargs = set(quantity_config.get("required_kwargs", [])) | walk_required_kwargs
+                chain = [*walk, quantity]
+
+                if quantity == end_quantity:
+                    if all([kwarg in kwargs for kwarg in required_kwargs]) or not enforce_kwargs:
+                        return chain
+                    if missing_kwargs is None:
+                        missing_kwargs = required_kwargs
+
+                if quantity not in walk:
+                    extended_walks_and_kwargs.append((chain, required_kwargs))
+
+        walks_and_kwargs = extended_walks_and_kwargs
+
+    raise MissingConversionParametersError(
+        f"Conversion from '{start_quantity}' to '{end_quantity}' is missing kwargs {missing_kwargs}"
+    )
+
+
 class Calibration:
     def __init__(self, signature: str, spectrum: AtmosphericSpectrum = None, **kwargs):
         if not isinstance(signature, str):
@@ -149,37 +89,21 @@ class Calibration:
             ]:
                 raise ValueError(f"Invalid kwarg '{key}'.")
 
-    def qchain(self):
-        try:
-            return calibration_chains.loc[self.in_quantity, self.out_quantity]
-        except KeyError:
-            raise ValueError(f"Cannot convert from {self.in_quantity} to {self.out_quantity}")
-
-    def uchain(self):
-        # middle_terms = [QUANTITIES[q]["default_unit"] for q in self.qchain()[1:-1]]
-        middle_terms = [q for q in self.qchain()[1:-1]]
-        return " -> ".join([self.in_units, *middle_terms, self.out_units])
-
-    def function_chain(self):
-        qchain = self.qchain()
-        return [conversions[q1][q2]["f"] for q1, q2 in zip(qchain[:-1], qchain[1:])]
-
     def linear(self):
-        qchain = self.qchain()
-        return all([conversions[q2][q1]["linear"] for q1, q2 in zip(qchain[:-1], qchain[1:])])
+        qchain = compute_quantities_chain(self.in_quantity, self.out_quantity, enforce_kwargs=False)
+        return all([conversions[q1][q2]["linear"] for q1, q2 in zip(qchain[:-1], qchain[1:])])
 
-    def __call__(self, x) -> float:
+    def __call__(self, x, **kwargs) -> float:
         y = Quantity(x, self.in_units).base_units_value
 
-        # if self.config.loc["physical_quantity", "in"] == self.config.loc["physical_quantity", "out"]:
-        #     return x * self.in_factor / self.out_factor
+        calibration_kwargs = self.kwargs.copy()
+        calibration_kwargs.update(kwargs)
+        quantities_chain = compute_quantities_chain(self.in_quantity, self.out_quantity, kwargs=calibration_kwargs)
 
-        # y = x * self.in_factor
+        for q1, q2 in zip(quantities_chain[:-1], quantities_chain[1:]):
+            y = conversions[q1][q2]["f"](y, **calibration_kwargs)
 
-        for f in self.function_chain():
-            y = f(y, **self.kwargs)
-
-        return Quantity(y, QUANTITY_DIMENSION_VECTORS.loc[self.qchain()[-1]]).to(self.out_units)
+        return Quantity(y, QUANTITY_DIMENSION_VECTORS.loc[quantities_chain[-1]]).to(self.out_units)
 
     @property
     def in_units(self) -> float:
@@ -225,15 +149,10 @@ class Calibration:
                 continue
             qkwargs[k] = str(Quantity(v, KWARGS_UNITS[k]))
 
-        # spectrum_string = self.kwargs.get("spectrum") or ""
-        # spectrum_string = self.kwargs.get("spectrum") or ""
-        # kwargs_string = yaml.dump(qkwargs)
-
-        factor = f"{self(1e0):.03e}" if self.linear() else "None (nonlinear)"
+        if not hasattr(self, "_factor"):
+            self._factor = f"{self(1e0):.03e}" if self.linear() else "None (nonlinear)"
 
         return f"""Calibration({self.signature}):
-  factor: {factor}
-  chain: {self.uchain()}
   spectrum: {self.kwargs.get("spectrum")}
   band: {self.kwargs.get("band")}
   kwargs: {qkwargs}"""

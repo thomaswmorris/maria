@@ -13,7 +13,7 @@ from matplotlib.colors import ListedColormap
 
 from ..coords import frames
 from ..io import fetch
-from ..units import Quantity
+from ..units import Quantity, parse_units
 from .base import VALID_MAP_QUANTITIES, Map, concatenate  # noqa
 from .healpix import HEALPixMap  # noqa
 from .projection import ProjectionMap  # noqa
@@ -36,10 +36,21 @@ mpl.colormaps.register(cmb_cmap)
 MAP_SIZE_KWARGS = ["width", "height", "x_res", "y_res", "resolution"]
 VALID_MAP_KWARGS = ["stokes", "nu", "t", "center", "frame", "units", "beam", *MAP_SIZE_KWARGS]
 
-FITS_KEYWORD_MAPPING = {
+FITS_KEYWORD_ALIASES = {
     "frame": ["FRAME"],
     "units": ["BUNIT", "BUNITS"],
-    "nu": ["RESTFREQ"],
+    "nu": ["FREQ", "RESTFREQ"],
+}
+
+AXIS_MAPPING = {
+    "nu": {
+        "aliases": ["FREQ", "NU"],
+        "default_units": "Hz",
+    },
+    "v": {
+        "aliases": ["VRAD"],
+        "default_units": "m/s",
+    },
 }
 
 
@@ -109,12 +120,19 @@ def read_fits(filename: str, index: int | None = None):
         frame = {}
         center = {}
         metadata = {}
-        beam = [0, 0, 0]
+        for kwarg, aliases in FITS_KEYWORD_ALIASES.items():
+            for alias in aliases:
+                if alias in header_dict:
+                    metadata[kwarg] = header_dict[alias]
+                    logger.debug(f"Found value {alias}={header_dict[alias]} for map kwarg '{kwarg}'")
+                    break
+
         for axis in range(header_dict["NAXIS"]):
-            CTYPE = header_dict.get(f"CTYPE{axis + 1}", None)
+            AXIS = axis + 1
+            CTYPE = header_dict.get(f"CTYPE{AXIS}", None)
             if CTYPE is None:
-                logger.debug(f"Could not find CTYPE for dim {dim}")
-                break
+                logger.debug(f"Could not find CTYPE for AXIS{AXIS}")
+                continue
 
             if axis < 2:
                 dim = "xy"[axis]
@@ -122,35 +140,50 @@ def read_fits(filename: str, index: int | None = None):
                 if match:
                     coord, proj = match.groups()
                     frame[dim] = coord
-                    logger.debug(f"Using CTYPE{axis + 1} = {CTYPE} for dim {dim}")
+                    logger.debug(f"Using CTYPE{AXIS} = {CTYPE} for dim {dim}")
                 else:
                     raise ValueError(f"Invalid CTYPE {CTYPE}")
 
-                units = header_dict.get(f"CUNIT{axis + 1}", "deg")
-                logger.debug(f"Using CUNIT{axis + 1} = {units} for dim {dim}")
+                units = header_dict.get(f"CUNIT{AXIS}", "deg")
 
-                if f"CRVAL{axis + 1}" in header_dict:
-                    value = header_dict[f"CRVAL{axis + 1}"]
-                    logger.debug(f"Using CRVAL{axis + 1} = {value} for dim {dim}")
+                if f"CRVAL{AXIS}" in header_dict:
+                    value = header_dict[f"CRVAL{AXIS}"]
+
                     center[dim] = Quantity(
                         value, units
                     ).deg  # negative because from inside the sphere, latitude goes right to left
 
-                if f"CDELT{axis + 1}" in header_dict:
-                    value = header_dict[f"CDELT{axis + 1}"]
-                    logger.debug(f"Using CDELT{axis + 1} = {value} for dim {dim}")
+                if f"CDELT{AXIS}" in header_dict:
+                    value = header_dict[f"CDELT{AXIS}"]
+
                     metadata[f"{dim}_res"] = Quantity(
                         value, units
                     ).deg  # negative because from inside the sphere, latitude goes right to left
 
-            elif CTYPE in ["FREQ", "NU"]:
-                freq_units = header_dict.get(f"CUNIT{axis + 1}", "Hz")
-                logger.debug(f"Using CUNIT{axis + 1} = {freq_units} for dim {dim}")
-                metadata["nu"] = Quantity(
-                    header_dict[f"CRVAL{axis + 1}"] + np.arange(header_dict[f"NAXIS{axis + 1}"]), freq_units
-                ).Hz
-                logger.debug(f"Using CRVAL{axis + 1} = {metadata['nu']} for kwargs nu")
+            else:
+                for axis, axis_mapping in AXIS_MAPPING.items():
+                    if CTYPE.upper() in axis_mapping["aliases"]:
+                        logger.debug(f"Using CAXIS{AXIS} for kwarg '{axis}'")
+                        axis_units = parse_units(axis_mapping["default_units"])
+                        if f"CUNIT{AXIS}" in header_dict:
+                            try:
+                                axis_units = parse_units(header_dict[f"CUNIT{AXIS}"])
+                            except Exception as error:
+                                logger.warning(
+                                    f"Could not infer units for AXIS3, assuming units of {axis_mapping['default_units']}"
+                                )
 
+                        CDELT = header_dict[f"CDELT{AXIS}"]
+                        CRVAL = header_dict[f"CRVAL{AXIS}"]
+                        CRPIX = header_dict[f"CRPIX{AXIS}"]
+
+                        axis_values = CDELT * np.arange(header_dict[f"NAXIS{AXIS}"])
+                        axis_values += CRVAL - axis_values[int(CRPIX)]
+                        metadata[axis] = Quantity(axis_values, axis_units["units"])
+
+                        break
+
+        beam = [0, 0, 0]
         beam_keys = [["BMAJ", "BMAJOR"], ["BMIN", "BMINOR"], ["BPA"]]
         for index in range(3):
             for key in beam_keys[index]:
@@ -160,8 +193,8 @@ def read_fits(filename: str, index: int | None = None):
                     logger.debug(f"Found beam param {key} = {value}")
 
         for fits_key in header_dict:
-            for maria_key in FITS_KEYWORD_MAPPING:
-                for mapped_key in FITS_KEYWORD_MAPPING[maria_key]:
+            for maria_key in FITS_KEYWORD_ALIASES:
+                for mapped_key in FITS_KEYWORD_ALIASES[maria_key]:
                     if mapped_key == fits_key:
                         value = hdu.header[fits_key]
                         logger.debug(f"Using {fits_key} = {value} for kwarg {maria_key}")

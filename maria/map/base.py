@@ -45,6 +45,7 @@ VALID_MAP_QUANTITIES = [
     "spectral_flux_density_per_pixel",
     "spectral_flux_density_per_beam",
     "spectral_radiance",
+    "compton_y",
 ]
 
 
@@ -60,6 +61,7 @@ class Map:
         stokes: str,
         nu: Iterable[float],
         t: Iterable[float],
+        v: Iterable[float],
         z: Iterable[float],
         beam: tuple[float, float, float],  # noqa
         map_dims: dict,
@@ -105,6 +107,14 @@ class Map:
             self.slice_dims["nu"] = len(self.nu)
         else:
             self.nu = Quantity([], "Hz")
+
+        if v is not None:
+            self.v = Quantity(np.atleast_1d(v.to("m/s") if isinstance(v, Quantity) else v), "m/s")
+            if self.v.ndim > 1:
+                raise ShapeError("'v' can be at most one-dimensional")
+            self.slice_dims["v"] = len(self.v)
+        else:
+            self.v = np.array([])
 
         if t is not None:
             self.t = Quantity(np.atleast_1d(t.seconds if isinstance(t, Quantity) else t), "seconds")
@@ -361,16 +371,16 @@ class Map:
         return f"stokes({len(stokes)}):\n  components: {stokes}"
 
     @staticmethod
-    def __repr_nu__(nu):
-        if nu.size < 4:
-            return f"nu({len(nu)}):\n  values: {nu}"
+    def __repr_unitful_range__(x, name):
+        if x.size < 4:
+            return f"{name}({len(x)}):\n  values: {x}"
 
-        dnu = np.gradient(nu.human_value)
-        res = "irregular" if np.std(dnu) / np.ptp(nu.human_value) > 1e-6 else Quantity(np.mean(dnu), nu.human_units)
-        prec = compute_resolution_precision(np.sort(nu.human_value)[[0, -1]])
-        return f"""nu({len(nu)}):
-  min: {nu.min().__repr__(prec)}
-  max: {nu.max().__repr__(prec)}
+        dnu = np.gradient(x.human_value)
+        res = "irregular" if np.std(dnu) / np.ptp(x.human_value) > 1e-6 else Quantity(np.mean(dnu), x.human_units)
+        prec = compute_resolution_precision(np.sort(x.human_value)[[0, -1]])
+        return f"""{name}({len(x)}):
+  min: {x.min().__repr__(prec)}
+  max: {x.max().__repr__(prec)}
   res: {res}"""
 
     @staticmethod
@@ -397,11 +407,13 @@ class Map:
         if "stokes" in self.dims:
             repr_slice_parts.append(self.__repr_stokes__(self.stokes))
         if "nu" in self.dims:
-            repr_slice_parts.append(self.__repr_nu__(self.nu))
+            repr_slice_parts.append(self.__repr_unitful_range__(self.nu, "nu"))
+        if "v" in self.dims:
+            repr_slice_parts.append(self.__repr_unitful_range__(self.v, "v"))
+        if "z" in self.dims:
+            repr_slice_parts.append(f"z({len(self.z)}):\n  values: {self.z}")
         if "t" in self.dims:
             repr_slice_parts.append(self.__repr_t__(self.t))
-        if "z" in self.dims:
-            repr_slice_parts.append(f"z({len(self.z)}): {self.z}")
 
         return leftpad("\n".join(repr_slice_parts), 2, " ")
 

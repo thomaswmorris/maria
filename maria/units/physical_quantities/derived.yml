@@ -1,21 +1,4 @@
-mass:
-  long_name: mass
-  short_name: m
-  math_name: m
-  base_unit: g
-  base_unit_prefix: k
-  min_prefix_power: -30
-  max_prefix_power: 0
-  vector:
-    kg: 1
-  units:
-    g:
-      factor: 1e-3
-      long_name: grams
-      math_name: \text{g}
-      min_prefix_power: -30
-      max_prefix_power: 3
-      human: False
+
 
 velocity:
   long_name: velocity
@@ -26,6 +9,16 @@ velocity:
   vector:
     m: 1
     s: -1
+  units:
+    m/s:
+      factor: 1
+      long_name: meters per second
+      math_name: \text{m}/\text{s}
+      min_prefix_power: -30
+      max_prefix_power: 30
+      human: True
+
+
 
 angular_velocity:
   long_name: angular_velocity
