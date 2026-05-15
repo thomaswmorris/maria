@@ -31,9 +31,9 @@ def _resample_to_grid(
 ) -> np.ndarray:
     """Resample source_map onto target_map's pixel grid via bilinear interpolation.
 
-    Both maps are assumed to share the same sky centre (angular offsets are
-    measured from each map's own centre).  Pixels of source_map that fall
-    outside the target footprint are returned as NaN.
+    x_side / y_side are angular offsets from each map's own centre.  When the
+    two maps have different centres we must shift the query points so they are
+    expressed in source-map-centred coordinates before interpolating.
     """
     f_src = _extract_2d(source_map, stokes, nu_index, t_index)
 
@@ -49,8 +49,15 @@ def _resample_to_grid(
         fill_value=np.nan,
     )
 
+    # Centre offset: how much to add to target offsets to get source offsets.
+    # RA offset is multiplied by cos(dec) to convert from angle on sky to the
+    # gnomonic x-offset used by both maps.
+    mean_dec = 0.5 * (source_map.center[1].rad + target_map.center[1].rad)
+    delta_x = (target_map.center[0].rad - source_map.center[0].rad) * np.cos(mean_dec)
+    delta_y = (target_map.center[1].rad - source_map.center[1].rad)
+
     YY, XX = np.meshgrid(target_map.y_side, target_map.x_side, indexing="ij")
-    pts = np.stack([YY.ravel(), XX.ravel()], axis=-1)
+    pts = np.stack([(YY + delta_y).ravel(), (XX + delta_x).ravel()], axis=-1)
     return interp(pts).reshape(target_map.n_y, target_map.n_x)
 
 
@@ -102,7 +109,7 @@ def _plot_map_panel(
 def compute_transfer_function(
     input_map: ProjectionMap,
     output_map: ProjectionMap,
-    n_bins: int = 20,
+    n_bins: int = 30,
     stokes: str = "I",
     nu_index: int = 0,
     t_index: int = 0,
@@ -263,11 +270,11 @@ class TransferFunction:
             f"  T: [{np.nanmin(self.T):.3f}, {np.nanmax(self.T):.3f}]"
         )
 
-
+_RAD_TO_DEG = 180.0 / np.pi
 _ANGULAR_UNITS = {
-    "arcsec": 3600.0 * 180.0 / np.pi,
-    "arcmin": 60.0 * 180.0 / np.pi,
-    "deg": 180.0 / np.pi,
+    "arcsec": 3600.00 * _RAD_TO_DEG,
+    "arcmin": 60.00 * _RAD_TO_DEG,
+    "deg": _RAD_TO_DEG,
     "rad": 1.0,
 }
 
@@ -357,7 +364,19 @@ def plot_transfer_function(
     theta = factor / u  # cycles/rad → angular scale in x_unit
 
     ax.axhline(1.0, color="gray", lw=1.0, ls="--", zorder=0)
-    ax.plot(theta, T, color="steelblue", lw=1.5, marker="o", ms=3)
+    ax.plot(theta, T, color="steelblue", lw=1.5, marker="o", ms=3, label="Measured")
+
+    # Theoretical Gaussian beam curve from the output map's beam attribute
+    beam_map = output_map if output_map is not None else input_map
+
+    if beam_map is not None and hasattr(beam_map, "beam"):
+        fwhm_rad = float(np.nanmean(beam_map.beam[..., 0].rad))
+        if fwhm_rad > 0:
+            u_dense = np.geomspace(u.min(), u.max(), 500)
+            B_theory = np.exp(-np.pi**2 * fwhm_rad**2 * u_dense**2 / (4.0 * np.log(2.0)))
+            ax.plot(factor / u_dense, B_theory, color="tomato", lw=1.5, ls="--", label="Beam")
+
+    ax.legend(frameon=False, fontsize=9)
     ax.set_xscale("log")
     ax.set_xlabel(f"Angular scale [{x_unit}]")
     ax.set_ylabel("Transfer function")
