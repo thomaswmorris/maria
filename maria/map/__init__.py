@@ -17,6 +17,7 @@ from ..units import Quantity, parse_units
 from .base import VALID_MAP_QUANTITIES, Map, concatenate  # noqa
 from .healpix import HEALPixMap  # noqa
 from .projection import ProjectionMap  # noqa
+from .transfer import TransferFunction, compute_transfer_function, plot_transfer_function  # noqa
 
 here, this_filename = os.path.split(__file__)
 

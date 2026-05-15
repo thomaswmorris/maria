@@ -413,6 +413,52 @@ class ProjectionMap(Map):
 
         return type(self)(**package)
 
+    def transfer_function(
+        self,
+        input_map,
+        n_bins: int = 20,
+        stokes: str = "I",
+        nu_index: int = 0,
+        t_index: int = 0,
+        window: bool = True,
+    ):
+        """Compute the spatial transfer function relative to an input map.
+
+        Returns a :class:`TransferFunction` object whose ``.plot()`` method
+        produces a three-panel figure (input map, output map, transfer function).
+
+        Parameters
+        ----------
+        input_map : ProjectionMap
+            The input sky map injected into the simulation.
+        n_bins : int
+            Number of logarithmically-spaced spatial frequency bins.
+        stokes : str
+            Stokes parameter to use ("I", "Q", "U", or "V").
+        nu_index : int
+            Frequency channel index for multi-channel maps.
+        t_index : int
+            Time index for time-varying maps.
+        window : bool
+            Apply a 2D Hann window before FFT to reduce spectral leakage.
+
+        Returns
+        -------
+        TransferFunction
+        """
+        from .transfer import TransferFunction, compute_transfer_function
+
+        u, T = compute_transfer_function(
+            input_map,
+            self,
+            n_bins=n_bins,
+            stokes=stokes,
+            nu_index=nu_index,
+            t_index=t_index,
+            window=window,
+        )
+        return TransferFunction(u=u, T=T, input_map=input_map, output_map=self)
+
     def plot_slice(
         self,
         fig,
