@@ -13,7 +13,7 @@ length:
       math_name: \text{m}
       min_prefix_power: -30
       max_prefix_power: 3
-      human: True
+      human: true
     miles:
       factor: 1609.34
       long_name: mi

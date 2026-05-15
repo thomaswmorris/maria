@@ -21,7 +21,6 @@ from ..units import Quantity
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
-
 DEFAULT_MAP_SIM_KWARGS = {
     "bilinear_sampling": True,
 }

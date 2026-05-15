@@ -11,12 +11,9 @@ from maria.mappers import BinMapper
 
 here, this_filename = os.path.split(__file__)
 
-# all_test_plan_configs = list(read_yaml(f"{here}/../configs/test_plans.yml").values())
-
-all_instruments.pop(all_instruments.index("alma/ALMA"))
 
 n_sims = 10
-test_instruments = np.random.choice(a=all_instruments, size=n_sims)
+test_instruments = np.random.choice(a=[i for i in all_instruments if "alma" not in i], size=n_sims)
 test_sites = np.random.choice(a=all_sites, size=n_sims)
 test_az = np.random.uniform(low=0, high=360, size=n_sims)
 test_el = np.random.uniform(low=30, high=90, size=n_sims)

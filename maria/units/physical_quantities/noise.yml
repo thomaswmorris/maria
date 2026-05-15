@@ -12,7 +12,7 @@ noise_equivalent_rayleigh_jeans_temperature:
       factor: 1
       long_name: kelvin Rayleigh-Jeans per square root hertz
       math_name: \text{K}_\text{RJ}\sqrt{\text{s}}
-      human: True
+      human: true
       min_prefix_power: -30
       max_prefix_power: 0
 

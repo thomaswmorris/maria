@@ -13,7 +13,7 @@ def test_polarized_map_sim():
     nu = [90e9, 150e9, 220e9]
     data = np.random.standard_normal((len(nu), 100, 100))
 
-    multifrequency_map = ProjectionMap(data=data, width=1e0, nu=nu, center=(0, -30), frame="ra_dec")
+    multifrequency_map = ProjectionMap(data=data, width=1e0, nu=nu, center=(0, -30), frame="ra_dec", units="K_RJ")
 
     planner = Planner(target=multifrequency_map, site="llano_de_chajnantor", constraints={"el": (60, 90)})
     plans = planner.generate_plans(total_duration=10, sample_rate=50)  # in Hz

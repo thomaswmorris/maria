@@ -19,6 +19,14 @@ def matern(r, r0, nu):
     return normalized_matern(r / r0, nu)
 
 
+def matern_three_halves(r):
+    return (1 + np.sqrt(3) * r) * np.exp(-np.sqrt(3) * r)
+
+
+def matern_five_halves(r):
+    return (1 + np.sqrt(3) * r + (5.0 / 3.0) * r**2) * np.exp(-np.sqrt(5) * r)
+
+
 def normalized_matern(r, nu):
     """
     Normalized Matérn covariance

@@ -1,125 +1,16 @@
 import logging
 import os
-import pathlib
-import re
 
 import arrow
 import numpy as np
 import pandas as pd
-import yaml
 
-from ..utils import compute_resolution_precision, deg_to_signed_dms, deg_to_signed_hms, round_sig_figs
+from ..utils import compute_resolution_precision, deg_to_signed_dms, deg_to_signed_hms
 from .prefixes import PREFIXES
+from .units import UNITS, UnitError, parse_units, repr_dim_vec
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
-
-PREFIXES = pd.read_csv(f"{here}/prefixes.csv", index_col=0)
-PREFIXES.loc[""] = "", "", "", 0, 1e0
-PREFIXES.sort_values("factor", ascending=True, inplace=True)
-PREFIXES.loc[:, "primary"] = np.log10(PREFIXES.factor.values) % 3 == 0
-
-unit_entries = {}
-quantity_entries = {}
-dimension_vector_entries = {}
-
-
-class UnitError(Exception): ...
-
-
-for path in pathlib.Path(f"{here}/physical_quantities").glob("*.yml"):
-    with open(path) as f:
-        for quantity, q in yaml.safe_load(f).items():
-            if "units" in q:
-                q_units = q.pop("units")
-                for unit, config in q_units.items():
-                    config["physical_quantity"] = quantity
-                    config["aliases"] = set([unit, config["long_name"], *config.get("aliases", [])])
-                unit_entries.update(q_units)
-            quantity_entries[quantity] = q
-            dimension_vector_entries[quantity] = q["vector"]
-
-UNITS = pd.DataFrame(unit_entries).T
-QUANTITIES = pd.DataFrame(quantity_entries).T
-QUANTITY_DIMENSION_VECTORS = pd.DataFrame(dimension_vector_entries).sort_index().T.fillna(0)
-
-UNITS["units"] = UNITS.index
-UNITS["human"] = UNITS["human"].astype(bool).fillna(True)
-UNITS["symbol"] = UNITS["symbol"].fillna("")
-UNITS["factor"] = UNITS["factor"].astype(float)
-
-prefixes_phrase = r"|".join(PREFIXES.index)
-base_units_phrase = r"|".join([alias for _, entry in UNITS.iterrows() for alias in entry.aliases]).replace("^", "\\^")
-units_pattern = re.compile(rf"^(?P<prefix>({prefixes_phrase}))(?P<raw_unit>{base_units_phrase})((\^|\*\*)(?P<power>.*))?$")  # noqa
-
-
-def repr_power(thing: str, power: float, math: bool = False):
-    exp_numer, exp_denom = power.as_integer_ratio()
-
-    if exp_numer % exp_denom:
-        exp_string = f"{exp_numer}/{exp_denom}" if math else f"{power}"
-    else:
-        exp_string = f"{int(exp_numer / exp_denom)}"
-    if math:
-        exp_string = f"{{{exp_string}}}"
-
-    if power == 0:
-        return ""
-    if power == 1:
-        return thing
-
-    return f"{thing}^{exp_string}"
-
-
-def repr_dim_vec(dim_vec: pd.Series) -> str:
-    base_unit_parts = []
-    for unit, power in dim_vec.items():
-        part = repr_power(unit, power)
-        if part:
-            base_unit_parts.append(part)
-    return " ".join(base_unit_parts)
-
-
-def parse_units(units):
-    factor = 1
-    dimension_vector = pd.Series(0.0, index=QUANTITY_DIMENSION_VECTORS.columns, dtype=float)
-
-    math_name_parts = []
-
-    for subunit in re.compile(r"(/?[\w\*\^\-\.√]+)").findall(units):
-        match = units_pattern.search(subunit.strip("/"))
-        if match is None:
-            raise UnitError(
-                f"Invalid units '{subunit.strip('/')}'. Valid units are a combination of an SI prefix "
-                f"(one of {prefixes_phrase}) and a base unit (one of {base_units_phrase}).",
-            )
-
-        u = match.groupdict()
-        for _, entry in UNITS.iterrows():
-            if u["raw_unit"] in entry.aliases:
-                u["raw_unit"] = entry.name
-
-        u.update(UNITS.loc[u["raw_unit"]])
-        prefix = PREFIXES.loc[u["prefix"]]
-        power = (float(u["power"]) if u["power"] else 1.0) * (-1 if subunit[0] == "/" else 1)
-
-        dimension_vector += power * np.array(QUANTITY_DIMENSION_VECTORS.loc[u["physical_quantity"]])
-        factor *= (u["factor"] * prefix.factor) ** power
-        math_name_parts.append(repr_power(f"{prefix.math_name}{u['math_name']}", power, math=True))
-
-    physical_quantity_match = (QUANTITY_DIMENSION_VECTORS == dimension_vector).all(axis=1)
-    physical_quantity = (
-        physical_quantity_match.loc[physical_quantity_match].index[0] if physical_quantity_match.any() else "composite"
-    )
-
-    return {
-        "units": units,
-        "math_name": r"\ ".join(math_name_parts),
-        "base_units_factor": factor,
-        "base_units": repr_dim_vec(dimension_vector),
-        "physical_quantity": physical_quantity,
-        "dimension_vector": dimension_vector,
-    }
 
 
 def lazy_nanquantile(x, q: float, laziness: int = 16, axis=None):

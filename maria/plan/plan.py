@@ -261,104 +261,120 @@ class Plan:
             )
         return (Quantity(cphi, "rad"), Quantity(ctheta, "rad"))
 
-    def offsets(self, frame: str = None):
-        center = self.center(frame=frame or self.frame.name)
+    def offsets(self, frame: str = None, center: tuple[float, float] = None):
+        center = center or self.center(frame=frame or self.frame.name)
         phi_theta = np.stack([self.phi, self.theta], axis=-1)
         return phi_theta_to_offsets(phi_theta, float(center[0].rad), float(center[1].rad))
 
-    def plot(self, plot_az_el: bool = None):
-        two_panel = plot_az_el if plot_az_el is not None else (self.frame.name != "az/el" and not self.naive)
+    def plot(self, frames: list[str] | None = None, ax_size: float = 5):
 
-        q_offsets = Quantity(self.offsets(), "rad")
-        center = self.center()
+        if frames is None:
+            frames = ["az/el", "ra/dec"] if self.earth_location is not None else [self.frame]
 
-        header = fits.header.Header()
-        header["CDELT1"] = -np.degrees(q_offsets.hu["base_units_factor"])
-        header["CDELT2"] = np.degrees(q_offsets.hu["base_units_factor"])
-        header["CRPIX1"] = 1
-        header["CRPIX2"] = 1
-        header["CTYPE1"] = "RA---SIN"
-        header["CUNIT1"] = "deg     "
-        header["CTYPE2"] = "DEC--SIN"
-        header["CUNIT2"] = "deg     "
-        header["RADESYS"] = "FK5     "
-        header["CRVAL1"] = center[0].deg
-        header["CRVAL2"] = center[1].deg
+        fig = plt.figure(figsize=(len(frames) * ax_size, ax_size), dpi=256, constrained_layout=True)
 
-        wcs = WCS(header)
+        for frame_index, frame in enumerate(frames):
+            frame_center = self.coords.center(frame=frame)
+            frame_offsets = self.coords.offsets(frame=frame)
 
-        fig = plt.figure(figsize=(10, 5) if two_panel else (5, 5), dpi=256, constrained_layout=True)
-        ax = fig.add_subplot(111 if two_panel is None else 121, projection=wcs)
+            q_frame_offsets = Quantity(frame_offsets, "rad")
 
-        cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame.name, join=True)
+            center = self.center()
 
-        ax.plot(q_offsets.human_value[:, 0], q_offsets.human_value[:, 1], lw=5e-1)
-        ax.scatter(0, 0, c="r", marker="x", label=f"{cphi_repr}\n{ctheta_repr}")
-        ax.set_xlim(min(-1e-10, q_offsets.human_value[:, 0].min()), max(-1e-10, q_offsets.human_value[:, 0].max()))
-        ax.set_ylim(min(-1e-10, q_offsets.human_value[:, 1].min()), max(-1e-10, q_offsets.human_value[:, 1].max()))
+            xi = q_frame_offsets.human_value[:, 0]
+            eta = q_frame_offsets.human_value[:, 1]
 
-        ax.legend(loc="upper right")
+            header = fits.header.Header()
+            header["CTYPE1"] = f"{Frame(frame).fits['phi']}"
+            header["CRVAL1"] = frame_center[0].deg
+            header["CDELT1"] = -np.degrees(q_frame_offsets.hu["base_units_factor"])
+            header["CRPIX1"] = 1
+            header["CUNIT1"] = "deg     "
 
-        ax.set_aspect("equal")
+            header["CTYPE2"] = f"{Frame(frame).fits['theta']}"
+            header["CRVAL2"] = frame_center[1].deg
+            header["CDELT2"] = np.degrees(q_frame_offsets.hu["base_units_factor"])
+            header["CRPIX2"] = 1
+            header["CUNIT2"] = "deg     "
 
-        ax.tick_params(axis="x", bottom=True, top=False)
-        ax.tick_params(axis="y", left=True, right=False, rotation=90)
+            wcs = WCS(header)
 
-        ax2 = ax.secondary_xaxis("top")
-        ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_offsets.hu['math_name']}$]")
-        ax.set_xlabel(rf"{self.frame.phi_long_name}")
-        ax.set_ylabel(rf"{self.frame.theta_long_name}")
+            ax = fig.add_subplot(1, len(frames), frame_index + 1, projection=wcs)
 
-        if not two_panel:
-            ay2 = ax.secondary_yaxis("right")
-            ay2.set_ylabel(rf"$\Delta \, \theta_y$ [${q_offsets.hu['math_name']}$]")
+            # cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame.name, join=True)
 
-        if two_panel:
-            az = Quantity(np.unwrap(self.coords.az), "rad")
-            el = Quantity(self.coords.el, "rad")
+            ax.plot(q_frame_offsets.human_value[:, 0], q_frame_offsets.human_value[:, 1], lw=5e-1)
 
-            ax = fig.add_subplot(122)
+            # ax.legend(loc="upper right")
 
-            start_ha = "right" if az[0] > az.mean() else "left"
-            start_xytext = (10 if start_ha == "left" else -10, 0)
+            ax.set_aspect("equal")
 
-            end_ha = "right" if az[-1] > az.mean() else "left"
-            end_xytext = (10 if end_ha == "left" else -10, 0)
+            ax.tick_params(axis="x", bottom=True, top=False)
+            ax.tick_params(axis="y", left=True, right=False, rotation=90)
+
+            ax2 = ax.secondary_xaxis("top")
+            ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_frame_offsets.hu['math_name']}$]")
+            ax.set_xlabel(rf"{Frame(frame).phi_long_name}")
+            ax.set_ylabel(rf"{Frame(frame).theta_long_name}")
+
+            xmin, ymin = q_frame_offsets.human_value.min(axis=0)
+            xmax, ymax = q_frame_offsets.human_value.max(axis=0)
+            xcen, ycen = (xmin + xmax) / 2, (ymin + ymax) / 2
+            radius = 0.5 * 1.05 * max(ymax - ymin, xmax - xmin)
+            ax.set_xlim(xcen - radius, xcen + radius)
+            ax.set_ylim(ycen - radius, ycen + radius)
+
+            ax.scatter(xi[0], eta[0], color="g", marker="+")
+            ax.scatter(xi[-1], eta[-1], color="r", marker="+")
+
+            # start_ha = "right" if xi[0] > xi.mean() else "left"
+            # start_xytext = (10 if start_ha == "left" else -10, 0)
+
+            # end_ha = "right" if xi[-1] > xi.mean() else "left"
+            # end_xytext = (10 if end_ha == "left" else -10, 0)
 
             annotate_kwargs = dict(
-                va="center",
                 xycoords="data",
-                textcoords="offset points",
+                # textcoords="offset points",
                 bbox={"boxstyle": "round,pad=0.3", "fc": "w", "ec": "k", "alpha": 0.5, "lw": 1},
             )
 
-            ax.scatter(az[0].deg, el[0].deg, color="g", marker="+")
-            ax.scatter(az[-1].deg, el[-1].deg, color="r", marker="+")
+            start_loc, end_loc = list(
+                zip(
+                    ["left", "right"] if xi[0] < xi[-1] else ["right", "left"],
+                    ["lower", "upper"] if eta[0] < eta[-1] else ["upper", "lower"],
+                )
+            )
+
+            arrowprops = dict(width=1e0, headlength=5e0, headwidth=5e0, shrink=0.05, edgecolor="none")
 
             ax.annotate(
-                xy=(az[0].deg, el[0].deg),
-                xytext=start_xytext,
+                xy=(xi[0], eta[0]),
+                xytext=(
+                    xcen - 0.95 * radius if start_loc[0] == "left" else xcen + 0.95 * radius,
+                    ycen - 0.95 * radius if start_loc[1] == "lower" else ycen + 0.95 * radius,
+                ),
                 text=f"START ({self.repr_start_time})",
-                c="g",
-                ha=start_ha,
+                c="green",
+                ha="left" if start_loc[0] == "left" else "right",
+                va="bottom" if start_loc[1] == "lower" else "top",
                 **annotate_kwargs,
+                arrowprops={"facecolor": "green", **arrowprops},
             )
+
             ax.annotate(
-                xy=(az[-1].deg, el[-1].deg),
-                xytext=end_xytext,
+                xy=(xi[-1], eta[-1]),
+                xytext=(
+                    xcen - 0.95 * radius if end_loc[0] == "left" else xcen + 0.95 * radius,
+                    ycen - 0.95 * radius if end_loc[1] == "lower" else ycen + 0.95 * radius,
+                ),
                 text=f"END ({self.repr_end_time})",
-                c="r",
-                ha=end_ha,
+                c="red",
+                ha="left" if end_loc[0] == "left" else "right",
+                va="bottom" if end_loc[1] == "lower" else "top",
                 **annotate_kwargs,
+                arrowprops={"facecolor": "red", **arrowprops},
             )
-
-            ax.plot(az.deg, el.deg, lw=5e-1)
-
-            ax.set_xlabel("Azimuth [degrees]")
-            ax.set_ylabel("Elevation [degrees]")
-
-            ax.yaxis.tick_right()
-            ax.yaxis.set_label_position("right")
 
     def map_counts(self, instrument: Instrument | str = None, x_bins=64, y_bins=64):
         if isinstance(instrument, str):

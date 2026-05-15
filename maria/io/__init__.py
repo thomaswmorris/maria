@@ -11,6 +11,7 @@ import yaml
 
 from .caching import *  # noqa
 from .coords import *  # noqa
+from .fits import *  # noqa
 from .logging import *  # noqa
 from .repr import *  # noqa
 

@@ -26,12 +26,12 @@ here, this_filename = os.path.split(__file__)
 
 
 PER_DET_KWARGS = [
-    "sky_x",
-    "sky_y",
+    "xi",
+    "eta",
     "baseline_x",
     "baseline_y",
     "baseline_z",
-    "pol_angle",
+    "gamma",
     "band_name",
     "bath_temp",
 ]
@@ -69,12 +69,12 @@ DET_COLUMN_TYPES = {
     "base_det_index": int,
     "band_name": str,
     "band_center": float,
-    "sky_x": float,
-    "sky_y": float,
+    "xi": float,
+    "eta": float,
     "baseline_x": float,
     "baseline_y": float,
     "baseline_z": float,
-    "pol_angle": float,
+    "gamma": float,
     "pol_label": str,
     "primary_size": float,
     "bath_temp": float,
@@ -167,7 +167,7 @@ class Array:
 
     @property
     def offsets(self):
-        return np.c_[self.sky_x, self.sky_y]
+        return np.c_[self.xi, self.eta]
 
     @property
     def baselines(self):
@@ -205,7 +205,7 @@ class Array:
         """
         For transforming Stoke's parameters. $theta$ = 0 is the horizontal
         """
-        a = self.pol_angle
+        a = self.gamma
         m = np.stack(
             [
                 np.where(np.isnan(a), np.sqrt(2), 1),
@@ -276,7 +276,7 @@ class Array:
 
     @property
     def polarized(self):
-        return not np.isnan(self.pol_angle).all()
+        return not np.isnan(self.gamma).all()
 
     def filling(self):
         return {
@@ -353,13 +353,13 @@ class Array:
             raise ValueError("Missing array parameter 'primary_size'.")
 
         if degrees:
-            for param in ["sky_x", "sky_y", "field_of_view", "pol_angle", "rotation"]:
+            for param in ["xi", "eta", "field_of_view", "gamma", "rotation"]:
                 if param in c:
                     c[param] = np.radians(c[param])
 
-        if ("sky_x" in c) and ("sky_y" in c):
-            if (c["sky_x"].ndim != 1) or (c["sky_y"].ndim != 1):
-                raise ValueError("Parameters 'sky_{x,y}' must be broadcastable one-dimensional arrays.")
+        if ("xi" in c) and ("eta" in c):
+            if (c["xi"].ndim != 1) or (c["eta"].ndim != 1):
+                raise ValueError("Parameters '{xi,eta}' must be broadcastable one-dimensional arrays.")
         elif ("baseline_x" in c) and ("baseline_y" in c):
             if (c["baseline_x"].ndim != 1) or (c["baseline_y"].ndim != 1):
                 raise ValueError("Parameters 'baseline_{x,y}' must be broadcastable one-dimensional arrays.")
@@ -446,7 +446,7 @@ class Array:
             )
 
             if mode == "focal_plane":
-                c["sky_x"], c["sky_y"] = X[..., 0], X[..., 1]
+                c["xi"], c["eta"] = X[..., 0], X[..., 1]
             else:
                 c["baseline_x"], c["baseline_y"] = X[..., 0], X[..., 1]
 
@@ -461,32 +461,31 @@ class Array:
         baseline_offset = c.get("baseline_offset", (0.0, 0.0, 0.0))
         focal_plane_offset = c.get("focal_plane_offset", (0.0, 0.0))
 
-        for i in range(3):
-            dim = "xyz"[i]
+        for i, dim in enumerate("xyz"):
             if f"baseline_{dim}" not in dets.columns:
                 dets.loc[:, f"baseline_{dim}"] = 0.0
             dets.loc[:, f"baseline_{dim}"] += baseline_offset[i]
-            if dim == "z":
-                continue
-            if f"sky_{dim}" not in dets.columns:
-                dets.loc[:, f"sky_{dim}"] = 0.0
-            dets.loc[:, f"sky_{dim}"] += np.radians(focal_plane_offset[i])
 
-        if "pol_angle" not in dets:
+        for i, dim in enumerate(["xi", "eta"]):
+            if dim not in dets.columns:
+                dets.loc[:, dim] = 0.0
+            dets.loc[:, dim] += np.radians(focal_plane_offset[i])
+
+        if "gamma" not in dets:
             if c.get("polarized", False):
-                dets.loc[:, "pol_angle"] = np.random.uniform(
+                dets.loc[:, "gamma"] = np.random.uniform(
                     low=0,
                     high=np.pi,
                     size=len(dets),
                 )
                 dets.loc[:, "pol_label"] = "A"
                 other_dets = dets.copy()
-                other_dets.loc[:, "pol_angle"] = (dets.pol_angle + np.pi / 2) % np.pi
+                other_dets.loc[:, "gamma"] = (dets.gamma + np.pi / 2) % np.pi
                 other_dets.loc[:, "pol_label"] = "B"
                 dets = pd.concat([dets, other_dets])
 
             else:
-                dets.loc[:, "pol_angle"] = np.nan
+                dets.loc[:, "gamma"] = np.nan
 
         if "band_name" not in dets.columns:
             band_dets_list = []
@@ -503,7 +502,7 @@ class Array:
 
         return cls(dets=dets, bands=bands, name=c.get("name", str(uuid.uuid4())[:8]))
 
-    def plot(self, z=np.inf, plot_baseline="infer", plot_pol_angles=False):
+    def plot(self, z=np.inf, plot_baseline="infer", plot_gammas=False):
         # if plot_baseline == "infer":
         #     plot_baseline = self.dets.max_baseline > 0
 
@@ -530,14 +529,14 @@ class Array:
 
                 fwhms = Quantity(band_array.angular_fwhm(z=z), "rad")
                 offsets = Quantity(band_array.offsets, "rad")
-                pol_angles = Quantity(band_array.pol_angle, "rad")
+                gammas = Quantity(band_array.gamma, "rad")
                 # baselines = Quantity(band_array.baselines, "m")
 
-                if plot_pol_angles and self.polarized:
+                if plot_gammas and self.polarized:
                     dx = np.c_[-np.ones(band_array.n), np.ones(band_array.n)] / 2
                     dy = np.zeros((band_array.n, 2))
 
-                    R = get_rotation_matrix_2d(pol_angles.rad)
+                    R = get_rotation_matrix_2d(gammas.rad)
                     dl = np.moveaxis(R @ np.stack([dx, dy], axis=1), 0, 2)
                     P = Quantity(offsets.rad.T[:, None] + fwhms.rad * dl, units="rad")
                     focal_ax.plot(*getattr(P, focal_plane_units), c=c, lw=2e0)

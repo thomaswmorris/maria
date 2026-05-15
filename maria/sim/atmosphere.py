@@ -17,6 +17,8 @@ here, this_filename = os.path.split(__file__)
 
 logger = logging.getLogger("maria")
 
+DEFAULT_ATMOSPHERE_SIM_KWARGS = {}
+
 
 class AtmosphereMixin:
     def _simulate_atmosphere(self, obs):

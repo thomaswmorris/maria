@@ -47,10 +47,6 @@ class BaseMapper:
         self.tod_units = units if u["physical_quantity"] in TOD_DIMENSIONS else "K_RJ"
         self.map_units = units
 
-        if stokes is None:
-            stokes = "IQUV" if any([tod.dets.polarized for tod in tods]) else "I"
-            logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
-
         if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
             raise ValueError(
                 f"Units '{units}' (with associated quantity '{u['physical_quantity']}') are not valid map units"
@@ -89,6 +85,7 @@ class BaseMapper:
                 stokes_sensitivity_mask |= (tod.dets.mueller() != 0).any(axis=(0, 1))
 
             self.stokes = "".join(np.array(list("IQUV"))[stokes_sensitivity_mask])
+            logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
 
         else:
             self.stokes = stokes

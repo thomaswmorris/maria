@@ -9,7 +9,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..cmb import CMB, DEFAULT_CMB_SIM_KWARGS, generate_cmb, get_cmb
+from ..cmb import CMB, generate_cmb, get_cmb
 from ..constants import T_CMB, k_B
 from ..functions.radiometry import (
     inverse_planck_spectrum,
@@ -21,6 +21,8 @@ from ..io import DEFAULT_BAR_FORMAT, humanize_time
 from .observation import Observation
 
 logger = logging.getLogger("maria")
+
+DEFAULT_CMB_SIM_KWARGS = {"nside": 1024}
 
 
 class CMBMixin:

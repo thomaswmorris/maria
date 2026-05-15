@@ -170,7 +170,7 @@ def twinkle_plot(tod, rate=2, fps=30, start_index=0, max_frames=100, filename=No
     frame_time = np.arange(tod.time.min(), tod.time.max(), rate / fps)[:max_frames]
     frame_index = np.interp(frame_time, tod.time, np.arange(len(tod.time))).astype(int)
 
-    offsets = Quantity(np.c_[tod.dets.sky_x, tod.dets.sky_y], "rad")
+    offsets = Quantity(np.c_[tod.dets.xi, tod.dets.eta], "rad")
     fwhms = Quantity(compute_angular_fwhm(fwhm_0=tod.dets.primary_size, nu=tod.dets.band_center), "rad")
 
     bands = sorted(np.unique(tod.dets.band_name))

@@ -3,6 +3,8 @@ from __future__ import annotations
 import numpy as np
 import scipy as sp
 
+from ..functions import matern_five_halves
+
 
 def compute_pointing_matrix_ingredients(x_list, side_list, bilinear: bool | tuple[bool] = True):
 
@@ -98,3 +100,27 @@ def fast_psd_inverse(M):
     cholesky, dpotrf_info = sp.linalg.lapack.dpotrf(M)
     invM, dpotri_info = sp.linalg.lapack.dpotri(cholesky)
     return np.where(invM, invM, invM.T)
+
+
+def generate_spatial_basis(offsets, k: int = 5, n_side: int = 8, scale: float = 1):
+
+    x = np.linspace(offsets[..., 0].min(), offsets[..., 0].max(), n_side)
+    y = np.linspace(offsets[..., 1].min(), offsets[..., 1].max(), n_side)
+
+    X, Y = np.meshgrid(x, y)
+
+    sample_offsets = np.stack([X.ravel(), Y.ravel()], axis=-1)
+
+    D_eff = np.sqrt(np.square(sample_offsets - sample_offsets[:, None]).sum(axis=-1)) / scale
+
+    C = matern_five_halves(D_eff)
+
+    u, s, v = np.linalg.svd(C)
+    basis = u[:, :k] * np.sqrt(s[:k])
+    B = sp.interpolate.RegularGridInterpolator(
+        (x, y),
+        basis.reshape(n_side, n_side, -1),
+        method="cubic",
+    )(offsets)
+    B *= np.sign(B[:, 0].mean())
+    return B

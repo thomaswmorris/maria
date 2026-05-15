@@ -91,7 +91,7 @@ class TOD:
         band_mask = self.dets.band_name == band.name
         kwargs = {
             "elevation": self.el[band_mask] if band else self.el,
-            "polarized": ~np.isnan(self.dets.pol_angle[band_mask]).all(),
+            "polarized": ~np.isnan(self.dets.gamma[band_mask]).all(),
         }
         if self.metadata["atmosphere"]:
             kwargs["spectrum"] = self.spectrum
@@ -412,8 +412,8 @@ class TOD:
 
             # building array class
             dets_dict = {
-                "sky_x": ra[:, 0] - ra[:, 0].mean(),  # in ra/dec frame
-                "sky_y": dec[:, 0] - dec[:, 0].mean(),  # in ra/dec frame
+                "xi": ra[:, 0] - ra[:, 0].mean(),  # in ra/dec frame
+                "eta": dec[:, 0] - dec[:, 0].mean(),  # in ra/dec frame
                 "band_name": len(dec[:, 0]) * ["m2/f093"],
             }
 
@@ -443,7 +443,6 @@ class TOD:
                 metadata=metadata,
             )
 
-            gc.collect()
             return tod
 
     def plot(self, detrend="mean", max_dets: int = 1, n_freq_bins: int = 1024, lw: float = 1e0, units: str = None):

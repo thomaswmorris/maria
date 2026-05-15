@@ -385,14 +385,18 @@ class Coordinates:
             frame="az/el",
         )
 
-    def offsets(self, frame, center="auto", units="radians", compute: bool = False):
+    def offsets(self, frame, center=None, compute: bool = False):
         offsets_s = ttime.monotonic()
 
         frame = Frame(frame)
+
+        if center is None:
+            center = self.center(frame=frame)
+
         center = (Quantity(center[0], "rad"), Quantity(center[1], "rad"))
 
         if compute:
-            return self.offsets(frame=frame, center=center, units=units, compute=False)
+            return self.offsets(frame=frame, center=center, compute=False)
 
         if isinstance(center, str):
             if center == "auto":

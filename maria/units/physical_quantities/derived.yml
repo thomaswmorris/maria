@@ -16,7 +16,7 @@ velocity:
       math_name: \text{m}/\text{s}
       min_prefix_power: -30
       max_prefix_power: 30
-      human: True
+      human: true
 
 
 
