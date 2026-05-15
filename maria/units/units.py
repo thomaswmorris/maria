@@ -79,6 +79,8 @@ def parse_units(units):
 
     subunits = re.compile(r"(/?[\w\*\^\-\.√]+)").findall(units)
 
+    logger.debug(f"Parsing units {units}")
+
     for subunit in subunits:
         match = units_pattern_case_sensitive.search(subunit.strip("/"))
         if match is None:
@@ -89,20 +91,21 @@ def parse_units(units):
                     f"(one of {prefixes_phrase}) and a base unit (one of {'|'.join(base_units_list)}).",
                 )
 
-        u = match.groupdict()
+        su = match.groupdict()
+        su["power"] = (float(su["power"]) if su["power"] else 1.0) * (-1 if subunit[0] == "/" else 1)
+        logger.debug(f"Parsed subunit '{subunit}' as {su}")
         for unit, aliases in base_units_aliases.items():
-            if u["raw_unit"].lower() in aliases:
-                u["base_unit"] = unit
+            if su["raw_unit"].lower() in aliases:
+                su["base_unit"] = unit
                 break
 
-        u.update(UNITS.set_index("lowered").loc[u["base_unit"].lower()])
-        prefix = PREFIXES.loc[u["prefix"]]
-        power = (float(u["power"]) if u["power"] else 1.0) * (-1 if subunit[0] == "/" else 1)
+        su.update(UNITS.set_index("lowered").loc[su["base_unit"].lower()])
+        prefix = PREFIXES.loc[su["prefix"]]
 
-        dimension_vector += power * np.array(QUANTITY_DIMENSION_VECTORS.loc[u["physical_quantity"]])
-        factor *= (u["factor"] * prefix.factor) ** power
-        math_name_parts.append(repr_power(f"{prefix.math_name}{u['math_name']}", power, math=True))
-        units_repr_parts.append(repr_power(f"{u['prefix']}{u['base_unit']}", power))
+        dimension_vector += su["power"] * np.array(QUANTITY_DIMENSION_VECTORS.loc[su["physical_quantity"]])
+        factor *= (su["factor"] * prefix.factor) ** su["power"]
+        math_name_parts.append(repr_power(f"{prefix.math_name}{su['math_name']}", su["power"], math=True))
+        units_repr_parts.append(repr_power(f"{su['prefix']}{su['base_unit']}", su["power"]))
 
     physical_quantity_match = (QUANTITY_DIMENSION_VECTORS == dimension_vector).all(axis=1)
     physical_quantity = (
