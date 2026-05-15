@@ -30,6 +30,6 @@ def test_map_slice():
     t = 1.7e9 + np.arange(0, 600, 120)
     data = np.random.standard_normal((len(stokes), len(nu), len(t), 100, 100))
 
-    m = ProjectionMap(data=data, width=1e0, stokes=stokes, nu=nu, t=t, center=(0, -30), frame="ra_dec")
+    m = ProjectionMap(data=data, width=1e0, stokes=stokes, nu=nu, t=t, center=(0, -30), units="K_RJ", frame="ra_dec")
 
     m[0, :, ::2, :2]

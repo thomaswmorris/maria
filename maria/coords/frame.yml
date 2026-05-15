@@ -44,7 +44,7 @@ ra/dec:
 galactic:
   long_name: ""
   aliases:
-  - l/b
+  - glon/glat
   phi: 
     name: l
     long_name: Galactic longitude
