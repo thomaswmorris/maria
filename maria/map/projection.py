@@ -415,7 +415,7 @@ class ProjectionMap(Map):
 
     def transfer_function(
         self,
-        input_map,
+        input_map=None,
         n_bins: int = 20,
         stokes: str = "I",
         nu_index: int = 0,
@@ -427,10 +427,15 @@ class ProjectionMap(Map):
         Returns a :class:`TransferFunction` object whose ``.plot()`` method
         produces a three-panel figure (input map, output map, transfer function).
 
+        When the map was produced by a mapper whose TODs came from a
+        :class:`~maria.Simulation` with ``map=...``, the input map is
+        propagated automatically and this argument can be omitted.
+
         Parameters
         ----------
-        input_map : ProjectionMap
-            The input sky map injected into the simulation.
+        input_map : ProjectionMap, optional
+            The input sky map injected into the simulation.  Falls back to the
+            map stored on this object (``_input_map``) when not given.
         n_bins : int
             Number of logarithmically-spaced spatial frequency bins.
         stokes : str
@@ -447,6 +452,14 @@ class ProjectionMap(Map):
         TransferFunction
         """
         from .transfer import TransferFunction, compute_transfer_function
+
+        if input_map is None:
+            input_map = getattr(self, "_input_map", None)
+        if input_map is None:
+            raise ValueError(
+                "No input map available. Pass input_map explicitly or run the "
+                "simulation with map=<ProjectionMap>."
+            )
 
         u, T = compute_transfer_function(
             input_map,
