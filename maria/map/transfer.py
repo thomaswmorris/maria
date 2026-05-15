@@ -284,6 +284,7 @@ def plot_transfer_function(
     T: np.ndarray,
     input_map: ProjectionMap = None,
     output_map: ProjectionMap = None,
+    add_beam: bool = True,
     stokes: str = "I",
     nu_index: int = 0,
     t_index: int = 0,
@@ -306,6 +307,9 @@ def plot_transfer_function(
     output_map : ProjectionMap, optional
         When provided, shown as the centre panel. Converted to ``input_map``
         units for display when both are given.
+    add_beam : bool
+        When True, plot the theoretical Gaussian beam curve corresponding to the
+        output map's beam FWHM (if available) for comparison.
     stokes : str
         Stokes parameter to extract for the map panels.
     nu_index : int
@@ -369,7 +373,7 @@ def plot_transfer_function(
     # Theoretical Gaussian beam curve from the output map's beam attribute
     beam_map = output_map if output_map is not None else input_map
 
-    if beam_map is not None and hasattr(beam_map, "beam"):
+    if add_beam and (beam_map is not None) and hasattr(beam_map, "beam"):
         fwhm_rad = float(np.nanmean(beam_map.beam[..., 0].rad))
         if fwhm_rad > 0:
             u_dense = np.geomspace(u.min(), u.max(), 500)
