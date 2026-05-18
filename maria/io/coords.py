@@ -21,7 +21,7 @@ def repr_phi_theta(phi: float, theta: float, frame: str, join: bool = False):
     elif frame == "ra/dec":
         res = {"ra": qphi.hms, "dec": qtheta.dms}
     elif frame == "galactic":
-        res = {"l": qphi.deg, "b": qtheta.deg}
+        res = {"glon": qphi.deg, "glat": qtheta.deg}
     else:
         raise ValueError(f"Invalid frame '{frame}'")
 
