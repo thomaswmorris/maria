@@ -119,7 +119,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             self.P_list.append(P)
             self.PT_list.append(PT)
 
-            self.hits += P.sum(axis=0, keepdim=True)[0].to_dense()
+            self.hits += P.abs().sum(axis=0, keepdim=True)[0].to_dense()
 
         self.reset_sol()
 
@@ -130,8 +130,8 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         loss1.backward()
         grad = self.sol.grad.data.clone()
 
-        map_scale = self.sol.detach().square().median().sqrt()
-        self.step_size = 1e-3 * map_scale / grad.square().median().sqrt()
+        map_scale = self.sol.detach().square().mean().sqrt()
+        self.step_size = 1e-1 * map_scale / grad.square().mean().sqrt()
 
         for _ in range(10):
             self.sol.data = self.sol.data - self.step_size * grad
@@ -178,7 +178,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             t["d"] = torch.tensor(d, dtype=torch.float)
 
             t["w"] = torch.tensor(
-                sp.signal.windows.tukey(M=t["d"].shape[-1], alpha=self.noise_model_config.get("window_alpha", 0.25)),
+                sp.signal.windows.tukey(M=t["d"].shape[-1], alpha=self.noise_model_config.get("window_alpha", 0.1)),
                 dtype=torch.float,
             ).unsqueeze(-2)
             t["f"] = np.fft.fftfreq(n=t["d"].shape[-1], d=1 / t["tod"].sample_rate)
@@ -365,12 +365,22 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
 
                     pgrad = (normed_this_grad * normed_last_grad).sum()
 
+                    # pgrad_scaling = {
+                    #     0.9999: 2.0,
+                    #     0.999: 1.5,
+                    #     0.99: 1.1,
+                    #     0.9: 0.9,
+                    #     0.5: 0.8,
+                    #     -np.inf: 0.5,
+                    # }
+
                     pgrad_scaling = {
-                        0.9999: 2.0,
-                        0.999: 1.5,
-                        0.99: 1.1,
-                        0.9: 0.9,
-                        0.5: 0.8,
+                        # 0.9999: 2.0,
+                        0.99: 2.0,
+                        0.25: 1.2,
+                        0.0: 1.1,
+                        -0.25: 0.9,
+                        -0.5: 0.8,
                         -np.inf: 0.5,
                     }
 

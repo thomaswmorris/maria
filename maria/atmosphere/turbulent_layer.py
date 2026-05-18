@@ -95,7 +95,7 @@ class TurbulentLayer:
 
         # find the detector offsets which form a convex hull
         self.detector_offsets = np.radians(
-            np.c_[self.instrument.sky_x, self.instrument.sky_y],
+            np.c_[self.instrument.xi, self.instrument.eta],
         )
 
         # add a small circle of offsets to account for the beams

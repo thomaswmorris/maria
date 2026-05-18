@@ -52,7 +52,7 @@ def test_recover_map():
         center=input_map.center,
         frame=input_map.frame,
         width=input_map.width,
-        resolution=input_map.x_res,
+        resolution=input_map.resolution,
         degrees=False,
         tods=tods,
     )

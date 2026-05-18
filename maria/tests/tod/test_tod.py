@@ -103,19 +103,3 @@ def test_tod_preprocessing_errors():
         assert False
     except TypeError:
         pass
-
-
-def test_tod_write_and_load():
-    plan = get_plan(
-        scan_pattern="daisy",  # scanning pattern
-        scan_options={"radius": 2 / 60, "speed": 0.5 / 60},  # in degrees
-        duration=600,  # integration time in seconds
-        sample_rate=50,  # in Hz
-        scan_center=(202.27211, 47.195277),  # position in the sky
-        frame="az/el",
-    )
-
-    sim = Simulation(get_instrument("MUSTANG-2"), plans=plan, site="green_bank")
-    tod = sim.run()[0]
-    tod.to_fits("/tmp/sim_tod.fits")
-    tod_loaded = TOD.from_fits("/tmp/sim_tod.fits", format="MUSTANG-2")

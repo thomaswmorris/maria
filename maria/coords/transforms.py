@@ -15,7 +15,7 @@ def unjitted_offsets_to_phi_theta(dX, cphi, ctheta):
     dx, dy = dX[..., 0], dX[..., 1]
 
     r = jnp.sqrt(dx**2 + dy**2)  # distance from the center
-    p = jnp.arctan2(dx, -dy)  # 0 at the bottom, increases CCW to pi at the top
+    p = jnp.arctan2(-dx, -dy)  # 0 at the bottom, increases CCW to pi at the top
 
     # if we're looking at the north pole, we have (lon, lat) = (p, pi/2 - r)
     # a projection looking from the east
@@ -49,7 +49,7 @@ def phi_theta_to_offsets(pt, cphi, ctheta):
     dz *= jnp.arcsin(r) / jnp.where(r > 0, r, 1.0)
 
     # negative, because we're looking at the observer
-    return jnp.stack([jnp.real(dz), -jnp.imag(dz)], axis=-1)
+    return jnp.stack([-jnp.real(dz), -jnp.imag(dz)], axis=-1)
 
 
 @jax.jit

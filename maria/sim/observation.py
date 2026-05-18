@@ -8,16 +8,13 @@ import arrow
 import numpy as np
 from tqdm import tqdm
 
-from ..atmosphere import DEFAULT_ATMOSPHERE_SIM_KWARGS, Atmosphere
-from ..cmb import CMB, DEFAULT_CMB_SIM_KWARGS, generate_cmb, get_cmb
+from ..atmosphere import Atmosphere
 from ..coords import Coordinates
 from ..errors import PointingError
-from ..instrument import Instrument, get_instrument
-from ..io import fetch, humanize_time, read_yaml
-from ..map import Map, load
-from ..plan import Plan, PlanList, get_plan
-from ..site import Site, get_site
-from ..tod import TOD
+from ..instrument import Instrument
+from ..io import humanize_time
+from ..plan import Plan
+from ..site import Site
 from ..utils import get_rotation_matrix_2d
 
 here, this_filename = os.path.split(__file__)

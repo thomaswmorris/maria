@@ -114,13 +114,13 @@ class HEALPixMap(Map):
 
         return package
 
-    @property
-    def X(self):
-        return np.meshgrid(self.x_side, self.y_side)[0]
+    # @property
+    # def X(self):
+    #     return np.meshgrid(self.x_side, self.y_side)[0]
 
-    @property
-    def Y(self):
-        return np.meshgrid(self.x_side, self.y_side)[1]
+    # @property
+    # def Y(self):
+    #     return np.meshgrid(self.x_side, self.y_side)[1]
 
     def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False):
         if not (sigma is None) ^ (fwhm is None):

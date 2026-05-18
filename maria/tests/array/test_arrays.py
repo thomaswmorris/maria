@@ -32,9 +32,7 @@ arrays2 = [{"file": "alma/alma_f144.csv", "primary_size": 12, "bands": ["alma/f1
 
 
 offsets = np.random.uniform(low=0, high=1, size=(100, 2))
-arrays3 = [
-    {"bands": ["act/pa4/f220"], "primary_size": 5, "sky_x": offsets[..., 0], "sky_y": offsets[..., 1], "degrees": True}
-]
+arrays3 = [{"bands": ["act/pa4/f220"], "primary_size": 5, "xi": offsets[..., 0], "eta": offsets[..., 1], "degrees": True}]
 
 array_configs_to_test = [arrays1, arrays2, arrays3]
 

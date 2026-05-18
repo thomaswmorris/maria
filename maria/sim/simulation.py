@@ -8,8 +8,8 @@ import arrow
 import numpy as np
 from tqdm import tqdm
 
-from ..atmosphere import DEFAULT_ATMOSPHERE_SIM_KWARGS, Atmosphere
-from ..cmb import CMB, DEFAULT_CMB_SIM_KWARGS, generate_cmb, get_cmb
+from ..atmosphere import Atmosphere
+from ..cmb import CMB, generate_cmb, get_cmb
 from ..coords import Coordinates
 from ..errors import PointingError
 from ..instrument import Instrument, get_instrument
@@ -18,11 +18,11 @@ from ..map import Map, load
 from ..plan import Plan, PlanList, get_plan
 from ..site import Site, get_site
 from ..tod import TOD
-from .atmosphere import AtmosphereMixin
+from .atmosphere import DEFAULT_ATMOSPHERE_SIM_KWARGS, AtmosphereMixin  # noqa
 from .base import BaseSimulation
-from .cmb import CMBMixin
-from .map import MapMixin
-from .noise import NoiseMixin
+from .cmb import DEFAULT_CMB_SIM_KWARGS, CMBMixin  # noqa
+from .map import DEFAULT_MAP_SIM_KWARGS, MapMixin  # noqa
+from .noise import DEFAULT_NOISE_SIM_KWARGS, NoiseMixin  # noqa
 from .observation import Observation
 
 here, this_filename = os.path.split(__file__)
@@ -153,16 +153,22 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         if cmb:
             cmb_start_s = ttime.monotonic()
+            self.cmb_kwargs = DEFAULT_CMB_SIM_KWARGS.copy()
+            self.cmb_kwargs.update(cmb_kwargs)
             self._init_cmb(cmb, **cmb_kwargs)
             logger.debug(f"Initialized CMB simulation in {humanize_time(ttime.monotonic() - cmb_start_s)}.")
 
         if map:
             map_start_s = ttime.monotonic()
+            self.map_kwargs = DEFAULT_MAP_SIM_KWARGS.copy()
+            self.map_kwargs.update(map_kwargs)
             self._initialize_map(map, **map_kwargs)
             logger.debug(f"Initialized map simulation in {humanize_time(ttime.monotonic() - map_start_s)}.")
 
         if noise:
             noise_start_s = ttime.monotonic()
+            self.noise_kwargs = DEFAULT_NOISE_SIM_KWARGS.copy()
+            self.noise_kwargs.update(noise_kwargs)
             logger.debug(f"Initialized noise simulation in {humanize_time(ttime.monotonic() - noise_start_s)}.")
 
         #     # self.start = arrow.get(self.boresight.t.min()).to("utc")

@@ -69,7 +69,7 @@ spectral_flux_density:
       - JY
       min_prefix_power: -30
       max_prefix_power: 30
-      human: True
+      human: true
 
 spectral_radiance:
   long_name: spectral radiance
@@ -89,6 +89,7 @@ spectral_radiance:
       math_name: \text{Jy}/\text{sr}
       min_prefix_power: -30
       max_prefix_power: 30
+      composite: true
 
 spectral_flux_density_per_pixel:
   long_name: spectral flux density per pixel
@@ -106,13 +107,12 @@ spectral_flux_density_per_pixel:
       factor: 1e-26
       aliases:
       - Jy/pix
-      - JY/PIXEL
-      - JY/PIX
       long_name: janskies per pixel
       math_name: \text{Jy}/\text{pixel}
       min_prefix_power: -30
       max_prefix_power: 30
-      human: True
+      human: true
+      composite: true
 
 spectral_flux_density_per_beam:
   long_name: spectral flux density per beam
@@ -126,15 +126,13 @@ spectral_flux_density_per_beam:
     Hz: -1
     beam: -1
   units:
-    janskies_per_beam:
+    Jy/beam:
       factor: 1e-26
-      aliases:
-      - JY/BEAM
       long_name: janskies per beam
       math_name: \text{Jy}/\text{beam}
       min_prefix_power: -30
       max_prefix_power: 30
-      human: True
+      human: true
 
 compton_y:
   long_name: Compton-y
@@ -147,8 +145,10 @@ compton_y:
   units:
     y:
       factor: 1
+      aliases:
+      - szy
       long_name: compton_y
       math_name: y
       min_prefix_power: 0
       max_prefix_power: 0
-      human: True
+      human: true

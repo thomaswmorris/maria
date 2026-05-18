@@ -75,10 +75,11 @@ class Map:
 
         if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
             raise ValueError(
-                f"Units '{units}' (with associated physical quantity '{u['physical_quantity']}') are not valid map units"
+                f"Passed units '{u['units']}' (with dimension {u['base_units']}) are not valid map units. "
+                f"Acceptable map units have the same dimension as one of {VALID_MAP_QUANTITIES}"
             )
 
-        self.units = units
+        self.units = u["units"]
         self.frame = Frame(frame)
 
         self.data = da.asarray(data).astype(dtype).squeeze()
@@ -357,7 +358,7 @@ class Map:
     def __getattr__(self, attr):
         broadcasted_attrs = ["STOKES", "NU", "T", "Y", "X"]
         if attr in broadcasted_attrs:
-            broadcasted_attr_values = np.meshgrid(self.stokes, self.nu.Hz, self.t, self.y_side, self.x_side)
+            broadcasted_attr_values = np.meshgrid(self.stokes, self.nu.Hz, self.t, self.eta, self.xi)
             return broadcasted_attr_values[broadcasted_attrs.index(attr)]
         if attr in ["min", "max", "rms"]:
             if not hasattr(self, "_stats"):

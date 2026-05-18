@@ -235,16 +235,16 @@ class Instrument:
         return self.arrays.bands
 
     @property
-    def sky_x(self):
-        return self.dets.sky_x
+    def xi(self):
+        return self.dets.xi
 
     @property
-    def sky_y(self):
-        return self.dets.sky_y
+    def eta(self):
+        return self.dets.eta
 
     @property
     def offsets(self):
-        return np.c_[self.sky_x, self.sky_y]
+        return np.c_[self.xi, self.eta]
 
     @property
     def baseline_x(self):
@@ -282,8 +282,8 @@ class Instrument:
     #     """
     #     return construct_beam_filter(self.physical_fwhm(z), res, beam_profile=beam_profile, buffer=buffer)
 
-    def plot(self, z=np.inf, plot_pol_angles=False):
-        self.dets.plot(z=z, plot_pol_angles=plot_pol_angles)
+    def plot(self, z=np.inf, plot_gammas=False):
+        self.dets.plot(z=z, plot_gammas=plot_gammas)
 
 
 instrument_data = pd.DataFrame(INSTRUMENT_CONFIGS).reindex(INSTRUMENT_DISPLAY_COLUMNS).T

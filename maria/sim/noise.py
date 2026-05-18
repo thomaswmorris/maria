@@ -8,6 +8,9 @@ from tqdm import tqdm
 
 from ..io import DEFAULT_BAR_FORMAT
 from ..noise import generate_noise_with_knee
+from ..utils import compute_diameter, generate_spatial_basis
+
+DEFAULT_NOISE_SIM_KWARGS = {"correlated_noise_proportion": 0.5, "correlated_noise_spatial_scale": 0.9}
 
 
 class NoiseMixin:
@@ -15,6 +18,7 @@ class NoiseMixin:
         self._simulate_noise()
 
     def _simulate_noise(self, obs):
+
         noise_loading = np.zeros(shape=obs.shape, dtype=self.dtype)
 
         bands_pbar = tqdm(
@@ -24,6 +28,7 @@ class NoiseMixin:
             bar_format=DEFAULT_BAR_FORMAT,
             ncols=250,
         )
+
         for band in bands_pbar:
             bands_pbar.set_postfix({"band": band.name})
 
@@ -33,14 +38,28 @@ class NoiseMixin:
                 [d[band_mask].compute() for d in obs.loading.values()]
             )
 
-            noise_loading[band_mask] = (
-                1e12
-                * total_NEP
-                * generate_noise_with_knee(
-                    shape=(band_mask.sum(), obs.plan.n),
-                    sample_rate=obs.plan.sample_rate.Hz,
-                    knee=band.knee,
+            band_offsets = obs.instrument.dets.offsets[band_mask]
+            fov = compute_diameter(band_offsets)
+
+            if (fov > 0) and (band_mask.sum() > 16):
+                basis = generate_spatial_basis(
+                    offsets=band_offsets,
+                    k=5,
+                    n_side=16,
+                    scale=fov * self.noise_kwargs.get("correlated_noise_spatial_scale", 0),
                 )
+            else:
+                basis = np.ones((band_mask.sum(), 1))
+
+            unscaled_noise = generate_noise_with_knee(
+                shape=(band_mask.sum(), obs.plan.n),
+                sample_rate=obs.plan.sample_rate.Hz,
+                knee=band.knee,
+                basis=basis,
+                corr_prop=self.noise_kwargs.get("correlated_noise_proportion", 0),
             )
+
+            # put her in picowatts
+            noise_loading[band_mask] = 1e12 * total_NEP * unscaled_noise
 
         obs.loading["noise"] = da.asarray(noise_loading, dtype=self.dtype)
