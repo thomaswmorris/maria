@@ -9,3 +9,4 @@ Tutorials
    tutorials/polarized-observations
    tutorials/mustang-nebula
    tutorials/maximum-likelihood-mapper
+   tutorials/cmb-patch
