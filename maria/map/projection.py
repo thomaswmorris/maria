@@ -422,7 +422,7 @@ class ProjectionMap(Map):
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
         x_sigma_pixels = sigma / self.xi_res
-        y_sigma_pixels = sigma / self.eta_res
+        y_sigma_pixels = abs(sigma / self.eta_res)
 
         numer = sp.ndimage.gaussian_filter(self.data * self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
         denom = sp.ndimage.gaussian_filter(self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
@@ -431,6 +431,205 @@ class ProjectionMap(Map):
         package["weight"] = numer
 
         return type(self)(**package)
+
+    def transfer_function(
+        self,
+        input_map=None,
+        n_bins: int = 20,
+        stokes: str = "I",
+        nu_index: int = 0,
+        t_index: int = 0,
+        window: bool = True,
+    ):
+        """Compute the spatial transfer function relative to an input map.
+
+        Returns a :class:`TransferFunction` object whose ``.plot()`` method
+        produces a three-panel figure (input map, output map, transfer function).
+
+        When the map was produced by a mapper whose TODs came from a
+        :class:`~maria.Simulation` with ``map=...``, the input map is
+        propagated automatically and this argument can be omitted.
+
+        Parameters
+        ----------
+        input_map : ProjectionMap, optional
+            The input sky map injected into the simulation.  Falls back to the
+            map stored on this object (``_input_map``) when not given.
+        n_bins : int
+            Number of logarithmically-spaced spatial frequency bins.
+        stokes : str
+            Stokes parameter to use ("I", "Q", "U", or "V").
+        nu_index : int
+            Frequency channel index for multi-channel maps.
+        t_index : int
+            Time index for time-varying maps.
+        window : bool
+            Apply a 2D Hann window before FFT to reduce spectral leakage.
+
+        Returns
+        -------
+        TransferFunction
+        """
+        from .transfer import TransferFunction, compute_transfer_function
+
+        if input_map is None:
+            input_map = getattr(self, "_input_map", None)
+        if input_map is None:
+            raise ValueError(
+                "No input map available. Pass input_map explicitly or run the simulation with map=<ProjectionMap>."
+            )
+
+        u, T = compute_transfer_function(
+            input_map,
+            self,
+            n_bins=n_bins,
+            stokes=stokes,
+            nu_index=nu_index,
+            t_index=t_index,
+            window=window,
+        )
+        return TransferFunction(u=u, T=T, input_map=input_map, output_map=self)
+
+    def plot_slice(
+        self,
+        fig,
+        ax,
+        nu_index: int = 0,
+        t_index: int = 0,
+        v_index: int = 0,
+        stokes: str = "I",
+        cmap: str = "default",
+        norm_method: str = "slice",
+        contrast: float = 1e-3,
+        rel_vmin: float = None,
+        rel_vmax: float = None,
+        vmin: float = None,
+        vmax: float = None,
+        center_zero: bool = False,
+    ):
+        d = self.data
+        w = self.weight
+
+        logger.debug(f"Plotting map slice (stokes={stokes}, nu_index={nu_index}, t_index={t_index})")
+
+        if "stokes" in self.dims:
+            if stokes not in self.stokes:
+                raise ValueError(f"Invalid stokes parameter '{stokes}'. This map has stokes parameters '{self.stokes}'.")
+            stokes_index = self.stokes.index(stokes)
+            d, w = d[stokes_index], w[stokes_index]
+
+        if "nu" in self.dims:
+            try:
+                d, w = d[nu_index], w[nu_index]
+            except IndexError:
+                raise IndexError(
+                    f"nu_index={nu_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
+                )
+
+        if "v" in self.dims:
+            try:
+                d, w = d[v_index], w[v_index]
+            except IndexError:
+                raise IndexError(
+                    f"v_index={v_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
+                )
+
+        if "t" in self.dims:
+            try:
+                d, w = d[t_index], w[t_index]
+            except IndexError:
+                raise IndexError(
+                    f"t_index={t_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
+                )
+
+        if cmap == "default":
+            cmap = "CMRmap" if stokes == "I" else "cmb"
+
+        map_slice_qdata = Quantity(d.compute(), units=self.units)
+        map_slice_values = map_slice_qdata.human_value
+
+        rel_vmin = rel_vmin or contrast
+        rel_vmax = rel_vmax or 1.0 - contrast
+
+        if vmin is None and vmax is None:
+            if norm_method == "slice":
+                norm_values = map_slice_values
+                norm_weights = w.compute()
+            else:
+                raise ValueError(f"Invalid norm_method '{norm_method}'")
+
+            subset = np.random.choice(norm_values.size, size=min(norm_values.size, 100000), replace=False)
+            vmin, vmax = np.nanquantile(
+                norm_values.ravel()[subset],
+                weights=norm_weights.ravel()[subset],
+                q=(rel_vmin, rel_vmax),
+                method="inverted_cdf",
+            )
+            if center_zero:
+                abs_max = max(vmax, -vmin)
+                vmin, vmax = -abs_max, abs_max
+
+            logger.debug(f"Inferring (vmin, vmax) = ({vmin}, {vmax})")
+
+        X = np.r_[self.x_bins, self.y_bins]
+        qX = Quantity(X, "rad")
+        grid_u, grid_hu = qX.u, qX.hu
+
+        x = Quantity(self.x_bins, "rad")
+        y = Quantity(self.y_bins, "rad")
+
+        # fig = plt.figure(figsize=(6, 6), dpi=256, constrained_layout=True)
+        # ax = fig.add_subplot(nx, ny, index, projection=WCS(header))
+
+        ax.pcolormesh(
+            getattr(x, grid_hu["units"]),
+            getattr(y, grid_hu["units"]),
+            map_slice_qdata.human_value,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+        )
+
+        ax.grid(color="white", ls="solid", lw=5e-1)
+
+        dummy_map = mpl.cm.ScalarMappable(
+            mpl.colors.Normalize(vmin=vmin, vmax=vmax),
+            cmap=cmap,
+        )
+
+        cbar = fig.colorbar(
+            dummy_map,
+            ax=ax,
+            shrink=0.75,
+            aspect=16,
+            location="right",
+            pad=0,
+        )
+
+        label = rf"${map_slice_qdata.hu['math_name']}$"
+        if "stokes" in self.dims:
+            label += f" Stokes {stokes}"
+        if "nu" in self.dims:
+            label += f" at {self.nu[nu_index]}"
+        cbar.set_label(label, fontsize=10)
+        ax.tick_params(axis="x", bottom=True, top=False)
+        ax.tick_params(axis="y", left=True, right=False, rotation=90)
+
+        lon = ax.coords[0]
+        lon.set_axislabel(rf"{self.frame.phi_long_name}")
+        lon.set_ticks_position("b")
+        lon.set_ticklabel_position("b")
+        lon.set_axislabel_position("b")
+
+        lat = ax.coords[1]
+        lat.set_axislabel(rf"{self.frame.theta_long_name}")
+        lat.set_ticks_position("l")
+        lat.set_ticklabel_position("l")
+        lat.set_axislabel_position("l")
+
+        ax.set_aspect("equal")
+
+        return ax
 
     def plot(
         self,

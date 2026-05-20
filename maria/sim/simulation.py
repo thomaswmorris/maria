@@ -248,6 +248,9 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
         else:
             metadata["atmosphere"] = False
 
+        if hasattr(self, "map"):
+            metadata["input_map"] = self.map
+
         return TOD(
             data=obs.loading,
             dets=obs.instrument.dets,
