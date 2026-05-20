@@ -303,7 +303,7 @@ class Plan:
 
             # cphi_repr, ctheta_repr = repr_phi_theta(center[0].rad, center[1].rad, frame=self.frame.name, join=True)
 
-            ax.plot(q_frame_offsets.human_value[:, 0], q_frame_offsets.human_value[:, 1], lw=5e-1)
+            ax.plot(q_frame_offsets.human_value[:, 0], q_frame_offsets.human_value[:, 1], lw=5e-1, c="k")
 
             # ax.legend(loc="upper right")
 

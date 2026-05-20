@@ -159,7 +159,7 @@ class ProjectionMap(Map):
                 offsets[..., 1],
                 offsets[..., 0],
             ),
-            side_list=(self.t.seconds, self.eta.radians[::-1], self.xi.radians),
+            side_list=(self.t.seconds, self.eta.radians, self.xi.radians),
             bilinear=bilinear,
         )
 
@@ -260,7 +260,8 @@ class ProjectionMap(Map):
         package = self.package()
 
         package["data"] = package["data"][key]
-        package["weight"] = package["weight"][key]
+        if self._weight is not None:
+            package["weight"] = package["weight"][key]
         package["beam"] = package["beam"][explicit_slices[: -len(self.map_dims)]]
 
         for axis, (dim, naxis) in enumerate(self.dims.items()):
@@ -489,6 +490,7 @@ class ProjectionMap(Map):
             constrained_layout=True,
             sharex=False,
             sharey=False,
+            # ppi=256,
         )
         axes = np.atleast_2d(axes)
 

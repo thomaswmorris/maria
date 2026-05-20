@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 
+import matplotlib.pyplot as plt
 import pandas
 
 from ._version import __version__, __version_tuple__  # noqa
@@ -29,6 +30,8 @@ logging.basicConfig(
 logger = logging.getLogger("maria")
 
 pandas.set_option("display.expand_frame_repr", False)
+
+plt.rcParams["figure.dpi"] = 160
 
 
 def debug():
