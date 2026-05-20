@@ -75,7 +75,7 @@ class Map:
 
         if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
             raise ValueError(
-                f"Passed units '{u['units']}' (with dimension {u['base_units']}) are not valid map units. "
+                f"Passed units '{units}' (with dimension {u['base_units']}) are not valid map units. "
                 f"Acceptable map units have the same dimension as one of {VALID_MAP_QUANTITIES}"
             )
 
@@ -83,8 +83,7 @@ class Map:
         self.frame = Frame(frame)
 
         self.data = da.asarray(data).astype(dtype).squeeze()
-        self.weight = (da.asarray(weight).squeeze() if weight is not None else da.ones_like(self.data)).astype(dtype)
-        # self.data, self.weight = np.broadcast_arrays(self.data, self.weight)
+        self._weight = da.asarray(weight).squeeze().astype(dtype) if weight is not None else None
 
         self.map_dims = map_dims
 
@@ -142,7 +141,8 @@ class Map:
         for dim_index, (dim, n) in enumerate(self.slice_dims.items()):
             if n == 1:
                 self.data = da.expand_dims(self.data, dim_index)
-                self.weight = da.expand_dims(self.weight, dim_index)
+                if self._weight is not None:
+                    self._weight = da.expand_dims(self._weight, dim_index)
 
         if not hasattr(beam, "__len__"):
             beam = np.array([beam, beam, 0])
@@ -157,6 +157,15 @@ class Map:
                 raise ValueError(
                     f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
                 )
+
+    @property
+    def weight(self):
+        return self._weight if self._weight is not None else da.ones_like(self.data)
+
+    @weight.setter
+    def weight(self, value):
+        if value is not None:
+            self._weight = value
 
     @property
     def dims(self):

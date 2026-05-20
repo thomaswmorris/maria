@@ -30,14 +30,14 @@ def compute_pointing_matrix_ingredients(x_list, side_list, bilinear: bool | tupl
             padded_side = np.array([-np.inf, *side, np.inf])
 
             if dim_is_bilinear:
-                bin_index = np.digitize(x, bins=padded_side) - 1
+                bin_index = np.digitize(x, bins=side)
                 p = (x - padded_side[bin_index]) / np.diff(padded_side)[bin_index]
                 p = np.where(p > 0, p, 0)
                 dim_pixels = np.stack([bin_index - 1, bin_index], axis=0).clip(0, len(side) - 1)
                 dim_weights = np.stack([1 - p, p], axis=0)
 
             else:
-                bin_index = np.digitize(x, bins=0.5 * (padded_side[1:] + padded_side[:-1])) - 1
+                bin_index = np.digitize(x, bins=0.5 * (side[1:] + side[:-1]))
                 dim_pixels = bin_index[None]
                 dim_weights = np.ones_like(x, dtype=float)[None]
 

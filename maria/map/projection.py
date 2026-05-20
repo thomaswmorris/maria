@@ -146,7 +146,9 @@ class ProjectionMap(Map):
             parity_slicing.append(slice(None, None, dim_parity))
 
         self.data = self.data[tuple(parity_slicing)]
-        self.weight = self.weight[tuple(parity_slicing)]
+
+        if self._weight is not None:
+            self.weight = self.weight[tuple(parity_slicing)]
 
     def _pointing_matrix_ingredients(self, coords: Coordinates, bilinear: bool = True):
         offsets = coords.offsets(center=(self.center[0].rad, self.center[1].rad), frame=self.frame.name)
@@ -157,7 +159,7 @@ class ProjectionMap(Map):
                 offsets[..., 1],
                 offsets[..., 0],
             ),
-            side_list=(self.t.seconds, self.eta.radians[::-1], self.xi.radians),
+            side_list=(self.t.seconds, self.eta.radians, self.xi.radians),
             bilinear=bilinear,
         )
 
@@ -258,7 +260,8 @@ class ProjectionMap(Map):
         package = self.package()
 
         package["data"] = package["data"][key]
-        package["weight"] = package["weight"][key]
+        if self._weight is not None:
+            package["weight"] = package["weight"][key]
         package["beam"] = package["beam"][explicit_slices[: -len(self.map_dims)]]
 
         for axis, (dim, naxis) in enumerate(self.dims.items()):
@@ -401,13 +404,15 @@ class ProjectionMap(Map):
     #     """
     #     return -self.height.rad * np.linspace(-0.5, 0.5, self.n_y + 1)
 
-    # @property
-    # def x_side(self):
-    #     return (self.x_bins[:-1] + self.x_bins[1:]) / 2
+    @property
+    def x_side(self):
+        logger.warning("Attribute 'x_side' is deprecated, use 'xi' instead")
+        return self.xi.rad
 
-    # @property
-    # def y_side(self):
-    #     return (self.y_bins[:-1] + self.y_bins[1:]) / 2
+    @property
+    def y_side(self):
+        logger.warning("Attribute 'y_side' is deprecated, use 'eta' instead")
+        return self.eta.rad
 
     def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):
@@ -685,6 +690,7 @@ class ProjectionMap(Map):
             constrained_layout=True,
             sharex=False,
             sharey=False,
+            # ppi=256,
         )
         axes = np.atleast_2d(axes)
 

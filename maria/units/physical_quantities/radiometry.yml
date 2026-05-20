@@ -105,8 +105,6 @@ spectral_flux_density_per_pixel:
   units:
     Jy/pixel:
       factor: 1e-26
-      aliases:
-      - Jy/pix
       long_name: janskies per pixel
       math_name: \text{Jy}/\text{pixel}
       min_prefix_power: -30
@@ -133,6 +131,7 @@ spectral_flux_density_per_beam:
       min_prefix_power: -30
       max_prefix_power: 30
       human: true
+      composite: true
 
 compton_y:
   long_name: Compton-y

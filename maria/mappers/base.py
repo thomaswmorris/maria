@@ -85,7 +85,7 @@ class BaseMapper:
                 stokes_sensitivity_mask |= (tod.dets.mueller() != 0).any(axis=(0, 1))
 
             self.stokes = "".join(np.array(list("IQUV"))[stokes_sensitivity_mask])
-            logger.info(f"Inferring mapper stokes parameters '{stokes}' for mapper.")
+            logger.info(f"Inferring stokes parameters '{self.stokes}' for mapper")
 
         else:
             self.stokes = stokes
