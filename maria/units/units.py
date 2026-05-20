@@ -58,15 +58,15 @@ base_units_aliases = {}
 for unit, entry in UNITS.iterrows():
     base_units_aliases[unit] = set()
     for alias in entry.aliases:
-        base_units_aliases[unit] |= {alias.lower()}
+        base_units_aliases[unit] |= {alias}
 
 base_units_phrase = r"|".join([alias for aliases in base_units_aliases.values() for alias in aliases]).replace("^", "\\^")
 units_pattern_case_sensitive = re.compile(
-    rf"^(?P<prefix>({prefixes_phrase}))(?P<raw_unit>{base_units_phrase})((\^|\*\*)?(?P<power>-?[\.\d]*))?$"
-)  # noqa
+    rf"^(?P<modifiers>([/√ ]*))(?P<prefix>({prefixes_phrase}))(?P<parsed_unit>{base_units_phrase})( *(\^|\*\*)? *(?P<power>[-\.\d]+))?$"  # noqa
+)
 units_pattern_case_insensitive = re.compile(
-    rf"^(?P<prefix>({prefixes_phrase}))(?P<raw_unit>(?i:{base_units_phrase}))((\^|\*\*)?(?P<power>-?[\.\d]*))?$"
-)  # noqa
+    rf"^(?P<modifiers>([/√ ]*))(?P<prefix>({prefixes_phrase}))(?P<parsed_unit>(?i:{base_units_phrase}))( *(\^|\*\*)? *(?P<power>[-\.\d]+))?$"  # noqa
+)
 
 
 def parse_units(units):
@@ -77,14 +77,14 @@ def parse_units(units):
     units_repr_parts = []
     math_name_parts = []
 
-    subunits = re.compile(r"(/?[\w\*\^\-\.√]+)").findall(units)
+    subunits = [s.strip() for s in re.compile(r"(/?√? *[A-Za-z_]+[ \*\^\-\.\d]*)").findall(units)]
 
     logger.debug(f"Parsing units {units}")
 
     for subunit in subunits:
-        match = units_pattern_case_sensitive.search(subunit.strip("/"))
+        match = units_pattern_case_sensitive.search(subunit)
         if match is None:
-            match = units_pattern_case_insensitive.search(subunit.strip("/"))
+            match = units_pattern_case_insensitive.search(subunit)
             if match is None:
                 raise UnitError(
                     f"Invalid subunit '{subunit.strip('/')}'. Valid units are a combination of an SI prefix "
@@ -92,12 +92,18 @@ def parse_units(units):
                 )
 
         su = match.groupdict()
-        su["power"] = (float(su["power"]) if su["power"] else 1.0) * (-1 if subunit[0] == "/" else 1)
+        su["power"] = float(su["power"]) if su["power"] else 1.0
+        if "/" in su["modifiers"]:
+            su["power"] *= -1
+        if "√" in su["modifiers"]:
+            su["power"] *= 0.5
+
         logger.debug(f"Parsed subunit '{subunit}' as {su}")
         for unit, aliases in base_units_aliases.items():
-            if su["raw_unit"].lower() in aliases:
-                su["base_unit"] = unit
-                break
+            for alias in aliases:
+                if su["parsed_unit"].lower() == alias.lower():
+                    su["base_unit"] = unit
+                    break
 
         su.update(UNITS.set_index("lowered").loc[su["base_unit"].lower()])
         prefix = PREFIXES.loc[su["prefix"]]

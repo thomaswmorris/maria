@@ -146,7 +146,9 @@ class ProjectionMap(Map):
             parity_slicing.append(slice(None, None, dim_parity))
 
         self.data = self.data[tuple(parity_slicing)]
-        self.weight = self.weight[tuple(parity_slicing)]
+
+        if self._weight is not None:
+            self.weight = self.weight[tuple(parity_slicing)]
 
     def _pointing_matrix_ingredients(self, coords: Coordinates, bilinear: bool = True):
         offsets = coords.offsets(center=(self.center[0].rad, self.center[1].rad), frame=self.frame.name)

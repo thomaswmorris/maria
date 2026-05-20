@@ -65,18 +65,9 @@ def read_fits_map(path: str, index: int | None = None):
 
         # FITS counts from the bottom, while normal people count from the top
         data = hdu.data  # [..., ::-1, :]
-        if data.ndim < 2:
-            raise ValueError("Map should have at least 2 dimensions.")
-
         header = hdu.header
 
-    kwargs = parse_fits_map_header(hdu.header)
-
-    # try:
-
-    # except Exception as error:
-    #     logger.warning(f"Could not parse FITS header for file {path} (encountered error {str(error)}).")
-    #     metadata = {}
+    kwargs = parse_fits_map_header(header)
 
     return data, kwargs, header
 

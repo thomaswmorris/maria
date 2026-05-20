@@ -9,14 +9,14 @@ velocity:
   vector:
     m: 1
     s: -1
-  units:
-    m/s:
-      factor: 1
-      long_name: meters per second
-      math_name: \text{m}/\text{s}
-      min_prefix_power: -30
-      max_prefix_power: 30
-      human: true
+  # units:
+  #   m/s:
+  #     factor: 1
+  #     long_name: meters per second
+  #     math_name: \text{m}/\text{s}
+  #     min_prefix_power: -30
+  #     max_prefix_power: 30
+  #     human: true
 
 
 
@@ -37,24 +37,28 @@ angular_velocity:
       min_prefix_power: 0
       max_prefix_power: 0
       human: False
+      composite: true
     deg/s:
       factor: 1.7453292519943295e-02
       long_name: degrees per second
       math_name: \text{deg}/\text{s}
       min_prefix_power: 0
       max_prefix_power: 0
+      composite: true
     arcmin/s:
       factor: 2.9088820867e-04
       long_name: arcminutes per second
       math_name: \text{arcmin}/\text{s}
       min_prefix_power: 0
       max_prefix_power: 0
+      composite: true
     arcsec/s:
       factor: 4.8481368111e-06
       long_name: arcseconds per second
       math_name: \text{arcsec}/\text{s}
       min_prefix_power: -30
       max_prefix_power: 0
+      composite: true
 
 
 energy:
@@ -112,13 +116,5 @@ solid_angle:
       factor: 1
       long_name: steradians
       math_name: \text{sr}
-      aliases:
-      - JY
-      min_prefix_power: 0
-      max_prefix_power: 0
-    deg²:
-      factor: 0.00030461741978670857
-      long_name: square degrees
-      math_name: \text{deg}^2
       min_prefix_power: 0
       max_prefix_power: 0
