@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 
 from ..units import Quantity
 from .projection import ProjectionMap
@@ -275,6 +275,7 @@ class TransferFunction:
             f"  T: [{np.nanmin(self.T):.3f}, {np.nanmax(self.T):.3f}]"
         )
 
+
 _RAD_TO_DEG = 180.0 / np.pi
 _ANGULAR_UNITS = {
     "arcsec": 3600.00 * _RAD_TO_DEG,
@@ -343,7 +344,9 @@ def plot_transfer_function(
 
         # Use input map units as the display reference for both panels
         display_units = input_map.units if input_map is not None else output_map.units
-        out_for_display = output_map.to(display_units) if (output_map is not None and output_map.units != display_units) else output_map
+        out_for_display = (
+            output_map.to(display_units) if (output_map is not None and output_map.units != display_units) else output_map
+        )
 
         # Derive shared colour scale from the input map
         if input_map is not None:
