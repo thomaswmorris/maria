@@ -422,7 +422,7 @@ class ProjectionMap(Map):
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
         x_sigma_pixels = sigma / self.xi_res
-        y_sigma_pixels = sigma / self.eta_res
+        y_sigma_pixels = abs(sigma / self.eta_res)
 
         numer = sp.ndimage.gaussian_filter(self.data * self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
         denom = sp.ndimage.gaussian_filter(self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
