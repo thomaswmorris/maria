@@ -289,7 +289,7 @@ class Map:
         b = self.beam.mean(axis=slice_axes)
         return (b[0], b[1], b[2])
 
-    def to(self, units: str, **calibration_kwargs: Mapping):
+    def to(self, units: str, only_return_data: bool = False, **calibration_kwargs: Mapping):
         if units == self.units:
             return self
 
@@ -327,6 +327,9 @@ class Map:
                 package["data"][nu_key] = cal(package["data"][nu_key])
 
             # package["data"] = data.swapaxes(0, self.dims_list.index("nu"))  # swap the axes back
+
+        if only_return_data:
+            return package["data"]
 
         package["units"] = units
         return type(self)(**package)

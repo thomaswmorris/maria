@@ -270,6 +270,9 @@ class Quantity:
     def shape(self):
         return np.shape(self.base_units_value)
 
+    def reshape(self, new_shape):
+        return Quantity(self.base_units_value.reshape(new_shape), self.base_units, metadata=self.metadata)
+
     @property
     def size(self):
         return np.size(self.base_units_value)

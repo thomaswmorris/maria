@@ -121,17 +121,16 @@ def parse_fits_map_header(header):
         logger.debug(f"Found CUNIT{AXIS}: {repr(CUNIT)}")
         logger.debug(f"Interpreting axis {AXIS} as dimension '{dim}'")
 
-        axis_values = CDELT * np.arange(NAXIS, dtype=float)
-        axis_values -= np.interp(CRPIX, np.arange(NAXIS), axis_values)
-        axis_values *= parity
-        logger.debug(f"Applied parity {parity} for dimension '{dim}'")
+        CDELT *= parity
+        logger.debug(f"Applying parity {['-1', '+1'][int(parity > 0)]} for dimension '{dim}'")
 
-        if dim not in ["xi", "eta"]:
-            axis_values += CRVAL
+        if dim in ["nu", "v", "t"]:
+            axis_values = CDELT * np.arange(NAXIS, dtype=float)
+            axis_values += CRVAL - np.interp(CRPIX, np.arange(NAXIS), axis_values)
+            axes[dim] = Quantity(axis_values, CUNIT)
         else:
+            kwargs[f"{dim}_res"] = CDELT
             center[["xi", "eta"].index(dim)] = CRVAL
-
-        axes[dim] = Quantity(axis_values, CUNIT)
 
     for key, value in header.items():
         for kwarg, aliases in FITS_KWARG_ALIASES.items():

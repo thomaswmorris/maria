@@ -34,7 +34,7 @@ cmb_cmap = ListedColormap(
 cmb_cmap.set_bad("white")
 mpl.colormaps.register(cmb_cmap)
 
-MAP_SIZE_KWARGS = ["width", "height", "x_res", "y_res", "resolution"]
+MAP_SIZE_KWARGS = ["xi", "eta", "width", "height", "xi_res", "eta_res", "resolution"]
 VALID_MAP_KWARGS = ["stokes", "nu", "t", "center", "frame", "units", "beam", *MAP_SIZE_KWARGS]
 
 FITS_KEYWORD_ALIASES = {
@@ -55,8 +55,8 @@ AXIS_MAPPING = {
 }
 
 
-def get(name: str, **kwargs):
-    return load(fetch(name), **kwargs)
+def get(name: str, **map_kwargs):
+    return load(fetch(name), **map_kwargs)
 
 
 def load(filename: str, index: int = None, format: str = "auto", **map_kwargs) -> Map:
@@ -72,10 +72,11 @@ def load(filename: str, index: int = None, format: str = "auto", **map_kwargs) -
 
     # if there are any kwargs specifying the size of the map,
     # then remove size kwargs from the read-in map's metadata.
-    # size_kwargs = [k for k in map_kwargs if k in MAP_SIZE_KWARGS]
-
-    # if size_kwargs:
-    #     metadata = {k: v for k, v in metadata.items() if k not in MAP_SIZE_KWARGS}
+    # if any([k in MAP_SIZE_KWARGS for k in map_kwargs]):
+    #     for k in MAP_SIZE_KWARGS:
+    #         if k in kwargs:
+    #             logging.info(f"Overriding map kwarg '{k}'")
+    #             kwargs.pop(k)
 
     kwargs.update(map_kwargs)
     logger.debug(f"Loading ProjectionMap with kwargs {kwargs}")

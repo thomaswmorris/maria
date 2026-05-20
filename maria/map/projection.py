@@ -13,7 +13,6 @@ import numpy as np
 import scipy as sp
 from astropy.io import fits
 from astropy.wcs import WCS
-from skimage.measure import block_reduce
 
 from ..array import Array
 from ..coords import Coordinates, Frame
@@ -48,6 +47,8 @@ class ProjectionMap(Map):
         resolution: float = None,
         x_res: float = None,
         y_res: float = None,
+        xi_res: float = None,
+        eta_res: float = None,
         center: tuple[float, float] = (0.0, 0.0),
         beam: tuple[float, float, float] = 0.0,
         frame: str = "ra/dec",
@@ -55,6 +56,14 @@ class ProjectionMap(Map):
         dtype: type = np.float32,
     ):
         # give it five dimensions
+
+        if x_res is not None:
+            xi_res = x_res
+            logger.warning("'x_res' is deprecated and will be removed in a future version (use 'xi_res' instead)")
+
+        if y_res is not None:
+            eta_res = y_res
+            logger.warning("'y_res' is deprecated and will be removed in a future version (use 'eta_res' instead)")
 
         if data.ndim < 2:
             raise ValueError("'data' must be at least two-dimensional")
@@ -90,51 +99,49 @@ class ProjectionMap(Map):
         )
 
         # from the inputs, construct xi and eta
-        if (xi is None) or (eta is None):
-            if all(x is None for x in [width, height, resolution, x_res, y_res]):
-                raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'x_res', or 'y_res'.")
 
-            if x_res is not None:
-                y_res = y_res or x_res
-            elif y_res is not None:
-                x_res = x_res or y_res
-            elif resolution is not None:
-                if not resolution > 0:
-                    raise ValueError("'resolution' must be positive.")
-                x_res = y_res = resolution
-            else:
+        if all(x is None for x in [width, height, resolution, xi_res, eta_res]):
+            if (xi is None) or (eta is None):
+                raise ValueError("You must pass at least one of 'width', 'height', 'resolution', 'xi_res', or 'eta_res'.")
+
+        else:
+            xi_sign = np.sign(xi_res or 1)
+            eta_sign = np.sign(eta_res or 1)
+
+            if (width is not None) or (height is not None):
                 if width is not None:
-                    if not width > 0:
-                        raise ValueError("'width' must be positive.")
-                    x_res = width / data.shape[-1]
-                    if height is not None:
-                        y_res = height / data.shape[-2]
-                    else:
-                        y_res = x_res
-                elif height is not None:
-                    # here height must not be None
-                    x_res = y_res = height / data.shape[-2]
-                else:
-                    raise ValueError(
-                        f"{self.__class__.__name__} needs one of ['width', 'height', 'resolution', 'x_res', 'y_res']."
-                    )
+                    xi_res = xi_sign * width / data.shape[-1]
+                    if height is None:
+                        eta_res = eta_sign * abs(xi_res)
 
-            xi = x_res * map_dims["xi"] * np.linspace(-0.5, 0.5, self.dims["xi"])
-            eta = -y_res * map_dims["eta"] * np.linspace(-0.5, 0.5, self.dims["eta"])
+                if height is not None:
+                    eta_res = eta_sign * height / data.shape[-2]
+                    if width is None:
+                        xi_res = xi_sign * abs(eta_res)
+
+            if resolution is not None:
+                xi_res = xi_sign * resolution
+                eta_res = eta_sign * resolution
+
+            xi = xi_res * map_dims["xi"] * np.linspace(-0.5, 0.5, self.dims["xi"])
+            eta = eta_res * map_dims["eta"] * np.linspace(-0.5, 0.5, self.dims["eta"])
 
         self.xi = Quantity(xi, "deg" if degrees else "rad")
         self.eta = Quantity(eta, "deg" if degrees else "rad")
 
         # apply parity convention
-        self.apply_parity(**{dim: (-1 if dim in ["v", "eta"] else 1) for dim in self.dims if dim not in ["stokes"]})
+        parity_signature = {dim: (-1 if dim in ["v", "eta"] else 1) for dim in self.dims if dim not in ["stokes"]}
+        self.apply_parity(**parity_signature)
 
-    def apply_parity(self, **parity):
+    def apply_parity(self, **signature):
+
+        logger.debug(f"Applying dimension parity signature {signature}")
 
         parity_slicing = []
-        for dim in parity:
+        for dim in signature:
             if dim not in self.dims:
                 raise ValueError(f"'{dim}' not in map axes")
-            dim_parity = parity[dim]
+            dim_parity = signature[dim]
             dim_values = getattr(self, dim)
             if dim_values.size > 1:
                 grad = np.gradient(dim_values.base_units_value)
@@ -270,13 +277,13 @@ class ProjectionMap(Map):
             else:
                 package[dim] = package[dim][explicit_slices[axis]]
 
-        x_res_factor = explicit_slices[-1].step or 1.0
-        y_res_factor = explicit_slices[-2].step or 1.0
+        xi_res_factor = explicit_slices[-1].step or 1.0
+        eta_res_factor = explicit_slices[-2].step or 1.0
 
         dimensions = parse_units(self.units)["dimension_vector"]
 
         # downsampling changes the pixel area, so we might have to adjust
-        package["data"] *= (x_res_factor * y_res_factor) ** dimensions.pixel
+        package["data"] *= (xi_res_factor * eta_res_factor) ** dimensions.pixel
 
         return ProjectionMap(**package)
 
@@ -293,8 +300,8 @@ class ProjectionMap(Map):
 
             package["nu"] = block_reduce(package["nu"], block_size=reduce[0])
             package["t"] = block_reduce(package["t"], block_size=reduce[1])
-            package["x_res"] *= self.n_x / new_n_x
-            package["y_res"] *= self.n_y / new_n_y
+            package["xi_res"] *= self.n_x / new_n_x
+            package["eta_res"] *= self.n_y / new_n_y
 
             return ProjectionMap(**package).to(self.units)
 
@@ -318,7 +325,7 @@ class ProjectionMap(Map):
   frame: {self.frame.name}
   {center_repr}
   beam(maj, min, psi): {self.beam_repr()}
-  memory: {Quantity(self.data.nbytes + self.weight.nbytes, "B")}"""
+  memory: {Quantity(self.data.nbytes + (self._weight.nbytes if self._weight is not None else 0), "B")}"""
 
     def package(self):
         package = copy.deepcopy(
@@ -394,7 +401,7 @@ class ProjectionMap(Map):
     #     """
     #     Following array indexing conventions,
     #     """
-    #     self.x_res.rad
+    #     self.xi_res.rad
     #     return self.width.rad * np.linspace(-0.5, 0.5, self.n_x + 1)
 
     # @property
@@ -413,6 +420,39 @@ class ProjectionMap(Map):
     def y_side(self):
         logger.warning("Attribute 'y_side' is deprecated, use 'eta' instead")
         return self.eta.rad
+
+    def reduce(self, reduction: Iterable[int]):
+
+        explicit_reduction = {
+            dim: red for dim, red in zip(self.dims, [*(len(self.dims) - len(reduction)) * [1], *reduction])
+        }
+        reduction_shape = []
+        dims_to_average = []
+        trimming_slices = []
+
+        new_dims = {}
+        for dim_index, (dim, dim_len) in enumerate(self.dims.items()):
+            red = explicit_reduction[dim]
+            dim_trim_slice = slice(0, dim_len - dim_len % red, 1)
+            dim_reduction_shape = (dim_len // red, red)
+
+            new_dims[dim] = getattr(self, dim)[dim_trim_slice].reshape(dim_reduction_shape).mean(axis=-1)
+
+            reduction_shape.extend(dim_reduction_shape)
+            dims_to_average.append(2 * dim_index + 1)
+            trimming_slices.append(dim_trim_slice)
+
+        if self._weight is not None:
+            reduced_data = self.data[tuple(trimming_slices)].reshape(reduction_shape).mean(dims_to_average)
+        else:
+            reduced_numer = (self.data * self.weight)[tuple(trimming_slices)].reshape(reduction_shape).sum(dims_to_average)
+            reduced_denom = self.weight[tuple(trimming_slices)].reshape(reduction_shape).sum(dims_to_average)
+            reduced_data = reduced_numer / reduced_denom
+
+        pixel_area_reduction = np.prod([explicit_reduction[dim] for dim in ["xi", "eta"]])
+        reduced_data *= pixel_area_reduction ** -parse_units(self.units)["dimension_vector"]["pixel"]
+
+        return type(self)(data=reduced_data, units=self.units, **new_dims)
 
     def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):

@@ -79,7 +79,7 @@ def parse_units(units):
 
     subunits = [s.strip() for s in re.compile(r"(/?√? *[A-Za-z_]+[ \*\^\-\.\d]*)").findall(units)]
 
-    logger.debug(f"Parsing units {units}")
+    # logger.debug(f"Parsing units {units}")
 
     for subunit in subunits:
         match = units_pattern_case_sensitive.search(subunit)
@@ -98,7 +98,7 @@ def parse_units(units):
         if "√" in su["modifiers"]:
             su["power"] *= 0.5
 
-        logger.debug(f"Parsed subunit '{subunit}' as {su}")
+        # logger.debug(f"Parsed subunit '{subunit}' as {su}")
         for unit, aliases in base_units_aliases.items():
             for alias in aliases:
                 if su["parsed_unit"].lower() == alias.lower():
