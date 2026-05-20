@@ -54,7 +54,7 @@ def _resample_to_grid(
     # gnomonic x-offset used by both maps.
     mean_dec = 0.5 * (source_map.center[1].rad + target_map.center[1].rad)
     delta_x = (target_map.center[0].rad - source_map.center[0].rad) * np.cos(mean_dec)
-    delta_y = (target_map.center[1].rad - source_map.center[1].rad)
+    delta_y = target_map.center[1].rad - source_map.center[1].rad
 
     YY, XX = np.meshgrid(target_map.eta.rad, target_map.xi.rad, indexing="ij")
     pts = np.stack([(YY + delta_y).ravel(), (XX + delta_x).ravel()], axis=-1)
@@ -89,7 +89,7 @@ def _plot_map_panel(
 
     if vmin is None or vmax is None:
         finite = d[np.isfinite(d)]
-        _vmin, _vmax = (np.nanquantile(finite, [1e-3, 1 - 1e-3]) if finite.size > 0 else (0.0, 1.0))
+        _vmin, _vmax = np.nanquantile(finite, [1e-3, 1 - 1e-3]) if finite.size > 0 else (0.0, 1.0)
         vmin = vmin if vmin is not None else _vmin
         vmax = vmax if vmax is not None else _vmax
 
@@ -352,7 +352,7 @@ def plot_transfer_function(
         if input_map is not None:
             f_ref = _extract_2d(input_map, stokes, nu_index, t_index)
             finite = f_ref[np.isfinite(f_ref)]
-            vmin, vmax = (np.nanquantile(finite, [1e-3, 1 - 1e-3]) if finite.size > 0 else (None, None))
+            vmin, vmax = np.nanquantile(finite, [1e-3, 1 - 1e-3]) if finite.size > 0 else (None, None)
         else:
             vmin = vmax = None
 
@@ -385,7 +385,7 @@ def plot_transfer_function(
         fwhm_rad = float(np.nanmean(beam_map.beam[..., 0].rad))
         if fwhm_rad > 0:
             u_dense = np.geomspace(u.min(), u.max(), 500)
-            B_theory = np.exp(-np.pi**2 * fwhm_rad**2 * u_dense**2 / (4.0 * np.log(2.0)))
+            B_theory = np.exp(-(np.pi**2) * fwhm_rad**2 * u_dense**2 / (4.0 * np.log(2.0)))
             ax.plot(factor / u_dense, B_theory, color="tomato", lw=1.5, ls="--", label="Beam")
 
     ax.legend(frameon=False, fontsize=9)

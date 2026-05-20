@@ -476,8 +476,7 @@ class ProjectionMap(Map):
             input_map = getattr(self, "_input_map", None)
         if input_map is None:
             raise ValueError(
-                "No input map available. Pass input_map explicitly or run the "
-                "simulation with map=<ProjectionMap>."
+                "No input map available. Pass input_map explicitly or run the simulation with map=<ProjectionMap>."
             )
 
         u, T = compute_transfer_function(
