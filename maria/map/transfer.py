@@ -37,9 +37,9 @@ def _resample_to_grid(
     """
     f_src = _extract_2d(source_map, stokes, nu_index, t_index)
 
-    # y_side is descending (top→bottom); RegularGridInterpolator needs ascending
-    y_src = source_map.y_side[::-1]
-    x_src = source_map.x_side
+    # eta is descending (top→bottom); RegularGridInterpolator needs ascending
+    y_src = source_map.eta.rad[::-1]
+    x_src = source_map.xi.rad
 
     interp = sp.interpolate.RegularGridInterpolator(
         (y_src, x_src),
@@ -56,9 +56,9 @@ def _resample_to_grid(
     delta_x = (target_map.center[0].rad - source_map.center[0].rad) * np.cos(mean_dec)
     delta_y = (target_map.center[1].rad - source_map.center[1].rad)
 
-    YY, XX = np.meshgrid(target_map.y_side, target_map.x_side, indexing="ij")
+    YY, XX = np.meshgrid(target_map.eta.rad, target_map.xi.rad, indexing="ij")
     pts = np.stack([(YY + delta_y).ravel(), (XX + delta_x).ravel()], axis=-1)
-    return interp(pts).reshape(target_map.n_y, target_map.n_x)
+    return interp(pts).reshape(target_map.n_eta, target_map.n_xi)
 
 
 def _plot_map_panel(
@@ -75,11 +75,16 @@ def _plot_map_panel(
 ):
     d = _extract_2d(m, stokes, nu_index, t_index)
 
-    # Angular coordinates in human-readable units
-    X = np.r_[m.x_bins, m.y_bins]
+    # Compute pixel bin edges from centres for pcolormesh
+    xi_res = m.xi_res.rad
+    eta_res = m.eta_res.rad
+    x_bins = np.append(m.xi.rad - xi_res / 2, m.xi.rad[-1] + xi_res / 2)
+    y_bins = np.append(m.eta.rad - eta_res / 2, m.eta.rad[-1] + eta_res / 2)
+
+    X = np.r_[x_bins, y_bins]
     hu = Quantity(X, "rad").hu
-    x_vals = Quantity(m.x_bins, "rad").human_value
-    y_vals = Quantity(m.y_bins, "rad").human_value
+    x_vals = Quantity(x_bins, "rad").human_value
+    y_vals = Quantity(y_bins, "rad").human_value
     ang_unit = hu["units"]
 
     if vmin is None or vmax is None:
@@ -185,8 +190,8 @@ def compute_transfer_function(
     C = np.real(np.conj(F_in) * F_out)
 
     # Radial spatial frequency at each Fourier pixel — defined by the output grid
-    dx = output_map.x_res.rad
-    dy = output_map.y_res.rad
+    dx = output_map.xi_res.rad
+    dy = abs(output_map.eta_res.rad)
     kx = np.fft.fftshift(np.fft.fftfreq(nx, d=dx))
     ky = np.fft.fftshift(np.fft.fftfreq(ny, d=dy))
     KX, KY = np.meshgrid(kx, ky)
