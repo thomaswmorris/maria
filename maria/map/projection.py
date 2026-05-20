@@ -403,13 +403,15 @@ class ProjectionMap(Map):
     #     """
     #     return -self.height.rad * np.linspace(-0.5, 0.5, self.n_y + 1)
 
-    # @property
-    # def x_side(self):
-    #     return (self.x_bins[:-1] + self.x_bins[1:]) / 2
+    @property
+    def x_side(self):
+        logger.warning("Attribute 'x_side' is deprecated, use 'xi' instead")
+        return self.xi.rad
 
-    # @property
-    # def y_side(self):
-    #     return (self.y_bins[:-1] + self.y_bins[1:]) / 2
+    @property
+    def y_side(self):
+        logger.warning("Attribute 'y_side' is deprecated, use 'eta' instead")
+        return self.eta.rad
 
     def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):
