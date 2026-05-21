@@ -308,6 +308,9 @@ class Quantity:
     def __neg__(self):
         return Quantity(-self.base_units_value, units=self.base_units, metadata=self.metadata)
 
+    def __abs__(self):
+        return Quantity(np.abs(self.base_units_value), units=self.base_units, metadata=self.metadata)
+
     def convert_other(self, other):
         if isinstance(other, Quantity):
             if (self.dimension_vector == other.dimension_vector).all():

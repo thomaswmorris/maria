@@ -15,6 +15,7 @@ noise_equivalent_rayleigh_jeans_temperature:
       human: true
       min_prefix_power: -30
       max_prefix_power: 0
+      composite: true
 
       
 noise_equivalent_cmb_temperature_anisotropy:
@@ -33,6 +34,7 @@ noise_equivalent_cmb_temperature_anisotropy:
       math_name: \text{K}_\text{CMB}\sqrt{\text{s}}
       min_prefix_power: -30
       max_prefix_power: 0
+      composite: true
 
 
 noise_equivalent_power:
@@ -52,3 +54,4 @@ noise_equivalent_power:
       math_name: \text{W}\sqrt{\text{s}}
       min_prefix_power: -30
       max_prefix_power: 30
+      composite: true

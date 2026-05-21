@@ -136,18 +136,19 @@ spectral_flux_density_per_beam:
 compton_y:
   long_name: Compton-y
   short_name: y
-  math_name: y
+  math_name: \text{Compton } y
   base_unit: compton_y
   base_unit_prefix: ""
   vector:
     compton_y: 1
   units:
-    y:
+    compton_y:
       factor: 1
       aliases:
       - szy
+      - y
       long_name: compton_y
-      math_name: y
+      math_name: \text{Compton } y
       min_prefix_power: 0
       max_prefix_power: 0
       human: true

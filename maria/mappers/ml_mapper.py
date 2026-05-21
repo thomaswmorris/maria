@@ -27,6 +27,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
     def __init__(
         self,
         tods: Sequence[TOD],
+        target: Map = None,
         k: int = 3,
         center: tuple[float, float] = None,
         stokes: str = None,
@@ -51,6 +52,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
     ):
         super().__init__(
             tods=tods,
+            target=target,
             stokes=stokes,
             center=center,
             width=width,
@@ -151,7 +153,11 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         numer = torch.tensor(sp.ndimage.gaussian_filter(M * H, sigma=0, axes=(-1, -2)))
         denom = torch.tensor(sp.ndimage.gaussian_filter(H, sigma=0, axes=(-1, -2)))
 
-        naive_map = (numer / denom).where(H > 0, 0.0) * denom / denom.max()
+        WX = sp.signal.windows.tukey(M=H.shape[-1], alpha=0.1)[:, None]
+        WY = sp.signal.windows.tukey(M=H.shape[-1], alpha=0.1)
+
+        # apodize by hits (doctors hate this one weird trick)
+        naive_map = (numer / denom).where(H > 0, 0.0) * (denom / denom.max()) * WX * WY
 
         init_sol = naive_map.where(naive_map.isfinite(), 0).ravel()
 

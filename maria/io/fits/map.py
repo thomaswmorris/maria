@@ -22,10 +22,7 @@ FITS_TYPE_ALIASES = {
 }
 
 FITS_KWARG_ALIASES = {
-    "units": [
-        "BUNIT",
-        "BUNITS",
-    ],
+    "units": ["BUNIT", "BUNITS", "OUTTYPE"],
     "nu": ["NU", "FREQ", "RESTFRQ", "RESTFREQ"],
     # "z": ["REDSHIFT"],
 }

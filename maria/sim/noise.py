@@ -10,7 +10,7 @@ from ..io import DEFAULT_BAR_FORMAT
 from ..noise import generate_noise_with_knee
 from ..utils import compute_diameter, generate_spatial_basis
 
-DEFAULT_NOISE_SIM_KWARGS = {"correlated_noise_proportion": 0.5, "correlated_noise_spatial_scale": 0.9}
+DEFAULT_NOISE_SIM_KWARGS = {"correlated_noise_proportion": 0.5, "correlated_noise_spatial_scale": 1.0}
 
 
 class NoiseMixin:

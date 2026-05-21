@@ -25,6 +25,7 @@ class BinMapper(BaseProjectionMapper):
     def __init__(
         self,
         tods: Sequence[TOD],
+        target: Map = None,
         center: tuple[float, float] = None,
         stokes: str = None,
         width: float = None,
@@ -43,6 +44,7 @@ class BinMapper(BaseProjectionMapper):
     ):
         super().__init__(
             tods=tods,
+            target=target,
             stokes=stokes,
             center=center,
             width=width,

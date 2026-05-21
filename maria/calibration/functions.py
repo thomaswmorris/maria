@@ -17,13 +17,13 @@ def identity(x: float, **kwargs):
 
 def cmb_temperature_anisotropy_to_compton_y(dT_CMB, nu, **kwargs):
     x = h * nu / (k_B * T_CMB)
-    f = x * (np.exp(x) + 1) / np.expm1(x) - 4
+    f = x * (np.exp(x) + 1) / (np.exp(x) - 1) - 4
     return dT_CMB / (f * T_CMB)
 
 
 def compton_y_to_cmb_temperature_anisotropy(y, nu, **kwargs):
     x = h * nu / (k_B * T_CMB)
-    f = x * (np.exp(x) + 1) / np.expm1(x) - 4
+    f = x * (np.exp(x) + 1) / (np.exp(x) - 1) - 4
     return y * f * T_CMB
 
 

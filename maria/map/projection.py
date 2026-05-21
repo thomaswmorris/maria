@@ -15,7 +15,7 @@ from astropy.io import fits
 from astropy.wcs import WCS
 
 from ..array import Array
-from ..coords import Coordinates, Frame
+from ..coords import Coordinates, Frame, offsets_to_phi_theta
 from ..io import FITS_DEFAULT_UNITS, FITS_TYPE_ALIASES, repr_phi_theta
 from ..units import Quantity, parse_units
 from ..utils import compute_pointing_matrix_ingredients, unpack_implicit_slice
@@ -123,8 +123,8 @@ class ProjectionMap(Map):
                 xi_res = xi_sign * resolution
                 eta_res = eta_sign * resolution
 
-            xi = xi_res * map_dims["xi"] * np.linspace(-0.5, 0.5, self.dims["xi"])
-            eta = eta_res * map_dims["eta"] * np.linspace(-0.5, 0.5, self.dims["eta"])
+            xi = xi_res * (map_dims["xi"] - 1) * np.linspace(-0.5, 0.5, self.dims["xi"])
+            eta = eta_res * (map_dims["eta"] - 1) * np.linspace(-0.5, 0.5, self.dims["eta"])
 
         self.xi = Quantity(xi, "deg" if degrees else "rad")
         self.eta = Quantity(eta, "deg" if degrees else "rad")
@@ -287,24 +287,6 @@ class ProjectionMap(Map):
 
         return ProjectionMap(**package)
 
-    def downsample(self, reduce: tuple, func: Callable = np.mean):
-        if reduce:
-            if len(reduce) != 4:
-                raise ValueError("'reduce' must be a four-tuple of ints (nu, t, y, x)")
-
-            package = self.to("K_RJ").package()
-            package["data"] = block_reduce(package["data"].compute(), block_size=(1, *reduce), func=func)
-            package["weight"] = block_reduce(package["weight"].compute(), block_size=(1, *reduce), func=func)
-
-            *_, new_n_y, new_n_x = package["data"].shape
-
-            package["nu"] = block_reduce(package["nu"], block_size=reduce[0])
-            package["t"] = block_reduce(package["t"], block_size=reduce[1])
-            package["xi_res"] *= self.n_x / new_n_x
-            package["eta_res"] *= self.n_y / new_n_y
-
-            return ProjectionMap(**package).to(self.units)
-
     # @property
     # def points(self):
     #     return np.stack(np.meshgrid(self.y_side, self.x_side, indexing="ij"), axis=-1)
@@ -421,7 +403,31 @@ class ProjectionMap(Map):
         logger.warning("Attribute 'y_side' is deprecated, use 'eta' instead")
         return self.eta.rad
 
-    def reduce(self, reduction: Iterable[int]):
+    def resample(self, other_map: ProjectionMap):
+
+        other_phi_theta = offsets_to_phi_theta(
+            np.stack(np.meshgrid(other_map.xi.rad, other_map.eta.rad), axis=-1),
+            other_map.center[0].rad,
+            other_map.center[1].rad,
+        )
+
+        c = Coordinates(other_phi_theta[..., 0], other_phi_theta[..., 1], frame=other_map.frame)
+
+        offsets = c.offsets(center=self.center, frame=self.frame)
+        interpolator = sp.interpolate.RegularGridInterpolator(
+            (self.eta.rad, self.xi.rad), np.moveaxis(self.data, (-2, -1), (0, 1)).compute(), bounds_error=False
+        )
+
+        new_values = np.moveaxis(interpolator((offsets[..., 1], offsets[..., 0])), (0, 1), (-2, -1))
+
+        return ProjectionMap(
+            new_values,
+            units=self.units,
+            center=other_map.center,
+            **{dim: (getattr(other_map, dim) if dim in ["xi", "eta"] else getattr(self, dim)) for dim in self.dims},
+        )
+
+    def reduce(self, reduction: Iterable[int]) -> ProjectionMap:
 
         explicit_reduction = {
             dim: red for dim, red in zip(self.dims, [*(len(self.dims) - len(reduction)) * [1], *reduction])
@@ -443,16 +449,18 @@ class ProjectionMap(Map):
             trimming_slices.append(dim_trim_slice)
 
         if self._weight is not None:
-            reduced_data = self.data[tuple(trimming_slices)].reshape(reduction_shape).mean(dims_to_average)
+            reduced_data = np.nanmean(self.data[tuple(trimming_slices)].reshape(reduction_shape), dims_to_average)
         else:
-            reduced_numer = (self.data * self.weight)[tuple(trimming_slices)].reshape(reduction_shape).sum(dims_to_average)
-            reduced_denom = self.weight[tuple(trimming_slices)].reshape(reduction_shape).sum(dims_to_average)
+            reduced_numer = np.nansum(
+                (self.data * self.weight)[tuple(trimming_slices)].reshape(reduction_shape), dims_to_average
+            )
+            reduced_denom = np.nansum(self.weight[tuple(trimming_slices)].reshape(reduction_shape), dims_to_average)
             reduced_data = reduced_numer / reduced_denom
 
         pixel_area_reduction = np.prod([explicit_reduction[dim] for dim in ["xi", "eta"]])
         reduced_data *= pixel_area_reduction ** -parse_units(self.units)["dimension_vector"]["pixel"]
 
-        return type(self)(data=reduced_data, units=self.units, **new_dims)
+        return type(self)(data=reduced_data, center=self.center, units=self.units, **new_dims)
 
     def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):
@@ -461,7 +469,7 @@ class ProjectionMap(Map):
         package = self.package()
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
-        x_sigma_pixels = sigma / self.xi_res
+        x_sigma_pixels = abs(sigma / self.xi_res)
         y_sigma_pixels = abs(sigma / self.eta_res)
 
         numer = sp.ndimage.gaussian_filter(self.data * self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
@@ -529,147 +537,6 @@ class ProjectionMap(Map):
             window=window,
         )
         return TransferFunction(u=u, T=T, input_map=input_map, output_map=self)
-
-    def plot_slice(
-        self,
-        fig,
-        ax,
-        nu_index: int = 0,
-        t_index: int = 0,
-        v_index: int = 0,
-        stokes: str = "I",
-        cmap: str = "default",
-        norm_method: str = "slice",
-        contrast: float = 1e-3,
-        rel_vmin: float = None,
-        rel_vmax: float = None,
-        vmin: float = None,
-        vmax: float = None,
-        center_zero: bool = False,
-    ):
-        d = self.data
-        w = self.weight
-
-        logger.debug(f"Plotting map slice (stokes={stokes}, nu_index={nu_index}, t_index={t_index})")
-
-        if "stokes" in self.dims:
-            if stokes not in self.stokes:
-                raise ValueError(f"Invalid stokes parameter '{stokes}'. This map has stokes parameters '{self.stokes}'.")
-            stokes_index = self.stokes.index(stokes)
-            d, w = d[stokes_index], w[stokes_index]
-
-        if "nu" in self.dims:
-            try:
-                d, w = d[nu_index], w[nu_index]
-            except IndexError:
-                raise IndexError(
-                    f"nu_index={nu_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
-                )
-
-        if "v" in self.dims:
-            try:
-                d, w = d[v_index], w[v_index]
-            except IndexError:
-                raise IndexError(
-                    f"v_index={v_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
-                )
-
-        if "t" in self.dims:
-            try:
-                d, w = d[t_index], w[t_index]
-            except IndexError:
-                raise IndexError(
-                    f"t_index={t_index} is out of bounds; map has shape {self.dims_string} = {tuple(self.dims.values())}"
-                )
-
-        if cmap == "default":
-            cmap = "CMRmap" if stokes == "I" else "cmb"
-
-        map_slice_qdata = Quantity(d.compute(), units=self.units)
-        map_slice_values = map_slice_qdata.human_value
-
-        rel_vmin = rel_vmin or contrast
-        rel_vmax = rel_vmax or 1.0 - contrast
-
-        if vmin is None and vmax is None:
-            if norm_method == "slice":
-                norm_values = map_slice_values
-                norm_weights = w.compute()
-            else:
-                raise ValueError(f"Invalid norm_method '{norm_method}'")
-
-            subset = np.random.choice(norm_values.size, size=min(norm_values.size, 100000), replace=False)
-            vmin, vmax = np.nanquantile(
-                norm_values.ravel()[subset],
-                weights=norm_weights.ravel()[subset],
-                q=(rel_vmin, rel_vmax),
-                method="inverted_cdf",
-            )
-            if center_zero:
-                abs_max = max(vmax, -vmin)
-                vmin, vmax = -abs_max, abs_max
-
-            logger.debug(f"Inferring (vmin, vmax) = ({vmin}, {vmax})")
-
-        X = np.r_[self.x_bins, self.y_bins]
-        qX = Quantity(X, "rad")
-        grid_u, grid_hu = qX.u, qX.hu
-
-        x = Quantity(self.x_bins, "rad")
-        y = Quantity(self.y_bins, "rad")
-
-        # fig = plt.figure(figsize=(6, 6), dpi=256, constrained_layout=True)
-        # ax = fig.add_subplot(nx, ny, index, projection=WCS(header))
-
-        ax.pcolormesh(
-            getattr(x, grid_hu["units"]),
-            getattr(y, grid_hu["units"]),
-            map_slice_qdata.human_value,
-            cmap=cmap,
-            vmin=vmin,
-            vmax=vmax,
-        )
-
-        ax.grid(color="white", ls="solid", lw=5e-1)
-
-        dummy_map = mpl.cm.ScalarMappable(
-            mpl.colors.Normalize(vmin=vmin, vmax=vmax),
-            cmap=cmap,
-        )
-
-        cbar = fig.colorbar(
-            dummy_map,
-            ax=ax,
-            shrink=0.75,
-            aspect=16,
-            location="right",
-            pad=0,
-        )
-
-        label = rf"${map_slice_qdata.hu['math_name']}$"
-        if "stokes" in self.dims:
-            label += f" Stokes {stokes}"
-        if "nu" in self.dims:
-            label += f" at {self.nu[nu_index]}"
-        cbar.set_label(label, fontsize=10)
-        ax.tick_params(axis="x", bottom=True, top=False)
-        ax.tick_params(axis="y", left=True, right=False, rotation=90)
-
-        lon = ax.coords[0]
-        lon.set_axislabel(rf"{self.frame.phi_long_name}")
-        lon.set_ticks_position("b")
-        lon.set_ticklabel_position("b")
-        lon.set_axislabel_position("b")
-
-        lat = ax.coords[1]
-        lat.set_axislabel(rf"{self.frame.theta_long_name}")
-        lat.set_ticks_position("l")
-        lat.set_ticklabel_position("l")
-        lat.set_axislabel_position("l")
-
-        ax.set_aspect("equal")
-
-        return ax
 
     def plot(
         self,
@@ -769,6 +636,7 @@ class ProjectionMap(Map):
                     cmap=cmap,
                     vmin=vmin or slice_vmin,
                     vmax=vmax or slice_vmax,
+                    shading="nearest",
                 )
 
                 ax.set_aspect("equal")
@@ -784,7 +652,7 @@ class ProjectionMap(Map):
 
                 label = rf"${u['math_name']}$"
                 if "stokes" in ax_slices:
-                    label += f" Stokes {stokes}"
+                    label += f" Stokes {self.stokes[ax_slices['stokes']]}"
                 if "nu" in ax_slices:
                     label += f" at {self.nu[ax_slices['nu']]}"
                 cbar.set_label(label, fontsize=10)

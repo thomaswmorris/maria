@@ -85,7 +85,7 @@ class BaseMapper:
                 stokes_sensitivity_mask |= (tod.dets.mueller() != 0).any(axis=(0, 1))
 
             self.stokes = "".join(np.array(list("IQUV"))[stokes_sensitivity_mask])
-            logger.info(f"Inferring stokes parameters '{self.stokes}' for mapper")
+            logger.info(f"Inferring stokes parameters '{self.stokes}' for mapper based on detector sensitivities")
 
         else:
             self.stokes = stokes
@@ -206,6 +206,7 @@ class BaseProjectionMapper(BaseMapper):
     def __init__(
         self,
         tods: Sequence[TOD],
+        target: Map,
         center: tuple[Quantity, Quantity],
         stokes: str,
         width: Quantity,
@@ -223,19 +224,26 @@ class BaseProjectionMapper(BaseMapper):
         bilinear: bool,
     ):
 
-        center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
-        width = (Quantity(width, "deg" if degrees else "rad")) if width is not None else None
-        height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else None
-        resolution = (Quantity(resolution, "deg" if degrees else "rad")) if resolution is not None else None
+        if target is not None:
+            center = target.center
+            height = target.height
+            width = target.width
+            resolution = abs(target.xi_res)
 
-        infer_center, infer_width, infer_height = infer_center_width_height(
-            coords_list=[tod.coords for tod in tods], center=center, frame=frame, square=True
-        )
+        else:
+            center = (Quantity(center, "deg" if degrees else "rad")) if center is not None else None
+            width = (Quantity(width, "deg" if degrees else "rad")) if width is not None else None
+            height = (Quantity(height, "deg" if degrees else "rad")) if height is not None else None
+            resolution = (Quantity(resolution, "deg" if degrees else "rad")) if resolution is not None else None
 
-        logger.debug(
-            f"Inferred center={Quantity(infer_center, 'rad')}, width={Quantity(infer_width, 'rad')}, \
-                     width={Quantity(infer_height, 'rad')} for map."
-        )
+            infer_center, infer_width, infer_height = infer_center_width_height(
+                coords_list=[tod.coords for tod in tods], center=center, frame=frame, square=True
+            )
+
+            logger.debug(
+                f"Inferred center={Quantity(infer_center, 'rad')}, width={Quantity(infer_width, 'rad')}, \
+                        width={Quantity(infer_height, 'rad')} for map."
+            )
 
         if center is None:
             center = Quantity(infer_center, "rad")
