@@ -403,7 +403,7 @@ class ProjectionMap(Map):
         logger.warning("Attribute 'y_side' is deprecated, use 'eta' instead")
         return self.eta.rad
 
-    def resample(self, other_map: ProjectionMap):
+    def resample(self, other_map):
 
         other_phi_theta = offsets_to_phi_theta(
             np.stack(np.meshgrid(other_map.xi.rad, other_map.eta.rad), axis=-1),
@@ -420,14 +420,14 @@ class ProjectionMap(Map):
 
         new_values = np.moveaxis(interpolator((offsets[..., 1], offsets[..., 0])), (0, 1), (-2, -1))
 
-        return ProjectionMap(
+        return type(self)(
             new_values,
             units=self.units,
             center=other_map.center,
             **{dim: (getattr(other_map, dim) if dim in ["xi", "eta"] else getattr(self, dim)) for dim in self.dims},
         )
 
-    def reduce(self, reduction: Iterable[int]) -> ProjectionMap:
+    def reduce(self, reduction: Iterable[int]):
 
         explicit_reduction = {
             dim: red for dim, red in zip(self.dims, [*(len(self.dims) - len(reduction)) * [1], *reduction])
