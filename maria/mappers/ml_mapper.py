@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm, trange
 
 from ..io import DEFAULT_BAR_FORMAT
-from ..map import ProjectionMap
+from ..map import Map, ProjectionMap
 from ..tod import TOD
 from ..utils import bspline_basis_from_knots, decompose
 from .base import BaseProjectionMapper

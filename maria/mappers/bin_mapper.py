@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from ..coords import infer_center_width_height
 from ..io import DEFAULT_BAR_FORMAT, humanize_time, repr_phi_theta
-from ..map import ProjectionMap
+from ..map import Map, ProjectionMap
 from ..tod import TOD
 from ..units import Quantity
 from .base import BaseProjectionMapper
