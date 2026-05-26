@@ -1,0 +1,90 @@
+# this is a list of pre-defined instruments, which can be accessed with maria.get_instrument()
+
+default:
+  description: A simple test array
+  documentation:
+  array:
+    n: 250
+    field_of_view: 1
+    shape: circle
+    bands:
+      f150:
+        center: 150.e+9.e+9
+        width: 30.e+9.e+9
+  primary_size: 5
+
+
+ABS:
+  aliases: ["abs"]
+  description: Atacama B-Mode Search
+  documentation: https://almascience.nrao.edu/about-alma/alma-basics
+  array:
+    n: 250
+    field_of_view: 25
+    shape: hexagon
+    bands: [abs/f150]
+  primary_size: 0.5
+
+
+AdvACT:
+  aliases: ["act", "advact"]
+  description: Atacama Cosmology Telescope
+  documentation: https://act.princeton.edu/overview/camera-specifications/advact
+  subarrays:
+    pa4:
+      n: 397
+      focal_plane_offset: [-0.8, -0.5]
+      field_of_view: 1.0
+      shape: hexagon
+      bands: [act/pa4/f150, act/pa4/f220]
+      polarized: True
+    pa5:
+      n: 397
+      focal_plane_offset: [0.0, 1.0]
+      field_of_view: 1.0
+      shape: hexagon
+      bands: [act/pa5/f090, act/pa5/f150]
+      polarized: True
+    pa6:
+      n: 397
+      focal_plane_offset: [0.8, -0.5]
+      field_of_view: 1.0
+      shape: hexagon
+      bands: [act/pa6/f090, act/pa6/f150]
+      polarized: True
+  primary_size: 6
+
+ALMA:
+  aliases: ["alma"]
+  description: ALMA Configuration 1
+  documentation: https://www.eso.org/public/teles-instr/alma/
+  field_of_view: 0
+  array:
+    file: data/arrays/alma/alma.cycle1.total.csv
+  primary_size: 12
+
+
+AtLAST:
+  description: Atacama Large Aperture Submillimeter Telescope
+  array:
+    n: 217
+    field_of_view: 0.07
+    shape: hexagon
+    bath_temp: 100.e-3 # in K
+    bands: [atlast/f027, atlast/f039, atlast/f093, atlast/f150, atlast/f220, atlast/f280]
+  field_of_view: 0.07 # in degrees
+  primary_size: 50 # in meters
+  documentation: https://greenbankobservatory.org/science/gbt-observers/mustang-2/
+
+MUSTANG-2:
+  aliases: ["mustang2"]
+  description: MUSTANG-2 (Multiplexed SQUID TES Array for Ninety Gigahertz)
+  array:
+    n: 217
+    field_of_view: 0.07
+    shape: hexagon
+    bands: [m2/f093]
+    bath_temp: 100.e-3 # in K
+  field_of_view: 0.07 # in degrees
+  primary_size: 100 # in meters
+  documentation: https://www.atlast.uio.no/

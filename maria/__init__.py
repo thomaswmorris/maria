@@ -1,0 +1,42 @@
+# AVE MARIA, gratia plena, Dominus tecum.
+# Benedicta tu in mulieribus, et benedictus fructus ventris tui, Iesus.
+# Sancta Maria, Mater Dei, ora pro nobis peccatoribus, nunc, et in hora mortis nostrae.
+from __future__ import annotations
+
+import logging
+
+import matplotlib.pyplot as plt
+import pandas
+
+from ._version import __version__, __version_tuple__  # noqa
+from .array import Array, all_arrays, get_array  # noqa
+from .band import Band, all_bands, get_band  # noqa
+from .instrument import Instrument, all_instruments, get_instrument  # noqa
+from .io import fetch, set_cache_dir  # noqa
+from .map import TransferFunction, all_maps, compute_transfer_function, plot_transfer_function  # noqa
+from .plan import Plan, Planner, all_plans, get_plan  # noqa
+from .sim import Simulation  # noqa
+from .site import Site, all_regions, all_sites, get_site, site_data  # noqa
+from .units import Quantity  # noqa
+
+logging.getLogger("jax._src.xla_bridge").setLevel(logging.ERROR)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s.%(msecs)03d %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+logger = logging.getLogger("maria")
+
+pandas.set_option("display.expand_frame_repr", False)
+
+plt.rcParams["figure.dpi"] = 160
+
+
+def debug():
+    logger.setLevel(logging.DEBUG)
+
+
+def undebug():
+    logger.setLevel(logging.INFO)

@@ -1,0 +1,109 @@
+f027:
+  center: 27.e+9
+  width: 18.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f039:
+  center: 39.e+9
+  width: 13.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f042:
+  center: 42.e+9
+  width: 24.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f093:
+  center: 91.5e+9
+  width: 51.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f150:
+  center: 151.e+9
+  width: 62.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f220:
+  center: 217.5e+9
+  width: 69.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f280:
+  center: 288.5e+9
+  width: 73.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f350:
+  center: 350.e+9
+  width: 50.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f400:
+  center: 403.e+9
+  width: 38.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f650:
+  center: 654.e+9
+  width: 118.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
+f850:
+  center: 845.5e+9
+  width: 119.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz

@@ -1,0 +1,64 @@
+NEW-MUSIC:
+  aliases: ["new-music"]
+  description: NEW-MUSIC
+  arrays:
+    array-1:
+      n_col: 8
+      n_row: 8
+      shape: square
+      packing: square
+      bands: [music/b1]
+      polarized: False
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.234 # in degrees
+      primary_size: 10.4 # in meters
+    array-2:
+      n_col: 8
+      n_row: 8
+      shape: square
+      packing: square
+      bands: [music/b2]
+      polarized: False
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.234 # in degrees
+      primary_size: 10.4 # in meters
+    array-3:
+      n_col: 16
+      n_row: 16
+      shape: square
+      packing: square
+      bands: [music/b3]
+      polarized: False
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.234 # in degrees
+      primary_size: 10.4 # in meters
+    array-4:
+      n_col: 16
+      n_row: 16
+      shape: square
+      packing: square
+      bands: [music/b4]
+      polarized: False
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.234 # in degrees
+      primary_size: 10.4 # in meters
+    array-5:
+      n_col: 32
+      n_row: 32
+      shape: square
+      packing: square
+      bands: [music/b5]
+      polarized: False
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.234 # in degrees
+      primary_size: 10.4 # in meters
+    array-6:
+      n_col: 32
+      n_row: 32
+      shape: square
+      packing: square
+      bands: [music/b6]
+      polarized: False
+      bath_temp: 100.e-3 # in K
+      field_of_view: 0.234 # in degrees
+      primary_size: 10.4 # in meters

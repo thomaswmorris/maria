@@ -1,0 +1,725 @@
+from __future__ import annotations
+
+import copy
+import glob
+import logging
+import os
+import uuid
+from typing import Mapping
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scipy as sp
+from matplotlib.collections import EllipseCollection
+from matplotlib.patches import Patch
+from scipy.spatial import QhullError
+
+from ..band import Band, BandList  # noqa
+from ..beam import compute_angular_fwhm
+from ..io import flatten_config, read_yaml
+from ..units import Quantity
+from ..utils import HEX_CODE_LIST, compute_diameter, get_rotation_matrix_2d
+from .generation import generate_2d_pattern
+
+here, this_filename = os.path.split(__file__)
+
+
+PER_DET_KWARGS = [
+    "xi",
+    "eta",
+    "baseline_x",
+    "baseline_y",
+    "baseline_z",
+    "gamma",
+    "band_name",
+    "bath_temp",
+]
+
+
+ALLOWED_ARRAY_KWARGS = [
+    "band",
+    "bands",
+    "max_baseline",
+    "baseline_offset",
+    "baseline_spacing",
+    "bath_temp",
+    "beam_spacing",
+    "degrees",
+    "field_of_view",
+    "file",
+    "focal_plane_offset",
+    "key",
+    "n",
+    "n_col",
+    "n_row",
+    "name",
+    "packing",
+    "polarized",
+    "primary_size",
+    "rotation",
+    "shape",
+    *PER_DET_KWARGS,
+]
+
+
+DET_COLUMN_TYPES = {
+    "array_name": str,
+    "uid": str,
+    "base_det_index": int,
+    "band_name": str,
+    "band_center": float,
+    "xi": float,
+    "eta": float,
+    "baseline_x": float,
+    "baseline_y": float,
+    "baseline_z": float,
+    "gamma": float,
+    "pol_label": str,
+    "primary_size": float,
+    "bath_temp": float,
+    "time_constant": float,
+    "white_noise": float,
+    "pink_noise": float,
+    "efficiency": float,
+}
+
+
+ARRAY_CONFIGS = {}
+for path in glob.glob(f"{here}/configs/*.yml"):
+    key = os.path.split(path)[1].split(".")[0]
+    ARRAY_CONFIGS[key] = read_yaml(path)
+ARRAY_CONFIGS = flatten_config(ARRAY_CONFIGS)
+
+all_arrays = list(ARRAY_CONFIGS.keys())
+
+
+def get_array_config(key=None, **kwargs):
+    c = {}
+    if key:
+        if key not in ARRAY_CONFIGS:
+            raise KeyError(f"'{key}' is not a valid array name.")
+        c = {"name": key, **ARRAY_CONFIGS[key]}
+    c.update(kwargs)
+    return c
+
+
+def get_array(key):
+    return Array.from_config(get_array_config(key=key))
+
+
+class Array:
+    def __init__(self, name: str, dets: pd.DataFrame, bands: BandList, config: dict = {}):
+        self.name = name  # or str(uuid.uuid4())
+        self.dets = dets
+        self.dets.index = np.arange(len(self.dets.index))
+        self.dets.loc[:, "array_name"] = self.name
+
+        self.bands = BandList([band for band in bands if band.name in self.dets.band_name.values])
+        self.config = config
+
+        # for band_attr, det_attr in {
+        #     "center": "band_center",
+        #     "width": "band_width",
+        # }.items():
+
+        # self.dets.loc[:, "band_center"] = getattr(self, band_attr.Hz)
+
+    def split(self):
+        array_list = []
+        for array_name in sorted(np.unique(self.dets.array_name.values)):
+            array_dets = self.dets.loc[self.dets.array_name.values == array_name]
+            array_bands = [band for band in self.bands if band.name in array_dets.band_name.values]
+            array_list.append(Array(name=array_name, dets=array_dets, bands=array_bands))
+        return ArrayList(array_list)
+
+    def mask(self, **kwargs):
+        mask = np.ones(len(self.dets)).astype(bool)
+        for k, v in kwargs.items():
+            mask &= self.dets.loc[:, k].values == v
+        return mask
+
+    def subset(self, **kwargs):
+        return self._subset(self.mask(**kwargs))
+
+    def _subset(self, mask):
+        dets = self.dets.loc[mask]
+        return Array(name=self.name, dets=dets, bands=[b for b in self.bands if b.name in dets.band_name.values])  # noqa
+
+    def one_detector_from_each_band(self):
+        first_det_mask = np.isin(
+            np.arange(self.n),
+            np.unique(self.band_name, return_index=True)[1],
+        )
+        return self._subset(mask=first_det_mask)
+
+    def outer(self):
+        try:
+            hull = sp.spatial.ConvexHull(self.offsets)
+        except QhullError:
+            return self
+        outer_dets_mask = np.isin(np.arange(self.n), hull.vertices)
+        return self._subset(mask=outer_dets_mask)
+
+    @property
+    def n(self):
+        return len(self.dets)
+
+    @property
+    def offsets(self):
+        return np.c_[self.xi, self.eta]
+
+    @property
+    def baselines(self):
+        return np.c_[self.baseline_x, self.baseline_y, self.baseline_z]
+
+    @property
+    def field_of_view(self):
+        return Quantity(compute_diameter(self.offsets), units="rad")
+
+    @property
+    def max_baseline(self):
+        return Quantity(compute_diameter(self.baselines), units="m")
+
+    @property
+    def index(self):
+        return self.dets.index.values
+
+    @property
+    def ubands(self):
+        return list(self.bands.keys())
+
+    @property
+    def fwhm(self):
+        """
+        Returns the angular FWHM (in radians) at infinite distance.
+        """
+        return self.angular_fwhm(z=np.inf)
+
+    @property
+    def beams(self):
+        fwhm = self.fwhm.radians
+        return np.stack([fwhm, fwhm, np.zeros_like(fwhm)], axis=1)
+
+    def mueller(self):
+        """
+        For transforming Stoke's parameters. $theta$ = 0 is the horizontal
+        """
+        a = self.gamma
+        m = np.stack(
+            [
+                np.where(np.isnan(a), np.sqrt(2), 1),
+                np.where(np.isnan(a), 0, np.cos(2 * a)),
+                np.where(np.isnan(a), 0, np.sin(2 * a)),
+                np.zeros_like(a),
+            ],
+            axis=1,
+        )
+        return 0.5 * m[..., None] * m[..., None, :]
+
+    def stokes_weight(self):
+        return self.mueller()[:, 0]
+
+    def angular_fwhm(self, z=np.inf):  # noqa F401
+        """
+        Angular beam width (in radians) as a function of depth (in meters)
+        """
+        return Quantity(compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=self.band_center), "rad")
+
+    def physical_fwhm(self, z):
+        """
+        Physical beam width (in meters) as a function of depth (in meters)
+        """
+        return Quantity(z * self.angular_fwhm(z).rad, "m")
+
+    @property
+    def band_center(self):
+        values = np.zeros(shape=self.n, dtype=float)
+        for band in self.bands:
+            values[self.band_name == band.name] = band.center.Hz
+        return values
+
+    @property
+    def band_width(self):
+        values = np.zeros(shape=self.n, dtype=float)
+        for band in self.bands:
+            values[self.band_name == band.name] = band.width.Hz
+        return values
+
+    def passband(self, nu):
+        _nu = np.atleast_1d(nu)
+        PB = np.zeros((len(self.dets), len(_nu)))
+        for band in self.bands:
+            PB[self.band_name == band.name] = band.passband(_nu)
+        return PB
+
+    def __call__(self, band: str = None):
+        mask = True
+        if band:
+            mask &= self.band_name == band
+        return Array(name=self.name, dets=self.dets.loc[mask], bands=self.bands)
+
+    def __getattr__(self, attr):
+        if attr in self.dets.columns:
+            return self.dets.loc[:, attr].values.astype(DET_COLUMN_TYPES[attr])
+
+        if all(hasattr(band, attr) for band in self.bands):
+            values = np.zeros(shape=self.n, dtype=float)
+            for band in self.bands:
+                values[self.band_name == band.name] = getattr(band, attr)
+            return values
+
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'")
+
+    def __len__(self):
+        return len(self.dets)
+
+    @property
+    def polarized(self):
+        return not np.isnan(self.gamma).all()
+
+    def filling(self):
+        return {
+            "n": self.n,
+            "FOV": self.field_of_view,
+            "baseline": self.max_baseline,
+            "bands": f"[{','.join(self.bands.name)}]",
+            "polarized": self.polarized,
+        }
+
+    def summary(self):
+        series = pd.Series(self.filling())
+        series.name = self.name
+        return series
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({', '.join([f'{k}={v}' for k, v in self.filling().items()])})"
+
+    def __getitem__(self, key):
+        return Array(name=self.name, dets=self.dets[key], bands=self.bands)
+
+    @classmethod
+    def from_kwargs(cls, **kwargs):
+        return cls.from_config(kwargs)
+
+    @classmethod
+    def from_config(cls, config):
+        c = copy.deepcopy(config)
+
+        degrees = c.get("degrees", True)
+
+        if "array_name" in config:
+            c.update(get_array_config(key=c.pop("array_name")))
+
+        logging.debug(f"Generating array with config {c}")
+
+        disallowed_array_kwargs = [key for key in c if key not in ALLOWED_ARRAY_KWARGS]
+        if disallowed_array_kwargs:
+            raise ValueError(f"Invalid array kwargs {disallowed_array_kwargs}.")
+
+        if "file" in c:
+            file = c.pop("file")
+            try:
+                dets = pd.read_csv(f"{here}/{file}")
+            except FileNotFoundError:
+                dets = pd.read_csv(file)
+
+            for col in dets.columns:
+                c[col] = dets[col].values
+
+        bands = None
+        if "bands" in c:
+            bands = BandList(c["bands"])
+        elif "band" in c:
+            bands = BandList([Band(c["band"])])
+        elif "band_name" not in c:
+            raise ValueError("Missing parameter 'bands'.")
+
+        # check that these match known bands
+        if "band_name" in c:
+            if bands is not None:
+                for band_name in np.unique(c["band_name"]):
+                    if band_name not in bands.name:
+                        raise ValueError(
+                            f"Band name {band_name} in the supplied 'band_name' parameter does "
+                            f"not match any band in the supplied 'bands' parameter ()."
+                        )
+            else:
+                bands = BandList(sorted(list(np.unique(c["band_name"]))))
+
+        if "primary_size" in c:
+            primary_sizes = np.atleast_1d(c.pop("primary_size"))
+        else:
+            raise ValueError("Missing array parameter 'primary_size'.")
+
+        if degrees:
+            for param in ["xi", "eta", "field_of_view", "gamma", "rotation"]:
+                if param in c:
+                    c[param] = np.radians(c[param])
+
+        if ("xi" in c) and ("eta" in c):
+            if (c["xi"].ndim != 1) or (c["eta"].ndim != 1):
+                raise ValueError("Parameters '{xi,eta}' must be broadcastable one-dimensional arrays.")
+        elif ("baseline_x" in c) and ("baseline_y" in c):
+            if (c["baseline_x"].ndim != 1) or (c["baseline_y"].ndim != 1):
+                raise ValueError("Parameters 'baseline_{x,y}' must be broadcastable one-dimensional arrays.")
+
+        else:
+            max_resolution = max(
+                [
+                    compute_angular_fwhm(primary_size, z=np.inf, nu=band.center.Hz)
+                    for band in bands
+                    for primary_size in primary_sizes
+                ]
+            )
+            # we need:
+            # - two of (n-like, field_of_view, beam_spacing), or
+            # - two of (n-like, max_baseline, baseline_spacing)
+
+            pattern_kwargs = {}
+
+            n_kwargs = {k: c.get(k) for k in ["n", "n_col", "n_row"] if c.get(k) is not None}
+            n_explicit = ("n" in n_kwargs) or (("n_col" in n_kwargs) and ("n_row" in n_kwargs))
+            n_focal_plane_kwargs = sum([n_explicit, "field_of_view" in c, "focal_plane_spacing" in c])
+            n_baseline_kwargs = sum(
+                [
+                    n_explicit,
+                    "max_baseline" in c,
+                    "baseline_spacing" in c,
+                ]
+            )
+
+            # this is not supposed to be elegant, it is supposed to be easy to understand
+            if n_explicit:
+                pattern_kwargs.update(n_kwargs)
+
+                # handle the case of a single detector
+                if (n_kwargs.get("n") == 1) or ((n_kwargs.get("n_row") == 1) and (n_kwargs.get("n_col") == 1)):
+                    mode = "focal_plane"
+                    pattern_kwargs["spacing"] = 0.0
+
+                elif ("field_of_view" in c) or ("beam_spacing" in c):
+                    # we can only use one if n is explicit
+                    mode = "focal_plane"
+                    if "field_of_view" in c:
+                        pattern_kwargs["max_diameter"] = c["field_of_view"]
+                    else:
+                        pattern_kwargs["spacing"] = c.get("beam_spacing", 1.5) * max_resolution
+
+                elif "max_baseline" in c:
+                    mode = "baseline"
+                    pattern_kwargs["max_diameter"] = c["max_baseline"]
+
+                elif "baseline_spacing" in c:
+                    mode = "baseline"
+                    pattern_kwargs["spacing"] = c["baseline_spacing"]
+
+                else:
+                    raise ValueError(
+                        "Invalid array spec: if detector counts are explicit, you must supply either 'field_of_view' or "
+                        "either 'max_baseline' or 'baseline_spacing' for an interferometer array."
+                    )
+
+            else:
+                pattern_kwargs = {}
+                if "field_of_view" in c:
+                    mode = "focal_plane"
+                    pattern_kwargs["max_diameter"] = c["field_of_view"]
+                    pattern_kwargs["spacing"] = c.get("beam_spacing", 1.5) * max_resolution
+
+                elif ("max_baseline" in c) and ("baseline_spacing" in c):
+                    mode = "baseline"
+                    pattern_kwargs["max_diameter"] = c["max_baseline"]
+                    pattern_kwargs["spacing"] = c["baseline_spacing"]
+
+                else:
+                    raise ValueError(
+                        "Invalid array spec: if detector counts are implicit, you must supply either 'field_of_view' or "
+                        "both 'max_baseline' or 'baseline_spacing' for an interferometer array."
+                    )
+
+            X = generate_2d_pattern(
+                **pattern_kwargs,
+                shape=c.get("shape", "hexagon"),
+                packing=c.get("packing", "triangular"),
+                rotation=c.get("rotation", 0),
+            )
+
+            if mode == "focal_plane":
+                c["xi"], c["eta"] = X[..., 0], X[..., 1]
+            else:
+                c["baseline_x"], c["baseline_y"] = X[..., 0], X[..., 1]
+
+        dets = pd.DataFrame({col: c[col] for col in c if col in PER_DET_KWARGS})
+        dets.loc[:, "base_det_index"] = np.arange(len(dets))
+        dets.loc[:, "primary_size"] = primary_sizes * np.ones(len(dets))
+
+        for key, default in [("bath_temp", 0), ("time_constant", 0)]:
+            if (key not in dets) or (key in c):
+                dets[key] = np.array(c.get(key, default) * np.ones(len(dets)))
+
+        baseline_offset = c.get("baseline_offset", (0.0, 0.0, 0.0))
+        focal_plane_offset = c.get("focal_plane_offset", (0.0, 0.0))
+
+        for i, dim in enumerate("xyz"):
+            if f"baseline_{dim}" not in dets.columns:
+                dets.loc[:, f"baseline_{dim}"] = 0.0
+            dets.loc[:, f"baseline_{dim}"] += baseline_offset[i]
+
+        for i, dim in enumerate(["xi", "eta"]):
+            if dim not in dets.columns:
+                dets.loc[:, dim] = 0.0
+            dets.loc[:, dim] += np.radians(focal_plane_offset[i])
+
+        if "gamma" not in dets:
+            if c.get("polarized", False):
+                dets.loc[:, "gamma"] = np.random.uniform(
+                    low=0,
+                    high=np.pi,
+                    size=len(dets),
+                )
+                dets.loc[:, "pol_label"] = "A"
+                other_dets = dets.copy()
+                other_dets.loc[:, "gamma"] = (dets.gamma + np.pi / 2) % np.pi
+                other_dets.loc[:, "pol_label"] = "B"
+                dets = pd.concat([dets, other_dets])
+
+            else:
+                dets.loc[:, "gamma"] = np.nan
+
+        if "band_name" not in dets.columns:
+            band_dets_list = []
+            for band in bands:
+                band_dets = dets.copy()
+                band_dets.loc[:, "band_name"] = band.name
+                band_dets_list.append(band_dets)
+            dets = pd.concat(band_dets_list)
+
+        dets = dets.sort_values(["band_name", "base_det_index"], ascending=True)
+
+        for col in dets.columns:
+            dets[col] = dets[col].astype(DET_COLUMN_TYPES.get(col, str))
+
+        return cls(dets=dets, bands=bands, name=c.get("name", str(uuid.uuid4())[:8]))
+
+    def plot(self, z=np.inf, plot_baseline="infer", plot_gammas=False):
+        # if plot_baseline == "infer":
+        #     plot_baseline = self.dets.max_baseline > 0
+
+        # if plot_baseline:
+        fig, (focal_ax, band_ax) = plt.subplots(1, 2, figsize=(10, 5), dpi=256, constrained_layout=True)
+
+        i = 0
+        legend_handles = []
+        band_legend_handles = []
+
+        focal_plane_units = Quantity(self.offsets, "rad").hu["units"]
+        resolution_units = Quantity(self.fwhm, "rad").hu["units"]
+
+        nu_min, nu_max = self.bands.nu_min, self.bands.nu_max
+
+        nu = Quantity(np.linspace(self.bands.nu_min.Hz, self.bands.nu_max.Hz, 1024), "Hz")
+        nu_min, nu_max = nu.human_value.min(), nu.human_value.max()
+
+        for ia, array in enumerate(self.split()):
+            for ib, band in enumerate(array.bands):
+                c = HEX_CODE_LIST[i % len(HEX_CODE_LIST)]
+
+                band_array = array(band=band.name)
+
+                fwhms = Quantity(band_array.angular_fwhm(z=z), "rad")
+                offsets = Quantity(band_array.offsets, "rad")
+                gammas = Quantity(band_array.gamma, "rad")
+                # baselines = Quantity(band_array.baselines, "m")
+
+                if plot_gammas and self.polarized:
+                    dx = np.c_[-np.ones(band_array.n), np.ones(band_array.n)] / 2
+                    dy = np.zeros((band_array.n, 2))
+
+                    R = get_rotation_matrix_2d(gammas.rad)
+                    dl = np.moveaxis(R @ np.stack([dx, dy], axis=1), 0, 2)
+                    P = Quantity(offsets.rad.T[:, None] + fwhms.rad * dl, units="rad")
+                    focal_ax.plot(*getattr(P, focal_plane_units), c=c, lw=2e0)
+
+                focal_ax.add_collection(
+                    EllipseCollection(
+                        widths=getattr(fwhms, focal_plane_units),
+                        heights=getattr(fwhms, focal_plane_units),
+                        angles=0,
+                        units="xy",
+                        facecolors=c,
+                        edgecolors="k",
+                        lw=1e-1,
+                        alpha=0.5,
+                        offsets=getattr(offsets, focal_plane_units),
+                        transOffset=focal_ax.transData,
+                    ),
+                )
+
+                band_ax.plot(nu.human_value, band.passband(nu.Hz), color=c)
+
+                legend_handles.append(
+                    Patch(
+                        label=f"{band.name} (n={band_array.n}, "
+                        f"res={getattr(fwhms, resolution_units).mean():.01f} {resolution_units})",
+                        color=c,
+                    ),
+                )
+                band_legend_handles.append(Patch(label=rf"{band.name} ($\eta$={band.efficiency})", color=c))  # noqa
+
+                focal_ax.scatter(
+                    *getattr(offsets, focal_plane_units).T,
+                    s=0,
+                    color=c,
+                )
+
+                i += 1
+
+        focal_ax.set_xlabel(rf"$\theta_x$ offset [{focal_plane_units}]")
+        focal_ax.set_ylabel(rf"$\theta_y$ offset [{focal_plane_units}]")
+        focal_ax.legend(handles=legend_handles, fontsize=8)
+
+        band_ax.set_xlabel(rf"$\nu$ [${nu.hu['math_name']}$]")
+        band_ax.set_ylabel(rf"Passband response")
+        band_ax.legend(handles=band_legend_handles, fontsize=8)
+
+        band_ax.plot([nu_min, nu_max], [0, 0], c="k", lw=0.5, ls=":")
+        band_ax.set_xlim(nu_min, nu_max)
+
+        band_ax.yaxis.tick_right()
+        band_ax.yaxis.set_label_position("right")
+
+        xls, yls = focal_ax.get_xlim(), focal_ax.get_ylim()
+        cen_x, cen_y = np.mean(xls), np.mean(yls)
+        wid_x, wid_y = np.ptp(xls), np.ptp(yls)
+        radius = 0.5 * np.maximum(wid_x, wid_y)
+
+        margin = getattr(fwhms, focal_plane_units).max()
+
+        focal_ax.set_xlim(cen_x - radius - margin, cen_x + radius + margin)
+        focal_ax.set_ylim(cen_y - radius - margin, cen_y + radius + margin)
+
+
+class ArrayList:
+    def __init__(self, arrays: list[Mapping]):
+        if isinstance(arrays, Mapping):
+            # convert to a list
+            arrays = [{"name": k, **v} for k, v in arrays.items()]
+
+        if isinstance(arrays, list):
+            unnamed_array_index = 1
+            self.arrays = []
+            for array in arrays:
+                if isinstance(array, str):
+                    self.arrays.append(get_array(array))
+                elif isinstance(array, Mapping):
+                    if "name" not in array:
+                        array["name"] = f"array{unnamed_array_index}"
+                        unnamed_array_index += 1
+                    array_config = get_array_config(**array)
+                    self.arrays.append(Array.from_config(array_config))
+                elif isinstance(array, Array):
+                    self.arrays.append(array)
+                else:
+                    raise ValueError("Arrays must be either a string or a mapping")
+        elif isinstance(arrays, ArrayList):
+            self.arrays = arrays.arrays
+        else:
+            raise ValueError("Each element of 'arrays' must be either an Array, a string, or a mapping.")
+
+    def combine(self):
+        array_dets = []
+        for array in self.arrays:
+            dets = copy.deepcopy(array.dets)
+            dets.loc[:, "array_name"] = array.name
+            array_dets.append(dets)
+        return Array(name="", dets=pd.concat(array_dets), bands=self.bands)
+
+    def one_detector_from_each_band(self):
+        return ArrayList(arrays=[array.one_detector_from_each_band() for array in self.arrays])
+
+    def outer(self):
+        return ArrayList(arrays=[array.outer() for array in self.arrays])
+
+    @property
+    def field_of_view(self):
+        return Quantity(compute_diameter(self.offsets), units="rad")
+
+    @property
+    def max_baseline(self):
+        return Quantity(compute_diameter(self.baselines), units="m")
+
+    @property
+    def n(self):
+        return sum([array.n for array in self.arrays])
+
+    @property
+    def dets(self):
+        return pd.concat([array.dets for array in self.arrays])
+
+    @property
+    def bands(self):
+        bands = []
+        for array in self.arrays:
+            for band in array.bands:
+                if band not in bands:
+                    bands.append(band)
+        return BandList(bands)
+
+    def angular_fwhm(self, z):  # noqa F401
+        """
+        Angular beam width (in radians) as a function of depth (in meters)
+        """
+        return Quantity(compute_angular_fwhm(z=z, fwhm_0=self.primary_size, n=1, nu=self.band_center), "rad")
+
+    def physical_fwhm(self, z):
+        """
+        Physical beam width (in meters) as a function of depth (in meters)
+        """
+        return Quantity(z * self.angular_fwhm(z).rad, "m")
+
+    def mask(self, **kwargs):
+        return np.concatenate([array.mask(**kwargs) for array in self.arrays], axis=0)
+
+    def subset(self, **kwargs):
+        return ArrayList([array.subset(**kwargs).dets for array in self.arrays])
+
+    def summary(self):
+        return pd.concat([array.summary() for array in self.arrays], axis=1).T
+
+    @property
+    def array_name(self):
+        return np.concatenate([array.n * [array.name] for array in self.arrays], axis=0)
+
+    @property
+    def offsets(self):
+        return np.concatenate([array.offsets for array in self.arrays], axis=0)
+
+    @property
+    def baselines(self):
+        return np.concatenate([array.baselines for array in self.arrays], axis=0)
+
+    def passband(self, nu):
+        return np.concatenate([array.passband(nu) for array in self.arrays], axis=0)
+
+    def __getitem__(self, key):
+        return self.arrays[key]
+
+    def __getattr__(self, attr):
+        try:
+            return np.concatenate([getattr(array, attr) for array in self.arrays], axis=0)
+        except Exception:
+            pass
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'")
+
+    def __repr__(self):
+        return self.summary().__repr__()
+
+    def _repr_html_(self):
+        return self.summary()._repr_html_()
+
+    def __iter__(self):  # it has to be called this
+        return iter(self.arrays)  # return the list's iterator
+
+    def __len__(self):
+        return len(self.arrays)

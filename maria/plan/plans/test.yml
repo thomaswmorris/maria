@@ -1,0 +1,60 @@
+ten_second_zenith_stare:
+  description: A stare.
+  duration: 10
+  scan_pattern: stare
+  frame: az/el
+  scan_center: [0, 90]
+  degrees: True
+  sample_rate: 50
+  scan_options: {}
+
+five_second_stare:
+  description: A short stare
+  duration: 5
+  scan_pattern: stare
+  frame: az/el
+  scan_center: [60, 45]
+  degrees: True
+  sample_rate: 25
+  scan_options: {}
+
+daisy_2deg_3min:
+  description: A daisy scan.
+  duration: 180
+  frame: ra/dec
+  degrees: True
+  scan_pattern: daisy
+  scan_center: [150., 10]
+  sample_rate: 50
+  scan_options:
+    radius: 2
+    speed: 0.5
+    petals: 3.18
+    miss_factor: 0.15
+    miss_freq: 1.41
+
+back_and_forth_10deg_45el:
+  description: A back-and-forth scan.
+  start_time: '2022-07-01T08:00:00'
+  duration: 60
+  scan_pattern: back_and_forth
+  scan_center: [45, 45]
+  frame: az/el
+  degrees: True
+  sample_rate: 20
+  scan_options:
+    radius: 5
+    speed: 0.5
+
+# double_circle:
+#   description: 'A double circle scan.'
+#   frame: ra/dec
+#   duration: 60
+#   sample_rate: 50
+#   scan_pattern: double_circle
+#   scan_center: [150., 10]
+#   scan_options:
+#     radius: 2
+#     speed: 0.25
+#     miss_freq: 10.1
+#   degrees: True
