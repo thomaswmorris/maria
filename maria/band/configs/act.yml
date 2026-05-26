@@ -1,0 +1,57 @@
+pa4:
+  f150:
+    center: 150.e+9
+    width: 30.e+9
+    shape: gaussian
+    time_constant: 0
+    NEP: 3.e-17 # W / sqrt(s)
+    knee: 1.0 # Hz
+    efficiency: 0.5
+    gain_error: 5.e-2
+  f220:
+    center: 220.e+9
+    width: 40.e+9
+    shape: gaussian
+    time_constant: 0
+    NEP: 3.e-17 # W / sqrt(s)
+    knee: 1.0 # Hz
+    efficiency: 0.5
+    gain_error: 5.e-2
+pa5:
+  f090:
+    center: 90.e+9
+    width: 20.e+9
+    shape: gaussian
+    time_constant: 0
+    NEP: 3.e-17 # W / sqrt(s)
+    knee: 1.0 # Hz
+    efficiency: 0.5
+    gain_error: 5.e-2
+  f150:
+    center: 150.e+9
+    width: 30.e+9
+    shape: gaussian
+    time_constant: 0
+    NEP: 3.e-17 # W / sqrt(s)
+    knee: 1.0 # Hz
+    efficiency: 0.5
+    gain_error: 5.e-2
+pa6:
+  f090:
+    center: 90.e+9
+    width: 20.e+9
+    shape: gaussian
+    time_constant: 0
+    NEP: 3.e-17 # W / sqrt(s)
+    knee: 1.0 # Hz
+    efficiency: 0.5
+    gain_error: 5.e-2
+  f150:
+    center: 150.e+9
+    width: 30.e+9
+    shape: gaussian
+    time_constant: 0
+    NEP: 3.e-17 # W / sqrt(s)
+    knee: 1.0 # Hz
+    efficiency: 0.5
+    gain_error: 5.e-2

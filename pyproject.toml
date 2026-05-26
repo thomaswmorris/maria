@@ -1,0 +1,139 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs", "setuptools_scm"]
+build-backend = "hatchling.build"
+
+[project]
+name = "maria"
+dynamic = ["version"]
+description = "A simulator for ground-based millimeter- and submillimeter-wave telescopes."
+readme = { file = "README.rst", content-type = "text/x-rst" }
+dependencies = [
+  "arrow",
+  "astropy",
+  "dask",
+  "h5py",
+  "healpy",
+  "jax",
+  "matplotlib",
+  "numpy>=2",
+  "pandas",
+  "reproject",
+  "requests",
+  "scipy",
+  "torch",
+  "tqdm",
+]
+requires-python = ">=3.9"
+authors = [
+  { name = "Thomas Morris", email = "thomas.w.morris@yale.edu" },
+  { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
+]
+maintainers = [
+  { name = "Thomas Morris", email = "thomas.w.morris@yale.edu" },
+  { name = "Joshiwa van Marrevijk", email = "joshiwavanmarrewijk@eso.org" }
+]
+license = {file = "LICENSE"}
+keywords = ["atmosphere", "cosmology", "astronomy"]  # Optional
+classifiers = [  # Optional
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.optional-dependencies] # Optional
+pre-commit = [
+  "ruff",
+  "import-linter",
+  "nbstripout",
+]
+dev = [
+  "pytest-codecov",
+  "coverage",
+  "furo",
+  "nbstripout",
+  "pre-commit",
+  "pre-commit-hooks",
+  "pytest",
+  "sphinx",
+  "twine",
+  "ipython",
+  "jupyter",
+  "matplotlib",
+  "nbsphinx",
+  "numpydoc",
+  "pandoc",
+  "sphinx-copybutton",
+  "sphinx_rtd_theme",
+  "ruff",
+  "import-linter",
+  "pandas-stubs",
+  "types-PyYAML",
+  "mypy",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/thomaswmorris/maria"
+"Bug Reports" = "https://github.com/thomaswmorris/maria/issues"
+"Source" = "https://github.com/thomaswmorris/maria/"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "maria/atmosphere/spectra/data/**/*.h5",
+  "maria/atmosphere/weather/data/**/*.h5",
+  "data",
+  "docs",
+]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["maria"]
+
+[tool.setuptools_scm]
+version_file = "maria/_version.py"
+
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "maria/_version.py"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+
+[tool.ruff]
+src = ["src", "examples", "docs/source/tutorials"]
+line-length = 125
+lint.select = [
+#    "B",       # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+#    "C4",      # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "E",       # pycodestyle errors - https://docs.astral.sh/ruff/rules/#error-e
+#    "F",       # pyflakes rules - https://docs.astral.sh/ruff/rules/#pyflakes-f
+#    "W",       # pycodestyle warnings - https://docs.astral.sh/ruff/rules/#warning-w
+    "I",       # isort - https://docs.astral.sh/ruff/rules/#isort-i
+#    "UP",      # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
+#    "SLF",     # self - https://docs.astral.sh/ruff/settings/#lintflake8-self
+#    "PLC2701", # private import - https://docs.astral.sh/ruff/rules/import-private-name/
+#    "LOG015",  # root logger call - https://docs.astral.sh/ruff/rules/root-logger-call/
+#    "S101",    # assert - https://docs.astral.sh/ruff/rules/assert/
+#    "D",       # docstring - https://docs.astral.sh/ruff/rules/#pydocstyle-d
+]
+lint.ignore = [
+  "D",  # TODO: Add docstrings, then enforce these errors
+  "SLF001",  # TODO: Fix private member access, https://github.com/NSLS-II/maria/issues/94
+] 
+lint.preview = true # so that preview mode PLC2701, and LOG015 is enabled
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"maria/tests/**/*" = ["S101", "SLF001", "D"]
+# Ignore F821: undefined name '...' since the ipython profiles are dynamically loaded into the namespace
+"docs/**/*" = ["F821"]
+"examples/**/*" = ["F821"]
+
+[tool.importlinter]
+root_package = "maria"

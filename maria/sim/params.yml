@@ -1,0 +1,59 @@
+# this is a master list of parameters that can be passed to a total simulation, along with default values
+# repeated parameters like "description" or "documentation" are not preserved in the simulation class.
+
+instrument: # defaults to a small test instrument
+  instrument_description: str
+  instrument_documentation: str
+  primary_size: 6
+  dets: dict
+  az_bounds: [0,  360]
+  el_bounds: [20,  90]
+  max_az_vel: 3
+  max_el_vel: 2
+  max_az_acc: 1
+  max_el_acc: 0.25
+
+plan: # defaults to a 45 degree stare due north
+  plan_description: ''
+  start_time: 2022-02-10T06:00:00
+  duration: 60 # in seconds
+  pointing_frame: az/el
+  degrees: True
+  sample_rate: 20
+  scan_pattern: daisy
+  scan_center: [10, 4.5]
+  scan_options: mapping
+
+site: # default to the ALMA site
+  description: ''
+  region: 'chajnantor'
+  latitude: -23.0294
+  longitude: -67.7548
+  altitude: 5064
+  documentation: ''
+  weather_quantiles: {}
+
+atmosphere:
+  atmosphere_model: '2d'
+  n_atmosphere_layers: 4
+  min_atmosphere_beam_res: 4
+  min_atmosphere_height: 500
+  max_atmosphere_height: 5000
+  turbulent_outer_scale: 800
+  pwv_rms_frac: 0.03
+  pwv:
+
+noise:
+  noise: True
+
+map:
+  map_file: ''
+  map_frame: ra/dec
+  map_center: [10, 4.5]
+  map_res: 0.5
+  map_inbright:
+  map_units: K_RJ
+  map_freqs: [150]
+
+cmb:
+  cmb_source: planck

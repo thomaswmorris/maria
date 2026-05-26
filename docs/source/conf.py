@@ -1,0 +1,58 @@
+# Configuration file for the Sphinx documentation builder.
+#
+# For the full list of built-in configuration values, see the documentation:
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
+# -- Project information -----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+from __future__ import annotations
+
+project = "maria"
+copyright = "2025, Thomas W. Morris"
+author = "Thomas W. Morris"
+
+html_title = "maria"
+
+# -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "IPython.sphinxext.ipython_directive",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "matplotlib.sphinxext.plot_directive",
+    "numpydoc",
+    "sphinx_copybutton",
+    "nbsphinx",
+    # 'matplotlib.sphinxext.only_directives',
+    "matplotlib.sphinxext.plot_directive",
+    "sphinx.ext.doctest",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.autosectionlabel",
+]
+
+autosectionlabel_prefix_document = True
+# "autoapi.extension",
+
+
+templates_path = ["_templates"]
+exclude_patterns = []
+
+# -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+
+html_theme = "furo"
+html_static_path = ["_static"]
+
+pygments_style = "sphinx"
+pygments_dark_style = "monokai"
+
+# Document Python Code
+autoapi_type = "python"
+autoapi_dirs = ["./../../maria"]
+
+nbsphinx_execute = "always"

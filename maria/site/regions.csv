@@ -1,0 +1,26 @@
+,location,country,latitude,longitude,altitude,min_altitude,max_altitude,timezone,training_start,training_end,training_years
+boolardy,"Boolardy, Western Australia",Australia,-26.697,116.631,395,250,500,Australia/Perth,2010-01-01,2024-12-31,15.0
+boston,"Cambridge, Massachusetts",USA,42.374,-71.111,8,0,100,America/New_York,2015-01-01,2024-12-31,10.0
+chajnantor,"Llano de Chajnantor, Antofagasta",Chile,-23.006,-67.759,5040,4000,5750,America/Santiago,1957-02-20,2024-12-31,65.6
+chiang_mai,"Chiang Mai, Thailand",Thailand,18.864,99.217,395,0,2000,Asia/Bangkok,2022-01-01,2024-12-31,2.9
+effelsberg,"Effelsberg, North Rhine-Westphalia",Germany,50.524,6.883,319,0,500,Europe/Berlin,2015-01-01,2024-12-31,10.0
+green_bank,"Green Bank, West Virginia",USA,38.433,-79.84,807,500,1500,America/New_York,2000-01-01,2024-12-31,25.0
+mauna_kea,"Mauna Kea, Hawaii",USA,19.823,-155.475,4205,3500,4500,Pacific/Honolulu,2000-01-01,2024-12-31,25.0
+meerkat,"Meerkat National Park, Northern Cape",South Africa,-30.713,21.443,1075,750,1250,Africa/Johannesburg,2010-01-01,2024-12-31,15.0
+metsahovi,"Metsähovi, Kirkkonummi",Finland,60.218,24.394,90,0,250,Europe/Helsinki,2015-03-28,2024-12-31,6.9
+minamimaki,"Minamimaki, Nagano",Japan,35.942,138.476,1350,1000,2500,Asia/Tokyo,2015-01-01,2024-12-31,10.0
+mount_graham,"Mount Graham, Arizona",USA,32.702,-109.89,3178,2500,3500,America/Phoenix,2015-01-01,2024-12-31,10.0
+narrabri,"Narrabri, New South Wales",Australia,-30.314,149.562,237,160,500,Australia/Sydney,2015-01-01,2024-12-31,10.0
+ngari,"Ngari Prefecture, Tibet",China,32.326,80.026,5176,4500,5500,Asia/Shanghai,2010-01-01,2024-12-31,15.0
+owens_valley,"Owens Valley, California",USA,37.232,-118.295,1222,1000,3500,America/Los_Angeles,2010-01-01,2024-12-31,15.0
+pic_de_bure,"Plateau de Bure, Haute-Alpes",France,44.634,5.908,2552,2000,2750,Europe/Paris,2015-01-01,2024-12-31,10.0
+pico_veleta,"Pico Veleta, Granada",Spain,37.066,-3.393,2850,2500,3500,Europe/Madrid,2015-01-01,2024-12-31,10.0
+princeton,"Princeton, New Jersey",USA,40.345,-74.651,58,0,250,America/New_York,2015-01-01,2024-12-31,10.0
+qitai,"Qitai, Xinjiang",China,43.601,89.699,1780,1500,2000,Asia/Urumqi,2015-01-01,2024-12-31,10.0
+san_agustin,"Plains of San Agustín, New Mexico",USA,34.079,-107.618,2124,2000,2500,America/Denver,2010-01-01,2024-12-31,15.0
+san_basilio,"San Basilio, Sardinia",Italy,39.493,9.245,600,500,1000,Europe/Rome,2010-01-01,2024-12-31,15.0
+sierra_negra,"Sierra Negra, Puebla",Mexico,18.986,-97.314,4640,4000,5500,America/Mexico_City,2010-01-01,2024-12-31,15.0
+south_pole,South Pole,Antarctica,-90.0,0.0,2835,2750,3000,Antarctica/South_Pole,1993-11-12,2024-12-31,27.8
+summit_camp,"Summit Station, Greenland",Greenland,72.583,-38.455,3202,3100,3200,America/Nuuk,2002-03-18,2024-12-31,20.1
+teide,"Mount Teide, Tenerife",Spain,28.301,-16.511,2390,2000,3750,Atlantic/Canary,2010-01-01,2024-12-31,15.0
+thule,Thule Air Base,Greenland,76.535,-68.686,77,0,500,America/Thule,2020-08-14,2024-12-31,2.4
