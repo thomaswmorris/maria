@@ -51,7 +51,7 @@ AtLAST-SZ:
       field_of_view: 0.3
       shape: circle
       bath_temp: 100.e-3 # in K
-      beam_spacing: 3.4 # f-lambda
+      beam_spacing: 1.7 # f-lambda
       polarized: True,
       bands: [atlast/f650, atlast/f850]
   documentation: https://ui.adsabs.harvard.edu/abs/2025ORE.....4..113D/abstract
@@ -98,7 +98,7 @@ AtLAST-SZ_mini:
       field_of_view: 0.13
       shape: circle
       bath_temp: 100.e-3 # in K
-      beam_spacing: 1.7 # f-lambda
+      beam_spacing: 3.4 # f-lambda
       polarized: True,
       bands: [atlast/f650, atlast/f850]
   documentation: https://www.atlast.uio.no/
