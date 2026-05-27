@@ -63,7 +63,7 @@ AtLAST-SZ_mini:
   arrays:
     array-0:
       primary_size: 50 # in meters
-      field_of_view: 0.13
+      field_of_view: 0.1
       shape: circle
       bath_temp: 100.e-3 # in K
       beam_spacing: 1.7 # f-lambda
@@ -71,7 +71,7 @@ AtLAST-SZ_mini:
       bands: [atlast/f042]
     array-1:
       primary_size: 50 # in meters
-      field_of_view: 0.13
+      field_of_view: 0.1
       shape: circle
       bath_temp: 100.e-3 # in K
       beam_spacing: 1.7 # f-lambda
@@ -79,7 +79,7 @@ AtLAST-SZ_mini:
       bands: [atlast/f093, atlast/f150]
     array-2:
       primary_size: 50 # in meters
-      field_of_view: 0.13
+      field_of_view: 0.1
       shape: circle
       bath_temp: 100.e-3 # in K
       beam_spacing: 1.7 # f-lambda
@@ -87,7 +87,7 @@ AtLAST-SZ_mini:
       bands: [atlast/f220, atlast/f280]
     array-3:
       primary_size: 50 # in meters
-      field_of_view: 0.13
+      field_of_view: 0.1
       shape: circle
       bath_temp: 100.e-3 # in K
       beam_spacing: 1.7 # f-lambda
@@ -95,7 +95,7 @@ AtLAST-SZ_mini:
       bands: [atlast/f350, atlast/f400]
     array-4:
       primary_size: 50 # in meters
-      field_of_view: 0.13
+      field_of_view: 0.1
       shape: circle
       bath_temp: 100.e-3 # in K
       beam_spacing: 3.4 # f-lambda
