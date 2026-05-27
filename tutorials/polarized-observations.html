@@ -384,8 +384,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-26 18:53:31.766 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 43.0MB/s]
+2026-05-27 11:36:24.829 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 17.2MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -446,9 +446,9 @@ ProjectionMap:
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 600 s):
-                           start_time duration  target(ra,dec)     center(az,el)
+                           start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2026-05-27 10:02:58.402 +00:00    600 s  (15.78”, -23°)  (95.86°, 61.39°)
+0      2026-05-27 11:36:28.920 +00:00    600 s  (21.9”, -23.01°)  (90.13°, 82.92°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -500,9 +500,9 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 600 s):
-│                            start_time duration  target(ra,dec)     center(az,el)
+│                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-05-27 10:02:58.402 +00:00    600 s  (15.78”, -23°)  (95.86°, 61.39°)
+│ 0      2026-05-27 11:36:28.920 +00:00    600 s  (21.9”, -23.01°)  (90.13°, 82.92°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     data(4, 1, 1, 685, 685):
@@ -515,7 +515,7 @@ Simulation
     nu(1):
       values: [90.] GHz
     t(1):
-      values: [1.77982161e+09] s
+      values: [1.77988178e+09] s
     eta(685):
       height: 60’
       res: -5.263”
@@ -546,14 +546,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-26 18:53:42.417 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:10&lt;00:00,  1.37s/it]
-Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  4.75it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.43it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.43s/it, band=f090]
-Sampling map: 100%|██████████| 1/1 [00:10&lt;00:00, 10.50s/it, band=f090, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.24s/it, band=f090]
-2026-05-26 18:54:23.023 INFO: Simulated observation 1 of 1 in 40.59 s
+2026-05-27 11:36:35.197 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:10&lt;00:00,  1.27s/it]
+Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  5.22it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.57it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.31s/it, band=f090]
+Sampling map: 100%|██████████| 1/1 [00:09&lt;00:00,  9.17s/it, band=f090, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.18s/it, band=f090]
+2026-05-27 11:37:11.897 INFO: Simulated observation 1 of 1 in 36.69 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -561,7 +561,7 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.2
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(326, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-05-27 10:12:58.382 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-05-26T18:54:15.790258+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.377, &#39;input_map&#39;: ProjectionMap:
+[TOD(shape=(326, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-05-27 11:46:28.900 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-05-27T11:37:05.625105+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.585, &#39;input_map&#39;: ProjectionMap:
   data(4, 1, 1, 685, 685):
     min: -1.000e-02
     max: 2.540e-01
@@ -572,7 +572,7 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.2
   nu(1):
     values: [90.] GHz
   t(1):
-    values: [1.77982161e+09] s
+    values: [1.77988178e+09] s
   eta(685):
     height: 60’
     res: -5.263”
@@ -612,7 +612,7 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.2
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7fdd31950e00&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f8cd0854e60&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -649,12 +649,12 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.2
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-26 18:54:29.537 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ1.05ˢ&#39;, &#39;dec&#39;: &#39;-23°00’14.56”&#39;} for mapper
-2026-05-26 18:54:29.551 INFO: Inferring mapper width 1.585° for mapper from observation patch
-2026-05-26 18:54:29.552 INFO: Inferring mapper height 1.585° to match supplied width
-2026-05-26 18:54:29.555 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:05&lt;00:00,  5.57s/it]
-Mapping: 100%|██████████| 1/1 [00:04&lt;00:00,  4.40s/it, tod=1/1]
+2026-05-27 11:37:17.910 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ1.46ˢ&#39;, &#39;dec&#39;: &#39;-23°00’20.17”&#39;} for mapper
+2026-05-27 11:37:17.924 INFO: Inferring mapper width 1.588° for mapper from observation patch
+2026-05-27 11:37:17.924 INFO: Inferring mapper height 1.588° to match supplied width
+2026-05-27 11:37:17.927 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:04&lt;00:00,  4.66s/it]
+Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.78s/it, tod=1/1]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -663,9 +663,9 @@ Mapping: 100%|██████████| 1/1 [00:04&lt;00:00,  4.40s/it, to
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(3, 1, 1, 542, 542):
-    min: -1.488e-01
-    max: 1.380e-01
+  data(3, 1, 1, 543, 543):
+    min: -1.465e-01
+    max: 1.461e-01
     units: K_RJ
     quantity: rayleigh_jeans_temperature
   stokes(3):
@@ -673,19 +673,19 @@ ProjectionMap:
   nu(1):
     values: [90.] GHz
   t(1):
-    values: [1.77987648e+09] s
-  eta(542):
-    height: 1.582°
+    values: [1.77988209e+09] s
+  eta(543):
+    height: 1.585°
     res: -10.53”
-  xi(542):
-    width: 1.582°
+  xi(543):
+    width: 1.585°
     res: 10.53”
   frame: ra/dec
   center:
-    ra: 00ʰ00ᵐ1.05ˢ
-    dec: -23°00’14.56”
+    ra: 00ʰ00ᵐ1.46ˢ
+    dec: -23°00’20.17”
   beam(maj, min, psi): (1.458’, 1.458’, 0 rad)
-  memory: 7.05 MB
+  memory: 7.076 MB
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
