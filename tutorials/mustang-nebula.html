@@ -235,6 +235,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs/maps.html">Maps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="inputs/scan-patterns.html">Scan patterns</a></li>
 </ul>
 </li>
@@ -295,7 +296,7 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
 
-<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maps/m1.h5&quot;</span><span class="p">)</span>
+<span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maps/m1.h5&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;uK_RJ&quot;</span><span class="p">)</span>
 
 <span class="n">input_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">nu</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
@@ -305,48 +306,37 @@
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-2026-05-27 13:14:06.337 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/m1.h5
-Downloading: 100%|██████████| 4.54M/4.54M [00:00&lt;00:00, 32.7MB/s]
-2026-05-27 13:14:06.529 WARNING: &#39;x_res&#39; is deprecated and will be removed in a future version (use &#39;xi_res&#39; instead)
-2026-05-27 13:14:06.530 WARNING: &#39;y_res&#39; is deprecated and will be removed in a future version (use &#39;eta_res&#39; instead)
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(1, 3, 805, 787):
-    min: -2.429e-02
-    max: 3.824e-01
-    units: K_RJ
+  data(1, 3, 1205, 1187):
+    min: -4.145e+09
+    max: 6.287e+08
+    units: uK_RJ
     quantity: rayleigh_jeans_temperature
   stokes(1):
     components: I
   nu(3):
     values: [149.8962 214.1375 272.5386] GHz
-  eta(805):
-    height: 13.4’
+  eta(1205):
+    height: 20.07’
     res: -1”
-  xi(787):
-    width: 13.1’
+  xi(1187):
+    width: 19.77’
     res: 1”
   frame: ra/dec
   center:
     ra: 05ʰ34ᵐ31.95ˢ
     dec: 22°00’52.16”
-  beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
-  memory: 15.2 MB
+  beam(maj, min, psi): ragged
+  memory: 34.33 MB
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_mustang-nebula_1_2.png" src="../_images/tutorials_mustang-nebula_1_2.png" />
+<img alt="../_images/tutorials_mustang-nebula_1_1.png" src="../_images/tutorials_mustang-nebula_1_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -356,7 +346,7 @@ ProjectionMap:
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Planner</span>
 
 <span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">&quot;green_bank&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;el&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">90</span><span class="p">)})</span>
-<span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
 <span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plans</span><span class="p">)</span>
@@ -368,10 +358,10 @@ ProjectionMap:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-PlanList(1 plans, 900 s):
+PlanList(1 plans, 600 s):
                            start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2026-05-27 16:38:32.591 +00:00    900 s  (83.63°, 22.01°)  (117.4°, 61.59°)
+0      2026-05-28 16:33:29.943 +00:00    600 s  (83.63°, 22.02°)  (116.3°, 60.96°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -435,10 +425,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:14:16.970 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
-Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 81.7MB/s]
-2026-05-27 13:14:18.174 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
-Downloading: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 61.4MB/s]
+2026-05-28 04:20:28.054 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 82.1MB/s]
+2026-05-28 04:20:29.131 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+Downloading: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 52.6MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -464,35 +454,35 @@ Simulation
 │     altitude: 825 m
 │   seasonal: True
 │   diurnal: True
-├ PlanList(1 plans, 900 s):
+├ PlanList(1 plans, 600 s):
 │                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-05-27 16:38:32.591 +00:00    900 s  (83.63°, 22.01°)  (117.4°, 61.59°)
+│ 0      2026-05-28 16:33:29.943 +00:00    600 s  (83.63°, 22.02°)  (116.3°, 60.96°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
-    data(1, 3, 1, 805, 787):
-      min: -2.429e-02
-      max: 3.824e-01
-      units: K_RJ
+    data(1, 3, 1, 1205, 1187):
+      min: -4.145e+09
+      max: 6.287e+08
+      units: uK_RJ
       quantity: rayleigh_jeans_temperature
     stokes(1):
       components: I
     nu(3):
       values: [149.8962 214.1375 272.5386] GHz
     t(1):
-      values: [1.77988765e+09] s
-    eta(805):
-      height: 13.4’
+      values: [1.77994202e+09] s
+    eta(1205):
+      height: 20.07’
       res: -1”
-    xi(787):
-      width: 13.1’
+    xi(1187):
+      width: 19.77’
       res: 1”
     frame: ra/dec
     center:
       ra: 05ʰ34ᵐ31.95ˢ
       dec: 22°00’52.16”
-    beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
-    memory: 15.2 MB
+    beam(maj, min, psi): ragged
+    memory: 34.33 MB
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -509,14 +499,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:14:18.951 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 10.05it/s]
-Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 36.05it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.99it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.10it/s, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:07&lt;00:00,  7.67s/it, band=m2/f093, channel=(0 Hz, 182 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.90s/it, band=m2/f093]
-2026-05-27 13:14:46.654 INFO: Simulated observation 1 of 1 in 27.69 s
+2026-05-28 04:20:29.760 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 16.73it/s]
+Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 57.41it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:03&lt;00:00,  2.41it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.71it/s, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:05&lt;00:00,  5.36s/it, band=m2/f093, channel=(0 Hz, 182 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.09s/it, band=m2/f093]
+2026-05-28 04:20:49.106 INFO: Simulated observation 1 of 1 in 19.34 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -530,48 +520,66 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.9
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaximumLikelihoodMapper</span>
 
-<span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">MaximumLikelihoodMapper</span><span class="p">(</span>
+    <span class="n">stokes</span><span class="o">=</span><span class="s2">&quot;I&quot;</span><span class="p">,</span>
     <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-        <span class="c1"># &quot;remove_modes&quot;: {&quot;modes_to_remove&quot;: 1},</span>
-        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient_order&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
     <span class="p">},</span>
     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_RJ&quot;</span><span class="p">,</span>
     <span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
     <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">output_map</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">mapper</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:14:53.657 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ31.82ˢ&#39;, &#39;dec&#39;: &#39;22°00’53.59”&#39;} for mapper
-2026-05-27 13:14:53.669 INFO: Inferring mapper width 16.98’ for mapper from observation patch
-2026-05-27 13:14:53.670 INFO: Inferring mapper height 16.98’ to match supplied width
-2026-05-27 13:14:53.673 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:07&lt;00:00,  7.29s/it]
-Mapping: 100%|██████████| 1/1 [00:01&lt;00:00,  1.66s/it, tod=1/1]
+2026-05-28 04:20:54.027 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ32.38ˢ&#39;, &#39;dec&#39;: &#39;22°00’57.52”&#39;} for mapper
+2026-05-28 04:20:54.035 INFO: Inferring mapper width 23.66’ for mapper from observation patch
+2026-05-28 04:20:54.035 INFO: Inferring mapper height 23.66’ to match supplied width
+Preprocessing TODs: 100%|██████████| 1/1 [00:04&lt;00:00,  4.59s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.09s/it]
 </pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_mustang-nebula_7_0.png" src="../_images/tutorials_mustang-nebula_7_0.png" />
+<img alt="../_images/tutorials_mustang-nebula_6_1.png" src="../_images/tutorials_mustang-nebula_6_1.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">steps_per_epoch</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">mapper</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.55s/it, tod=1/1]
+Fitting map (epoch 1/2): 100%|██████████| 25/25 [00:48&lt;00:00,  1.93s/it, mll=-8.252e-12, pgrad=0.999, step=5.591e+22]
+Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.50s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 25/25 [00:50&lt;00:00,  2.00s/it, mll=-8.740e-12, pgrad=-0.591, step=3.016e+21]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_mustang-nebula_7_1.png" src="../_images/tutorials_mustang-nebula_7_1.png" />
 </div>
 </div>
 </section>

@@ -235,6 +235,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs/maps.html">Maps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="inputs/scan-patterns.html">Scan patterns</a></li>
 </ul>
 </li>
@@ -382,15 +383,6 @@ Instrument(1 array)
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-2026-05-27 13:15:11.565 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 20.6MB/s]
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
@@ -414,14 +406,14 @@ ProjectionMap:
     ra: 00ʰ00ᵐ0.00ˢ
     dec: -23°00’0.00”
   beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
-  memory: 15.02 MB
+  memory: 7.508 MB
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_polarized-observations_6_2.png" src="../_images/tutorials_polarized-observations_6_2.png" />
+<img alt="../_images/tutorials_polarized-observations_6_1.png" src="../_images/tutorials_polarized-observations_6_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -446,9 +438,9 @@ ProjectionMap:
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 PlanList(1 plans, 600 s):
-                           start_time duration target(ra,dec)     center(az,el)
+                           start_time duration  target(ra,dec)     center(az,el)
 chunk
-0      2026-05-27 13:15:15.566 +00:00    600 s   (360°, -23°)  (267.3°, 74.28°)
+0      2026-05-28 09:58:44.158 +00:00    600 s  (5.668”, -23°)  (95.87°, 61.32°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -500,9 +492,9 @@ Simulation
 │   seasonal: True
 │   diurnal: True
 ├ PlanList(1 plans, 600 s):
-│                            start_time duration target(ra,dec)     center(az,el)
+│                            start_time duration  target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-05-27 13:15:15.566 +00:00    600 s   (360°, -23°)  (267.3°, 74.28°)
+│ 0      2026-05-28 09:58:44.158 +00:00    600 s  (5.668”, -23°)  (95.87°, 61.32°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     data(4, 1, 1, 685, 685):
@@ -515,7 +507,7 @@ Simulation
     nu(1):
       values: [90.] GHz
     t(1):
-      values: [1.77988771e+09] s
+      values: [1.77994218e+09] s
     eta(685):
       height: 60’
       res: -5.263”
@@ -527,7 +519,7 @@ Simulation
       ra: 00ʰ00ᵐ0.00ˢ
       dec: -23°00’0.00”
     beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
-    memory: 15.02 MB
+    memory: 7.508 MB
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -546,14 +538,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:15:21.817 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:10&lt;00:00,  1.37s/it]
-Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  5.13it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.50it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.17s/it, band=f090]
-Sampling map: 100%|██████████| 1/1 [00:08&lt;00:00,  8.82s/it, band=f090, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.13s/it, band=f090]
-2026-05-27 13:15:58.493 INFO: Simulated observation 1 of 1 in 36.67 s
+2026-05-28 04:23:11.771 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:09&lt;00:00,  1.15s/it]
+Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  6.52it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.86it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.00s/it, band=f090]
+Sampling map: 100%|██████████| 1/1 [00:08&lt;00:00,  8.13s/it, band=f090, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.07it/s, band=f090]
+2026-05-28 04:23:43.392 INFO: Simulated observation 1 of 1 in 31.61 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -561,7 +553,7 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.1
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(326, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-05-27 13:25:15.546 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-05-27T13:15:52.830995+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 273.529, &#39;input_map&#39;: ProjectionMap:
+[TOD(shape=(326, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-05-28 10:08:44.138 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-05-28T04:23:38.172082+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.329, &#39;input_map&#39;: ProjectionMap:
   data(4, 1, 1, 685, 685):
     min: -1.000e-02
     max: 2.540e-01
@@ -572,7 +564,7 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.1
   nu(1):
     values: [90.] GHz
   t(1):
-    values: [1.77988771e+09] s
+    values: [1.77994218e+09] s
   eta(685):
     height: 60’
     res: -5.263”
@@ -584,7 +576,7 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.1
     ra: 00ʰ00ᵐ0.00ˢ
     dec: -23°00’0.00”
   beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
-  memory: 15.02 MB})]
+  memory: 7.508 MB})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -612,7 +604,7 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.1
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7ff0a8b87830&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7fee4254b620&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -649,23 +641,23 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.1
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:16:04.569 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.97ˢ&#39;, &#39;dec&#39;: &#39;-22°59’59.49”&#39;} for mapper
-2026-05-27 13:16:04.580 INFO: Inferring mapper width 1.576° for mapper from observation patch
-2026-05-27 13:16:04.581 INFO: Inferring mapper height 1.576° to match supplied width
-2026-05-27 13:16:04.584 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:04&lt;00:00,  4.11s/it]
-Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.52s/it, tod=1/1]
+2026-05-28 04:23:48.697 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.38ˢ&#39;, &#39;dec&#39;: &#39;-23°00’5.21”&#39;} for mapper
+2026-05-28 04:23:48.705 INFO: Inferring mapper width 1.58° for mapper from observation patch
+2026-05-28 04:23:48.705 INFO: Inferring mapper height 1.58° to match supplied width
+2026-05-28 04:23:48.708 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:03&lt;00:00,  3.74s/it]
+Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.17s/it, tod=1/1]
 </pre></div></div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(3, 1, 1, 539, 539):
-    min: -1.643e-01
-    max: 1.399e-01
+  data(3, 1, 1, 540, 540):
+    min: -1.446e-01
+    max: 1.424e-01
     units: K_RJ
     quantity: rayleigh_jeans_temperature
   stokes(3):
@@ -673,19 +665,27 @@ ProjectionMap:
   nu(1):
     values: [90.] GHz
   t(1):
-    values: [1.77988802e+09] s
-  eta(539):
-    height: 1.573°
+    values: [1.77996262e+09] s
+  eta(540):
+    height: 1.576°
     res: -10.53”
-  xi(539):
-    width: 1.573°
+  xi(540):
+    width: 1.576°
     res: 10.53”
   frame: ra/dec
   center:
-    ra: 23ʰ59ᵐ59.97ˢ
-    dec: -22°59’59.49”
+    ra: 00ʰ00ᵐ0.38ˢ
+    dec: -23°00’5.21”
   beam(maj, min, psi): (1.458’, 1.458’, 0 rad)
-  memory: 6.973 MB
+  memory: 6.998 MB
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">

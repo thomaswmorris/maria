@@ -1,0 +1,189 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "0",
+   "metadata": {},
+   "source": [
+    "# Maps\n",
+    "\n",
+    "This notebook shows all the built-in maps in `maria`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import maria\n",
+    "\n",
+    "crab_nebula = maria.map.get(\"maps/m1.h5\")\n",
+    "crab_nebula.plot(slices=\"all\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "whirlpool_galaxy = maria.map.get(\"maps/M51HA.fits\")\n",
+    "whirlpool_galaxy.plot(slices=\"all\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "radio_galaxy = maria.map.get(\"maps/radio_galaxy_3C_288.fits\")\n",
+    "radio_galaxy.plot(slices=\"all\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tarantula_nebula = maria.map.get(\"maps/30dor.fits\")\n",
+    "tarantula_nebula.plot(slices=\"all\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sun = maria.map.get(\"maps/sun.h5\")\n",
+    "sun.plot(slices=\"all\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "orion_molecular_cloud = maria.map.get(\"maps/orion_A.h5\")\n",
+    "orion_molecular_cloud.plot(slices=\"all\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "monoceros_molecular_cloud = maria.map.get(\"maps/monoceros_R2.h5\")\n",
+    "monoceros_molecular_cloud.plot(slices=\"all\")\n",
+    "print(monoceros_molecular_cloud)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "protoplanetary_disk = maria.map.get(\"maps/protoplanetary_disk.fits\")\n",
+    "protoplanetary_disk.plot(slices=\"all\")\n",
+    "print(protoplanetary_disk)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "polarized_quasar = maria.map.get(\"maps/quasar_3C_286.h5\")\n",
+    "polarized_quasar.plot(slices=\"all\")\n",
+    "print(polarized_quasar)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "10",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "circinus = maria.map.get(\"maps/circinus_galaxy.h5\")\n",
+    "circinus.plot(slices=dict(v=[5, 6, 7]))\n",
+    "print(circinus)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "11",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "for i in [1, 2, 3]:\n",
+    "        \n",
+    "    sz_cluster = maria.map.get(f\"maps/cluster{i}.fits\")\n",
+    "    sz_cluster.plot(slices=\"all\")\n",
+    "    print(sz_cluster)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "12",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "einstein = maria.map.get(\"maps/einstein.h5\")\n",
+    "einstein.plot(slices=\"all\")\n",
+    "print(einstein)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "13",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "mary = maria.map.get(\"maps/maria.h5\")\n",
+    "mary.plot(slices=\"all\")\n",
+    "print(mary)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "maria",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.14.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
