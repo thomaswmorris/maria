@@ -62,20 +62,28 @@ class BinMapper(BaseProjectionMapper):
             bilinear=bilinear,
         )
 
-        self.res = {
+        self.products = {
             "data": np.zeros(self.map_shape),
-            "weight": np.zeros(self.map_shape),
+            "weight": np.ones(self.map_shape),
         }
 
+        self.has_been_ran = False
+
+    @property
+    def map(self):
+        if not self.has_been_ran:
+            raise RuntimeError("Mapper has not been run yet!")
+        return super().map
+
     def get_map_data(self):
-        return self.res["data"]
+        return self.products["data"]
 
     def get_map_weight(self):
-        return self.res["weight"]
+        return self.products["weight"]
 
     def run(self):
         """
-        The actual mapper for the BinMapper.
+        Run the BinMapper
         """
 
         map_sum = np.zeros(self.map_size)
@@ -94,17 +102,19 @@ class BinMapper(BaseProjectionMapper):
             if not tod.shape[0] > 0:
                 continue
 
-            P = self.map.stokes_weighted_pointing_matrix(coords=tod.coords, dets=tod.dets, bilinear=self.bilinear)
+            P = super().map.stokes_weighted_pointing_matrix(coords=tod.coords, dets=tod.dets, bilinear=self.bilinear)
             D = tod.signal.compute().ravel()
             W = tod.weight.compute().ravel()
 
             map_sum += (W * D) @ P
             map_wgt += W @ np.abs(P)
 
-        self.res = {
+        self.products = {
             "data": map_sum / map_wgt,
             "weight": map_wgt,
             "sum": map_sum,
         }
+
+        self.has_been_ran = True
 
         return self.map

@@ -67,6 +67,9 @@ class MapMixin:
         else:
             self.map = self.map.unsqueeze("t")
 
+        parity_signature = {dim: (-1 if dim in ["v", "eta"] else 1) for dim in self.map.dims}
+        self.map.apply_parity(**parity_signature)
+
     def _run(self, **kwargs):
         self._sample_maps(**kwargs)
 
