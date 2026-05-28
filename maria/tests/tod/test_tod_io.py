@@ -5,7 +5,8 @@ import os
 import maria
 import numpy as np
 import pytest
-from maria import Plan, Simulation, all_instruments, all_sites, get_instrument
+from maria import Plan, Simulation, all_sites, get_instrument
+from maria.instrument import test_instruments
 from maria.io import read_yaml
 from maria.mappers import BinMapper
 
@@ -15,7 +16,7 @@ here, this_filename = os.path.split(__file__)
 
 
 n_sims = 10
-test_instruments = np.random.choice(a=[i for i in all_instruments if "alma" not in i], size=n_sims)
+test_instruments = np.random.choice(a=[i for i in test_instruments if "alma" not in i], size=n_sims)
 test_sites = np.random.choice(a=all_sites, size=n_sims)
 
 

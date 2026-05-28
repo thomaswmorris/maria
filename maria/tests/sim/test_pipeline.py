@@ -5,15 +5,14 @@ import os
 import maria
 import numpy as np
 import pytest
-from maria import Simulation, all_instruments, all_sites, get_plan
-from maria.io import read_yaml
+from maria import Simulation, all_sites
+from maria.instrument import test_instruments
 from maria.mappers import BinMapper
 
 here, this_filename = os.path.split(__file__)
 
 
 n_sims = 10
-test_instruments = np.random.choice(a=[i for i in all_instruments if "alma" not in i], size=n_sims)
 test_sites = np.random.choice(a=all_sites, size=n_sims)
 test_az = np.random.uniform(low=0, high=360, size=n_sims)
 test_el = np.random.uniform(low=30, high=90, size=n_sims)
@@ -21,7 +20,7 @@ test_el = np.random.uniform(low=30, high=90, size=n_sims)
 
 @pytest.mark.parametrize(
     "instrument,site,az,el",
-    zip(test_instruments, test_sites, test_az, test_el),
+    zip(np.random.choice(test_instruments, size=n_sims), test_sites, test_az, test_el),
 )
 def test_pipeline(instrument, site, az, el):
     site = maria.get_site(site)

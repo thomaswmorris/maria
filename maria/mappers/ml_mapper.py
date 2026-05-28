@@ -187,7 +187,8 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         self.sol = torch.tensor(init_sol.numpy(), requires_grad=True, dtype=torch.float)
 
     def update_noise_model(self, subtract_map: bool = True):
-        self.noise_model = []
+
+        noise_model = []
 
         pbar = tqdm(enumerate(self.tods), desc="Updating noise model", total=len(self.tods), bar_format=DEFAULT_BAR_FORMAT)
 
@@ -288,9 +289,11 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
 
             t["ivar"] = t["PT"].abs() @ (t["w"] / t["noise"].var(dim=-1, keepdims=True)).ravel()
 
-            self.noise_model.append(t)
+            noise_model.append(t)
 
             self.map_var = (self.sol.square().detach() * self.hits).sum() / self.hits.sum()
+
+        self.noise_model = noise_model
 
     def apply_inverse_noise_covariance(self, d, t):
 
@@ -343,22 +346,6 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         if hasattr(self, "noise_model"):
             return self.ivar().numpy()
         return self.hits.numpy()
-
-    @property
-    def map(self):
-        return ProjectionMap(
-            data=self.sol.detach().numpy().reshape(self.map_shape),
-            weight=self.hits.numpy().reshape(self.map_shape),
-            stokes=self.stokes,
-            t=self.t,
-            nu=self.nu,
-            resolution=self.resolution,
-            center=self.center,
-            degrees=False,
-            frame=self.frame.name,
-            units=self.tod_units,
-            beam=self.beam,
-        ).to(self.map_units)
 
     def fit(self, epochs: int = 4, steps_per_epoch: int = 64, plot: bool = False, plot_kwargs: dict = {}):
 
