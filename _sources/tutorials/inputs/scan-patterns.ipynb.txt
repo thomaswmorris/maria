@@ -17,29 +17,17 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "from maria import Planner\n",
     "from maria.cmb import generate_cmb_patch\n",
     "\n",
-    "cmb_patch = generate_cmb_patch(width=5, center=(150, -45))  \n",
-    "\n",
-    "cmb_patch.plot(cmap=\"cmb\")"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "2",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "from maria import Planner\n",
-    "\n",
+    "cmb_patch = generate_cmb_patch(width=5, center=(150, -45), frame=\"ra/dec\")  \n",
     "planner = Planner(target=cmb_patch, site=\"llano_de_chajnantor\", constraints={\"el\": (40, 90)})"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "3",
+   "id": "2",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -53,7 +41,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "4",
+   "id": "3",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -67,7 +55,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "5",
+   "id": "4",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -83,7 +71,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "6",
+   "id": "5",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -99,7 +87,7 @@
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "maria",
+   "display_name": "Python 3 (ipykernel)",
    "language": "python",
    "name": "python3"
   },

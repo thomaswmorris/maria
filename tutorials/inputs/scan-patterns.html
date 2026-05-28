@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Tutorials" href="../../tutorials.html"><link rel="prev" title="Inputs" href="../../inputs.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Tutorials" href="../../tutorials.html"><link rel="prev" title="Maps" href="maps.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Scan patterns - maria</title>
@@ -235,6 +235,7 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../../inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" checked="" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="maps.html">Maps</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Scan patterns</a></li>
 </ul>
 </li>
@@ -293,42 +294,25 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.cmb</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_cmb_patch</span>
-
-<span class="n">cmb_patch</span> <span class="o">=</span> <span class="n">generate_cmb_patch</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="o">-</span><span class="mi">45</span><span class="p">))</span>
-
-<span class="n">cmb_patch</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;cmb&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-2026-05-27 13:00:26.093 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/camb.csv
-Downloading: |          | 842k/? [00:00&lt;00:00, 35.0MB/s]
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_inputs_scan-patterns_1_1.png" src="../../_images/tutorials_inputs_scan-patterns_1_1.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Planner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">maria.cmb</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_cmb_patch</span>
 
+<span class="n">cmb_patch</span> <span class="o">=</span> <span class="n">generate_cmb_patch</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="o">-</span><span class="mi">45</span><span class="p">),</span> <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra/dec&quot;</span><span class="p">)</span>
 <span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">cmb_patch</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;el&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">90</span><span class="p">)})</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2026-05-28 04:08:41.327 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/camb.csv
+Downloading: |          | 842k/? [00:00&lt;00:00, 13.5MB/s]
+</pre></div></div>
+</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
@@ -344,9 +328,45 @@ Downloading: |          | 842k/? [00:00&lt;00:00, 35.0MB/s]
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:00:30.778 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:30.827 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:30.876 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:44.576 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:44.607 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:44.635 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_inputs_scan-patterns_2_1.png" src="../../_images/tutorials_inputs_scan-patterns_2_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_inputs_scan-patterns_2_2.png" src="../../_images/tutorials_inputs_scan-patterns_2_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+                               <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;raster&quot;</span><span class="p">,</span>
+                               <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">1e0</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">26</span><span class="p">)],</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">2e-1</span><span class="p">})</span>
+<span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot_hits</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;test/1deg&quot;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2026-05-28 04:08:47.266 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:47.295 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:47.324 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -368,11 +388,13 @@ Downloading: |          | 842k/? [00:00&lt;00:00, 35.0MB/s]
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
-                               <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;raster&quot;</span><span class="p">,</span>
-                               <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">1e0</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">26</span><span class="p">)],</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">2e-1</span><span class="p">})</span>
+                               <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;double_circle&quot;</span><span class="p">,</span>
+                               <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">1e0</span><span class="p">,</span>
+                                             <span class="s2">&quot;ratio&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                                             <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">2e-1</span><span class="p">})</span>
 <span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 <span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot_hits</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;test/1deg&quot;</span><span class="p">)</span>
-<br/></pre></div>
+</pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -380,9 +402,9 @@ Downloading: |          | 842k/? [00:00&lt;00:00, 35.0MB/s]
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:00:34.225 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:34.275 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:34.324 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:49.192 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:49.221 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:49.251 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -404,44 +426,6 @@ Downloading: |          | 842k/? [00:00&lt;00:00, 35.0MB/s]
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
-                               <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;double_circle&quot;</span><span class="p">,</span>
-                               <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">1e0</span><span class="p">,</span>
-                                             <span class="s2">&quot;ratio&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                                             <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">2e-1</span><span class="p">})</span>
-<span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-<span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot_hits</span><span class="p">(</span><span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;test/1deg&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-2026-05-27 13:00:36.805 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:36.855 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:36.904 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_inputs_scan-patterns_5_1.png" src="../../_images/tutorials_inputs_scan-patterns_5_1.png" />
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_inputs_scan-patterns_5_2.png" src="../../_images/tutorials_inputs_scan-patterns_5_2.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
                                <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;lissajous&quot;</span><span class="p">,</span>
                                <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;x_throw&quot;</span><span class="p">:</span> <span class="mf">1e0</span><span class="p">,</span>
                                              <span class="s2">&quot;y_throw&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
@@ -456,23 +440,23 @@ Downloading: |          | 842k/? [00:00&lt;00:00, 35.0MB/s]
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-27 13:00:39.465 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:39.515 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
-2026-05-27 13:00:39.564 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:51.155 WARNING: No noise level specified for band f090, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:51.184 WARNING: No noise level specified for band f150, assuming a sensitivity of 50 uK_RJ√s.
+2026-05-28 04:08:51.213 WARNING: No noise level specified for band f220, assuming a sensitivity of 50 uK_RJ√s.
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_inputs_scan-patterns_6_1.png" src="../../_images/tutorials_inputs_scan-patterns_6_1.png" />
+<img alt="../../_images/tutorials_inputs_scan-patterns_5_1.png" src="../../_images/tutorials_inputs_scan-patterns_5_1.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_inputs_scan-patterns_6_2.png" src="../../_images/tutorials_inputs_scan-patterns_6_2.png" />
+<img alt="../../_images/tutorials_inputs_scan-patterns_5_2.png" src="../../_images/tutorials_inputs_scan-patterns_5_2.png" />
 </div>
 </div>
 </section>
@@ -491,14 +475,14 @@ Downloading: |          | 842k/? [00:00&lt;00:00, 35.0MB/s]
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../../inputs.html">
+          <a class="prev-page" href="maps.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Inputs</div>
+                <div class="title">Maps</div>
                 
               </div>
             </a>
