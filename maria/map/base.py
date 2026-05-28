@@ -9,12 +9,12 @@ import numpy as np
 import scipy as sp
 
 from ..calibration import Calibration
-from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ
+from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c
 from ..coords import Frame
 from ..errors import FrequencyOutOfBoundsError, ShapeError
-from ..io import leftpad
+from ..io import leftpad, parse_stokes
 from ..units import Quantity, parse_units
-from ..utils import compute_resolution_precision
+from ..utils import compute_resolution_precision, is_integer
 
 logger = logging.getLogger("maria")
 
@@ -41,6 +41,7 @@ SLICE_DIMS = {
 
 VALID_MAP_QUANTITIES = [
     "rayleigh_jeans_temperature",
+    "brightness_temperature",
     "cmb_temperature_anisotropy",
     "spectral_flux_density_per_pixel",
     "spectral_flux_density_per_beam",
@@ -89,10 +90,7 @@ class Map:
 
         self.slice_dims = {}
         if stokes is not None:
-            stokes = "".join(list(stokes))
-            if stokes not in ["I", "IQU", "IQUV"]:
-                raise ValueError(f"Invalid stokes parameter '{stokes}' (must be either 'I', 'IQU', or 'IQUV').")
-            self.stokes = stokes.upper()
+            self.stokes = parse_stokes(stokes)
             self.slice_dims["stokes"] = len(self.stokes)
         else:
             self.stokes = ""
@@ -157,6 +155,35 @@ class Map:
                 raise ValueError(
                     f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
                 )
+
+    def apply_parity(self, **signature):
+
+        logger.debug(f"Applying dimension parity signature {signature}")
+
+        parity_slicing = []
+        for dim in signature:
+            if dim == "stokes":
+                parity_slicing.append(slice(None, None, 1))
+                continue
+            if dim not in self.dims:
+                raise ValueError(f"'{dim}' not in map axes")
+            dim_parity = signature[dim]
+            dim_values = getattr(self, dim)
+            if dim_values.size > 1:
+                grad = np.gradient(dim_values.base_units_value)
+                if all(grad < 0):
+                    dim_parity *= -1
+                elif not all(grad > 0):
+                    raise ValueError(f"Values for supplied axis '{dim}' are not monotonic")
+            setattr(self, dim, dim_values[::dim_parity])
+            parity_slicing.append(slice(None, None, dim_parity))
+
+        self.data = self.data[tuple(parity_slicing)]
+
+        if self._weight is not None:
+            self.weight = self.weight[tuple(parity_slicing)]
+
+        self.beam = self.beam[tuple(parity_slicing[: -len(self.map_dims)])]  # exclude the map dimension
 
     @property
     def weight(self):
@@ -230,22 +257,26 @@ class Map:
         package = self.package()
         dim_indices_to_squeeze = []
 
-        for dim_index, name in enumerate(dims):
-            if name in self.map_dims:
-                raise ValueError(f"Cannot squeeze dimension '{name}'")
-
-            n = self.slice_dims.get(name)
+        for dim in dims:
+            n = self.slice_dims.get(dim)
 
             if n is None:
-                raise ValueError(f"{self.__class__.__name__} has no dimension '{name}'")
+                raise ValueError(f"{self.__class__.__name__} has no dimension '{dim}'")
             if n != 1:
-                raise ValueError(f"Cannot squeeze dimension '{name}' with length {n} > 1")
+                raise ValueError(f"Cannot squeeze dimension '{dim}' with length {n} > 1")
 
-            dim_indices_to_squeeze.append(dim_index)
-            package.pop(name)
+            if dim in self.map_dims:
+                raise ValueError(f"Cannot squeeze pixel dimension '{dim}'")
+
+            dim_indices_to_squeeze.append(list(self.dims).index(dim))
+            package.pop(dim)
 
         package["data"] = package["data"].squeeze(tuple(dim_indices_to_squeeze))
-        package["weight"] = package["weight"].squeeze(tuple(dim_indices_to_squeeze))
+
+        if "weight" in package:
+            package["weight"] = package["weight"].squeeze(tuple(dim_indices_to_squeeze))
+
+        package["beam"] = np.squeeze(package["beam"], tuple(dim_indices_to_squeeze))
 
         return type(self)(**package)
 
@@ -264,7 +295,10 @@ class Map:
 
         package = self.package()
         package["data"] = np.expand_dims(package["data"], new_dim_index)
-        package["weight"] = np.expand_dims(package["weight"], new_dim_index)
+
+        if "weight" in package:
+            package["weight"] = np.expand_dims(package["weight"], new_dim_index)
+
         package["beam"] = np.expand_dims(package["beam"], new_dim_index)
 
         if value is None:
@@ -288,6 +322,29 @@ class Map:
             return "ragged"
         b = self.beam.mean(axis=slice_axes)
         return (b[0], b[1], b[2])
+
+    def to_obs_frame(self):
+
+        package = self.package()
+
+        if "nu" not in package:
+            return self
+
+        for dim_index, (dim, n) in enumerate(self.dims.items()):
+            if (dim in ["nu", "v", "z"]) and (n == 1):
+                package["data"] = np.squeeze(package["data"], axis=dim_index)
+
+            if dim == "z":
+                z = package.pop("z")
+            elif dim == "v":
+                v = package.pop("v")
+                numer = np.sqrt(1 + v / Quantity(c, "m/s"))
+                denom = np.sqrt(1 - v / Quantity(c, "m/s"))
+                z = numer / denom - 1
+
+        package["nu"] = package.pop("nu") * (1 + z)
+
+        return type(self)(**package)
 
     def to(self, units: str, only_return_data: bool = False, **calibration_kwargs: Mapping):
         if units == self.units:
@@ -458,7 +515,12 @@ def concatenate(maps: list[Map], dim: str) -> Map:
     dim_index = list(dims_list.keys()).index(dim)
     total_package = packages[0].copy()
     total_package["data"] = np.concatenate([p["data"] for p in packages], axis=dim_index)
-    total_package["weight"] = np.concatenate([p["weight"] for p in packages], axis=dim_index)
+
+    if any([getattr(m, "_weight") is not None for m in maps]):
+        total_package["weight"] = np.concatenate([p["weight"] for p in packages], axis=dim_index)
+
+    total_package["beam"] = np.concatenate([p["beam"] for p in packages], axis=dim_index)
+
     total_package[dim] = concat_dim_values
 
     return type(maps[0])(**total_package)

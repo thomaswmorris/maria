@@ -3,8 +3,9 @@ from __future__ import annotations
 import maria
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from maria.io import fetch
-from maria.map import ProjectionMap
+from maria.map import ProjectionMap, all_maps
 
 plt.close("all")
 
@@ -33,3 +34,33 @@ def test_map_slice():
     m = ProjectionMap(data=data, width=1e0, stokes=stokes, nu=nu, t=t, center=(0, -30), units="K_RJ", frame="ra_dec")
 
     m[0, :, ::2, :2]
+
+
+@pytest.mark.parametrize(
+    "map_path",
+    all_maps,
+)  # noqa
+def test_map_reduce(map_path):
+
+    m = maria.map.load(fetch(map_path))
+    m.reduce((2, 7))
+
+
+@pytest.mark.parametrize(
+    "map_path",
+    all_maps,
+)  # noqa
+def test_map_trim(map_path):
+
+    m = maria.map.load(fetch(map_path))
+    m.trim()
+
+
+@pytest.mark.parametrize(
+    "map_path",
+    all_maps,
+)  # noqa
+def test_map_trim(map_path):
+
+    m = maria.map.load(fetch(map_path))
+    m.squeeze()

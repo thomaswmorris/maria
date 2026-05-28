@@ -15,7 +15,7 @@ from astropy.io import fits
 from astropy.wcs import WCS
 
 from ..array import Array
-from ..coords import Coordinates, Frame, offsets_to_phi_theta
+from ..coords import Coordinates, Frame, get_center_phi_theta, offsets_to_phi_theta, phi_theta_to_offsets
 from ..io import FITS_DEFAULT_UNITS, FITS_TYPE_ALIASES, repr_phi_theta
 from ..units import Quantity, parse_units
 from ..utils import compute_pointing_matrix_ingredients, unpack_implicit_slice
@@ -71,8 +71,6 @@ class ProjectionMap(Map):
         if weight is not None:
             if weight.shape != data.shape:
                 raise ValueError(f"'data' {data.shape} and 'weight' {weight.shape} should have the same shape.")
-        else:
-            weight = da.ones_like(data)
 
         map_dims = {"eta": data.shape[-2], "xi": data.shape[-1]}
 
@@ -110,12 +108,12 @@ class ProjectionMap(Map):
 
             if (width is not None) or (height is not None):
                 if width is not None:
-                    xi_res = xi_sign * width / data.shape[-1]
+                    xi_res = xi_sign * width / (data.shape[-1] - 1)
                     if height is None:
                         eta_res = eta_sign * abs(xi_res)
 
                 if height is not None:
-                    eta_res = eta_sign * height / data.shape[-2]
+                    eta_res = eta_sign * height / (data.shape[-2] - 1)
                     if width is None:
                         xi_res = xi_sign * abs(eta_res)
 
@@ -130,32 +128,8 @@ class ProjectionMap(Map):
         self.eta = Quantity(eta, "deg" if degrees else "rad")
 
         # apply parity convention
-        parity_signature = {dim: (-1 if dim in ["v", "eta"] else 1) for dim in self.dims if dim not in ["stokes"]}
+        parity_signature = {dim: (-1 if dim in ["v", "eta"] else 1) for dim in self.dims}
         self.apply_parity(**parity_signature)
-
-    def apply_parity(self, **signature):
-
-        logger.debug(f"Applying dimension parity signature {signature}")
-
-        parity_slicing = []
-        for dim in signature:
-            if dim not in self.dims:
-                raise ValueError(f"'{dim}' not in map axes")
-            dim_parity = signature[dim]
-            dim_values = getattr(self, dim)
-            if dim_values.size > 1:
-                grad = np.gradient(dim_values.base_units_value)
-                if all(grad < 0):
-                    dim_parity *= -1
-                elif not all(grad > 0):
-                    raise ValueError(f"Values for supplied axis '{dim}' are not monotonic")
-            setattr(self, dim, dim_values[::dim_parity])
-            parity_slicing.append(slice(None, None, dim_parity))
-
-        self.data = self.data[tuple(parity_slicing)]
-
-        if self._weight is not None:
-            self.weight = self.weight[tuple(parity_slicing)]
 
     def _pointing_matrix_ingredients(self, coords: Coordinates, bilinear: bool = True):
         offsets = coords.offsets(center=(self.center[0].rad, self.center[1].rad), frame=self.frame.name)
@@ -235,21 +209,24 @@ class ProjectionMap(Map):
         header["CUNIT2"] = "deg"
 
         for dim_index, dim in enumerate(list(self.dims)[:-2][::-1]):
-            if dim == "stokes":
-                continue
-
             AXIS = dim_index + 3
 
-            grad = getattr(self, dim)[0]
-
+            dim_values = getattr(self, dim)
             units = FITS_DEFAULT_UNITS[dim]
-            dim_values = getattr(self, dim).to(units)
+
+            if dim == "stokes":
+                dim_values = np.array(["IQUV".index(s) for s in dim_values])
+
+            if units:
+                dim_values = dim_values.to(units)
+
             if dim_values.size > 1:
                 grad = np.gradient(dim_values)
                 delt = np.median(grad)
                 if not grad.std() / np.abs(delt) < 1e-6:
                     raise RuntimeError("Cannot write irregular maps to FITS")
             else:
+                grad = getattr(self, dim)[0]
                 delt = 0.0
 
             header[f"CTYPE{AXIS}"] = FITS_TYPE_ALIASES[dim][0]
@@ -313,7 +290,6 @@ class ProjectionMap(Map):
         package = copy.deepcopy(
             {
                 "data": self.data,
-                "weight": self.weight,
                 "center": (self.center[0].deg, self.center[1].deg),
                 "frame": self.frame.name,
                 "units": self.units,
@@ -321,6 +297,9 @@ class ProjectionMap(Map):
                 "degrees": True,
             }
         )
+
+        if self._weight is not None:
+            package["weight"] = self._weight
 
         for dim in self.dims:
             package[dim] = getattr(self, dim)
@@ -425,7 +404,25 @@ class ProjectionMap(Map):
             units=self.units,
             center=other_map.center,
             **{dim: (getattr(other_map, dim) if dim in ["xi", "eta"] else getattr(self, dim)) for dim in self.dims},
+            beam=self.beam,
         )
+
+    def recenter(self):
+
+        package = self.package()
+        offsets = np.stack(np.meshgrid(self.xi.rad, self.eta.rad), axis=-1)
+        phi_theta = offsets_to_phi_theta(offsets, self.center[0].rad, self.center[1].rad)
+        new_center = get_center_phi_theta(phi_theta[..., 0], phi_theta[..., 1])
+        new_offsets = phi_theta_to_offsets(phi_theta, float(new_center[0]), float(new_center[1]))
+        package["xi_res"] = np.degrees(np.gradient(new_offsets[..., 0].mean(axis=0)).mean())
+        package["eta_res"] = np.degrees(np.gradient(new_offsets[..., 1].mean(axis=1)).mean())
+        package["center"] = (Quantity(new_center[0], "rad"), Quantity(new_center[1], "rad"))
+
+        return type(self)(**package)
+
+    def trim(self):
+        trim_mask = (self.weight.compute() > 0) & np.isfinite(self.data.compute())
+        return self[tuple([slice(indices.min(), indices.max() + 1, 1) for indices in np.where(trim_mask)])].recenter()
 
     def reduce(self, reduction: Iterable[int]):
 
@@ -439,10 +436,14 @@ class ProjectionMap(Map):
         new_dims = {}
         for dim_index, (dim, dim_len) in enumerate(self.dims.items()):
             red = explicit_reduction[dim]
+
             dim_trim_slice = slice(0, dim_len - dim_len % red, 1)
             dim_reduction_shape = (dim_len // red, red)
 
-            new_dims[dim] = getattr(self, dim)[dim_trim_slice].reshape(dim_reduction_shape).mean(axis=-1)
+            if red > 1:
+                new_dims[dim] = getattr(self, dim)[dim_trim_slice].reshape(dim_reduction_shape).mean(axis=-1)
+            else:
+                new_dims[dim] = getattr(self, dim)
 
             reduction_shape.extend(dim_reduction_shape)
             dims_to_average.append(2 * dim_index + 1)
@@ -460,7 +461,7 @@ class ProjectionMap(Map):
         pixel_area_reduction = np.prod([explicit_reduction[dim] for dim in ["xi", "eta"]])
         reduced_data *= pixel_area_reduction ** -parse_units(self.units)["dimension_vector"]["pixel"]
 
-        return type(self)(data=reduced_data, center=self.center, units=self.units, **new_dims)
+        return type(self)(data=reduced_data, center=self.center, units=self.units, **new_dims, beam=self.beam)
 
     def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):
@@ -475,8 +476,11 @@ class ProjectionMap(Map):
         numer = sp.ndimage.gaussian_filter(self.data * self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
         denom = sp.ndimage.gaussian_filter(self.weight, sigma=(y_sigma_pixels, x_sigma_pixels), axes=(-2, -1))
 
-        package["data"] = numer / denom
-        package["weight"] = numer
+        with np.errstate(divide="ignore", invalid="ignore"):
+            package["data"] = np.where(denom > 0, numer / denom, 0)
+
+        if self._weight is not None:
+            package["weight"] = denom
 
         return type(self)(**package)
 
@@ -553,6 +557,15 @@ class ProjectionMap(Map):
         ax_size: float = 5.0,
     ):
 
+        if slices == "all":
+            thick_slice_dims = {dim: n for dim, n in self.slice_dims.items() if n > 1}
+            if len(thick_slice_dims) > 2:
+                raise ValueError(
+                    "Cannot plot all slices (map has more than two slice dimensions with size greater than one)"
+                )
+
+            slices = {k: np.expand_dims(np.arange(n), i) for i, (k, n) in enumerate(thick_slice_dims.items()) if n > 1}
+
         rel_vmin = rel_vmin or contrast
         rel_vmax = rel_vmax or 1.0 - contrast
 
@@ -562,7 +575,11 @@ class ProjectionMap(Map):
 
         SLICES = {dim: np.atleast_2d(x) for dim, x in zip(self.dims, np.broadcast_arrays(*dim_slices.values()))}
 
-        nrows, ncols = SLICES["xi"].shape
+        if SLICES["xi"].ndim > 2:
+            raise ValueError(f"Broadcasted slices have more than two dimensions")
+
+        nrows = min(SLICES["xi"].shape)
+        ncols = max(SLICES["xi"].shape)
 
         if units is None:
             units = Quantity(self.data, self.units).human_units
@@ -598,10 +615,10 @@ class ProjectionMap(Map):
             sharey=False,
             # ppi=256,
         )
-        axes = np.atleast_2d(axes)
+        axes = np.atleast_2d(axes).reshape(SLICES["xi"].shape)
 
-        for i in range(nrows):
-            for j in range(ncols):
+        for i in range(SLICES["xi"].shape[-2]):
+            for j in range(SLICES["xi"].shape[-1]):
                 ax = axes[i, j]
                 ax_slices = {dim: SLICES[dim][i, j] for dim in self.dims}
 
@@ -700,6 +717,8 @@ class ProjectionMap(Map):
                 f.create_dataset("nu", data=self.nu.Hz)
             if "t" in self.dims:
                 f.create_dataset("t", data=self.t.s)
+            if "v" in self.dims:
+                f.create_dataset("v", data=self.v.to("m/s"))
             if "z" in self.dims:
                 f.create_dataset("z", data=self.z)
             f.create_dataset("center", dtype=float, data=(self.center[0].deg, self.center[1].deg))

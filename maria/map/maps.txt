@@ -1,6 +1,7 @@
 maps/30dor.fits
-maps/3c288.fits
+maps/radio_galaxy_3C_288.fits
 maps/M51HA.fits
+maps/circinus_galaxy.h5
 maps/cluster1.fits
 maps/cluster2.fits
 maps/cluster3.fits
@@ -11,4 +12,5 @@ maps/maria.h5
 maps/monoceros_R2.h5
 maps/orion_A.h5
 maps/protoplanetary_disk.fits
+maps/quasar_3C_286.h5
 maps/sun.h5

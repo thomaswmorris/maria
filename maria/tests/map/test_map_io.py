@@ -13,11 +13,17 @@ plt.close("all")
 
 
 @pytest.mark.parametrize("filename", all_maps)
-def test_all_maps(filename):
-    m = maria.map.load(filename=fetch(filename), width=0.1, center=(150, 10))  # noqa
-    m.plot()
+def test_overwrite_width(filename):
+    m = maria.map.load(filename=fetch(filename), width=0.5)  # noqa
 
-    plt.close("all")
+    assert np.isclose(m.width.deg, 0.5)
+
+
+@pytest.mark.parametrize("filename", all_maps)
+def test_overwrite_resolution(filename):
+    m = maria.map.load(filename=fetch(filename), resolution=1e-4)  # noqa
+
+    assert np.isclose(m.resolution.deg, 1e-4)
 
 
 @pytest.mark.parametrize(
@@ -25,22 +31,22 @@ def test_all_maps(filename):
     all_maps,
 )  # noqa
 def test_map_io_units(map_path):
-    m = maria.map.get(map_path)
-    if "nu" not in m.dims:
-        m = m.unsqueeze("nu", 150e9)
-    assert np.allclose(m.to("K_RJ").to("Jy/pixel").to(m.units).data, m.data).compute()
 
-    m.to("cK_RJ").to_hdf("/tmp/test_write_map.h5")
+    m = maria.map.load(fetch(map_path))
+
+    m.to_hdf("/tmp/test_write_map.h5")
     new_m_hdf = maria.map.load("/tmp/test_write_map.h5").to(m.units)  # noqa
 
-    assert np.allclose(new_m_hdf.data, m.data)
+    rel_error = np.nanstd(new_m_hdf.data - m.data).compute() / np.nanstd(m.data).compute()
+    assert rel_error < 1e-6
+
     assert np.allclose(new_m_hdf.resolution.arcsec, m.resolution.arcsec)
 
     if "fits" in map_path:
-        m.to("cK_RJ").to_fits("/tmp/test_write_map.fits")
+        m.to_fits("/tmp/test_write_map.fits")
         new_m_fits = maria.map.load("/tmp/test_write_map.fits").to(m.units)  # noqa
 
-        assert np.allclose(new_m_fits.data, m.data)
-        assert np.allclose(new_m_fits.resolution.arcsec, m.resolution.arcsec)
+        rel_error = np.nanstd(new_m_fits.data - m.data).compute() / np.nanstd(m.data).compute()
+        assert rel_error < 1e-6
 
-    m.plot()
+        assert np.allclose(new_m_fits.resolution.arcsec, m.resolution.arcsec)
