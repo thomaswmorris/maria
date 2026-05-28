@@ -298,13 +298,6 @@
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">maria.instrument</span><span class="w"> </span><span class="kn">import</span> <span class="n">Band</span>
 
-<span class="n">f090</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span>
-    <span class="n">center</span><span class="o">=</span><span class="mf">90e9</span><span class="p">,</span>  <span class="c1"># in Hz</span>
-    <span class="n">width</span><span class="o">=</span><span class="mf">20e9</span><span class="p">,</span>  <span class="c1"># in Hz</span>
-    <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">40e-6</span><span class="p">,</span>  <span class="c1"># in K sqrt(s)</span>
-    <span class="n">knee</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>    <span class="c1"># in Hz</span>
-    <span class="n">gain_error</span><span class="o">=</span><span class="mf">5e-2</span><span class="p">)</span>
-
 <span class="n">f150</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span>
     <span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span>
@@ -312,12 +305,13 @@
     <span class="n">knee</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
     <span class="n">gain_error</span><span class="o">=</span><span class="mf">5e-2</span><span class="p">)</span>
 
-<span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+<span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
          <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;circle&quot;</span><span class="p">,</span>
-         <span class="s2">&quot;beam_spacing&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+         <span class="s2">&quot;beam_spacing&quot;</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
          <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
          <span class="s2">&quot;polarized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f090</span><span class="p">,</span> <span class="n">f150</span><span class="p">][:</span><span class="mi">1</span><span class="p">]}</span>
+         <span class="s2">&quot;packing&quot;</span><span class="p">:</span> <span class="s2">&quot;sunflower&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">f150</span><span class="p">]}</span>
 
 <span class="n">instrument</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">get_instrument</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="n">array</span><span class="p">)</span>
 
@@ -330,8 +324,8 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-          n     FOV baseline   bands polarized
-array1  326  28.68’      0 m  [f090]      True
+         n     FOV baseline   bands polarized
+array1  88  11.98’      0 m  [f150]      True
 </pre></div></div>
 </div>
 <p>We can see the resulting polarization footprint in the instrument plot:</p>
@@ -351,12 +345,12 @@ array1  326  28.68’      0 m  [f090]      True
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│            n     FOV baseline   bands polarized
-│  array1  326  28.68’      0 m  [f090]      True
+│           n     FOV baseline   bands polarized
+│  array1  88  11.98’      0 m  [f150]      True
 │
 └ bands:
-      name  center   width    η         NEP      NET_RJ         NET_CMB    FWHM
-   0  f090  90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  1.458’
+      name   center   width    η         NEP      NET_RJ       NET_CMB    FWHM
+   0  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s  104 uK_CMB√s  52.49”
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -372,6 +366,7 @@ Instrument(1 array)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">input_map</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maps/einstein.h5&quot;</span><span class="p">)</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mi">4</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
 
 
@@ -387,8 +382,8 @@ Instrument(1 array)
 <div class="highlight"><pre>
 ProjectionMap:
   data(4, 1, 685, 685):
-    min: -1.000e-02
-    max: 2.540e-01
+    min: -4.000e-02
+    max: 1.016e+00
     units: K_RJ
     quantity: rayleigh_jeans_temperature
   stokes(4):
@@ -422,10 +417,18 @@ ProjectionMap:
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Planner</span>
 
-<span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;el&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">90</span><span class="p">)})</span>
-<span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span><span class="n">total_duration</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>  <span class="c1"># in seconds</span>
+<span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">&quot;mauna_kea&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;el&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="mi">90</span><span class="p">)})</span>
+
+<span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span>
+                               <span class="n">total_duration</span><span class="o">=</span><span class="mi">1800</span><span class="p">,</span>
+                               <span class="n">max_chunk_duration</span><span class="o">=</span><span class="mi">1800</span><span class="p">,</span>
                                <span class="n">sample_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-                               <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;back_and_forth&quot;</span><span class="p">)</span>  <span class="c1"># in Hz</span>
+                               <span class="n">scan_pattern</span><span class="o">=</span><span class="s2">&quot;raster&quot;</span><span class="p">,</span>
+                               <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span>
+                                   <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">16</span><span class="p">)],</span>
+                                   <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+                                   <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                               <span class="p">})</span>
 
 <span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plans</span><span class="p">)</span>
@@ -437,10 +440,10 @@ ProjectionMap:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-PlanList(1 plans, 600 s):
-                           start_time duration  target(ra,dec)     center(az,el)
+PlanList(1 plans, 1800 s):
+                           start_time duration target(ra,dec)     center(az,el)
 chunk
-0      2026-05-28 09:58:44.158 +00:00    600 s  (5.668”, -23°)  (95.87°, 61.32°)
+0      2026-05-29 16:56:23.975 +00:00   1800 s   (360°, -23°)  (165.7°, 46.05°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -457,16 +460,25 @@ chunk
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
     <span class="n">instrument</span><span class="p">,</span>
     <span class="n">plans</span><span class="o">=</span><span class="n">plans</span><span class="p">,</span>
-    <span class="n">site</span><span class="o">=</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span>
+    <span class="n">site</span><span class="o">=</span><span class="s2">&quot;mauna_kea&quot;</span><span class="p">,</span>
     <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
-    <span class="n">atmosphere_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;weather&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;pwv&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}},</span>
     <span class="nb">map</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
-    <span class="n">map_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;bilinear_sampling&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2026-05-28 18:50:52.621 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/mauna_kea.h5
+Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 82.3MB/s]
+2026-05-28 18:50:54.488 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/mauna_kea.h5
+Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 51.7MB/s]
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -476,30 +488,30 @@ chunk
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │            n     FOV baseline   bands polarized
-│ │  array1  326  28.68’      0 m  [f090]      True
+│ │           n     FOV baseline   bands polarized
+│ │  array1  88  11.98’      0 m  [f150]      True
 │ │
 │ └ bands:
-│       name  center   width    η         NEP      NET_RJ         NET_CMB    FWHM
-│    0  f090  90 GHz  20 GHz  0.5  5.445 aW√s  40 uK_RJ√s  49.13 uK_CMB√s  1.458’
+│       name   center   width    η         NEP      NET_RJ       NET_CMB    FWHM
+│    0  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s  104 uK_CMB√s  52.49”
 ├ Site:
-│   region: chajnantor
-│   timezone: America/Santiago
+│   region: mauna_kea
+│   timezone: Pacific/Honolulu
 │   location:
-│     longitude: 67°45’17.28” W
-│     latitude:  23°01’45.84” S
-│     altitude: 5.064 km
+│     longitude: 155°28’37.20” W
+│     latitude:  19°49’22.08” N
+│     altitude: 4.092 km
 │   seasonal: True
 │   diurnal: True
-├ PlanList(1 plans, 600 s):
-│                            start_time duration  target(ra,dec)     center(az,el)
+├ PlanList(1 plans, 1800 s):
+│                            start_time duration target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-05-28 09:58:44.158 +00:00    600 s  (5.668”, -23°)  (95.87°, 61.32°)
+│ 0      2026-05-29 16:56:23.975 +00:00   1800 s   (360°, -23°)  (165.7°, 46.05°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     data(4, 1, 1, 685, 685):
-      min: -1.000e-02
-      max: 2.540e-01
+      min: -4.000e-02
+      max: 1.016e+00
       units: K_RJ
       quantity: rayleigh_jeans_temperature
     stokes(4):
@@ -507,7 +519,7 @@ Simulation
     nu(1):
       values: [90.] GHz
     t(1):
-      values: [1.77994218e+09] s
+      values: [1.77999424e+09] s
     eta(685):
       height: 60’
       res: -5.263”
@@ -538,14 +550,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-28 04:23:11.771 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:09&lt;00:00,  1.15s/it]
-Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  6.52it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.86it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.00s/it, band=f090]
-Sampling map: 100%|██████████| 1/1 [00:08&lt;00:00,  8.13s/it, band=f090, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.07it/s, band=f090]
-2026-05-28 04:23:43.392 INFO: Simulated observation 1 of 1 in 31.61 s
+2026-05-28 18:50:55.176 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:41&lt;00:00,  5.23s/it]
+Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.35it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.59it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.16s/it, band=f150]
+Sampling map: 100%|██████████| 1/1 [00:05&lt;00:00,  5.78s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.13s/it, band=f150]
+2026-05-28 18:52:00.253 INFO: Simulated observation 1 of 1 in 65.07 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -553,10 +565,10 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(326, 30000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-05-28 10:08:44.138 +00:00, duration=600.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-05-28T04:23:38.172082+00:00]&gt;, &#39;altitude&#39;: 5064.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.329, &#39;input_map&#39;: ProjectionMap:
+[TOD(shape=(88, 90000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-05-29 17:26:23.953 +00:00, duration=1800.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-05-28T18:51:54.281392+00:00]&gt;, &#39;altitude&#39;: 4092.0, &#39;region&#39;: &#39;mauna_kea&#39;, &#39;pwv&#39;: 2.208, &#39;base_temperature&#39;: 278.501, &#39;input_map&#39;: ProjectionMap:
   data(4, 1, 1, 685, 685):
-    min: -1.000e-02
-    max: 2.540e-01
+    min: -4.000e-02
+    max: 1.016e+00
     units: K_RJ
     quantity: rayleigh_jeans_temperature
   stokes(4):
@@ -564,7 +576,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
   nu(1):
     values: [90.] GHz
   t(1):
-    values: [1.77994218e+09] s
+    values: [1.77999424e+09] s
   eta(685):
     height: 60’
     res: -5.263”
@@ -590,21 +602,33 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaximumLikelihoodMapper</span>
 
-<span class="n">X</span> <span class="o">=</span> <span class="n">tods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">offsets</span><span class="p">(</span><span class="s2">&quot;ra/dec&quot;</span><span class="p">)</span>
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">MaximumLikelihoodMapper</span><span class="p">(</span>
+    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient_order&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
+    <span class="n">bilinear</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">mapper</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area docutils container">
+<div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7fee4254b620&gt;]
+2026-05-28 18:52:05.636 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.12”&#39;} for mapper
+2026-05-28 18:52:05.646 INFO: Inferring mapper width 1.197° for mapper from observation patch
+2026-05-28 18:52:05.646 INFO: Inferring mapper height 1.197° to match supplied width
+2026-05-28 18:52:05.649 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:04&lt;00:00,  4.29s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:04&lt;00:00,  4.24s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -618,21 +642,13 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
-
-<span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
-    <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span>
-    <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">input_map</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
-    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient_order&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-    <span class="p">},</span>
-    <span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
-    <span class="n">bilinear</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">output_map</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">output_map</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+           <span class="n">steps_per_epoch</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+           <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+           <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;slices&quot;</span><span class="p">:</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;center_zero&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;contrast&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">})</span>
 </pre></div>
 </div>
 </div>
@@ -641,96 +657,34 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-28 04:23:48.697 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.38ˢ&#39;, &#39;dec&#39;: &#39;-23°00’5.21”&#39;} for mapper
-2026-05-28 04:23:48.705 INFO: Inferring mapper width 1.58° for mapper from observation patch
-2026-05-28 04:23:48.705 INFO: Inferring mapper height 1.58° to match supplied width
-2026-05-28 04:23:48.708 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:03&lt;00:00,  3.74s/it]
-Mapping: 100%|██████████| 1/1 [00:03&lt;00:00,  3.17s/it, tod=1/1]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.75s/it, tod=1/1]
+Fitting map (epoch 1/2): 100%|██████████| 25/25 [01:28&lt;00:00,  3.52s/it, mll=-2.515e+00, pgrad=0.957, step=6.629e-02]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
+<img alt="../_images/tutorials_polarized-observations_11_1.png" src="../_images/tutorials_polarized-observations_11_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-ProjectionMap:
-  data(3, 1, 1, 540, 540):
-    min: -1.446e-01
-    max: 1.424e-01
-    units: K_RJ
-    quantity: rayleigh_jeans_temperature
-  stokes(3):
-    components: IQU
-  nu(1):
-    values: [90.] GHz
-  t(1):
-    values: [1.77996262e+09] s
-  eta(540):
-    height: 1.576°
-    res: -10.53”
-  xi(540):
-    width: 1.576°
-    res: 10.53”
-  frame: ra/dec
-  center:
-    ra: 00ʰ00ᵐ0.38ˢ
-    dec: -23°00’5.21”
-  beam(maj, min, psi): (1.458’, 1.458’, 0 rad)
-  memory: 6.998 MB
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.76s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 25/25 [01:27&lt;00:00,  3.50s/it, mll=-1.257e+01, pgrad=-0.015, step=2.676e-03]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-
-<span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-np.int64(16)
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_fits</span><span class="p">(</span><span class="s2">&quot;/tmp/test_tod.fits&quot;</span><span class="p">)</span>
-</pre></div>
+<img alt="../_images/tutorials_polarized-observations_11_3.png" src="../_images/tutorials_polarized-observations_11_3.png" />
 </div>
 </div>
 <p>Note that we can’t see any of the circular polarization, since our instrument isn’t sensitive to it.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">stokes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="s2">&quot;U&quot;</span><span class="p">]))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorials_polarized-observations_15_0.png" src="../_images/tutorials_polarized-observations_15_0.png" />
-</div>
-</div>
 </section>
 
         </article>
