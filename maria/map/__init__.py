@@ -64,19 +64,26 @@ def load(filename: str, index: int = None, format: str = "auto", **map_kwargs) -
         format = filename.split(".")[-1].lower()
 
     if format == "fits":
-        data, kwargs, _ = read_fits_map(filename, index=index)
+        data, axis_mask, kwargs, header = read_fits_map(filename, index=index, strict=False)
+        data = np.squeeze(data, tuple([i for i in range(data.ndim) if not axis_mask[i]]))
     elif format == "h5":
         data, kwargs = read_hdf_map(filename)
     else:
         raise NotImplementedError(f"Unsupported filetype '.{format}'.")
 
-    # if there are any kwargs specifying the size of the map,
-    # then remove size kwargs from the read-in map's metadata.
-    # if any([k in MAP_SIZE_KWARGS for k in map_kwargs]):
-    #     for k in MAP_SIZE_KWARGS:
-    #         if k in kwargs:
-    #             logging.info(f"Overriding map kwarg '{k}'")
-    #             kwargs.pop(k)
+    # if there are any kwargs specifying the size of the map
+    # remove size kwargs from the read-in map's metadata
+    # so that they overwrite the size
+    overridden_size_kwargs = {}
+    overriding_size_kwargs = {k: v for k, v in map_kwargs.items() if k in MAP_SIZE_KWARGS}
+    if overriding_size_kwargs:
+        for k in MAP_SIZE_KWARGS:
+            if k in kwargs:
+                overridden_size_kwargs[k] = kwargs.pop(k)
+
+        logging.info(
+            f"Passed map size kwargs {overriding_size_kwargs} will overwrite map size metadata {overridden_size_kwargs}"
+        )
 
     kwargs.update(map_kwargs)
     logger.debug(f"Loading ProjectionMap with kwargs {kwargs}")

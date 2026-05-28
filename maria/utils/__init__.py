@@ -22,6 +22,21 @@ def regular_digitization(x, bins):
     return ((x - (bins.min() - dx)) / dx).astype(int).clip(min=0, max=len(bins))
 
 
+def is_numeric(val):
+    try:
+        float(val)
+        return True
+    except ValueError:
+        return False
+
+
+def is_integer(val):
+    try:
+        return float(val) == int(val)
+    except ValueError:
+        return False
+
+
 def unpack_implicit_slice(key, ndims):
     key = key if isinstance(key, tuple) else tuple(key)
     explicit_slices = []

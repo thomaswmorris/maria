@@ -58,7 +58,6 @@ def downsample(DATA, rate, axis=-1, method=None):
 
 def decompose(D, k: int = 64, batch: bool = True, norm: str = "var"):
     *batch_shape, n_dets, n_samples = D.shape
-    dnorm = D.std(axis=-1)
 
     if batch_shape:
         if batch:

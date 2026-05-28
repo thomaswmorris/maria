@@ -51,7 +51,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         },
         map_postprocessing: dict = {},
         progress_bars: bool = True,
-        bilinear: bool = True,
+        bilinear: bool = False,
         verbose: bool = False,
         noise_model_config: dict = {},
     ):
