@@ -40,15 +40,3 @@ one_detector:
         center: 220.e+9
         width: 50.e+9
         efficiency: 0.4
-
-10deg:
-  aliases: ["test_10deg"]
-  description: A simple test array
-  array:
-    field_of_view: 10
-    primary_size: 5
-    bands:
-      f150:
-        center: 150.e+9
-        width: 30.e+9
-        efficiency: 0.5

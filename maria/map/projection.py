@@ -441,6 +441,8 @@ class ProjectionMap(Map):
             dim_reduction_shape = (dim_len // red, red)
 
             if red > 1:
+                if dim == "stokes":
+                    raise ValueError("Cannot reduce stokes map dimension")
                 new_dims[dim] = getattr(self, dim)[dim_trim_slice].reshape(dim_reduction_shape).mean(axis=-1)
             else:
                 new_dims[dim] = getattr(self, dim)
