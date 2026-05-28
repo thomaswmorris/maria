@@ -486,7 +486,7 @@ Simulation
     nu(1):
       values: [150.] GHz
     t(1):
-      values: [1.77994134e+09] s
+      values: [1.77999331e+09] s
     eta(1024):
       height: 59.94’
       res: -3.516”
@@ -515,14 +515,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-28 04:09:03.493 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:11&lt;00:00,  1.49s/it]
-Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  7.96it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:03&lt;00:00,  2.11it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.32it/s, band=f150]
-Sampling map: 100%|██████████| 1/1 [00:06&lt;00:00,  6.61s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.39s/it, band=f150]
-2026-05-28 04:09:39.661 INFO: Simulated observation 1 of 1 in 36.16 s
+2026-05-28 18:35:17.902 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:11&lt;00:00,  1.50s/it]
+Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  6.39it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.64it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.02it/s, band=f150]
+Sampling map: 100%|██████████| 1/1 [00:10&lt;00:00, 10.47s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:02&lt;00:00,  2.21s/it, band=f150]
+2026-05-28 18:36:08.411 INFO: Simulated observation 1 of 1 in 50.5 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -555,13 +555,13 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.3
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-05-28 04:09:43.353 INFO: Inferring resolution = 8.748” from detector FWHM
-2026-05-28 04:09:45.336 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.88ˢ&#39;, &#39;dec&#39;: &#39;-9°59’53.94”&#39;} for mapper
-2026-05-28 04:09:45.344 INFO: Inferring mapper width 1.641° for mapper from observation patch
-2026-05-28 04:09:45.344 INFO: Inferring mapper height 1.641° to match supplied width
-2026-05-28 04:09:45.347 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:06&lt;00:00,  6.50s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.11s/it]
+2026-05-28 18:36:13.702 INFO: Inferring resolution = 8.748” from detector FWHM
+2026-05-28 18:36:16.506 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.88ˢ&#39;, &#39;dec&#39;: &#39;-9°59’53.96”&#39;} for mapper
+2026-05-28 18:36:16.516 INFO: Inferring mapper width 1.648° for mapper from observation patch
+2026-05-28 18:36:16.516 INFO: Inferring mapper height 1.648° to match supplied width
+2026-05-28 18:36:16.519 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:11&lt;00:00, 11.25s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:04&lt;00:00,  4.66s/it]
 </pre></div></div>
 </div>
 <p>The initial map is a field of random noise:</p>
@@ -580,9 +580,9 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(1, 1, 1, 675, 675):
-    min: -1.179e-02
-    max: 1.075e-02
+  data(1, 1, 1, 678, 678):
+    min: -5.545e-03
+    max: 5.782e-03
     units: K_RJ
     quantity: rayleigh_jeans_temperature
   stokes(1):
@@ -591,18 +591,18 @@ ProjectionMap:
     values: [150.] GHz
   t(1):
     values: [1.77373946e+09] s
-  eta(675):
-    height: 1.638°
+  eta(678):
+    height: 1.645°
     res: -8.748”
-  xi(675):
-    width: 1.638°
+  xi(678):
+    width: 1.645°
     res: 8.748”
   frame: ra/dec
   center:
     ra: 17ʰ19ᵐ59.88ˢ
-    dec: -9°59’53.94”
+    dec: -9°59’53.96”
   beam(maj, min, psi): (17.5”, 17.5”, 0 rad)
-  memory: 3.645 MB
+  memory: 3.677 MB
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -632,8 +632,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.98s/it, tod=1/1]
-Fitting map (epoch 1/4): 100%|██████████| 50/50 [02:21&lt;00:00,  2.82s/it, mll=-2.225e+00, pgrad=0.940, step=5.102e-06]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.67s/it, tod=1/1]
+Fitting map (epoch 1/4): 100%|██████████| 50/50 [02:25&lt;00:00,  2.91s/it, mll=-3.234e+01, pgrad=-0.171, step=7.378e-08]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -648,8 +648,8 @@ Fitting map (epoch 1/4): 100%|██████████| 50/50 [02:21&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.51s/it, tod=1/1]
-Fitting map (epoch 2/4): 100%|██████████| 50/50 [02:28&lt;00:00,  2.96s/it, mll=-3.524e+02, pgrad=0.138, step=4.304e-10]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.22s/it, tod=1/1]
+Fitting map (epoch 2/4): 100%|██████████| 50/50 [02:31&lt;00:00,  3.02s/it, mll=-4.039e+02, pgrad=1.000, step=4.937e-10]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -664,8 +664,8 @@ Fitting map (epoch 2/4): 100%|██████████| 50/50 [02:28&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.03s/it, tod=1/1]
-Fitting map (epoch 3/4): 100%|██████████| 50/50 [02:23&lt;00:00,  2.87s/it, mll=-1.825e+02, pgrad=-0.264, step=2.257e-10]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.77s/it, tod=1/1]
+Fitting map (epoch 3/4): 100%|██████████| 50/50 [02:29&lt;00:00,  2.99s/it, mll=-2.661e+02, pgrad=0.835, step=1.682e-10]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -680,8 +680,8 @@ Fitting map (epoch 3/4): 100%|██████████| 50/50 [02:23&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.63s/it, tod=1/1]
-Fitting map (epoch 4/4): 100%|██████████| 50/50 [02:18&lt;00:00,  2.77s/it, mll=-1.305e+02, pgrad=0.089, step=3.304e-10]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.38s/it, tod=1/1]
+Fitting map (epoch 4/4): 100%|██████████| 50/50 [02:27&lt;00:00,  2.96s/it, mll=-2.019e+02, pgrad=0.720, step=1.479e-09]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
