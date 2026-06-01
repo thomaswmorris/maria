@@ -9,14 +9,15 @@ velocity:
   vector:
     m: 1
     s: -1
-  # units:
-  #   m/s:
-  #     factor: 1
-  #     long_name: meters per second
-  #     math_name: \text{m}/\text{s}
-  #     min_prefix_power: -30
-  #     max_prefix_power: 30
-  #     human: true
+  units:
+    m/s:
+      factor: 1
+      long_name: meters per second
+      math_name: \text{m}/\text{s}
+      min_prefix_power: -30
+      max_prefix_power: 30
+      human: true
+      composite: true
 
 
 

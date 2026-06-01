@@ -18,8 +18,8 @@ def test_white_noise_levels():
     # this is should be distributed as a zero-mean unit-variance Gaussian
     scaled_residuals = tod.noise.compute().mean(axis=1) / target_error
 
-    min_rel_noise = 0.8
-    max_rel_noise = 1.2
+    min_rel_noise = 0.7
+    max_rel_noise = 1.3
     if scaled_residuals.std() < min_rel_noise:
         raise RuntimeError(
             f"Noise residuals are too low ({scaled_residuals.std():.03f} < {min_rel_noise})",

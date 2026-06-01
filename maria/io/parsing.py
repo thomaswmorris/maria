@@ -2,12 +2,61 @@ from typing import Mapping
 
 import numpy as np
 
-from ..utils import is_integer
+from ..units import Quantity
+from ..utils import is_integer, is_numeric
+
+
+def parse_nu(nu):
+    """
+    Infer from 'nu' the values of nu in Hz
+    """
+
+    nu_Hz_values = []
+    for nu_value in np.atleast_1d(nu):
+        if isinstance(nu_value, Quantity):
+            if not nu_value.physical_quantity == "frequency":
+                raise ValueError(f"'v' has units of {nu_value.units} which are incompatible with frequency")
+            nu_Hz_values.append(nu_value.to("Hz"))
+        elif is_numeric(nu_value):
+            nu_Hz_values.append(nu_value)
+        else:
+            raise ValueError(
+                "'nu' must be either an array of floats (assumed to be in units of Hz) "
+                "or a Quantity with dimensions of frequency"
+            )
+
+    return np.array(nu_Hz_values, dtype=float)
+
+
+def parse_v(v):
+    """
+    Infer from 'v' the values of v in Hz
+    """
+
+    v_mps_values = []
+    for v_value in np.atleast_1d(v):
+        if isinstance(v_value, Quantity):
+            if not v_value.physical_quantity == "velocity":
+                raise ValueError(f"'v' has units of {v_value.units} which are incompatible with frequency")
+            v_mps_values.append(v_value.to("m/s"))
+        elif is_numeric(v_value):
+            v_mps_values.append(v_value)
+        else:
+            raise ValueError(
+                "'v' must be either an array of floats (assumed to be in units of m/s) "
+                "or a Quantity with dimensions of velocity"
+            )
+
+    return np.array(v_mps_values, dtype=float)
 
 
 def parse_stokes(stokes):
 
     stokes_list = []
+
+    if isinstance(stokes, str):
+        stokes = list(stokes)
+
     for s in np.atleast_1d(stokes):
         if isinstance(s, str):
             if s in "IQUV":
@@ -28,7 +77,7 @@ def parse_stokes(stokes):
             "in ['I', 'Q', 'U', 'V'] or [0, 1, 2, 3])"
         )
 
-    return "".join(stokes_list).upper()
+    return np.array(stokes_list)
 
 
 def flatten_config(m: dict, prefix: str = ""):

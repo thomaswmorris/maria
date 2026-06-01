@@ -12,7 +12,7 @@ from .projection import ProjectionMap
 def _extract_2d(m: ProjectionMap, stokes: str = "I", nu_index: int = 0, t_index: int = 0) -> np.ndarray:
     d = m.data
     if "stokes" in m.dims:
-        d = d[m.stokes.index(stokes)]
+        d = d[list(m.stokes).index(stokes)]
     if "nu" in m.dims:
         d = d[nu_index]
     if "v" in m.dims:

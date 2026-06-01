@@ -568,6 +568,10 @@ class ProjectionMap(Map):
 
             slices = {k: np.expand_dims(np.arange(n), i) for i, (k, n) in enumerate(thick_slice_dims.items()) if n > 1}
 
+        for dim in slices:
+            if dim not in self.dims:
+                raise ValueError(f"Map has no dimension '{dim}'")
+
         rel_vmin = rel_vmin or contrast
         rel_vmax = rel_vmax or 1.0 - contrast
 
@@ -629,7 +633,7 @@ class ProjectionMap(Map):
                     if isinstance(stokes, str):
                         if stokes not in self.stokes:
                             raise ValueError(f"Map does not have stokes parameter '{stokes}'")
-                        ax_slices["stokes"] = self.stokes.index(stokes)
+                        ax_slices["stokes"] = list(self.stokes).index(stokes)
 
                 map_slice_data = map_data[tuple(ax_slices.values())]
                 map_slice_weights = self.weight[tuple(ax_slices.values())].compute()
@@ -649,7 +653,7 @@ class ProjectionMap(Map):
                     logger.debug(f"Inferring (vmin, vmax) = ({slice_vmin}, {slice_vmax})")
 
                 ref = ax.pcolormesh(
-                    getattr(self.xi, grid_hu["units"]),
+                    getattr(self.xi, grid_hu["units"]),  # this is correct actually; the indexing is different here
                     getattr(self.eta, grid_hu["units"]),
                     map_slice_data,
                     cmap=cmap,
@@ -663,18 +667,24 @@ class ProjectionMap(Map):
                 cbar = fig.colorbar(
                     ref,
                     ax=ax,
-                    shrink=0.9,
+                    shrink=0.8,
                     aspect=16,
                     location="right",
                     pad=0.01,
                 )
 
-                label = rf"${u['math_name']}$"
+                slice_info = []
+
                 if "stokes" in ax_slices:
-                    label += f" Stokes {self.stokes[ax_slices['stokes']]}"
+                    slice_info.append(f"Stokes {self.stokes[ax_slices['stokes']]}")
                 if "nu" in ax_slices:
-                    label += f" at {self.nu[ax_slices['nu']]}"
-                cbar.set_label(label, fontsize=10)
+                    slice_info.append(f"{self.nu[ax_slices['nu']]}")
+                if "v" in ax_slices:
+                    slice_info.append(f"{self.v[ax_slices['v']]}")
+                if "t" in ax_slices:
+                    slice_info.append(f"{self.t[ax_slices['t']]}")
+
+                cbar.set_label(rf"${u['math_name']}$ ({', '.join(slice_info)})", fontsize=10)
 
                 ax.tick_params(axis="x", bottom=True, top=False)
                 ax.tick_params(axis="y", left=True, right=False, rotation=90)
@@ -714,7 +724,7 @@ class ProjectionMap(Map):
             if not (self.weight == 1).all().compute():
                 f.create_dataset("weight", dtype=np.float32, data=self.weight, **compression_kwargs)
             if "stokes" in self.dims:
-                f.create_dataset("stokes", data=self.stokes, dtype=h5py.string_dtype())
+                f.create_dataset("stokes", data="".join(self.stokes), dtype=h5py.string_dtype())
             if "nu" in self.dims:
                 f.create_dataset("nu", data=self.nu.Hz)
             if "t" in self.dims:
