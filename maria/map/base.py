@@ -12,9 +12,9 @@ from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c
 from ..coords import Frame
 from ..errors import FrequencyOutOfBoundsError, ShapeError
-from ..io import leftpad, parse_stokes
+from ..io import leftpad, parse_nu, parse_stokes, parse_v
 from ..units import Quantity, parse_units
-from ..utils import compute_resolution_precision, is_integer
+from ..utils import compute_resolution_precision, is_numeric
 
 logger = logging.getLogger("maria")
 
@@ -90,29 +90,24 @@ class Map:
 
         self.slice_dims = {}
         if stokes is not None:
-            self.stokes = parse_stokes(stokes)
+            self.stokes = stokes
             self.slice_dims["stokes"] = len(self.stokes)
-        else:
-            self.stokes = ""
 
         if nu is not None:
-            self.nu = Quantity(np.atleast_1d(nu.Hz if isinstance(nu, Quantity) else nu), "Hz")
-            if self.nu.ndim > 1:
-                raise ShapeError("'nu' can be at most one-dimensional")
-            bad_freqs = list(self.nu[(self.nu.Hz < MARIA_MIN_NU_HZ) | (self.nu.Hz > MARIA_MAX_NU_HZ)])
-            if bad_freqs:
-                raise FrequencyOutOfBoundsError(bad_freqs)
+            self.nu = nu
             self.slice_dims["nu"] = len(self.nu)
-        else:
-            self.nu = Quantity([], "Hz")
 
         if v is not None:
-            self.v = Quantity(np.atleast_1d(v.to("m/s") if isinstance(v, Quantity) else v), "m/s")
-            if self.v.ndim > 1:
-                raise ShapeError("'v' can be at most one-dimensional")
+            if z is not None:
+                raise ValueError("A map cannot have both a velocity axis and a redshift axis.")
+            self.v = v
             self.slice_dims["v"] = len(self.v)
+
+        if z is not None:
+            self.z = np.atleast_1d(z)
+            self.slice_dims["z"] = len(self.z)
         else:
-            self.v = np.array([])
+            self.z = np.array([])
 
         if t is not None:
             self.t = Quantity(np.atleast_1d(t.seconds if isinstance(t, Quantity) else t), "seconds")
@@ -121,12 +116,6 @@ class Map:
             self.slice_dims["t"] = len(self.t)
         else:
             self.t = np.array([])
-
-        if z is not None:
-            self.z = np.atleast_1d(z)
-            self.slice_dims["z"] = len(self.z)
-        else:
-            self.z = np.array([])
 
         implied_shape = tuple(n for n in self.dims.values() if n > 1)
 
@@ -156,34 +145,78 @@ class Map:
                     f"Map is given in units {self.units}, but specified beam(major, minor, angle) = {beam} has zero area"
                 )
 
-    def apply_parity(self, **signature):
+    @property
+    def stokes(self):
+        return self._stokes
 
-        logger.debug(f"Applying dimension parity signature {signature}")
+    @stokes.setter
+    def stokes(self, value):
+        self._stokes = parse_stokes(value)
 
-        parity_slicing = []
-        for dim in signature:
-            if dim == "stokes":
-                parity_slicing.append(slice(None, None, 1))
-                continue
-            if dim not in self.dims:
-                raise ValueError(f"'{dim}' not in map axes")
-            dim_parity = signature[dim]
+    @property
+    def nu(self):
+        return self._nu
+
+    @nu.setter
+    def nu(self, value):
+
+        if np.ndim(value) > 1:
+            raise ShapeError("'nu' can be at most one-dimensional")
+
+        nu_Hz_values = parse_nu(value)
+
+        bad_freqs = list(nu_Hz_values[(nu_Hz_values < MARIA_MIN_NU_HZ) | (nu_Hz_values > MARIA_MAX_NU_HZ)])
+        if bad_freqs:
+            raise FrequencyOutOfBoundsError(bad_freqs)
+
+        self._nu = Quantity(nu_Hz_values, "Hz")
+
+    @property
+    def v(self):
+        return self._v
+
+    @v.setter
+    def v(self, value):
+
+        if np.ndim(value) > 1:
+            raise ShapeError("'v' can be at most one-dimensional")
+
+        v_meters_per_second = parse_v(value)
+
+        self._v = Quantity(v_meters_per_second, "m/s")
+
+    def parity(self):
+
+        parity = {}
+        for dim in self.dims:
+            dim_parity = 1
             dim_values = getattr(self, dim)
-            if dim_values.size > 1:
+            if (dim_values.size > 1) and dim not in ["stokes"]:
                 grad = np.gradient(dim_values.base_units_value)
                 if all(grad < 0):
                     dim_parity *= -1
                 elif not all(grad > 0):
-                    raise ValueError(f"Values for supplied axis '{dim}' are not monotonic")
-            setattr(self, dim, dim_values[::dim_parity])
-            parity_slicing.append(slice(None, None, dim_parity))
+                    raise ValueError(f"Could not compute parity (values for supplied axis '{dim}' are not monotonic")
+            parity[dim] = dim_parity
 
-        self.data = self.data[tuple(parity_slicing)]
+        return parity
+
+    def apply_parity(self, **signature):
+
+        current_parity = self.parity()
+
+        parity_slices = []
+        for dim in self.dims:
+            apply_parity = signature.get(dim, 1) * current_parity[dim]
+            setattr(self, dim, getattr(self, dim)[::apply_parity])
+            parity_slices.append(slice(None, None, apply_parity))
+
+        self.data = self.data[tuple(parity_slices)]
 
         if self._weight is not None:
-            self.weight = self.weight[tuple(parity_slicing)]
+            self.weight = self.weight[tuple(parity_slices)]
 
-        self.beam = self.beam[tuple(parity_slicing[: -len(self.map_dims)])]  # exclude the map dimension
+        self.beam = self.beam[tuple(parity_slices[: -len(self.map_dims)])]  # exclude the map dimension
 
     @property
     def weight(self):

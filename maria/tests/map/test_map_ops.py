@@ -19,8 +19,8 @@ def test_map_extend():
 
     m4 = m1.extend([m2, m3], dim="nu").unsqueeze("stokes")
     m5, m6 = m4.copy(), m4.copy()
-    m5.stokes = "Q"
-    m6.stokes = "U"
+    m5.stokes = np.array(["Q"])
+    m6.stokes = np.array(["U"])
 
     m4.extend([m5, m6], dim="stokes")
 

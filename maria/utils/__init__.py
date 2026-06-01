@@ -24,16 +24,16 @@ def regular_digitization(x, bins):
 
 def is_numeric(val):
     try:
-        float(val)
+        np.array(val).astype(float)
         return True
-    except ValueError:
+    except Exception:
         return False
 
 
 def is_integer(val):
     try:
-        return float(val) == int(val)
-    except ValueError:
+        return np.array(val).astype(float) == np.array(val).astype(int)
+    except Exception:
         return False
 
 

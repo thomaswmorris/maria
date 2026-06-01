@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import dask.array as da
 import numpy as np
 from tqdm import tqdm

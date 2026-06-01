@@ -113,7 +113,7 @@ class Quantity:
         if (u["dimension_vector"] == self.dimension_vector).all():
             return self.base_units_value / u["base_units_factor"]
         else:
-            raise ValueError()
+            raise ValueError(f"Cannot convert Quantity with units {self.units} to units {units}")
 
     def pin(self, units, inplace=False):
         if inplace:
