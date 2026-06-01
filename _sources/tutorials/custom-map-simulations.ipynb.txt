@@ -40,7 +40,10 @@
     "    width=30e9, \n",
     "    NET_RJ=60e-6, \n",
     "    knee=1e0, \n",
-    "    gain_error=5e-2)\n"
+    "    gain_error=5e-2)\n",
+    "\n",
+    "\n",
+    "f090.plot()"
    ]
   },
   {
