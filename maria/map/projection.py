@@ -465,6 +465,23 @@ class ProjectionMap(Map):
 
         return type(self)(data=reduced_data, center=self.center, units=self.units, **new_dims, beam=self.beam)
 
+    def zero_pad(self):
+
+        package = self.package()
+
+        pad_width = [*len(self.slice_dims) * [(0, 0)], (1, 1), (1, 1)]
+        package["data"] = np.pad(package["data"], pad_width=pad_width, constant_values=0).rechunk()
+
+        if "weight" in package:
+            package["weight"] = np.pad(package["weight"], pad_width=pad_width, constant_values=1).rechunk()
+
+        # easier than resampling the dims
+        for dim in ["xi", "eta"]:
+            package.pop(dim)
+            package[f"{dim}_res"] = getattr(self, f"{dim}_res")
+
+        return type(self)(**package)
+
     def smooth(self, sigma: float = None, fwhm: float = None):
         if not (sigma is None) ^ (fwhm is None):
             raise ValueError("You must supply exactly one of 'sigma' or 'fwhm'.")
