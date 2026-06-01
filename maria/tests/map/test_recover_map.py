@@ -66,4 +66,4 @@ def test_recover_map():
 
     relsqres = np.sqrt(np.nansum(w * (m1 - m0) ** 2, axis=(-1, -2)) / np.nansum(w))
 
-    assert all(relsqres < 1e-3)
+    assert np.all(relsqres < 1e-3)

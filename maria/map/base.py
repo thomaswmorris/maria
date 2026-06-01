@@ -12,7 +12,7 @@ from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c
 from ..coords import Frame
 from ..errors import FrequencyOutOfBoundsError, ShapeError
-from ..io import leftpad, parse_nu, parse_stokes, parse_v
+from ..io import leftpad, parse_nu, parse_stokes, parse_t, parse_v
 from ..units import Quantity, parse_units
 from ..utils import compute_resolution_precision, is_numeric
 
@@ -110,7 +110,7 @@ class Map:
             self.z = np.array([])
 
         if t is not None:
-            self.t = Quantity(np.atleast_1d(t.seconds if isinstance(t, Quantity) else t), "seconds")
+            self.t = t
             if self.t.ndim > 1:
                 raise ShapeError("'t' can be at most one-dimensional")
             self.slice_dims["t"] = len(self.t)
@@ -184,6 +184,16 @@ class Map:
         v_meters_per_second = parse_v(value)
 
         self._v = Quantity(v_meters_per_second, "m/s")
+
+    @property
+    def t(self):
+        return self._t
+
+    @t.setter
+    def t(self, value):
+
+        t_unix_epoch = parse_t(value)
+        self._t = Quantity(t_unix_epoch, "s", metadata={"repr_spec": "date"})
 
     def parity(self):
 

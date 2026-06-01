@@ -312,6 +312,7 @@ class BaseProjectionMapper(BaseMapper):
 
     @property
     def map(self):
+
         m = ProjectionMap(
             data=self.get_map_data().reshape(self.map_shape),
             weight=self.get_map_weight().reshape(self.map_shape),
@@ -326,6 +327,10 @@ class BaseProjectionMapper(BaseMapper):
             units=self.tod_units,
             beam=self.beam,
         ).to(self.map_units)
+
+        for dim in ["stokes", "t"]:
+            if m.dims.get(dim, None) == 1:
+                m = m.squeeze(dim)
 
         input_maps = [tod.metadata["input_map"] for tod in self.tods if "input_map" in tod.metadata]
         if input_maps:

@@ -15,4 +15,4 @@ maps/orion_A.h5
 maps/protoplanetary_disk.fits
 maps/quasar_3C_286.h5
 maps/radio_galaxy_3C_288.fits
-maps/sun.h5
+maps/time_evolving_sun.fits
