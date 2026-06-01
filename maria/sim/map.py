@@ -164,5 +164,9 @@ class MapMixin:
             if map_loading[band_mask].sum() == 0:
                 logger.warning(f"No load from map for band {band.name}")
 
+        # the above samples the map instantaneously
+        # so you get all the lower noise per sample benefits without the smearing
+        # obviously we can't continuum sample, so we convolve the map loading with a triangular kernel
+        map_loading = sp.ndimage.convolve1d(map_loading, weights=np.array([0.25, 0.5, 0.25]), axis=-1)
+
         obs.loading["map"] = da.asarray(map_loading, dtype=self.dtype)
-        del map_loading
