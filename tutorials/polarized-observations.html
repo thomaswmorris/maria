@@ -382,8 +382,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 12:01:49.725 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 20.0MB/s]
+2026-06-01 13:18:29.042 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 11.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -454,7 +454,7 @@ ProjectionMap:
 PlanList(1 plans, 1800 s):
                            start_time duration target(ra,dec)     center(az,el)
 chunk
-0      2026-06-01 16:45:01.182 +00:00   1800 s   (360°, -23°)  (165.8°, 46.07°)
+0      2026-06-01 16:44:48.162 +00:00   1800 s   (360°, -23°)  (165.8°, 46.06°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -485,10 +485,10 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 12:01:59.558 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/mauna_kea.h5
-Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 83.1MB/s]
-2026-06-01 12:02:01.297 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/mauna_kea.h5
-Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 49.4MB/s]
+2026-06-01 13:18:39.365 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/mauna_kea.h5
+Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 83.3MB/s]
+2026-06-01 13:18:41.200 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/mauna_kea.h5
+Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 49.7MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -517,7 +517,7 @@ Simulation
 ├ PlanList(1 plans, 1800 s):
 │                            start_time duration target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-06-01 16:45:01.182 +00:00   1800 s   (360°, -23°)  (165.8°, 46.07°)
+│ 0      2026-06-01 16:44:48.162 +00:00   1800 s   (360°, -23°)  (165.8°, 46.06°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     data(4, 1, 1, 685, 685):
@@ -530,7 +530,7 @@ Simulation
     nu(1):
       values: [90.] GHz
     t(1):
-      values: [1.78031531e+09] s
+      values: [1.78031991e+09] s
     eta(685):
       height: 60’
       res: -5.263”
@@ -561,14 +561,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 12:02:01.996 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:45&lt;00:00,  5.68s/it]
-Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.38it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.55it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.14s/it, band=f150]
-Sampling map: 100%|██████████| 1/1 [00:04&lt;00:00,  4.92s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.01it/s, band=f150]
-2026-06-01 12:03:08.049 INFO: Simulated observation 1 of 1 in 66.05 s
+2026-06-01 13:18:41.958 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:41&lt;00:00,  5.15s/it]
+Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.05it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.64it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.07s/it, band=f150]
+Sampling map: 100%|██████████| 1/1 [00:04&lt;00:00,  4.74s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.02it/s, band=f150]
+2026-06-01 13:19:43.348 INFO: Simulated observation 1 of 1 in 61.38 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -576,7 +576,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(88, 90000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-06-01 17:15:01.160 +00:00, duration=1800.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-01T12:03:03.956846+00:00]&gt;, &#39;altitude&#39;: 4092.0, &#39;region&#39;: &#39;mauna_kea&#39;, &#39;pwv&#39;: 2.184, &#39;base_temperature&#39;: 278.638, &#39;input_map&#39;: ProjectionMap:
+[TOD(shape=(88, 90000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-06-01 17:14:48.140 +00:00, duration=1800.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-01T13:19:39.207922+00:00]&gt;, &#39;altitude&#39;: 4092.0, &#39;region&#39;: &#39;mauna_kea&#39;, &#39;pwv&#39;: 2.184, &#39;base_temperature&#39;: 278.638, &#39;input_map&#39;: ProjectionMap:
   data(4, 1, 1, 685, 685):
     min: -4.000e-02
     max: 1.016e+00
@@ -587,7 +587,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
   nu(1):
     values: [90.] GHz
   t(1):
-    values: [1.78031531e+09] s
+    values: [1.78031991e+09] s
   eta(685):
     height: 60’
     res: -5.263”
@@ -634,12 +634,12 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 12:03:13.251 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.11”&#39;} for mapper
-2026-06-01 12:03:13.260 INFO: Inferring mapper width 1.198° for mapper from observation patch
-2026-06-01 12:03:13.261 INFO: Inferring mapper height 1.198° to match supplied width
-2026-06-01 12:03:13.263 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:03&lt;00:00,  3.04s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.65s/it]
+2026-06-01 13:19:48.542 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.11”&#39;} for mapper
+2026-06-01 13:19:48.555 INFO: Inferring mapper width 1.198° for mapper from observation patch
+2026-06-01 13:19:48.555 INFO: Inferring mapper height 1.198° to match supplied width
+2026-06-01 13:19:48.558 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:02&lt;00:00,  2.91s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.49s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -668,8 +668,8 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.57s/it, tod=1/1]
-Fitting map (epoch 1/2): 100%|██████████| 25/25 [01:37&lt;00:00,  3.89s/it, mll=-3.047e+00, pgrad=1.000, step=1.089e-01]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.08s/it, tod=1/1]
+Fitting map (epoch 1/2): 100%|██████████| 25/25 [01:38&lt;00:00,  3.92s/it, mll=-3.082e+00, pgrad=1.000, step=1.220e-01]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -684,8 +684,8 @@ Fitting map (epoch 1/2): 100%|██████████| 25/25 [01:37&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.54s/it, tod=1/1]
-Fitting map (epoch 2/2): 100%|██████████| 25/25 [01:40&lt;00:00,  4.02s/it, mll=-4.750e+01, pgrad=0.627, step=3.329e-04]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.21s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 25/25 [01:40&lt;00:00,  4.02s/it, mll=-3.375e+01, pgrad=0.993, step=3.967e-03]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

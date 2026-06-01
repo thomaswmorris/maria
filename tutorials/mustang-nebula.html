@@ -310,8 +310,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 11:58:32.097 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M1.h5
-Downloading: 100%|██████████| 21.8M/21.8M [00:00&lt;00:00, 83.3MB/s]
+2026-06-01 13:15:15.452 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M1.h5
+Downloading: 100%|██████████| 21.8M/21.8M [00:00&lt;00:00, 95.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -372,7 +372,7 @@ ProjectionMap:
 PlanList(1 plans, 600 s):
                            start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2026-06-01 16:19:15.680 +00:00    600 s  (83.63°, 22.01°)  (116.7°, 61.22°)
+0      2026-06-01 16:19:06.650 +00:00    600 s  (83.63°, 22.01°)  (116.7°, 61.19°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -436,10 +436,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 11:58:44.287 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
-Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 80.6MB/s]
-2026-06-01 11:58:45.147 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
-Downloading: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 56.5MB/s]
+2026-06-01 13:15:28.428 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 90.4MB/s]
+2026-06-01 13:15:29.532 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+Downloading: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 72.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -468,7 +468,7 @@ Simulation
 ├ PlanList(1 plans, 600 s):
 │                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-06-01 16:19:15.680 +00:00    600 s  (83.63°, 22.01°)  (116.7°, 61.22°)
+│ 0      2026-06-01 16:19:06.650 +00:00    600 s  (83.63°, 22.01°)  (116.7°, 61.19°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     data(1, 3, 1, 1205, 1187):
@@ -481,7 +481,7 @@ Simulation
     nu(3):
       values: [149.8962 214.1375 272.5386] GHz
     t(1):
-      values: [1.78031511e+09] s
+      values: [1.78031971e+09] s
     eta(1205):
       height: 20.07’
       res: -1”
@@ -510,14 +510,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 11:58:45.945 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 12.83it/s]
-Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 47.46it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:03&lt;00:00,  2.04it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.40it/s, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:06&lt;00:00,  6.64s/it, band=m2/f093, channel=(0 Hz, 182 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.37s/it, band=m2/f093]
-2026-06-01 11:59:08.440 INFO: Simulated observation 1 of 1 in 22.49 s
+2026-06-01 13:15:30.356 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 12.48it/s]
+Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 41.97it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:03&lt;00:00,  2.02it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.39it/s, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:07&lt;00:00,  7.02s/it, band=m2/f093, channel=(0 Hz, 182 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.45s/it, band=m2/f093]
+2026-06-01 13:15:54.313 INFO: Simulated observation 1 of 1 in 23.95 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -552,11 +552,11 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.3
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 11:59:14.285 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ32.19ˢ&#39;, &#39;dec&#39;: &#39;22°00’45.75”&#39;} for mapper
-2026-06-01 11:59:14.295 INFO: Inferring mapper width 23.44’ for mapper from observation patch
-2026-06-01 11:59:14.296 INFO: Inferring mapper height 23.44’ to match supplied width
-Preprocessing TODs: 100%|██████████| 1/1 [00:05&lt;00:00,  5.07s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.54s/it]
+2026-06-01 13:16:00.382 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ32.34ˢ&#39;, &#39;dec&#39;: &#39;22°00’46.75”&#39;} for mapper
+2026-06-01 13:16:00.395 INFO: Inferring mapper width 23.47’ for mapper from observation patch
+2026-06-01 13:16:00.395 INFO: Inferring mapper height 23.47’ to match supplied width
+Preprocessing TODs: 100%|██████████| 1/1 [00:05&lt;00:00,  5.56s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.65s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -580,10 +580,10 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.09s/it, tod=1/1]
-Fitting map (epoch 1/2): 100%|██████████| 25/25 [00:59&lt;00:00,  2.38s/it, mll=-6.589e-12, pgrad=-0.516, step=3.463e+21]
 Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.06s/it, tod=1/1]
-Fitting map (epoch 2/2): 100%|██████████| 25/25 [00:57&lt;00:00,  2.30s/it, mll=-8.014e-12, pgrad=0.062, step=7.927e+21]
+Fitting map (epoch 1/2): 100%|██████████| 25/25 [00:55&lt;00:00,  2.22s/it, mll=-5.944e-12, pgrad=0.807, step=8.551e+21]
+Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.99s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 25/25 [00:55&lt;00:00,  2.20s/it, mll=-1.007e-11, pgrad=-0.289, step=1.947e+21]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
