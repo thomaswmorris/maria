@@ -395,10 +395,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-06-01 02:53:07.764 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
+Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-06-01 11:53:45.198 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
 
-Downloading: |          | 3.72M/? [00:00&lt;00:00, 89.7MB/s]
-Generating CMB (nside=1024): 100%|██████████| 1/1 [00:09&lt;00:00,  9.96s/it]
+Downloading: |          | 3.72M/? [00:00&lt;00:00, 67.7MB/s]
+Generating CMB (nside=1024): 100%|██████████| 1/1 [00:09&lt;00:00,  9.57s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -463,10 +463,10 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 02:53:17.359 INFO: Simulating observation 1 of 1
-Sampling CMB: 100%|██████████| 2/2 [00:02&lt;00:00,  1.21s/it, band=act/pa5/f150, stokes=U]
-Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.35it/s, band=act/pa5/f150]
-2026-06-01 02:53:21.885 INFO: Simulated observation 1 of 1 in 4.515 s
+2026-06-01 11:53:54.512 INFO: Simulating observation 1 of 1
+Sampling CMB: 100%|██████████| 2/2 [00:02&lt;00:00,  1.25s/it, band=act/pa5/f150, stokes=U]
+Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.31it/s, band=act/pa5/f150]
+2026-06-01 11:53:59.195 INFO: Simulated observation 1 of 1 in 4.675 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -498,12 +498,12 @@ Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.3
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-01 02:53:27.803 INFO: Inferring center {&#39;ra&#39;: &#39;20ʰ27ᵐ55.64ˢ&#39;, &#39;dec&#39;: &#39;10°32’59.91”&#39;} for mapper
-2026-06-01 02:53:27.815 INFO: Inferring mapper width 6.322° for mapper from observation patch
-2026-06-01 02:53:27.816 INFO: Inferring mapper height 6.322° to match supplied width
-2026-06-01 02:53:27.818 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:00&lt;00:00,  1.57it/s]
-Computing pointing matrices: 100%|██████████| 1/1 [00:06&lt;00:00,  6.97s/it]
+2026-06-01 11:54:05.055 INFO: Inferring center {&#39;ra&#39;: &#39;20ʰ27ᵐ55.64ˢ&#39;, &#39;dec&#39;: &#39;10°32’59.91”&#39;} for mapper
+2026-06-01 11:54:05.065 INFO: Inferring mapper width 6.322° for mapper from observation patch
+2026-06-01 11:54:05.066 INFO: Inferring mapper height 6.322° to match supplied width
+2026-06-01 11:54:05.068 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:00&lt;00:00,  1.56it/s]
+Computing pointing matrices: 100%|██████████| 1/1 [00:07&lt;00:00,  7.19s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -522,7 +522,7 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:06&lt;
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(3, 2, 1, 189, 189):
+  data(3, 2, 189, 189):
     min: -1.674e-04
     max: 1.772e-04
     units: K_RJ
@@ -531,8 +531,6 @@ ProjectionMap:
     components: [&#39;I&#39; &#39;Q&#39; &#39;U&#39;]
   nu(2):
     values: [ 90. 150.] GHz
-  t(1):
-    values: [1.7727123e+09] s
   eta(189):
     height: 6.267°
     res: -2’
