@@ -6,6 +6,26 @@ from ..units import Quantity
 from ..utils import is_integer, is_numeric
 
 
+def parse_t(t):
+    """
+    Infer from 't' the values of t in seconds
+    """
+    t_s_values = []
+    for t_value in np.atleast_1d(t):
+        if isinstance(t, Quantity):
+            if not t.physical_quantity == "time":
+                raise ValueError(f"'t' has units of {t_value.units} which are incompatible with time")
+            t_s_values.append(t_value.to("s"))
+        elif is_numeric(t_value):
+            t_s_values.append(t_value)
+        else:
+            raise ValueError(
+                "'t' must be either an array of floats (assumed to be a UNIX epoch) or a Quantity with dimensions of time"
+            )
+
+    return np.array(t_s_values, dtype=float)
+
+
 def parse_nu(nu):
     """
     Infer from 'nu' the values of nu in Hz

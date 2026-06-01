@@ -6,7 +6,7 @@ from maria.errors import PointingError
 
 
 def test_planner():
-    input_map = maria.map.get("maps/crab_nebula.fits", nu=93e9)
+    input_map = maria.map.get("maps/M1.h5")
 
     planner = Planner(
         target=input_map, site="green_bank", constraints={"el": (70, 90), "min_sun_distance": 20, "hour": (14, 15)}
@@ -21,7 +21,7 @@ def test_planner():
 
 
 def test_planner_error():
-    input_map = maria.map.get("maps/crab_nebula.fits", nu=93e9)
+    input_map = maria.map.get("maps/M1.h5")
 
     planner = Planner(target=input_map, site="amundsen_scott", constraints={"el": (70, 90)})
 
