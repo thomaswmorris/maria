@@ -25,7 +25,6 @@ maria
 
    installation.rst
    usage.rst
-   inputs.rst
    tutorials.rst
    supported-sites.rst
    papers.rst

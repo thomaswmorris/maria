@@ -27,13 +27,14 @@ We can customize the CMB by specifying a set of ``cmb_kwargs`` to, e.g., increas
                            cmb_kwargs={"nside": 4096})
 
 
-###########
++++++++++++
 CMB patches
-###########
++++++++++++
 
 To simulate CMB observations at high resolution, we can generate a small patch as a ``Map`` using
 
-.. code-block:: python
+.. plot:: 
+   :include-source: True
 
     from maria.cmb import generate_cmb_patch
 
