@@ -28,7 +28,7 @@ Customization
 By default, the mapper infers the dimensions of the map based on the patch of sky covered by the supplied ``TOD``.
 But we can customize the dimensions by optionally passing ``center``, ``width``, ``height``, and ``resolution`` parameters.
 By default the mapper converts the data to units of ``K_RJ`` (Kelvin Rayleigh-Jeans), 
-but we can also map the data in units of ``Jy/pixel`` (Jankies per pixel) or ``K_CMB`` (CMB anisotropy temperature)
+but we can also map the data in units of ``Jy/pixel`` (Janskies per pixel) or ``K_CMB`` (CMB anisotropy temperature)
 
 .. code-block:: python
 
