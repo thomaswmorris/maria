@@ -28,7 +28,7 @@ class Planner:
         self,
         target,
         site: Site,
-        constraints: Mapping,
+        constraints: Mapping = {},
         max_lookahead: float = 2 * 365 * 86400.0,
         start_time: float = None,
     ):
@@ -46,6 +46,7 @@ class Planner:
         self.constraints = {}
         if not isinstance(constraints, Mapping):
             raise TypeError("'constraints' must be a dict or a mapping")
+
         for key, value in constraints.items():
             if key in ["az", "el"]:
                 self.constraints[key] = (Quantity(value[0], "deg"), Quantity(value[1], "deg"))
@@ -55,6 +56,9 @@ class Planner:
                 self.constraints[key] = Quantity(value, "deg")
             else:
                 raise ValueError(f"constraint keys must be one of {CONSTRAINT_KEYS}")
+
+        if "el" not in self.constraints:
+            self.constraints["el"] = (Quantity(10, "deg"), Quantity(90, "deg"))
 
         self.start_time = arrow.get(start_time or arrow.get().timestamp(), tzinfo=self.site.timezone)
         self.max_lookahead = max_lookahead
