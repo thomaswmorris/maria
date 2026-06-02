@@ -35,7 +35,8 @@ Customizing instruments
 
 The ``Instrument`` is based on a list of arrays (see :ref:`arrays`), which are in turn based on a list of bands (see :ref:`bands`). The easiest way to construct an instrument from scratch is as
 
-.. code-block:: python
+.. plot:: 
+   :include-source: True
 
     from maria import Instrument, Band
 
@@ -43,8 +44,8 @@ The ``Instrument`` is based on a list of arrays (see :ref:`arrays`), which are i
     band2 = "act/pa5/f150"
 
     array1 = {"n": 1000,
-            "primary_size": 10,
-            "field_of_view": 0.5,
+            "primary_size": 10, # in meters
+            "field_of_view": 0.5, # in degrees
             "bands": [band1, band2]}
 
     array2 = "act/pa5"

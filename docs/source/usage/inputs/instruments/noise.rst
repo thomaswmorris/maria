@@ -12,8 +12,8 @@ We can control the white noise level of the detectors in a band with either an e
 
     my_band = Band(center=150e9, # in Hz
                    width=30e9, # in Hz
-                   efficiency=0.5
-                   NEP=1e-15)
+                   NEP=1e-15, # in W√s
+                   efficiency=0.5)
 
 or with an implicit Rayleigh-Jeans sensitivity as
 
@@ -21,8 +21,8 @@ or with an implicit Rayleigh-Jeans sensitivity as
 
     my_band = Band(center=150e9, # in Hz
                    width=30e9, # in Hz
-                   efficiency=0.5
-                   NET_RJ=1e-5) # in K_RJ
+                   efficiency=0.5,
+                   NET_RJ=1e-5) # in K_RJ√s
 
 or in CMB units as
 
@@ -30,8 +30,8 @@ or in CMB units as
 
     my_band = Band(center=150e9, # in Hz
                    width=30e9, # in Hz
-                   efficiency=0.5
-                   NET_CMB=1e-5) # in K_CMB
+                   efficiency=0.5,
+                   NET_CMB=1e-5) # in K_CMB√s
 
 Since the sensitivity on the sky in temperature units depends on both the instrument and the observing conditions (i.e. the atmosphere), this method computes an NEP assuming there is no atmosphere. To include the effects of atmospheric opacity in this conversion, we can supply some ``spectrum_kwargs`` as
 
@@ -39,7 +39,8 @@ Since the sensitivity on the sky in temperature units depends on both the instru
 
     my_band = Band(center=150e9, # in Hz
                    width=30e9, # in Hz
-                   efficiency=0.5, # in K_RJ
+                   efficiency=0.5,
+                   NET_RJ=1e-5, # in K_RJ√s
                    spectrum_kwargs={"region": "chajnantor", 
                                     "zenith_pwv": 1e0, # in mm
                                     "elevation": 45}) # in degrees
