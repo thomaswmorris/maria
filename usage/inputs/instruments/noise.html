@@ -295,28 +295,29 @@
 
 <span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
-               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
-               <span class="n">NEP</span><span class="o">=</span><span class="mf">1e-15</span><span class="p">)</span>
+               <span class="n">NEP</span><span class="o">=</span><span class="mf">1e-15</span><span class="p">,</span> <span class="c1"># in W√s</span>
+               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>or with an implicit Rayleigh-Jeans sensitivity as</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
-               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
-               <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span> <span class="c1"># in K_RJ</span>
+               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+               <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span> <span class="c1"># in K_RJ√s</span>
 </pre></div>
 </div>
 <p>or in CMB units as</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
-               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span>
-               <span class="n">NET_CMB</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span> <span class="c1"># in K_CMB</span>
+               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+               <span class="n">NET_CMB</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span> <span class="c1"># in K_CMB√s</span>
 </pre></div>
 </div>
 <p>Since the sensitivity on the sky in temperature units depends on both the instrument and the observing conditions (i.e. the atmosphere), this method computes an NEP assuming there is no atmosphere. To include the effects of atmospheric opacity in this conversion, we can supply some <code class="docutils literal notranslate"><span class="pre">spectrum_kwargs</span></code> as</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_band</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="mf">150e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
                <span class="n">width</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="c1"># in Hz</span>
-               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="c1"># in K_RJ</span>
+               <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+               <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="c1"># in K_RJ√s</span>
                <span class="n">spectrum_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;chajnantor&quot;</span><span class="p">,</span>
                                 <span class="s2">&quot;zenith_pwv&quot;</span><span class="p">:</span> <span class="mf">1e0</span><span class="p">,</span> <span class="c1"># in mm</span>
                                 <span class="s2">&quot;elevation&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">})</span> <span class="c1"># in degrees</span>

@@ -314,8 +314,8 @@
 <section id="units">
 <h2>Units<a class="headerlink" href="#units" title="Link to this heading">¶</a></h2>
 <p>TODs are by default in units of picowatts, but we can convert to any unit that is a combination of an SI prefix and a base unit (one of <cite>K_RJ</cite>, <cite>K_CMB</cite>, or <cite>W</cite>).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod_in_rj_units</span> <span class="o">=</span> <span class="n">tod</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;mK_RJ&quot;</span><span class="p">)</span>
-<span class="n">tod_in_cmb_units</span> <span class="o">=</span> <span class="n">tod</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_CMB&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod_in_mK_RJ</span> <span class="o">=</span> <span class="n">tod</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;mK_RJ&quot;</span><span class="p">)</span>
+<span class="n">tod_in_uK_CMB</span> <span class="o">=</span> <span class="n">tod</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_CMB&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -327,11 +327,11 @@
 <div><p>tod.to_fits(‘filename.fits’)</p>
 </div></blockquote>
 <p>or if you rather work with hdf files,</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="s1">&#39;filename.hdf5&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="s1">&#39;filename.h5&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>you can load fits files back with</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">TOD</span><span class="o">.</span><span class="n">from_fits</span><span class="p">(</span><span class="s1">&#39;filename.fits&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;MUSTANG-2&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tod</span> <span class="o">=</span> <span class="n">TOD</span><span class="o">.</span><span class="n">from_fits</span><span class="p">(</span><span class="s1">&#39;filename.fits&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>note, that you can also load in real MUSTANG-2 data with the same command.</p>

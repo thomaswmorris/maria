@@ -291,11 +291,21 @@
           <section id="mapping">
 <span id="id1"></span><h1>Mapping<a class="headerlink" href="#mapping" title="Link to this heading">¶</a></h1>
 <p>We can map a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> (or several of them) with a <code class="docutils literal notranslate"><span class="pre">Mapper</span></code>. The simplest possible mapper just bins the data:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaximumLikelihoodMapper</span>
 
-<span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">])</span>
+<span class="n">ml_mapper</span> <span class="o">=</span> <span class="n">MaximumLikelihoodMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+                                    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
+                                        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">600</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient_order&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+                                    <span class="p">},</span>
+                                    <span class="n">init</span><span class="o">=</span><span class="s2">&quot;random&quot;</span><span class="p">,</span>
+                                    <span class="n">bilinear</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                    <span class="n">prior</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="n">output_map</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">ml_mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+              <span class="n">steps_per_epoch</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+              <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">output_map</span> <span class="o">=</span> <span class="n">ml_mapper</span><span class="o">.</span><span class="n">map</span>
 </pre></div>
 </div>
 <p>We can see the output map with</p>
@@ -305,7 +315,7 @@
 </section>
 <section id="customization">
 <h1>Customization<a class="headerlink" href="#customization" title="Link to this heading">¶</a></h1>
-<p>By default, the mapper infers the dimensions of the map based on the patch of sky covered by the supplied <code class="docutils literal notranslate"><span class="pre">TOD</span></code>.
+<p>By default, the mapper infers the dimensions and resolution of the map based on the patch of sky covered by the supplied <code class="docutils literal notranslate"><span class="pre">TOD</span></code>.
 But we can customize the dimensions by optionally passing <code class="docutils literal notranslate"><span class="pre">center</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>, and <code class="docutils literal notranslate"><span class="pre">resolution</span></code> parameters.
 By default the mapper converts the data to units of <code class="docutils literal notranslate"><span class="pre">K_RJ</span></code> (Kelvin Rayleigh-Jeans),
 but we can also map the data in units of <code class="docutils literal notranslate"><span class="pre">Jy/pixel</span></code> (Janskies per pixel) or <code class="docutils literal notranslate"><span class="pre">K_CMB</span></code> (CMB anisotropy temperature)</p>
@@ -315,7 +325,7 @@ but we can also map the data in units of <code class="docutils literal notransla
                    <span class="n">height</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>
                    <span class="n">resolution</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span>
                    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">,</span>
-                   <span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">],</span>
+                   <span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
                    <span class="p">)</span>
 </pre></div>
 </div>
@@ -324,14 +334,13 @@ but we can also map the data in units of <code class="docutils literal notransla
 <h1>Pre- and postprocessing<a class="headerlink" href="#pre-and-postprocessing" title="Link to this heading">¶</a></h1>
 <p>We specify the preprocessing we want done to each <code class="docutils literal notranslate"><span class="pre">TOD</span></code> and the postprocessing done to the output map also</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tukey&quot;</span><span class="p">,</span> <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}},</span>
-                        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+                        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
                         <span class="p">},</span>
                    <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">&quot;gaussian_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
                         <span class="s2">&quot;median_filter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
                         <span class="p">},</span>
-                   <span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">],</span>
+                   <span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
                    <span class="p">)</span>
 </pre></div>
 </div>
@@ -339,7 +348,7 @@ but we can also map the data in units of <code class="docutils literal notransla
 <section id="time-evolution-maps">
 <h1>Time evolution maps<a class="headerlink" href="#time-evolution-maps" title="Link to this heading">¶</a></h1>
 <p>To map a time-evolving source, we can pass a <code class="docutils literal notranslate"><span class="pre">timestep</span></code> parameter as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">],</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="p">[</span><span class="n">tod1</span><span class="p">,</span> <span class="n">tod2</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
                    <span class="n">timestep</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
                    <span class="p">)</span>
 </pre></div>
