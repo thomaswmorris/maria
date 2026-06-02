@@ -99,6 +99,9 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             units=self.units,
             min_time=min_time,
             max_time=max_time,
+            tod_preprocessing={
+                "remove_spline": {"knot_spacing": 10, "remove_el_gradient_order": 3},
+            },
             timestep=timestep,
             degrees=False,
             progress_bars=False,

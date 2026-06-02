@@ -42,6 +42,7 @@ class Atmosphere:
         pwv_rms_frac: float = 0.03,
         max_height: float = 5e3,
         timestep: float = None,
+        interpolation_method: str = "linear",
         disable_progress_bars: bool = False,
     ):
         if model not in SUPPORTED_MODELS_LIST:
@@ -70,6 +71,8 @@ class Atmosphere:
         self.model = model
         self.max_height = max_height
         self.timestep = timestep
+
+        self.interpolation_method = interpolation_method
 
         self.disable_progress_bars = disable_progress_bars
 

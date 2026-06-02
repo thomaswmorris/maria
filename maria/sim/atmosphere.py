@@ -58,6 +58,7 @@ class AtmosphereMixin:
                 base_temperature=obs.atmosphere.weather.temperature[0],
                 zenith_pwv=obs.atmosphere.zenith_scaled_pwv[band_index],
                 elevation=obs.atmosphere.coords.el[band_index].clip(max=np.pi / 2),
+                method=obs.atmosphere.interpolation_method,
             )
 
             band_mueller = obs.instrument.dets[band_index].mueller()
