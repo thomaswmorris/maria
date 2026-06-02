@@ -310,8 +310,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 10:27:44.976 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M1.h5
-Downloading: 100%|██████████| 21.8M/21.8M [00:00&lt;00:00, 135MB/s]
+2026-06-02 15:49:15.106 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M1.h5
+Downloading: 100%|██████████| 21.8M/21.8M [00:00&lt;00:00, 169MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -372,7 +372,7 @@ ProjectionMap:
 PlanList(1 plans, 600 s):
                            start_time duration    target(ra,dec)     center(az,el)
 chunk
-0      2026-06-02 16:14:43.609 +00:00    600 s  (83.63°, 22.01°)  (116.5°, 61.11°)
+0      2026-06-02 16:13:43.462 +00:00    600 s  (83.63°, 22.01°)  (116.2°, 60.94°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -436,9 +436,9 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 10:27:57.355 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
-Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 144MB/s]
-2026-06-02 10:27:58.087 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+2026-06-02 15:49:27.084 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 185MB/s]
+2026-06-02 15:49:27.832 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
 Downloading: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 138MB/s]
 </pre></div></div>
 </div>
@@ -468,7 +468,7 @@ Simulation
 ├ PlanList(1 plans, 600 s):
 │                            start_time duration    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-06-02 16:14:43.609 +00:00    600 s  (83.63°, 22.01°)  (116.5°, 61.11°)
+│ 0      2026-06-02 16:13:43.462 +00:00    600 s  (83.63°, 22.01°)  (116.2°, 60.94°)
 ├ &#39;2d&#39;
 └ ProjectionMap:
     data(1, 3, 1, 1205, 1187):
@@ -481,7 +481,7 @@ Simulation
     nu(3):
       values: [149.8962 214.1375 272.5386] GHz
     t(1):
-      values: [1.78039606e+09] s
+      values: [1.78041535e+09] s
     eta(1205):
       height: 20.07’
       res: -1”
@@ -510,14 +510,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 10:27:58.865 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 11.93it/s]
-Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 41.17it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.96it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.30it/s, band=m2/f093]
-Sampling map: 100%|██████████| 1/1 [00:06&lt;00:00,  6.99s/it, band=m2/f093, channel=(0 Hz, 182 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.39s/it, band=m2/f093]
-2026-06-02 10:28:22.248 INFO: Simulated observation 1 of 1 in 23.37 s
+2026-06-02 15:49:28.482 INFO: Simulating observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 13.37it/s]
+Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 47.99it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:03&lt;00:00,  2.04it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.44it/s, band=m2/f093]
+Sampling map: 100%|██████████| 1/1 [00:06&lt;00:00,  6.49s/it, band=m2/f093, channel=(0 Hz, 182 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.30s/it, band=m2/f093]
+2026-06-02 15:49:50.395 INFO: Simulated observation 1 of 1 in 21.9 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -552,11 +552,11 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.3
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 10:28:28.246 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ31.42ˢ&#39;, &#39;dec&#39;: &#39;22°00’53.83”&#39;} for mapper
-2026-06-02 10:28:28.258 INFO: Inferring mapper width 23.78’ for mapper from observation patch
-2026-06-02 10:28:28.259 INFO: Inferring mapper height 23.78’ to match supplied width
-Preprocessing TODs: 100%|██████████| 1/1 [00:05&lt;00:00,  5.32s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.64s/it]
+2026-06-02 15:49:56.114 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ31.55ˢ&#39;, &#39;dec&#39;: &#39;22°00’47.24”&#39;} for mapper
+2026-06-02 15:49:56.124 INFO: Inferring mapper width 23.66’ for mapper from observation patch
+2026-06-02 15:49:56.124 INFO: Inferring mapper height 23.66’ to match supplied width
+Preprocessing TODs: 100%|██████████| 1/1 [00:04&lt;00:00,  4.87s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.45s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -580,10 +580,10 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.04s/it, tod=1/1]
-Fitting map (epoch 1/2): 100%|██████████| 25/25 [00:56&lt;00:00,  2.27s/it, mll=-5.599e-12, pgrad=0.995, step=6.220e+21]
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.09s/it, tod=1/1]
-Fitting map (epoch 2/2): 100%|██████████| 25/25 [00:54&lt;00:00,  2.19s/it, mll=-8.595e-12, pgrad=1.000, step=6.199e+21]
+Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.95s/it, tod=1/1]
+Fitting map (epoch 1/2): 100%|██████████| 25/25 [00:54&lt;00:00,  2.17s/it, mll=-8.275e-12, pgrad=0.932, step=1.503e+21]
+Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.91s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 25/25 [00:56&lt;00:00,  2.25s/it, mll=-6.398e-12, pgrad=0.549, step=1.326e+21]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
