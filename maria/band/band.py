@@ -267,6 +267,7 @@ class Band:
         base_temperature: float,
         zenith_pwv: float,
         elevation: float,
+        method: str = "linear",
     ):
         values = (
             1e12
@@ -278,10 +279,25 @@ class Band:
             )
         )
 
-        return jsp.interpolate.RegularGridInterpolator(
-            spectrum.points[:3],
-            values,
-        )((base_temperature, zenith_pwv, elevation))
+        if method == "linear":
+            return jsp.interpolate.RegularGridInterpolator(
+                spectrum.points[:3],
+                values,
+            )((base_temperature, zenith_pwv, elevation))
+
+        else:
+            temperature_interpolated_values = sp.interpolate.interp1d(
+                spectrum.points[0],
+                values,
+                kind="linear",
+                axis=0,
+            )(base_temperature)
+
+            return sp.interpolate.RegularGridInterpolator(
+                spectrum.points[1:3],
+                temperature_interpolated_values,
+                method="cubic",
+            )((zenith_pwv, elevation))
 
     # @classmethod
     # def from_file(cls, filename, **kwargs):

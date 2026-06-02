@@ -159,7 +159,8 @@ def smooth_sawtooth(p, delta=0.01):
 
 
 def back_and_forth(t, radius=1, x_throw=None, y_throw=0, speed=1.0, max_accel=np.inf, d=0.01):
-    x_throw = x_throw or radius
+
+    x_throw = x_throw if x_throw is not None else radius
 
     factor = 1 / (1 - 2 * np.arccos(1 - d) / np.pi)
 
