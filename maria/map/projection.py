@@ -510,7 +510,9 @@ class ProjectionMap(Map):
         stokes: str = "I",
         slices=None,
         t_index: int = 0,
-        window: bool = True,
+        window="tukey",
+        taper: float = 0.1,
+        pad_factor: int = 1,
     ):
         """Compute the spatial transfer function relative to an input map.
 
@@ -536,8 +538,15 @@ class ProjectionMap(Map):
             channels, consistent with how ``slices`` is used in ``.plot()``.
         t_index : int
             Time index for time-varying maps.
-        window : bool
-            Apply a 2D Hann window before FFT to reduce spectral leakage.
+        window : str, bool, or np.ndarray
+            Apodization window. ``"tukey"`` (default) tapers only the edges;
+            ``"hann"`` applies a full Hann window; a 2D array of shape
+            ``(ny, nx)`` is used directly; ``False`` disables windowing.
+        taper : float
+            Cosine-taper fraction for the Tukey window. Default is 0.1.
+        pad_factor : int
+            Zero-pad each axis to ``pad_factor`` times its length before the FFT,
+            improving k-space sampling at large angular scales. Default is 1 (no padding).
 
         Returns
         -------
@@ -556,7 +565,7 @@ class ProjectionMap(Map):
         nu_indices = list(np.atleast_1d(slices["nu"])) if (slices and "nu" in slices) else list(range(n_nu))
 
         rows = [
-            compute_transfer_function(input_map, self, n_bins=n_bins, stokes=stokes, nu_index=i, t_index=t_index, window=window)
+            compute_transfer_function(input_map, self, n_bins=n_bins, stokes=stokes, nu_index=i, t_index=t_index, window=window, taper=taper, pad_factor=pad_factor)
             for i in nu_indices
         ]
         u = rows[0][0]
