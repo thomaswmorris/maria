@@ -3,6 +3,8 @@ from __future__ import annotations
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy as sp
+
 from ..units import Quantity
 from .projection import ProjectionMap
 
@@ -29,7 +31,9 @@ def compute_transfer_function(
     stokes: str = "I",
     nu_index: int = 0,
     t_index: int = 0,
-    window: bool = True,
+    window: str | bool | np.ndarray = "hann",
+    taper: float = 0.1,
+    pad_factor: int = 1,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute the azimuthally-averaged spatial transfer function via cross-correlation.
@@ -56,8 +60,22 @@ def compute_transfer_function(
         Frequency channel index for multi-channel maps.
     t_index : int
         Time index for time-varying maps.
-    window : bool
-        Apply a 2D Hann window before FFT to reduce spectral leakage.
+    window : str, bool, or np.ndarray
+        Apodization window applied before the FFT to reduce spectral leakage.
+        - ``"tukey"`` (default) or ``True``: separable Tukey window with
+          cosine-tapered fraction ``taper`` on each edge; leaves the central
+          region at unit weight.
+        - ``"hann"``: full Hann window (goes to zero at both edges).
+        - ``np.ndarray`` of shape ``(ny, nx)``: custom 2D window applied as-is.
+        - ``False`` or ``None``: no windowing.
+    taper : float
+        Fraction of each axis tapered by the cosine roll-off when
+        ``window="tukey"``. Must be in [0, 1]. Default is 0.1.
+    pad_factor : int
+        Zero-pad each axis to ``pad_factor`` times its original length before
+        the FFT. Increases the density of k-space samples (improves large-scale
+        / low-wavenumber sampling) without changing the pixel size or Nyquist
+        frequency. Must be >= 1. Default is 1 (no padding).
 
     Returns
     -------
@@ -66,6 +84,9 @@ def compute_transfer_function(
     T : np.ndarray
         Transfer function values (dimensionless).
     """
+    if pad_factor < 1:
+        raise ValueError("pad_factor must be >= 1")
+
     if output_map.units != input_map.units:
         output_map = output_map.to(input_map.units)
 
@@ -74,18 +95,30 @@ def compute_transfer_function(
 
     ny, nx = f_out.shape
 
-    valid = np.isfinite(f_in) & np.isfinite(f_out)
-    f_in = np.where(valid, f_in, 0.0)
-    f_out = np.where(valid, f_out, 0.0)
+    f_in = np.where(np.isfinite(f_in), f_in, 0.00)
+    f_out = np.where(np.isfinite(f_out), f_out, 0.00)
 
-    if window:
-        win = np.outer(np.hanning(ny), np.hanning(nx))
-        win /= np.sqrt(np.mean(win**2))
+    if window is not False and window is not None:
+        if isinstance(window, np.ndarray):
+            if window.shape != (ny, nx):
+                raise ValueError(f"Custom window shape {window.shape} does not match map shape ({ny}, {nx})")
+            win = window.astype(float)
+        else:
+            w_name = window if isinstance(window, str) else "tukey"
+            if w_name == "hann":
+                wx, wy = np.hanning(nx), np.hanning(ny)
+            else:
+                wx = sp.signal.windows.tukey(nx, alpha=taper)
+                wy = sp.signal.windows.tukey(ny, alpha=taper)
+            win = np.outer(wy, wx)
+        win /= np.nanmax(win)
+        
         f_in = f_in * win
         f_out = f_out * win
 
-    F_in = np.fft.fftshift(np.fft.fft2(f_in))
-    F_out = np.fft.fftshift(np.fft.fft2(f_out))
+    ny_pad, nx_pad = ny * pad_factor, nx * pad_factor
+    F_in = np.fft.fftshift(np.fft.fft2(f_in, s=(ny_pad, nx_pad)))
+    F_out = np.fft.fftshift(np.fft.fft2(f_out, s=(ny_pad, nx_pad)))
 
     # Cross-spectrum: noise in F_out is uncorrelated with F_in, so Re(F_in*·N)→0
     # when averaged, leaving only the signal contribution in the numerator.
@@ -94,11 +127,11 @@ def compute_transfer_function(
 
     dx = output_map.xi_res.rad
     dy = abs(output_map.eta_res.rad)
-    kx = np.fft.fftshift(np.fft.fftfreq(nx, d=dx))
-    ky = np.fft.fftshift(np.fft.fftfreq(ny, d=dy))
+    kx = np.fft.fftshift(np.fft.fftfreq(nx_pad, d=dx))
+    ky = np.fft.fftshift(np.fft.fftfreq(ny_pad, d=dy))
     K = np.hypot(*np.meshgrid(kx, ky))
 
-    k_min = max(1.0 / (nx * dx), 1.0 / (ny * dy))
+    k_min = max(1.0 / (nx_pad * dx), 1.0 / (ny_pad * dy))
     k_max = 0.5 * min(1.0 / dx, 1.0 / dy)
     bins = np.geomspace(k_min, k_max, n_bins + 1)
     u = np.sqrt(bins[:-1] * bins[1:])
