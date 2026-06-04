@@ -3,8 +3,6 @@ from __future__ import annotations
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
-
 from ..units import Quantity
 from .projection import ProjectionMap
 
@@ -22,45 +20,6 @@ def _extract_2d(m: ProjectionMap, stokes: str = "I", nu_index: int = 0, t_index:
     if "t" in m.dims:
         d = d[t_index]
     return np.asarray(d.compute(), dtype=float).reshape(m.dims["eta"], m.dims["xi"])
-
-
-def _resample_to_grid(
-    source_map: ProjectionMap,
-    target_map: ProjectionMap,
-    stokes: str = "I",
-    nu_index: int = 0,
-    t_index: int = 0,
-) -> np.ndarray:
-    """Resample source_map onto target_map's pixel grid via bilinear interpolation.
-
-    x_side / y_side are angular offsets from each map's own centre.  When the
-    two maps have different centres we must shift the query points so they are
-    expressed in source-map-centred coordinates before interpolating.
-    """
-    f_src = _extract_2d(source_map, stokes, nu_index, t_index)
-
-    # eta is descending (top→bottom); RegularGridInterpolator needs ascending
-    y_src = source_map.eta.rad[::-1]
-    x_src = source_map.xi.rad
-
-    interp = sp.interpolate.RegularGridInterpolator(
-        (y_src, x_src),
-        f_src[::-1, :],
-        method="linear",
-        bounds_error=False,
-        fill_value=np.nan,
-    )
-
-    # Centre offset: how much to add to target offsets to get source offsets.
-    # RA offset is multiplied by cos(dec) to convert from angle on sky to the
-    # gnomonic x-offset used by both maps.
-    mean_dec = 0.5 * (source_map.center[1].rad + target_map.center[1].rad)
-    delta_x = (target_map.center[0].rad - source_map.center[0].rad) * np.cos(mean_dec)
-    delta_y = target_map.center[1].rad - source_map.center[1].rad
-
-    YY, XX = np.meshgrid(target_map.eta.rad, target_map.xi.rad, indexing="ij")
-    pts = np.stack([(YY + delta_y).ravel(), (XX + delta_x).ravel()], axis=-1)
-    return interp(pts).reshape(target_map.n_eta, target_map.n_xi)
 
 
 def compute_transfer_function(
@@ -110,10 +69,7 @@ def compute_transfer_function(
     if output_map.units != input_map.units:
         output_map = output_map.to(input_map.units)
 
-    # Resample input onto the output grid so both live on exactly the same pixels.
-    # nu_index is used as-is on both maps: _input_map is the map injected into the
-    # simulation, so its channel indices correspond directly to the output channels.
-    f_in = _resample_to_grid(input_map, output_map, stokes, nu_index, t_index)
+    f_in = _extract_2d(input_map.resample(output_map), stokes, nu_index, t_index)
     f_out = _extract_2d(output_map, stokes, nu_index, t_index)
 
     ny, nx = f_out.shape
@@ -133,8 +89,8 @@ def compute_transfer_function(
 
     # Cross-spectrum: noise in F_out is uncorrelated with F_in, so Re(F_in*·N)→0
     # when averaged, leaving only the signal contribution in the numerator.
-    P_in = np.abs(F_in) ** 2
-    C = np.real(np.conj(F_in) * F_out)
+    P_den = np.real(np.conj(F_in) * F_in)
+    P_num = np.real(np.conj(F_in) * F_out)
 
     dx = output_map.xi_res.rad
     dy = abs(output_map.eta_res.rad)
@@ -149,10 +105,10 @@ def compute_transfer_function(
 
     bin_idx = np.digitize(K.ravel(), bins) - 1
     mask = (bin_idx >= 0) & (bin_idx < n_bins)
-    sum_P = np.bincount(bin_idx[mask], weights=P_in.ravel()[mask], minlength=n_bins)
-    sum_C = np.bincount(bin_idx[mask], weights=C.ravel()[mask], minlength=n_bins)
+    sum_P_den = np.bincount(bin_idx[mask], weights=P_den.ravel()[mask], minlength=n_bins)
+    sum_P_num = np.bincount(bin_idx[mask], weights=P_num.ravel()[mask], minlength=n_bins)
 
-    return u, np.where(sum_P > 0, sum_C / sum_P, np.nan)
+    return u, np.where(sum_P_den > 0, sum_P_num / sum_P_den, np.nan)
 
 
 class TransferFunction:
