@@ -62,10 +62,10 @@ def compute_transfer_function(
         Time index for time-varying maps.
     window : str, bool, or np.ndarray
         Apodization window applied before the FFT to reduce spectral leakage.
-        - ``"tukey"`` (default) or ``True``: separable Tukey window with
+        - ``"tukey"``: separable Tukey window with
           cosine-tapered fraction ``taper`` on each edge; leaves the central
           region at unit weight.
-        - ``"hann"``: full Hann window (goes to zero at both edges).
+        - ``"hann"`` (default) or ``True``: full Hann window (goes to zero at both edges).
         - ``np.ndarray`` of shape ``(ny, nx)``: custom 2D window applied as-is.
         - ``False`` or ``None``: no windowing.
     taper : float
@@ -104,12 +104,14 @@ def compute_transfer_function(
                 raise ValueError(f"Custom window shape {window.shape} does not match map shape ({ny}, {nx})")
             win = window.astype(float)
         else:
-            w_name = window if isinstance(window, str) else "tukey"
+            w_name = window if isinstance(window, str) else "hann"
             if w_name == "hann":
                 wx, wy = np.hanning(nx), np.hanning(ny)
-            else:
+            elif w_name == "tukey":
                 wx = sp.signal.windows.tukey(nx, alpha=taper)
                 wy = sp.signal.windows.tukey(ny, alpha=taper)
+            else:
+                raise ValueError(f"Unsupported window type: {window}")
             win = np.outer(wy, wx)
         win /= np.nanmax(win)
         
