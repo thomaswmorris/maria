@@ -510,7 +510,7 @@ class ProjectionMap(Map):
         stokes: str = "I",
         slices=None,
         t_index: int = 0,
-        window="tukey",
+        window="hann",
         taper: float = 0.1,
         pad_factor: int = 1,
     ):
@@ -539,8 +539,8 @@ class ProjectionMap(Map):
         t_index : int
             Time index for time-varying maps.
         window : str, bool, or np.ndarray
-            Apodization window. ``"tukey"`` (default) tapers only the edges;
-            ``"hann"`` applies a full Hann window; a 2D array of shape
+            Apodization window. ``"tukey"`` tapers only the edges;
+            ``"hann"`` (default) applies a full Hann window; a 2D array of shape
             ``(ny, nx)`` is used directly; ``False`` disables windowing.
         taper : float
             Cosine-taper fraction for the Tukey window. Default is 0.1.
