@@ -17,98 +17,11 @@ def _extract_2d(m: ProjectionMap, stokes: str = "I", nu_index: int = 0, t_index:
         d = d[nu_index]
     if "v" in m.dims:
         d = d[0]
+    if "z" in m.dims:
+        d = d[0]
     if "t" in m.dims:
         d = d[t_index]
-    return np.asarray(d.compute(), dtype=float)
-
-
-def _resample_to_grid(
-    source_map: ProjectionMap,
-    target_map: ProjectionMap,
-    stokes: str = "I",
-    nu_index: int = 0,
-    t_index: int = 0,
-) -> np.ndarray:
-    """Resample source_map onto target_map's pixel grid via bilinear interpolation.
-
-    x_side / y_side are angular offsets from each map's own centre.  When the
-    two maps have different centres we must shift the query points so they are
-    expressed in source-map-centred coordinates before interpolating.
-    """
-    f_src = _extract_2d(source_map, stokes, nu_index, t_index)
-
-    # eta is descending (top→bottom); RegularGridInterpolator needs ascending
-    y_src = source_map.eta.rad[::-1]
-    x_src = source_map.xi.rad
-
-    interp = sp.interpolate.RegularGridInterpolator(
-        (y_src, x_src),
-        f_src[::-1, :],
-        method="linear",
-        bounds_error=False,
-        fill_value=np.nan,
-    )
-
-    # Centre offset: how much to add to target offsets to get source offsets.
-    # RA offset is multiplied by cos(dec) to convert from angle on sky to the
-    # gnomonic x-offset used by both maps.
-    mean_dec = 0.5 * (source_map.center[1].rad + target_map.center[1].rad)
-    delta_x = (target_map.center[0].rad - source_map.center[0].rad) * np.cos(mean_dec)
-    delta_y = target_map.center[1].rad - source_map.center[1].rad
-
-    YY, XX = np.meshgrid(target_map.eta.rad, target_map.xi.rad, indexing="ij")
-    pts = np.stack([(YY + delta_y).ravel(), (XX + delta_x).ravel()], axis=-1)
-    return interp(pts).reshape(target_map.n_eta, target_map.n_xi)
-
-
-def _plot_map_panel(
-    fig,
-    ax,
-    m: ProjectionMap,
-    stokes: str = "I",
-    nu_index: int = 0,
-    t_index: int = 0,
-    title: str = "",
-    cmap: str = "CMRmap",
-    vmin: float = None,
-    vmax: float = None,
-):
-    d = _extract_2d(m, stokes, nu_index, t_index)
-
-    # Compute pixel bin edges from centres for pcolormesh
-    xi_res = m.xi_res.rad
-    eta_res = m.eta_res.rad
-    x_bins = np.append(m.xi.rad - xi_res / 2, m.xi.rad[-1] + xi_res / 2)
-    y_bins = np.append(m.eta.rad - eta_res / 2, m.eta.rad[-1] + eta_res / 2)
-
-    X = np.r_[x_bins, y_bins]
-    hu = Quantity(X, "rad").hu
-    x_vals = Quantity(x_bins, "rad").human_value
-    y_vals = Quantity(y_bins, "rad").human_value
-    ang_unit = hu["units"]
-
-    if vmin is None or vmax is None:
-        finite = d[np.isfinite(d)]
-        _vmin, _vmax = np.nanquantile(finite, [1e-3, 1 - 1e-3]) if finite.size > 0 else (0.0, 1.0)
-        vmin = vmin if vmin is not None else _vmin
-        vmax = vmax if vmax is not None else _vmax
-
-    ax.pcolormesh(x_vals, y_vals, d, cmap=cmap, vmin=vmin, vmax=vmax)
-
-    fig.colorbar(
-        mpl.cm.ScalarMappable(mpl.colors.Normalize(vmin=vmin, vmax=vmax), cmap=cmap),
-        ax=ax,
-        shrink=0.75,
-        aspect=16,
-        location="right",
-        pad=0,
-        label=rf"${Quantity(d[np.isfinite(d)].mean() if np.isfinite(d).any() else 0, m.units).hu['math_name']}$",
-    )
-
-    ax.set_title(title)
-    ax.set_aspect("equal")
-    ax.set_xlabel(rf"$\Delta\theta\;[{ang_unit}]$")
-    ax.set_ylabel(rf"$\Delta\theta\;[{ang_unit}]$")
+    return np.asarray(d.compute(), dtype=float).reshape(m.dims["eta"], m.dims["xi"])
 
 
 def compute_transfer_function(
@@ -118,7 +31,9 @@ def compute_transfer_function(
     stokes: str = "I",
     nu_index: int = 0,
     t_index: int = 0,
-    window: bool = True,
+    window: str | bool | np.ndarray = "hann",
+    taper: float = 0.1,
+    pad_factor: int = 1,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute the azimuthally-averaged spatial transfer function via cross-correlation.
@@ -145,8 +60,22 @@ def compute_transfer_function(
         Frequency channel index for multi-channel maps.
     t_index : int
         Time index for time-varying maps.
-    window : bool
-        Apply a 2D Hann window before FFT to reduce spectral leakage.
+    window : str, bool, or np.ndarray
+        Apodization window applied before the FFT to reduce spectral leakage.
+        - ``"tukey"``: separable Tukey window with
+          cosine-tapered fraction ``taper`` on each edge; leaves the central
+          region at unit weight.
+        - ``"hann"`` (default) or ``True``: full Hann window (goes to zero at both edges).
+        - ``np.ndarray`` of shape ``(ny, nx)``: custom 2D window applied as-is.
+        - ``False`` or ``None``: no windowing.
+    taper : float
+        Fraction of each axis tapered by the cosine roll-off when
+        ``window="tukey"``. Must be in [0, 1]. Default is 0.1.
+    pad_factor : int
+        Zero-pad each axis to ``pad_factor`` times its original length before
+        the FFT. Increases the density of k-space samples (improves large-scale
+        / low-wavenumber sampling) without changing the pixel size or Nyquist
+        frequency. Must be >= 1. Default is 1 (no padding).
 
     Returns
     -------
@@ -155,64 +84,66 @@ def compute_transfer_function(
     T : np.ndarray
         Transfer function values (dimensionless).
     """
-    # Bring both maps to the same units so the cross-spectrum ratio is dimensionless
+    if pad_factor < 1:
+        raise ValueError("pad_factor must be >= 1")
+
     if output_map.units != input_map.units:
         output_map = output_map.to(input_map.units)
 
-    # Resample input onto the output grid so both live on exactly the same pixels.
-    # Working on the output grid is correct: its resolution and coverage define
-    # the spatial frequencies at which the transfer function is meaningful.
-    f_in = _resample_to_grid(input_map, output_map, stokes, nu_index, t_index)
+    f_in = _extract_2d(input_map.resample(output_map), stokes, nu_index, t_index)
     f_out = _extract_2d(output_map, stokes, nu_index, t_index)
 
     ny, nx = f_out.shape
 
-    # Restrict to pixels observed in both maps; zero elsewhere so the FFT is clean
-    valid = np.isfinite(f_in) & np.isfinite(f_out)
-    f_in = np.where(valid, f_in, 0.0)
-    f_out = np.where(valid, f_out, 0.0)
+    f_in = np.where(np.isfinite(f_in), f_in, 0.00)
+    f_out = np.where(np.isfinite(f_out), f_out, 0.00)
 
-    # Energy-preserving 2D Hann window to reduce spectral leakage
-    if window:
-        win = np.outer(np.hanning(ny), np.hanning(nx))
-        win /= np.sqrt(np.mean(win**2))
+    if window is not False and window is not None:
+        if isinstance(window, np.ndarray):
+            if window.shape != (ny, nx):
+                raise ValueError(f"Custom window shape {window.shape} does not match map shape ({ny}, {nx})")
+            win = window.astype(float)
+        else:
+            w_name = window if isinstance(window, str) else "hann"
+            if w_name == "hann":
+                wx, wy = np.hanning(nx), np.hanning(ny)
+            elif w_name == "tukey":
+                wx = sp.signal.windows.tukey(nx, alpha=taper)
+                wy = sp.signal.windows.tukey(ny, alpha=taper)
+            else:
+                raise ValueError(f"Unsupported window type: {window}")
+            win = np.outer(wy, wx)
+        win /= np.nanmax(win)
+        
         f_in = f_in * win
         f_out = f_out * win
 
-    # 2D FFTs (shifted so DC is at centre)
-    F_in = np.fft.fftshift(np.fft.fft2(f_in))
-    F_out = np.fft.fftshift(np.fft.fft2(f_out))
+    ny_pad, nx_pad = ny * pad_factor, nx * pad_factor
+    F_in = np.fft.fftshift(np.fft.fft2(f_in, s=(ny_pad, nx_pad)))
+    F_out = np.fft.fftshift(np.fft.fft2(f_out, s=(ny_pad, nx_pad)))
 
-    # Cross-spectrum numerator and auto-power denominator.
-    # Noise in F_out is uncorrelated with F_in, so Re(F_in* · N) → 0 when averaged,
-    # leaving only the signal contribution in the numerator.
-    P_in = np.abs(F_in) ** 2
-    C = np.real(np.conj(F_in) * F_out)
+    # Cross-spectrum: noise in F_out is uncorrelated with F_in, so Re(F_in*·N)→0
+    # when averaged, leaving only the signal contribution in the numerator.
+    P_den = np.real(np.conj(F_in) * F_in)
+    P_num = np.real(np.conj(F_in) * F_out)
 
-    # Radial spatial frequency at each Fourier pixel — defined by the output grid
     dx = output_map.xi_res.rad
     dy = abs(output_map.eta_res.rad)
-    kx = np.fft.fftshift(np.fft.fftfreq(nx, d=dx))
-    ky = np.fft.fftshift(np.fft.fftfreq(ny, d=dy))
-    KX, KY = np.meshgrid(kx, ky)
-    K = np.hypot(KX, KY)
+    kx = np.fft.fftshift(np.fft.fftfreq(nx_pad, d=dx))
+    ky = np.fft.fftshift(np.fft.fftfreq(ny_pad, d=dy))
+    K = np.hypot(*np.meshgrid(kx, ky))
 
-    # Logarithmically-spaced radial bins (skip DC at k=0; Nyquist set by output pixel size)
-    k_min = max(1.0 / (nx * dx), 1.0 / (ny * dy))
+    k_min = max(1.0 / (nx_pad * dx), 1.0 / (ny_pad * dy))
     k_max = 0.5 * min(1.0 / dx, 1.0 / dy)
     bins = np.geomspace(k_min, k_max, n_bins + 1)
-    k_centers = np.sqrt(bins[:-1] * bins[1:])  # geometric midpoints
+    u = np.sqrt(bins[:-1] * bins[1:])
 
-    # Azimuthally-averaged transfer function via binned cross/auto power ratio
     bin_idx = np.digitize(K.ravel(), bins) - 1
-    in_range = (bin_idx >= 0) & (bin_idx < n_bins)
+    mask = (bin_idx >= 0) & (bin_idx < n_bins)
+    sum_P_den = np.bincount(bin_idx[mask], weights=P_den.ravel()[mask], minlength=n_bins)
+    sum_P_num = np.bincount(bin_idx[mask], weights=P_num.ravel()[mask], minlength=n_bins)
 
-    sum_P_in = np.bincount(bin_idx[in_range], weights=P_in.ravel()[in_range], minlength=n_bins)
-    sum_C = np.bincount(bin_idx[in_range], weights=C.ravel()[in_range], minlength=n_bins)
-
-    T = np.where(sum_P_in > 0, sum_C / sum_P_in, np.nan)
-
-    return k_centers, T
+    return u, np.where(sum_P_den > 0, sum_P_num / sum_P_den, np.nan)
 
 
 class TransferFunction:
@@ -221,55 +152,61 @@ class TransferFunction:
     Attributes
     ----------
     u : np.ndarray
-        Spatial frequency bin centres in cycles per radian.
+        Spatial frequency bin centres in cycles per radian, shape ``(n_bins,)``.
     T : np.ndarray
-        Transfer function values (dimensionless).
-    input_map : ProjectionMap or None
-        The input sky map used for the computation.
-    output_map : ProjectionMap or None
-        The recovered map used for the computation.
+        Transfer function values, shape ``(n_nu, n_bins)``.
+    nu : Quantity or None
+        Frequency axis corresponding to the first dimension of ``T``.
+    beam_fwhm : np.ndarray or None
+        Per-channel beam FWHM in radians, shape ``(n_nu,)``.
     """
 
-    def __init__(self, u, T, input_map=None, output_map=None):
+    def __init__(self, u, T, nu=None, beam_fwhm=None, input_map=None, output_map=None):
         self.u = u
         self.T = T
+        self.nu = nu
+        self.beam_fwhm = beam_fwhm
         self.input_map = input_map
         self.output_map = output_map
 
-    def plot(self, ax=None, x_unit="arcmin", filename=None, stokes="I", nu_index=0, t_index=0):
-        """Plot the transfer function, with input/output map panels when available.
+    def plot(self, ax=None, x_unit="arcmin", filename=None, add_beam=True, slices=None):
+        """Plot the transfer function.
 
         Parameters
         ----------
         ax : matplotlib.axes.Axes, optional
-            Axes for the transfer function panel. Ignored when maps are stored.
         x_unit : str
             Angular unit for the x-axis: ``"arcsec"``, ``"arcmin"``, or ``"deg"``.
         filename : str, optional
             Save the figure to this path when provided.
-        stokes, nu_index, t_index
-            Slice selectors forwarded to the map panels.
+        add_beam : bool
+            Overlay the theoretical Gaussian beam curve per channel.
+        slices : dict, optional
+            Channel selection, e.g. ``dict(nu=[0, 2])``.  ``None`` plots all
+            channels, consistent with how ``slices`` is used in map ``.plot()``.
 
         Returns
         -------
         ax : matplotlib.axes.Axes
         """
+        idx = list(np.atleast_1d(slices["nu"])) if (slices and "nu" in slices) else slice(None)
         return plot_transfer_function(
             self.u,
-            self.T,
-            input_map=self.input_map,
-            output_map=self.output_map,
-            stokes=stokes,
-            nu_index=nu_index,
-            t_index=t_index,
+            self.T[idx],
+            nu=self.nu[idx] if self.nu is not None else None,
+            beam_fwhm=self.beam_fwhm[idx] if (add_beam and self.beam_fwhm is not None) else None,
             ax=ax,
             x_unit=x_unit,
             filename=filename,
         )
 
     def __repr__(self):
+        n_nu = self.T.shape[0]
+        nu_str = f"  nu: {self.nu}\n" if self.nu is not None else ""
         return (
             f"TransferFunction:\n"
+            f"  channels: {n_nu}\n"
+            f"{nu_str}"
             f"  bins: {len(self.u)}\n"
             f"  u: [{self.u.min():.3g}, {self.u.max():.3g}] cycles/rad\n"
             f"  T: [{np.nanmin(self.T):.3f}, {np.nanmax(self.T):.3f}]"
@@ -288,105 +225,56 @@ _ANGULAR_UNITS = {
 def plot_transfer_function(
     u: np.ndarray,
     T: np.ndarray,
-    input_map: ProjectionMap = None,
-    output_map: ProjectionMap = None,
-    add_beam: bool = True,
-    stokes: str = "I",
-    nu_index: int = 0,
-    t_index: int = 0,
+    nu=None,
+    beam_fwhm=None,
     ax=None,
     x_unit: str = "arcmin",
     filename: str = None,
 ) -> plt.Axes:
     """
-    Plot the spatial transfer function, optionally alongside the input and output maps.
+    Plot the spatial transfer function.
 
     Parameters
     ----------
     u : np.ndarray
-        Spatial frequency bin centres in cycles per radian, as returned by
-        ``compute_transfer_function``.
+        Spatial frequency bin centres in cycles per radian.
     T : np.ndarray
-        Transfer function values.
-    input_map : ProjectionMap, optional
-        When provided, shown as the left panel of a three-panel figure.
-    output_map : ProjectionMap, optional
-        When provided, shown as the centre panel. Converted to ``input_map``
-        units for display when both are given.
-    add_beam : bool
-        When True, plot the theoretical Gaussian beam curve corresponding to the
-        output map's beam FWHM (if available) for comparison.
-    stokes : str
-        Stokes parameter to extract for the map panels.
-    nu_index : int
-        Frequency channel index for the map panels.
-    t_index : int
-        Time index for the map panels.
+        Transfer function values, shape ``(n_nu, n_bins)``.
+    nu : Quantity, optional
+        Frequency axis for labelling each curve.
+    beam_fwhm : array-like of float, optional
+        Per-channel beam FWHM in radians, shape ``(n_nu,)``.  When provided, a
+        dashed Gaussian beam curve is overlaid for each channel.
     ax : matplotlib.axes.Axes, optional
-        Axes for the transfer function panel. Ignored when maps are supplied
-        (a new figure is always created in that case).
     x_unit : str
-        Angular unit for the transfer function x-axis: ``"arcsec"``,
-        ``"arcmin"`` (default), or ``"deg"``.
+        Angular unit for the x-axis: ``"arcsec"``, ``"arcmin"`` (default), or ``"deg"``.
     filename : str, optional
         Save the figure to this path when provided.
 
     Returns
     -------
     ax : matplotlib.axes.Axes
-        The transfer function axes.
     """
-    show_maps = input_map is not None or output_map is not None
+    if ax is None:
+        _, ax = plt.subplots(figsize=(6, 4), constrained_layout=True)
 
-    if show_maps:
-        fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), constrained_layout=True)
-        ax_in, ax_out, ax_tf = axes
-
-        # Use input map units as the display reference for both panels
-        display_units = input_map.units if input_map is not None else output_map.units
-        out_for_display = (
-            output_map.to(display_units) if (output_map is not None and output_map.units != display_units) else output_map
-        )
-
-        # Derive shared colour scale from the input map
-        if input_map is not None:
-            f_ref = _extract_2d(input_map, stokes, nu_index, t_index)
-            finite = f_ref[np.isfinite(f_ref)]
-            vmin, vmax = np.nanquantile(finite, [1e-3, 1 - 1e-3]) if finite.size > 0 else (None, None)
-        else:
-            vmin = vmax = None
-
-        if input_map is not None:
-            _plot_map_panel(fig, ax_in, input_map, stokes, nu_index, t_index, title="Input", vmin=vmin, vmax=vmax)
-        else:
-            ax_in.set_visible(False)
-
-        if out_for_display is not None:
-            _plot_map_panel(fig, ax_out, out_for_display, stokes, nu_index, t_index, title="Output", vmin=vmin, vmax=vmax)
-        else:
-            ax_out.set_visible(False)
-
-        ax = ax_tf
-
-    elif ax is None:
-        fig, ax = plt.subplots(figsize=(6, 4), constrained_layout=True)
-
-    # Transfer function panel
     factor = _ANGULAR_UNITS.get(x_unit, _ANGULAR_UNITS["arcmin"])
-    theta = factor / u  # cycles/rad → angular scale in x_unit
+    theta = factor / u
+    n_nu = T.shape[0]
+    colors = mpl.colormaps["viridis"](np.linspace(0.2, 0.85, n_nu)) if n_nu > 1 else ["steelblue"]
+    u_dense = np.geomspace(u.min(), u.max(), 500) if beam_fwhm is not None else None
 
     ax.axhline(1.0, color="gray", lw=1.0, ls="--", zorder=0)
-    ax.plot(theta, T, color="steelblue", lw=1.5, marker="o", ms=3, label="Measured")
 
-    # Theoretical Gaussian beam curve from the output map's beam attribute
-    beam_map = output_map if output_map is not None else input_map
+    for i, (T_row, color) in enumerate(zip(T, colors)):
+        label = str(Quantity(nu[i], "Hz")) if nu is not None else "Measured"
+        ax.plot(theta, T_row, color=color, lw=1.5, marker="o", ms=3, label=label)
 
-    if add_beam and (beam_map is not None) and hasattr(beam_map, "beam"):
-        fwhm_rad = float(np.nanmean(beam_map.beam[..., 0].rad))
-        if fwhm_rad > 0:
-            u_dense = np.geomspace(u.min(), u.max(), 500)
-            B_theory = np.exp(-(np.pi**2) * fwhm_rad**2 * u_dense**2 / (4.0 * np.log(2.0)))
-            ax.plot(factor / u_dense, B_theory, color="tomato", lw=1.5, ls="--", label="Beam")
+        if beam_fwhm is not None:
+            fwhm = float(beam_fwhm[i])
+            if fwhm > 0:
+                B = np.exp(-(np.pi**2) * fwhm**2 * u_dense**2 / (4.0 * np.log(2.0)))
+                ax.plot(factor / u_dense, B, color=color, lw=1.5, ls="--")
 
     ax.legend(frameon=False, fontsize=9)
     ax.set_xscale("log")
