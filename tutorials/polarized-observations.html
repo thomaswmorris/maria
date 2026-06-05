@@ -227,7 +227,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/inputs/cmb.html">CMB</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../usage/simulations.html">Simulations</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../usage/tods.html">TODs</a><input aria-label="Toggle navigation of TODs" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../usage/tods/index.html">TODs</a></li>
 </ul>
@@ -326,8 +325,8 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-         n     FOV baseline   bands polarized
-array1  88  11.98’      0 m  [f150]      True
+         n field_of_view max_baseline   bands polarized primary_size
+array1  88        11.98’          0 m  [f150]      True         10 m
 </pre></div></div>
 </div>
 <p>We can see the resulting polarization footprint in the instrument plot:</p>
@@ -347,12 +346,12 @@ array1  88  11.98’      0 m  [f150]      True
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│           n     FOV baseline   bands polarized
-│  array1  88  11.98’      0 m  [f150]      True
+│           n field_of_view max_baseline   bands polarized primary_size
+│  array1  88        11.98’          0 m  [f150]      True         10 m
 │
 └ bands:
       name   center   width    η         NEP      NET_RJ       NET_CMB    FWHM
-   0  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s  104 uK_CMB√s  52.49”
+   0  f150  150 GHz  30 GHz  0.5  13.22 aW√s  60 uK_RJ√s  104 uK_CMB√s  52.49”
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -382,8 +381,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 15:52:22.965 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 47.2MB/s]
+2026-06-05 11:08:39.324 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 46.9MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -454,7 +453,7 @@ ProjectionMap:
 PlanList(1 plans, 1800 s):
                            start_time duration target(ra,dec)     center(az,el)
 chunk
-0      2026-06-02 16:41:11.858 +00:00   1800 s   (360°, -23°)  (165.9°, 46.08°)
+0      2026-06-05 16:29:20.975 +00:00   1800 s   (360°, -23°)  (165.9°, 46.07°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -485,10 +484,11 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 15:52:32.515 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/mauna_kea.h5
+2026-06-05 11:08:49.779 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/mauna_kea.h5
 Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 151MB/s]
-2026-06-02 15:52:34.169 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/mauna_kea.h5
-Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 139MB/s]
+2026-06-05 11:08:51.497 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/mauna_kea.h5
+Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 131MB/s]
+Constructing atmosphere: 100%|██████████| 8/8 [00:47&lt;00:00,  5.95s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -499,12 +499,12 @@ Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 1
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │           n     FOV baseline   bands polarized
-│ │  array1  88  11.98’      0 m  [f150]      True
+│ │           n field_of_view max_baseline   bands polarized primary_size
+│ │  array1  88        11.98’          0 m  [f150]      True         10 m
 │ │
 │ └ bands:
 │       name   center   width    η         NEP      NET_RJ       NET_CMB    FWHM
-│    0  f150  150 GHz  30 GHz  0.5  12.25 aW√s  60 uK_RJ√s  104 uK_CMB√s  52.49”
+│    0  f150  150 GHz  30 GHz  0.5  13.22 aW√s  60 uK_RJ√s  104 uK_CMB√s  52.49”
 ├ Site:
 │   region: mauna_kea
 │   timezone: Pacific/Honolulu
@@ -517,8 +517,15 @@ Simulation
 ├ PlanList(1 plans, 1800 s):
 │                            start_time duration target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-06-02 16:41:11.858 +00:00   1800 s   (360°, -23°)  (165.9°, 46.08°)
-├ &#39;2d&#39;
+│ 0      2026-06-05 16:29:20.975 +00:00   1800 s   (360°, -23°)  (165.9°, 46.07°)
+├ Atmosphere(8 processes with 8 layers):
+│ ├ spectrum:
+│ │   region: mauna_kea
+│ └ weather:
+│     region: mauna_kea
+│     altitude: 4.092 km
+│     time: Jun 5 06:44:20 -10:00
+│     pwv[mean, rms]: (2.152 mm, 64.55 um)
 └ ProjectionMap:
     data(4, 1, 1, 685, 685):
       min: -4.000e-02
@@ -530,7 +537,7 @@ Simulation
     nu(1):
       values: [90.] GHz
     t(1):
-      values: [1.78041554e+09] s
+      values: [1.78065772e+09] s
     eta(685):
       height: 60’
       res: -5.263”
@@ -561,14 +568,13 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 15:52:34.742 INFO: Simulating observation 1 of 1
-Constructing atmosphere: 100%|██████████| 8/8 [00:50&lt;00:00,  6.27s/it]
-Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.44it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.61it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.09s/it, band=f150]
-Sampling map: 100%|██████████| 1/1 [00:04&lt;00:00,  4.53s/it, band=f150, channel=(0 Hz, inf Hz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.06it/s, band=f150]
-2026-06-02 15:53:44.475 INFO: Simulated observation 1 of 1 in 69.72 s
+2026-06-05 11:09:41.216 INFO: Simulating observation 1 of 1
+Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.07it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.56it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.30s/it, band=f150]
+Sampling map: 100%|██████████| 1/1 [00:04&lt;00:00,  4.57s/it, band=f150, channel=(0 Hz, inf Hz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.01it/s, band=f150]
+2026-06-05 11:10:00.413 INFO: Simulated observation 1 of 1 in 19.19 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -576,7 +582,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(88, 90000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-06-02 17:11:11.836 +00:00, duration=1800.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-02T15:53:40.603675+00:00]&gt;, &#39;altitude&#39;: 4092.0, &#39;region&#39;: &#39;mauna_kea&#39;, &#39;pwv&#39;: 2.176, &#39;base_temperature&#39;: 278.685, &#39;input_map&#39;: ProjectionMap:
+[TOD(shape=(88, 90000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;K_RJ&#39;, start=2026-06-05 16:59:20.953 +00:00, duration=1800.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-05T11:09:56.252955+00:00]&gt;, &#39;altitude&#39;: 4092.0, &#39;region&#39;: &#39;mauna_kea&#39;, &#39;pwv&#39;: 2.152, &#39;base_temperature&#39;: 278.825, &#39;input_map&#39;: ProjectionMap:
   data(4, 1, 1, 685, 685):
     min: -4.000e-02
     max: 1.016e+00
@@ -587,7 +593,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
   nu(1):
     values: [90.] GHz
   t(1):
-    values: [1.78041554e+09] s
+    values: [1.78065772e+09] s
   eta(685):
     height: 60’
     res: -5.263”
@@ -634,12 +640,12 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 15:53:49.547 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.11”&#39;} for mapper
-2026-06-02 15:53:49.557 INFO: Inferring mapper width 1.198° for mapper from observation patch
-2026-06-02 15:53:49.557 INFO: Inferring mapper height 1.198° to match supplied width
-2026-06-02 15:53:49.560 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:02&lt;00:00,  2.77s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.53s/it]
+2026-06-05 11:10:05.888 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.11”&#39;} for mapper
+2026-06-05 11:10:05.903 INFO: Inferring mapper width 1.198° for mapper from observation patch
+2026-06-05 11:10:05.903 INFO: Inferring mapper height 1.198° to match supplied width
+2026-06-05 11:10:06.218 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:03&lt;00:00,  3.12s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.50s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -668,8 +674,9 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.11s/it, tod=1/1]
-Fitting map (epoch 1/2): 100%|██████████| 25/25 [01:34&lt;00:00,  3.79s/it, mll=-8.334e+00, pgrad=-0.353, step=3.440e-03]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.30s/it, tod=1/1]
+Fitting map (epoch 1/2): 183it [10:54,  3.70s/it, alpha=0.0409]2026-06-05 11:21:24.251 INFO: Finished conjugate gradient descent, terminating
+Fitting map (epoch 1/2): 183it [10:58,  3.60s/it, alpha=0.0409]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -684,8 +691,9 @@ Fitting map (epoch 1/2): 100%|██████████| 25/25 [01:34&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.08s/it, tod=1/1]
-Fitting map (epoch 2/2): 100%|██████████| 25/25 [01:42&lt;00:00,  4.11s/it, mll=-4.390e+01, pgrad=-0.510, step=7.972e-05]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.68s/it, tod=1/1]
+Fitting map (epoch 2/2): 239it [14:07,  3.76s/it, alpha=0.0479]2026-06-05 11:35:42.507 INFO: Finished conjugate gradient descent, terminating
+Fitting map (epoch 2/2): 239it [14:10,  3.56s/it, alpha=0.0479]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
