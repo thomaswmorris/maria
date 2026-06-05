@@ -11,5 +11,5 @@ Instruments
    instruments/bands.rst
    instruments/noise.rst
    instruments/arrays.rst
-
+   instruments/example-instruments.ipynb
    
