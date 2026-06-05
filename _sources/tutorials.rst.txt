@@ -10,3 +10,4 @@ Tutorials
    tutorials/mustang-nebula
    tutorials/maximum-likelihood-mapper
    tutorials/cmb-patch
+   tutorials/transfer-functions

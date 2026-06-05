@@ -197,6 +197,7 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../usage.html">Usage</a><input aria-label="Toggle navigation of Usage" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/getting-started.html">Getting started</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../usage/inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../usage/inputs/instruments.html">Instruments</a><input aria-label="Toggle navigation of Instruments" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../usage/inputs/instruments/overview.html">Overview</a></li>
@@ -210,6 +211,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../usage/inputs/instruments/arrays/custom.html">Custom offsets and baselines</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/instruments/example-instruments.html">Example instruments</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../usage/inputs/sites.html">Sites</a></li>
@@ -246,6 +248,7 @@
 <li class="toctree-l2"><a class="reference internal" href="mustang-nebula.html">Simulating observations with MUSTANG-2</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Maximum likelihood mapmaking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cmb-patch.html">Observing the CMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transfer-functions.html">Compute a transfer function</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../supported-sites.html">Supported sites</a></li>
@@ -310,8 +313,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 10:56:10.431 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
-Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 120MB/s]
+2026-06-05 13:41:58.847 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
+Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 103MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -464,7 +467,7 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Constructing atmosphere: 100%|██████████| 8/8 [00:01&lt;00:00,  4.99it/s]
+Constructing atmosphere: 100%|██████████| 8/8 [00:01&lt;00:00,  6.42it/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -513,7 +516,7 @@ Simulation
     nu(1):
       values: [90.] GHz
     t(1):
-      values: [1.78065697e+09] s
+      values: [1.78066692e+09] s
     eta(1024):
       height: 59.94’
       res: -3.516”
@@ -542,13 +545,13 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 10:56:23.043 INFO: Simulating observation 1 of 1
-Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 13.15it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.84it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.17it/s, band=f090]
-Sampling map: 100%|██████████| 1/1 [00:03&lt;00:00,  3.47s/it, band=f090, channel=(0 Hz, inf Hz)]
+2026-06-05 13:42:11.373 INFO: Simulating observation 1 of 1
+Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 20.85it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.81it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.11it/s, band=f090]
+Sampling map: 100%|██████████| 1/1 [00:03&lt;00:00,  3.58s/it, band=f090, channel=(0 Hz, inf Hz)]
 Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.20it/s, band=f090]
-2026-06-05 10:56:36.107 INFO: Simulated observation 1 of 1 in 13.05 s
+2026-06-05 13:42:24.659 INFO: Simulated observation 1 of 1 in 13.28 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -581,26 +584,18 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.2
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 10:56:39.450 INFO: Inferring resolution = 8.748” from detector FWHM
-2026-06-05 10:56:40.494 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.97ˢ&#39;, &#39;dec&#39;: &#39;-9°59’57.48”&#39;} for mapper
-2026-06-05 10:56:40.506 INFO: Inferring mapper width 1.541° for mapper from observation patch
-2026-06-05 10:56:40.507 INFO: Inferring mapper height 1.541° to match supplied width
-2026-06-05 10:56:40.560 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:02&lt;00:00,  2.05s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:01&lt;00:00,  1.12s/it]
+2026-06-05 13:42:28.156 INFO: Inferring resolution = 8.748” from detector FWHM
+2026-06-05 13:42:29.195 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.97ˢ&#39;, &#39;dec&#39;: &#39;-9°59’57.48”&#39;} for mapper
+2026-06-05 13:42:29.208 INFO: Inferring mapper width 1.536° for mapper from observation patch
+2026-06-05 13:42:29.208 INFO: Inferring mapper height 1.536° to match supplied width
+2026-06-05 13:42:29.262 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:02&lt;00:00,  2.27s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:01&lt;00:00,  1.18s/it]
 </pre></div></div>
 </div>
 <p>The initial solution is just a binning of the data, which has some noise artifacts and is missing some power (especially at large scales):</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#truth, residual, #</span>
-</pre></div>
-</div>
-</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_residual_map</span>
@@ -619,44 +614,44 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:01&lt;
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(1, 634, 634):
-    min: -3.647e-04
-    max: 3.360e-04
+  data(1, 632, 632):
+    min: -3.509e-04
+    max: 3.443e-04
     units: compton_y
     quantity: compton_y
   nu(1):
     values: [90.] GHz
-  eta(634):
-    height: 1.538°
+  eta(632):
+    height: 1.533°
     res: -8.748”
-  xi(634):
-    width: 1.538°
+  xi(632):
+    width: 1.533°
     res: 8.748”
   frame: ra/dec
   center:
     ra: 17ʰ19ᵐ59.97ˢ
     dec: -9°59’57.48”
   beam(maj, min, psi): (17.5”, 17.5”, 0 rad)
-  memory: 3.216 MB
+  memory: 3.195 MB
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_10_1.png" src="../_images/tutorials_maximum-likelihood-mapper_10_1.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_9_1.png" src="../_images/tutorials_maximum-likelihood-mapper_9_1.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_10_2.png" src="../_images/tutorials_maximum-likelihood-mapper_10_2.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_9_2.png" src="../_images/tutorials_maximum-likelihood-mapper_9_2.png" />
 </div>
 </div>
 <p>To improve the map, we build a noise model perform conjugate gradient descent to solve the mapmaking equation <span class="math notranslate nohighlight">\(m = (P^\top N^{-1} P)^{-1} P^\top N^{-1} d\)</span> where <span class="math notranslate nohighlight">\(m\)</span> is the map, <span class="math notranslate nohighlight">\(P\)</span> is the pointing matrix, <span class="math notranslate nohighlight">\(N = \langle n \otimes n \rangle\)</span> is the noise covariance, <span class="math notranslate nohighlight">\(d = Pm + n\)</span> is the data, and <span class="math notranslate nohighlight">\(n\)</span> is the noise.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_steps_per_epoch</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -668,16 +663,16 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:01&lt;00:00,  1.32s/it, tod=1/1]
-Fitting map (epoch 1/2): 239it [03:13,  1.02it/s, alpha=97.1]2026-06-05 11:00:07.580 INFO: Finished conjugate gradient descent, terminating
-Fitting map (epoch 1/2): 239it [03:14,  1.23it/s, alpha=97.1]
+Updating noise model: 100%|██████████| 1/1 [00:01&lt;00:00,  1.37s/it, tod=1/1]
+Fitting map (epoch 1/2): 230it [02:57,  1.12it/s, alpha=70.4]2026-06-05 13:45:40.154 INFO: Finished conjugate gradient descent, terminating
+Fitting map (epoch 1/2): 230it [02:58,  1.29it/s, alpha=70.4]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_12_1.png" src="../_images/tutorials_maximum-likelihood-mapper_12_1.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_11_1.png" src="../_images/tutorials_maximum-likelihood-mapper_11_1.png" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -686,19 +681,19 @@ Fitting map (epoch 1/2): 239it [03:14,  1.23it/s, alpha=97.1]
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 Updating noise model: 100%|██████████| 1/1 [00:01&lt;00:00,  1.36s/it, tod=1/1]
-Fitting map (epoch 2/2): 230it [02:46,  1.23it/s, alpha=53.9]2026-06-05 11:02:57.157 INFO: Finished conjugate gradient descent, terminating
-Fitting map (epoch 2/2): 230it [02:47,  1.38it/s, alpha=53.9]
+Fitting map (epoch 2/2): 242it [03:01,  1.11it/s, alpha=49.2]2026-06-05 13:48:44.708 INFO: Finished conjugate gradient descent, terminating
+Fitting map (epoch 2/2): 242it [03:02,  1.33it/s, alpha=49.2]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_12_3.png" src="../_images/tutorials_maximum-likelihood-mapper_12_3.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_11_3.png" src="../_images/tutorials_maximum-likelihood-mapper_11_3.png" />
 </div>
 </div>
 that will improve and recover more large-scale modes as it continues to fit. Our residuals now look like<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_residual_map</span>
@@ -712,7 +707,7 @@ that will improve and recover more large-scale modes as it continues to fit. Our
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_14_0.png" src="../_images/tutorials_maximum-likelihood-mapper_14_0.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_13_0.png" src="../_images/tutorials_maximum-likelihood-mapper_13_0.png" />
 </div>
 </div>
 </section>

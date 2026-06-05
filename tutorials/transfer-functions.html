@@ -1,0 +1,858 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Supported sites" href="../supported-sites.html"><link rel="prev" title="Observing the CMB" href="cmb-patch.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Compute a transfer function - maria</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">maria</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">maria</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../usage.html">Usage</a><input aria-label="Toggle navigation of Usage" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/getting-started.html">Getting started</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../usage/inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../usage/inputs/instruments.html">Instruments</a><input aria-label="Toggle navigation of Instruments" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/instruments/overview.html">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/instruments/bands.html">Bands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/instruments/noise.html">Noise</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../usage/inputs/instruments/arrays.html">Arrays</a><input aria-label="Toggle navigation of Arrays" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../usage/inputs/instruments/arrays/generation.html">Generation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../usage/inputs/instruments/arrays/generation.html#multiple-arrays">Multiple arrays</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../usage/inputs/instruments/arrays/generation.html#polarized-arrays">Polarized arrays</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../usage/inputs/instruments/arrays/generation.html#array-shapes-and-packings">Array shapes and packings</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../usage/inputs/instruments/arrays/custom.html">Custom offsets and baselines</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/instruments/example-instruments.html">Example instruments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/inputs/sites.html">Sites</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../usage/inputs/plans.html">Plans</a><input aria-label="Toggle navigation of Plans" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/plans/plans.html">Plans</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/plans/example-plans.html">Example plans</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/inputs/atmosphere.html">Atmosphere</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../usage/inputs/maps.html">Maps</a><input aria-label="Toggle navigation of Maps" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/maps/maps.html">Maps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../usage/inputs/maps/example-maps.html">Example maps</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/inputs/cmb.html">CMB</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../usage/tods.html">TODs</a><input aria-label="Toggle navigation of TODs" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/tods/index.html">TODs</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../usage/mapping.html">Mapping</a><input aria-label="Toggle navigation of Mapping" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/mapping/index.html">Mapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/mapping/index.html#customization">Customization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/mapping/index.html#pre-and-postprocessing">Pre- and postprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/mapping/index.html#time-evolution-maps">Time evolution maps</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" checked="" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="custom-map-simulations.html">Custom map simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polarized-observations.html">Polarized observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mustang-nebula.html">Simulating observations with MUSTANG-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maximum-likelihood-mapper.html">Maximum likelihood mapmaking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmb-patch.html">Observing the CMB</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Compute a transfer function</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../supported-sites.html">Supported sites</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../papers.html">Papers</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/tutorials/transfer-functions.ipynb.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="Compute-a-transfer-function">
+<h1>Compute a transfer function<a class="headerlink" href="#Compute-a-transfer-function" title="Link to this heading">¶</a></h1>
+<p>Atmospheric emission can dominate the noise budget and must be removed from the time-ordered data before mapping. This filtering inevitably projects out correlated sky modes, suppressing signal at large angular scales. The spatial transfer function <span class="math notranslate nohighlight">\(T(u)\)</span> provides a direct estimate of this scale-dependent signal loss. <code class="docutils literal notranslate"><span class="pre">maria</span></code> includes a built-in function to compute this, using the cross-spectrum between the output and the known input map:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[T(u) = \frac{\mathrm{Re}\langle \tilde{s}_{\rm in}^*(u)\,\tilde{s}_{\rm out}(u)\rangle}{\langle|\tilde{s}_{\rm in}(u)|^2\rangle}\]</div>
+</div>
+<p>Please note that the cross-spectrum is used instead of the power ratio <span class="math notranslate nohighlight">\(P_{\rm out}/P_{\rm in}\)</span> because noise in the output is uncorrelated with the input and averages to zero, leaving an unbiased estimate.</p>
+<section id="Input-sky">
+<h2>Input sky<a class="headerlink" href="#Input-sky" title="Link to this heading">¶</a></h2>
+<p>In this tutorial, we simulate a two-frequency observation of a galaxy cluster at 150 and 270 GHz and recover a map with the <code class="docutils literal notranslate"><span class="pre">BinMapper</span></code>. We load the same map at both frequencies — any difference in the recovered signal will come from the instrument and the filtering alone.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">maria</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">maria.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch</span>
+
+<span class="n">map_filename</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;maps/cluster2.fits&quot;</span><span class="p">)</span>
+
+<span class="n">nu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">150e9</span><span class="p">,</span> <span class="mf">270e9</span><span class="p">])</span>
+
+<span class="n">m1</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="n">nu</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mf">20.00</span><span class="o">/</span><span class="mf">60.00</span><span class="p">)</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="n">nu</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mf">20.00</span><span class="o">/</span><span class="mf">60.00</span><span class="p">)</span>
+
+<span class="c1"># Arbitrary signal boost to improve the SNR of the output map</span>
+<span class="n">m1</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">5.0e3</span>
+<span class="n">m2</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">5.0e3</span>
+
+<span class="n">maps</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="s2">&quot;nu&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">maps</span><span class="p">)</span>
+<span class="n">maps</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">nu</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdYlBu_r&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2026-06-05 14:21:29.112 INFO: Passed map size kwargs {&#39;width&#39;: 0.3333333333333333} will overwrite map size metadata {&#39;xi_res&#39;: 0.0009765625, &#39;eta_res&#39;: -0.0009765625}
+2026-06-05 14:21:29.172 INFO: Passed map size kwargs {&#39;width&#39;: 0.3333333333333333} will overwrite map size metadata {&#39;xi_res&#39;: 0.0009765625, &#39;eta_res&#39;: -0.0009765625}
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ProjectionMap:
+  data(2, 1024, 1024):
+    min: 2.502e-05
+    max: 1.923e-02
+    units: compton_y
+    quantity: compton_y
+  nu(2):
+    values: [150. 270.] GHz
+  eta(1024):
+    height: 20’
+    res: -1.173”
+  xi(1024):
+    width: 20’
+    res: 1.173”
+  frame: ra/dec
+  center:
+    ra: 17ʰ20ᵐ0.00ˢ
+    dec: -10°00’0.00”
+  beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
+  memory: 8.389 MB
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_2_2.png" src="../_images/tutorials_transfer-functions_2_2.png" />
+</div>
+</div>
+</section>
+<section id="Instrument-and-observation-plan">
+<h2>Instrument and observation plan<a class="headerlink" href="#Instrument-and-observation-plan" title="Link to this heading">¶</a></h2>
+<p>We use TolTEC on the LMT, keeping only the 150 and 270 GHz arrays and dropping the 220 GHz one for efficiency. Because the beam is diffraction-limited, the 270 GHz array resolves angular scales roughly 1.8× finer than the 150 GHz array.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.instrument</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_instrument_config</span><span class="p">,</span> <span class="n">Instrument</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">get_instrument_config</span><span class="p">(</span><span class="s2">&quot;TolTEC&quot;</span><span class="p">)</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;arrays&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;arrays&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;array-1&quot;</span><span class="p">,</span> <span class="s2">&quot;array-3&quot;</span><span class="p">]}</span>
+<span class="n">instrument</span> <span class="o">=</span> <span class="n">Instrument</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">instrument</span><span class="p">)</span>
+<span class="n">instrument</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Instrument(2 arrays)
+├ arrays:
+│              n field_of_view max_baseline          bands polarized primary_size
+│  array-1  1172          4.2’          0 m  [toltec/f150]      True         50 m
+│  array-3  4012          4.2’          0 m  [toltec/f270]      True         50 m
+│
+└ bands:
+             name   center   width    η      NEP         NET_RJ         NET_CMB    FWHM
+   0  toltec/f150  150 GHz  40 GHz  0.5  30 aW√s  110.2 uK_RJ√s    191 uK_CMB√s   10.5”
+   1  toltec/f270  270 GHz  50 GHz  0.5  30 aW√s  81.69 uK_RJ√s  404.4 uK_CMB√s  5.832”
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_4_1.png" src="../_images/tutorials_transfer-functions_4_1.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Planner</span>
+
+<span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span>
+    <span class="n">target</span><span class="o">=</span><span class="n">maps</span><span class="p">,</span>
+    <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2024-01-01T22:00:00&quot;</span><span class="p">,</span>
+    <span class="n">site</span><span class="o">=</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;el&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">90</span><span class="p">)},</span>
+<span class="p">)</span>
+
+<span class="n">plans</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">generate_plans</span><span class="p">(</span>
+    <span class="n">total_duration</span><span class="o">=</span><span class="mf">0.1</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">,</span>
+    <span class="n">max_chunk_duration</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>
+    <span class="n">scan_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">6.5</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">,</span> <span class="s2">&quot;miss_factor&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">plans</span><span class="p">)</span>
+<span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+PlanList(1 plans, 360 s):
+                           start_time duration   target(ra,dec)     center(az,el)
+chunk
+0      2024-01-02 13:15:00.000 +00:00    360 s  (260°, -9.999°)  (67.64°, 61.19°)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_5_1.png" src="../_images/tutorials_transfer-functions_5_1.png" />
+</div>
+</div>
+</section>
+<section id="Simulation">
+<h2>Simulation<a class="headerlink" href="#Simulation" title="Link to this heading">¶</a></h2>
+<p>Passing <code class="docutils literal notranslate"><span class="pre">map=maps</span></code> attaches the ground-truth sky to each output TOD so the mapper can propagate it to the output map automatically.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">instrument</span><span class="p">,</span>
+    <span class="n">plans</span><span class="o">=</span><span class="n">plans</span><span class="p">,</span>
+    <span class="n">site</span><span class="o">=</span><span class="s2">&quot;llano_de_chajnantor&quot;</span><span class="p">,</span>
+    <span class="nb">map</span><span class="o">=</span><span class="n">maps</span><span class="p">,</span>
+    <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+
+<span class="n">tods</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">tods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 10.92it/s]
+2026-06-05 14:21:43.964 INFO: Simulating observation 1 of 1
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Simulation
+├ Instrument(2 arrays)
+│ ├ arrays:
+│ │              n field_of_view max_baseline          bands polarized primary_size
+│ │  array-1  1172          4.2’          0 m  [toltec/f150]      True         50 m
+│ │  array-3  4012          4.2’          0 m  [toltec/f270]      True         50 m
+│ │
+│ └ bands:
+│              name   center   width    η      NEP         NET_RJ         NET_CMB    FWHM
+│    0  toltec/f150  150 GHz  40 GHz  0.5  30 aW√s  110.2 uK_RJ√s    191 uK_CMB√s   10.5”
+│    1  toltec/f270  270 GHz  50 GHz  0.5  30 aW√s  81.69 uK_RJ√s  404.4 uK_CMB√s  5.832”
+├ Site:
+│   region: chajnantor
+│   timezone: America/Santiago
+│   location:
+│     longitude: 67°45’17.28” W
+│     latitude:  23°01’45.84” S
+│     altitude: 5.064 km
+│   seasonal: True
+│   diurnal: True
+├ PlanList(1 plans, 360 s):
+│                            start_time duration   target(ra,dec)     center(az,el)
+│ chunk
+│ 0      2024-01-02 13:15:00.000 +00:00    360 s  (260°, -9.999°)  (67.64°, 61.19°)
+├ Atmosphere(8 processes with 8 layers):
+│ ├ spectrum:
+│ │   region: chajnantor
+│ └ weather:
+│     region: chajnantor
+│     altitude: 5.064 km
+│     time: Jan 2 10:17:59 -03:00
+│     pwv[mean, rms]: (2.553 mm, 76.6 um)
+└ ProjectionMap:
+    data(1, 2, 1, 1024, 1024):
+      min: 2.502e-05
+      max: 1.923e-02
+      units: compton_y
+      quantity: compton_y
+    stokes(1):
+      components: [&#39;I&#39;]
+    nu(2):
+      values: [150. 270.] GHz
+    t(1):
+      values: [1.78066929e+09] s
+    eta(1024):
+      height: 20’
+      res: -1.173”
+    xi(1024):
+      width: 20’
+      res: 1.173”
+    frame: ra/dec
+    center:
+      ra: 17ʰ20ᵐ0.00ˢ
+      dec: -10°00’0.00”
+    beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
+    memory: 8.389 MB
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 49.90it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.56it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:03&lt;00:00,  1.76s/it, band=toltec/f270]
+Sampling map: 100%|██████████| 2/2 [01:10&lt;00:00, 35.29s/it, band=toltec/f270, channel=(210 GHz, inf Hz)]
+Generating noise: 100%|██████████| 2/2 [00:06&lt;00:00,  3.41s/it, band=toltec/f270]
+2026-06-05 14:24:05.188 INFO: Simulated observation 1 of 1 in 141.2 s
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_7_3.png" src="../_images/tutorials_transfer-functions_7_3.png" />
+</div>
+</div>
+</section>
+<section id="Mapmaking">
+<h2>Mapmaking<a class="headerlink" href="#Mapmaking" title="Link to this heading">¶</a></h2>
+<p>Common-mode subtraction (<code class="docutils literal notranslate"><span class="pre">remove_modes</span></code>) and per-detector spline removal (<code class="docutils literal notranslate"><span class="pre">remove_spline</span></code>) suppress large-scale correlated signal. Both operations remove power at long time scales, which maps to large angular scales on the sky, i.e., where <span class="math notranslate nohighlight">\(T\)</span> will fall below 1.</p>
+<blockquote>
+<div><p><strong>Note:</strong> <code class="docutils literal notranslate"><span class="pre">map_postprocessing</span></code> is intentionally left empty here. Any map-level post-processing (smoothing, filtering, etc.) applied after binning would itself suppress or modify signal in the output map, and its effect would be absorbed into the measured <span class="math notranslate nohighlight">\(T(u)\)</span>. To isolate the transfer function of the TOD filtering alone, always set <code class="docutils literal notranslate"><span class="pre">map_postprocessing={}</span></code> when computing transfer functions.</p>
+</div></blockquote>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
+
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
+    <span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_RJ&quot;</span><span class="p">,</span>
+    <span class="n">stokes</span><span class="o">=</span><span class="s2">&quot;I&quot;</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="n">maps</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
+    <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;remove_modes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;modes_to_remove&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="s2">&quot;remove_spline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;knot_spacing&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span> <span class="s2">&quot;remove_el_gradient&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="n">map_postprocessing</span><span class="o">=</span><span class="p">{},</span>
+<span class="p">)</span>
+
+<span class="n">output_map</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2026-06-05 14:24:33.340 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.81ˢ&#39;, &#39;dec&#39;: &#39;-9°59’55.42”&#39;} for mapper
+2026-06-05 14:24:33.352 INFO: Inferring mapper width 16.9’ for mapper from observation patch
+2026-06-05 14:24:33.353 INFO: Inferring mapper height 16.9’ to match supplied width
+Preprocessing TODs: 100%|██████████| 1/1 [00:39&lt;00:00, 39.39s/it]
+Mapping: 100%|██████████| 1/1 [00:10&lt;00:00, 10.66s/it, tod=1/1]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">nu</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdYlBu_r&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_10_0.png" src="../_images/tutorials_transfer-functions_10_0.png" />
+</div>
+</div>
+</section>
+<section id="Transfer-function">
+<h2>Transfer function<a class="headerlink" href="#Transfer-function" title="Link to this heading">¶</a></h2>
+<p>To compute the transfer function, call <code class="docutils literal notranslate"><span class="pre">transfer_function()</span></code> on the output map. This will return a <code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code> object containing the transfer function <span class="math notranslate nohighlight">\(T(u)\)</span> and the corresponding spatial frequencies <span class="math notranslate nohighlight">\(u\)</span>. The transfer function can be plotted to visualize the scale-dependent signal loss.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tf</span> <span class="o">=</span> <span class="n">output_map</span><span class="o">.</span><span class="n">transfer_function</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+TransferFunction:
+  channels: 2
+  nu: [150. 270.] GHz
+  bins: 20
+  u: [237, 7.55e+04] cycles/rad
+  T: [-10.468, 1.425]
+</pre></div></div>
+</div>
+<p>To visualize the transfer function, it is possible to use the built-in <code class="docutils literal notranslate"><span class="pre">plot()</span></code> method. Solid curves show the measured <span class="math notranslate nohighlight">\(T(u)\)</span>, while dashed curves show the Gaussian beam per channel. The large-scale rolloff reflects the TOD filtering above, while the small-scale rolloff tracks the beam.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_unit</span><span class="o">=</span><span class="s2">&quot;arcmin&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: xlabel=&#39;Angular scale [arcmin]&#39;, ylabel=&#39;Transfer function&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_14_1.png" src="../_images/tutorials_transfer-functions_14_1.png" />
+</div>
+</div>
+<p>Finally, individual channels can be selected with <code class="docutils literal notranslate"><span class="pre">slices=dict(nu=[...])</span></code>, consistent with how <code class="docutils literal notranslate"><span class="pre">slices</span></code> is used in <code class="docutils literal notranslate"><span class="pre">.plot()</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">nu</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">x_unit</span><span class="o">=</span><span class="s2">&quot;arcmin&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: xlabel=&#39;Angular scale [arcmin]&#39;, ylabel=&#39;Transfer function&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_16_1.png" src="../_images/tutorials_transfer-functions_16_1.png" />
+</div>
+</div>
+</section>
+<section id="Apodization-window">
+<h2>Apodization window<a class="headerlink" href="#Apodization-window" title="Link to this heading">¶</a></h2>
+<p>Before the FFT, <code class="docutils literal notranslate"><span class="pre">transfer_function()</span></code> multiplies both maps by a 2D apodization window to suppress spectral leakage from sharp map edges. The <code class="docutils literal notranslate"><span class="pre">window</span></code> argument controls which window is applied:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Shape</p></th>
+<th class="head"><p>When to use</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;hann&quot;</span></code> (default)</p></td>
+<td><p>Full cosine taper to zero at both edges</p></td>
+<td><p>Strongest leakage suppression; best when the field is much larger than the scales of interest, since it discards edge signal</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;tukey&quot;</span></code></p></td>
+<td><p>Cosine taper on outer <code class="docutils literal notranslate"><span class="pre">taper</span></code> fraction, central region = 1</p></td>
+<td><p>Mild apodization that preserves most of the map signal and substantially reduces edge leakage</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code></p></td>
+<td><p>User-supplied 2D window</p></td>
+<td><p>Full control — e.g. to mask point sources or weight by the hit-count map</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">False</span></code> / <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>No window (rectangular)</p></td>
+<td><p>Maximum large-scale sensitivity; avoid unless the map has periodic or artificially zero-padded boundaries</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">taper</span></code> parameter (default 0.1) sets the fraction of each axis tapered by the Tukey roll-off. Increasing it toward 1 makes the Tukey window approach a Hann window.</p>
+<blockquote>
+<div><p><strong>Tip:</strong> for typical BinMapper output maps, where valid signal extends close to the boundary, <code class="docutils literal notranslate"><span class="pre">&quot;tukey&quot;</span></code> with a small <code class="docutils literal notranslate"><span class="pre">taper</span></code> is preferred over <code class="docutils literal notranslate"><span class="pre">&quot;hann&quot;</span></code>. The full Hann taper downweights map edges heavily, effectively shrinking the usable field and worsening large-scale mode recovery.</p>
+</div></blockquote>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">constrained_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">windows</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;tukey&quot;</span><span class="p">,</span>  <span class="nb">dict</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="s2">&quot;tukey&quot;</span><span class="p">,</span> <span class="n">taper</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s2">&quot;hann&quot;</span><span class="p">,</span>   <span class="nb">dict</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="s2">&quot;hann&quot;</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s2">&quot;none&quot;</span><span class="p">,</span>   <span class="nb">dict</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span>
+<span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">windows</span><span class="p">):</span>
+    <span class="n">tf_w</span> <span class="o">=</span> <span class="n">output_map</span><span class="o">.</span><span class="n">transfer_function</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">nu</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">tf_w</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">x_unit</span><span class="o">=</span><span class="s2">&quot;arcmin&quot;</span><span class="p">,</span> <span class="n">add_beam</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_transfer-functions_18_0.png" src="../_images/tutorials_transfer-functions_18_0.png" />
+</div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../supported-sites.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Supported sites</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="cmb-patch.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Observing the CMB</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Thomas W. Morris
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Compute a transfer function</a><ul>
+<li><a class="reference internal" href="#Input-sky">Input sky</a></li>
+<li><a class="reference internal" href="#Instrument-and-observation-plan">Instrument and observation plan</a></li>
+<li><a class="reference internal" href="#Simulation">Simulation</a></li>
+<li><a class="reference internal" href="#Mapmaking">Mapmaking</a></li>
+<li><a class="reference internal" href="#Transfer-function">Transfer function</a></li>
+<li><a class="reference internal" href="#Apodization-window">Apodization window</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>

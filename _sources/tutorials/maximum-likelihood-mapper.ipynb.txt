@@ -146,15 +146,6 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "#truth, residual, #"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
     "from maria.mappers import compute_residual_map\n",
     "\n",
     "print(ml_mapper.map)\n",
