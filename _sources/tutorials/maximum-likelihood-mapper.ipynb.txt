@@ -17,10 +17,10 @@
     "import maria\n",
     "from maria.io import fetch\n",
     "\n",
-    "input_map = maria.map.get(\"maps/cluster2.fits\", nu=150e9)\n",
+    "input_map = maria.map.get(\"maps/cluster2.fits\", nu=90e9)\n",
     "input_map.data *= 2e2\n",
     "\n",
-    "input_map.plot(cmap=\"cmb\", center_zero=True)\n",
+    "input_map.plot(cmap=\"cmb\")\n",
     "print(input_map)"
    ]
   },
@@ -32,18 +32,19 @@
    "source": [
     "from maria.instrument import Band\n",
     "\n",
-    "f150 = Band(\n",
-    "    center=150e9,\n",
+    "f090 = Band(\n",
+    "    center=90e9,\n",
     "    width=30e9,\n",
-    "    NET_RJ=10e-6,\n",
-    "    knee=1e1)\n",
+    "    NET_RJ=20e-6,\n",
+    "    knee=2e1)\n",
     "\n",
-    "array = {\"field_of_view\": 0.25,\n",
+    "array = {\"name\": \"my_custom_array\",\n",
+    "         \"field_of_view\": 3/60,\n",
     "         \"primary_size\": 50,\n",
-    "         \"n\": 100,\n",
+    "         \"n\": 91,\n",
     "         \"shape\": \"circle\",\n",
-    "         \"packing\": \"sunflower\",\n",
-    "         \"bands\": [f150]}\n",
+    "         # \"packing\": \"sunflower\",\n",
+    "         \"bands\": [f090]}\n",
     "\n",
     "instrument = maria.get_instrument(array=array)\n",
     "\n",
@@ -66,12 +67,13 @@
     "                  constraints={\"el\": (70, 90)})\n",
     "\n",
     "plans = planner.generate_plans(\n",
-    "                               total_duration=1800,\n",
-    "                               max_chunk_duration=1800,\n",
-    "                               sample_rate=100, \n",
+    "                               total_duration=900,\n",
+    "                               max_chunk_duration=900,\n",
+    "                               sample_rate=50, \n",
+    "                               scan_pattern=\"daisy\",\n",
     "                               scan_options={\n",
-    "                                   \"radius\": input_map.width.deg,\n",
-    "                                   \"speed\": 1,\n",
+    "                                   \"radius\": 0.75 * input_map.width.deg,\n",
+    "                                   \"speed\": 0.5,\n",
     "                               })\n",
     "\n",
     "plans[0].plot()\n",
@@ -90,7 +92,7 @@
     "    site=\"cerro_toco\",\n",
     "    map=input_map,\n",
     "    atmosphere=\"2d\",\n",
-    "    atmosphere_kwargs={\"weather\": {\"pwv\": 0.5}},\n",
+    "    atmosphere_kwargs={\"weather\": {\"pwv\": 1.}},\n",
     ")\n",
     "\n",
     "print(sim)"
@@ -126,22 +128,16 @@
     "                                        \"remove_spline\": {\"knot_spacing\": 60, \"remove_el_gradient_order\": 3},\n",
     "                                    },\n",
     "                                    init=\"bin\",\n",
+    "                                    units=\"compton_y\",\n",
     "                                    bilinear=False,\n",
-    "                                    prior=False)\n"
+    "                                    prior=False, k=1)\n"
    ]
   },
   {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Binning the map yields only large-scale modes with no discernible signal:"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "To improve the solution, we fit the mapmaker by iteratively solving the mapmaking equation. The initial solution is a field of random noise:"
+    "The initial solution is just a binning of the data, which has some noise artifacts and is missing some power (especially at large scales):"
    ]
   },
   {
@@ -150,26 +146,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "print(ml_mapper.map)\n",
-    "ml_mapper.map.plot()"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "ml_mapper.fit(epochs=4, \n",
-    "              steps_per_epoch=25, \n",
-    "              plot=True)"
-   ]
-  },
-  {
-   "cell_type": "raw",
-   "metadata": {},
-   "source": [
-    "that will improve as it continues to fit. Our residuals now look like"
+    "#truth, residual, #"
    ]
   },
   {
@@ -180,8 +157,45 @@
    "source": [
     "from maria.mappers import compute_residual_map\n",
     "\n",
-    "residual_map = compute_residual_map(input_map.smooth(fwhm=instrument.dets.fwhm.mean()),\n",
-    "                                    ml_mapper.map)\n",
+    "print(ml_mapper.map)\n",
+    "ml_mapper.map.plot()\n",
+    "\n",
+    "residual_map = compute_residual_map(input_map, ml_mapper.map)\n",
+    "residual_map.plot()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To improve the map, we build a noise model perform conjugate gradient descent to solve the mapmaking equation $m = (P^\\top N^{-1} P)^{-1} P^\\top N^{-1} d$ where $m$ is the map, $P$ is the pointing matrix, $N = \\langle n \\otimes n \\rangle$ is the noise covariance, $d = Pm + n$ is the data, and $n$ is the noise."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ml_mapper.fit(epochs=2, max_steps_per_epoch=400, plot=True)"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "that will improve and recover more large-scale modes as it continues to fit. Our residuals now look like"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from maria.mappers import compute_residual_map\n",
+    "\n",
+    "residual_map = compute_residual_map(input_map, ml_mapper.map)\n",
     "residual_map.plot()"
    ]
   }

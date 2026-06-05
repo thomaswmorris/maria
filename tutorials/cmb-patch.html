@@ -227,7 +227,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/inputs/cmb.html">CMB</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../usage/simulations.html">Simulations</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../usage/tods.html">TODs</a><input aria-label="Toggle navigation of TODs" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../usage/tods/index.html">TODs</a></li>
 </ul>
@@ -330,8 +329,8 @@
 <div class="highlight"><pre>
 Instrument(1 array)
 ├ arrays:
-│             n     FOV baseline                        bands polarized
-│  array1  1048  41.84’      0 m  [act/pa5/f090,act/pa5/f150]      True
+│             n field_of_view max_baseline                        bands polarized primary_size
+│  array1  1048        41.84’          0 m  [act/pa5/f090,act/pa5/f150]      True         10 m
 │
 └ bands:
               name   center   width    η         NEP      NET_RJ         NET_CMB    FWHM
@@ -395,10 +394,10 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-06-02 15:40:08.701 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
+Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-06-05 10:54:30.003 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
 
-Downloading: |          | 3.72M/? [00:00&lt;00:00, 101MB/s]
-Generating CMB (nside=1024): 100%|██████████| 1/1 [00:09&lt;00:00,  9.75s/it]
+Downloading: |          | 3.72M/? [00:00&lt;00:00, 91.1MB/s]
+Generating CMB (nside=1024): 100%|██████████| 1/1 [00:09&lt;00:00,  9.95s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -409,8 +408,8 @@ Generating CMB (nside=1024): 100%|██████████| 1/1 [00:09&lt;
 Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
-│ │             n     FOV baseline                        bands polarized
-│ │  array1  1048  41.84’      0 m  [act/pa5/f090,act/pa5/f150]      True
+│ │             n field_of_view max_baseline                        bands polarized primary_size
+│ │  array1  1048        41.84’          0 m  [act/pa5/f090,act/pa5/f150]      True         10 m
 │ │
 │ └ bands:
 │               name   center   width    η         NEP      NET_RJ         NET_CMB    FWHM
@@ -429,6 +428,7 @@ Simulation
 │                            start_time duration target(az,el)
 │ chunk
 │ 0      2026-03-05 12:00:00.000 +00:00    600 s    (45°, 45°)
+
 └ CMB:
     data(3, 1, 1, 12582912):
       min: -5.602e-04
@@ -463,10 +463,10 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 15:40:17.952 INFO: Simulating observation 1 of 1
-Sampling CMB: 100%|██████████| 2/2 [00:02&lt;00:00,  1.20s/it, band=act/pa5/f150, stokes=U]
-Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.43it/s, band=act/pa5/f150]
-2026-06-02 15:40:22.371 INFO: Simulated observation 1 of 1 in 4.41 s
+2026-06-05 10:54:39.581 INFO: Simulating observation 1 of 1
+Sampling CMB: 100%|██████████| 2/2 [00:02&lt;00:00,  1.21s/it, band=act/pa5/f150, stokes=U]
+Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.34it/s, band=act/pa5/f150]
+2026-06-05 10:54:44.134 INFO: Simulated observation 1 of 1 in 4.544 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -498,12 +498,12 @@ Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.4
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-02 15:40:28.011 INFO: Inferring center {&#39;ra&#39;: &#39;20ʰ27ᵐ55.64ˢ&#39;, &#39;dec&#39;: &#39;10°32’59.91”&#39;} for mapper
-2026-06-02 15:40:28.021 INFO: Inferring mapper width 6.322° for mapper from observation patch
-2026-06-02 15:40:28.021 INFO: Inferring mapper height 6.322° to match supplied width
-2026-06-02 15:40:28.024 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:00&lt;00:00,  1.66it/s]
-Computing pointing matrices: 100%|██████████| 1/1 [00:06&lt;00:00,  6.97s/it]
+2026-06-05 10:54:50.106 INFO: Inferring center {&#39;ra&#39;: &#39;20ʰ27ᵐ55.64ˢ&#39;, &#39;dec&#39;: &#39;10°32’59.91”&#39;} for mapper
+2026-06-05 10:54:50.118 INFO: Inferring mapper width 6.322° for mapper from observation patch
+2026-06-05 10:54:50.119 INFO: Inferring mapper height 6.322° to match supplied width
+2026-06-05 10:54:50.228 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:00&lt;00:00,  1.61it/s]
+Computing pointing matrices: 100%|██████████| 1/1 [00:07&lt;00:00,  7.06s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -523,8 +523,8 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:06&lt;
 <div class="highlight"><pre>
 ProjectionMap:
   data(3, 2, 189, 189):
-    min: -1.624e-04
-    max: 1.803e-04
+    min: -4.194e-04
+    max: 3.967e-04
     units: K_RJ
     quantity: rayleigh_jeans_temperature
   stokes(3):
