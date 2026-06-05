@@ -508,14 +508,17 @@ class ProjectionMap(Map):
         input_map=None,
         n_bins: int = 20,
         stokes: str = "I",
-        nu_index: int = 0,
+        slices=None,
         t_index: int = 0,
-        window: bool = True,
+        window="hann",
+        taper: float = 0.1,
+        pad_factor: int = 1,
     ):
         """Compute the spatial transfer function relative to an input map.
 
-        Returns a :class:`TransferFunction` object whose ``.plot()`` method
-        produces a three-panel figure (input map, output map, transfer function).
+        When the map has multiple frequency channels the transfer function is
+        computed independently for each selected channel; ``result.T`` has shape
+        ``(n_nu, n_bins)``.
 
         When the map was produced by a mapper whose TODs came from a
         :class:`~maria.Simulation` with ``map=...``, the input map is
@@ -530,12 +533,20 @@ class ProjectionMap(Map):
             Number of logarithmically-spaced spatial frequency bins.
         stokes : str
             Stokes parameter to use ("I", "Q", "U", or "V").
-        nu_index : int
-            Frequency channel index for multi-channel maps.
+        slices : dict, optional
+            Channel selection, e.g. ``dict(nu=[0, 2])``.  ``None`` includes all
+            channels, consistent with how ``slices`` is used in ``.plot()``.
         t_index : int
             Time index for time-varying maps.
-        window : bool
-            Apply a 2D Hann window before FFT to reduce spectral leakage.
+        window : str, bool, or np.ndarray
+            Apodization window. ``"tukey"`` tapers only the edges;
+            ``"hann"`` (default) applies a full Hann window; a 2D array of shape
+            ``(ny, nx)`` is used directly; ``False`` disables windowing.
+        taper : float
+            Cosine-taper fraction for the Tukey window. Default is 0.1.
+        pad_factor : int
+            Zero-pad each axis to ``pad_factor`` times its length before the FFT,
+            improving k-space sampling at large angular scales. Default is 1 (no padding).
 
         Returns
         -------
@@ -550,16 +561,30 @@ class ProjectionMap(Map):
                 "No input map available. Pass input_map explicitly or run the simulation with map=<ProjectionMap>."
             )
 
-        u, T = compute_transfer_function(
-            input_map,
-            self,
-            n_bins=n_bins,
-            stokes=stokes,
-            nu_index=nu_index,
-            t_index=t_index,
-            window=window,
-        )
-        return TransferFunction(u=u, T=T, input_map=input_map, output_map=self)
+        n_nu = self.dims["nu"] if "nu" in self.dims else 1
+        nu_indices = list(np.atleast_1d(slices["nu"])) if (slices and "nu" in slices) else list(range(n_nu))
+
+        rows = [
+            compute_transfer_function(input_map, self, n_bins=n_bins, stokes=stokes, nu_index=i, t_index=t_index, window=window, taper=taper, pad_factor=pad_factor)
+            for i in nu_indices
+        ]
+        u = rows[0][0]
+        T = np.stack([r[1] for r in rows])
+        nu_qty = self.nu[nu_indices] if "nu" in self.dims else None
+
+        # Per-channel beam FWHM: average over all slice axes except nu
+        beam_fwhm = None
+        if hasattr(self, "beam"):
+            b_major = self.beam.rad[..., 0]  # (*slice_dims)
+            if "nu" in self.slice_dims:
+                nu_ax = list(self.slice_dims).index("nu")
+                other = tuple(i for i in range(b_major.ndim) if i != nu_ax)
+                all_fwhm = np.nanmean(b_major, axis=other) if other else b_major
+            else:
+                all_fwhm = np.full(n_nu, float(np.nanmean(b_major)))
+            beam_fwhm = np.asarray(all_fwhm)[nu_indices]
+
+        return TransferFunction(u=u, T=T, nu=nu_qty, beam_fwhm=beam_fwhm, input_map=input_map, output_map=self)
 
     def plot(
         self,
