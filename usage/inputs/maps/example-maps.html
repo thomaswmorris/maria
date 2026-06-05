@@ -197,6 +197,7 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../../../usage.html">Usage</a><input aria-label="Toggle navigation of Usage" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
 <li class="toctree-l2 current has-children"><a class="reference internal" href="../../inputs.html">Inputs</a><input aria-label="Toggle navigation of Inputs" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l3 has-children"><a class="reference internal" href="../instruments.html">Instruments</a><input aria-label="Toggle navigation of Instruments" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../instruments/overview.html">Overview</a></li>
@@ -210,6 +211,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../instruments/arrays/custom.html">Custom offsets and baselines</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="../instruments/example-instruments.html">Example instruments</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../sites.html">Sites</a></li>
@@ -246,6 +248,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/mustang-nebula.html">Simulating observations with MUSTANG-2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/maximum-likelihood-mapper.html">Maximum likelihood mapmaking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/cmb-patch.html">Observing the CMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/transfer-functions.html">Compute a transfer function</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../supported-sites.html">Supported sites</a></li>
@@ -354,8 +357,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:32.954 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/12CO(2-1).fits
-Downloading: 100%|██████████| 14.1M/14.1M [00:00&lt;00:00, 176MB/s]
+2026-06-05 14:26:13.075 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/12CO(2-1).fits
+Downloading: 100%|██████████| 14.1M/14.1M [00:00&lt;00:00, 171MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -415,8 +418,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:36.598 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/sun.h5
-Downloading: 100%|██████████| 1.67M/1.67M [00:00&lt;00:00, 55.1MB/s]
+2026-06-05 14:26:16.535 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/sun.h5
+Downloading: 100%|██████████| 1.67M/1.67M [00:00&lt;00:00, 64.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -481,8 +484,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:39.660 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M51HA.fits
-Downloading: 100%|██████████| 2.10M/2.10M [00:00&lt;00:00, 77.1MB/s]
+2026-06-05 14:26:19.464 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M51HA.fits
+Downloading: 100%|██████████| 2.10M/2.10M [00:00&lt;00:00, 75.5MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -534,8 +537,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:41.352 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/radio_galaxy_3C_288.fits
-Downloading: 100%|██████████| 268k/268k [00:00&lt;00:00, 18.5MB/s]
+2026-06-05 14:26:21.182 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/radio_galaxy_3C_288.fits
+Downloading: 100%|██████████| 268k/268k [00:00&lt;00:00, 17.0MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -631,10 +634,10 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:43.777 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/orion_A.h5
-Downloading: 100%|██████████| 1.01M/1.01M [00:00&lt;00:00, 51.6MB/s]
-2026-06-05 12:26:43.821 WARNING: &#39;x_res&#39; is deprecated and will be removed in a future version (use &#39;xi_res&#39; instead)
-2026-06-05 12:26:43.822 WARNING: &#39;y_res&#39; is deprecated and will be removed in a future version (use &#39;eta_res&#39; instead)
+2026-06-05 14:26:23.505 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/orion_A.h5
+Downloading: 100%|██████████| 1.01M/1.01M [00:00&lt;00:00, 47.6MB/s]
+2026-06-05 14:26:23.551 WARNING: &#39;x_res&#39; is deprecated and will be removed in a future version (use &#39;xi_res&#39; instead)
+2026-06-05 14:26:23.552 WARNING: &#39;y_res&#39; is deprecated and will be removed in a future version (use &#39;eta_res&#39; instead)
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -684,8 +687,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:45.793 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/monoceros_R2.h5
-Downloading: 100%|██████████| 4.57M/4.57M [00:00&lt;00:00, 113MB/s]
+2026-06-05 14:26:25.397 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/monoceros_R2.h5
+Downloading: 100%|██████████| 4.57M/4.57M [00:00&lt;00:00, 114MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -739,8 +742,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:49.307 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/protoplanetary_disk.fits
-Downloading: 100%|██████████| 271k/271k [00:00&lt;00:00, 17.6MB/s]
+2026-06-05 14:26:28.766 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/protoplanetary_disk.fits
+Downloading: 100%|██████████| 271k/271k [00:00&lt;00:00, 16.9MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -792,8 +795,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:51.510 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/quasar_3C_286.h5
-Downloading: 100%|██████████| 7.56M/7.56M [00:00&lt;00:00, 134MB/s]
+2026-06-05 14:26:30.906 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/quasar_3C_286.h5
+Downloading: 100%|██████████| 7.56M/7.56M [00:00&lt;00:00, 141MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -849,8 +852,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:56.943 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/circinus_galaxy.h5
-Downloading: 100%|██████████| 2.24M/2.24M [00:00&lt;00:00, 85.9MB/s]
+2026-06-05 14:26:36.305 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/circinus_galaxy.h5
+Downloading: 100%|██████████| 2.24M/2.24M [00:00&lt;00:00, 80.5MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -906,8 +909,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:26:59.772 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/dust.fits
-Downloading: 100%|██████████| 268k/268k [00:00&lt;00:00, 18.5MB/s]
+2026-06-05 14:26:39.060 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/dust.fits
+Downloading: 100%|██████████| 268k/268k [00:00&lt;00:00, 20.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -961,8 +964,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:27:01.640 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits
-Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 108MB/s]
+2026-06-05 14:26:41.099 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster1.fits
+Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 109MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1013,8 +1016,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:27:03.539 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster3.fits
-Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 105MB/s]
+2026-06-05 14:26:43.315 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster3.fits
+Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 55.9MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1124,8 +1127,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-05 12:27:11.373 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/maria.h5
-Downloading: 100%|██████████| 411k/411k [00:00&lt;00:00, 27.6MB/s]
+2026-06-05 14:26:51.226 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/maria.h5
+Downloading: 100%|██████████| 411k/411k [00:00&lt;00:00, 25.3MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
