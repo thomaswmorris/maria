@@ -26,7 +26,11 @@ conversions["rayleigh_jeans_temperature"] = {
     },
     "spectral_flux_density_per_pixel": {
         "f": rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
-        "required_kwargs": ["nu"],
+        "required_kwargs": ["nu", "pixel_area"],
+    },
+    "spectral_flux_density_per_beam": {
+        "f": rayleigh_jeans_temperature_to_spectral_flux_density_per_beam,
+        "required_kwargs": ["nu", "beam_area"],
     },
 }
 
@@ -45,7 +49,7 @@ conversions["spectral_flux_density_per_pixel"] = {
     "rayleigh_jeans_temperature": {
         "f": spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature,
         "linear": False,
-        "required_kwargs": ["nu"],
+        "required_kwargs": ["nu", "pixel_area"],
     },
     "spectral_radiance": {
         "f": spectral_flux_density_per_pixel_to_spectral_radiance,
@@ -55,17 +59,23 @@ conversions["spectral_flux_density_per_pixel"] = {
     "spectral_flux_density_per_beam": {
         "f": spectral_flux_density_per_pixel_to_spectral_flux_density_per_beam,
         "linear": True,
-        "required_kwargs": ["nu"],
+        "required_kwargs": ["nu", "beam_area", "pixel_area"],
     },
 }
 
 conversions["spectral_flux_density_per_beam"] = {
+    "rayleigh_jeans_temperature": {
+        "f": spectral_flux_density_per_beam_to_rayleigh_jeans_temperature,
+        "linear": False,
+        "required_kwargs": ["nu", "beam_area"],
+    },
     "spectral_flux_density_per_pixel": {
         "f": spectral_flux_density_per_beam_to_spectral_flux_density_per_pixel,
         "linear": True,
-        "required_kwargs": ["nu"],
+        "required_kwargs": ["nu", "beam_area", "pixel_area"],
     },
 }
+
 
 conversions["spectral_radiance"] = {
     "spectral_flux_density_per_pixel": {

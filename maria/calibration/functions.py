@@ -153,7 +153,7 @@ def rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel(T_RJ: float, n
     """
     T_RJ: Rayleigh-Jeans temperature, in Kelvin
     nu: frequency, in Hz
-    res: resolution, in radians
+    pixel_area: Pixel area, in steradians
     """
     return rayleigh_jeans_spectrum(T_RJ=T_RJ, nu=nu) * pixel_area
 
@@ -162,9 +162,28 @@ def spectral_flux_density_per_pixel_to_rayleigh_jeans_temperature(E: float, nu: 
     """
     T_RJ: Rayleigh-Jeans temperature, in Jy/pixel
     nu: frequency, in Hz
-    res: resolution, in radians
+    pixel_area: Pixel area, in steradians
     """
     I_nu = E / pixel_area
+    return inverse_rayleigh_jeans_spectrum(I_nu=I_nu, nu=nu)
+
+
+def rayleigh_jeans_temperature_to_spectral_flux_density_per_beam(T_RJ: float, nu: float, beam_area: float, **kwargs):
+    """
+    T_RJ: Rayleigh-Jeans temperature, in Kelvin
+    nu: frequency, in Hz
+    beam_area: Beam area, in steradians
+    """
+    return rayleigh_jeans_spectrum(T_RJ=T_RJ, nu=nu) * beam_area
+
+
+def spectral_flux_density_per_beam_to_rayleigh_jeans_temperature(E: float, nu: float, beam_area: float, **kwargs):
+    """
+    T_RJ: Rayleigh-Jeans temperature, in Jy/pixel
+    nu: frequency, in Hz
+    beam_area: Beam area, in steradians
+    """
+    I_nu = E / beam_area
     return inverse_rayleigh_jeans_spectrum(I_nu=I_nu, nu=nu)
 
 

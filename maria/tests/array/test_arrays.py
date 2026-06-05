@@ -28,7 +28,7 @@ arrays1 = {
 
 # /Users/tom/maria/src/maria/array/
 
-arrays2 = [{"file": "alma/alma_f144.csv", "primary_size": 12, "bands": ["alma/f144"]}]
+arrays2 = [{"file": "data/alma/alma_f144.csv", "primary_size": 12, "bands": ["alma/f144"]}]
 
 
 offsets = np.random.uniform(low=0, high=1, size=(100, 2))

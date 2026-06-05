@@ -140,7 +140,11 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
         logger.debug(f"Initialized plans in {humanize_time(ttime.monotonic() - plan_init_s)}.")
 
         self.obs_list = []
-        for plan in self.plans:
+        for obs_index, plan in enumerate(self.plans):
+            logger.debug(f"Initializing Observation {obs_index + 1} of {len(self.plans)}")
+
+            obs_start_s = ttime.monotonic()
+
             obs = Observation(
                 instrument=self.instrument,
                 plan=plan,
@@ -149,7 +153,15 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
                 atmosphere_kwargs=self.atmosphere_kwargs,
             )
 
+            if hasattr(obs, "atmosphere"):
+                obs.atmosphere.initialize(obs)
+
+            cmb_start_s = ttime.monotonic()
+
             self.obs_list.append(obs)
+
+            duration_s = ttime.monotonic() - obs_start_s
+            logger.debug(f"Initialized Observation in {humanize_time(duration_s)}.")
 
         if cmb:
             cmb_start_s = ttime.monotonic()
@@ -203,7 +215,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         if hasattr(obs, "atmosphere"):
             atmosphere_sim_start_s = ttime.monotonic()
-            obs.atmosphere.initialize(obs)
+            # obs.atmosphere.initialize(obs)
             self._simulate_atmosphere(obs)
             obs.loading["atmosphere"] = self._compute_atmospheric_loading(obs)
             logger.debug(f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}.")
@@ -267,8 +279,13 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
         site_tree = "├ " + self.site.__repr__().replace("\n", "\n│ ")
         plan_tree = "├ " + self.plans.__repr__().replace("\n", "\n│ ")
 
+        if self.atmosphere:
+            atmosphere_tree = "├ " + self.obs_list[0].atmosphere.__repr__().replace("\n", "\n│ ")
+        else:
+            atmosphere_tree = ""
+
         trees = []
-        attrs = [attr for attr in ["atmosphere", "cmb", "map"] if getattr(self, attr, None)]
+        attrs = [attr for attr in ["cmb", "map"] if getattr(self, attr, None)]
         if attrs:
             for attr in attrs[:-1]:
                 trees.append("├ " + getattr(self, attr).__repr__().replace("\n", "\n│ "))
@@ -280,6 +297,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 {instrument_tree}
 {site_tree}
 {plan_tree}
+{atmosphere_tree}
 {trees_string}"""
 
     @property

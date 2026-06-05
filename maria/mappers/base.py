@@ -44,7 +44,13 @@ class BaseMapper:
         bilinear: bool,
     ):
         u = parse_units(units)
-        self.tod_units = units if u["physical_quantity"] in VALID_TOD_QUANTITIES else "K_RJ"
+
+        tod_units = units if u["physical_quantity"] in VALID_TOD_QUANTITIES else "K_RJ"
+
+        mean_std_in_tod_units = np.mean(
+            [Quantity(tod.signal.std().compute(), units=tod.units).to(tod_units) for tod in tods]
+        )
+        self.tod_units = Quantity(mean_std_in_tod_units, tod_units).human_units
         self.map_units = units
 
         if u["physical_quantity"] not in VALID_MAP_QUANTITIES:

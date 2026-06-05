@@ -168,8 +168,9 @@ class Planner:
         return chunks
 
     def generate_plans(
-        self, total_duration: float, max_chunk_duration: float = 1800, scan_options: Mapping = {}, **plan_kwargs
+        self, total_duration: float, max_chunk_duration: float = 600, scan_options: Mapping = {}, **plan_kwargs
     ):
+
         scan_options = parse_scan_kwargs(scan_options, default_radius=self.target.width.deg / 2)
 
         # scan_options["radius"] = scan_options.get("radius", self.target.width.deg / 2)

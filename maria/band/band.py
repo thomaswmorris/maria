@@ -91,7 +91,7 @@ class Band:
         nu: float = None,
         tau: float = None,
         name: str = None,
-        shape: str = "top_hat",
+        shape: str = "gaussian",
         efficiency: float = 0.5,
         sensitivity: float = None,
         NET_RJ: float = None,

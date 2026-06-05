@@ -1,0 +1,15 @@
+
+saboca:
+  aliases: ["saboca"]
+  description: The Submillimetre APEX Bolometer Camera
+  documentation: https://www.eso.org/sci/publications/messenger/archive/no.139-mar10/messenger-no139-20-23.pdf
+  arrays:
+  - apex/saboca
+
+
+artemis:
+  aliases: ["artemis"]
+  description: Architectures de bolometres pour des Telescopes a grand champ de vue dans le domaine sub-Millimetrique au Sol
+  documentation: https://www.apex-telescope.org/instruments/pi/artemis/
+  arrays:
+  - apex/artemis

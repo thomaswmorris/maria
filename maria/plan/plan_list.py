@@ -59,6 +59,9 @@ class PlanList:
                 f"Invalid index {index}. A bandList must be indexed by either an integer or a string.",
             )
 
+    def __len__(self):
+        return len(self.plans)
+
     def plan_groups(self, max_break: float = 60):
         plan_groups = []
         last_plan_end = -np.inf

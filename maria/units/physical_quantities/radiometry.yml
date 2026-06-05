@@ -14,6 +14,12 @@ rayleigh_jeans_temperature:
       math_name: \text{K}_\text{RJ}
       min_prefix_power: -30
       max_prefix_power: 0
+    F_RJ:
+      offset: 1
+      long_name: kelvin Rayleigh-Jeans
+      math_name: \text{K}_\text{RJ}
+      min_prefix_power: -30
+      max_prefix_power: 0
 
 
 
