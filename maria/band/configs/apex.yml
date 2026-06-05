@@ -1,0 +1,9 @@
+350um:
+  center: 852.e+9
+  width: 120.e+9
+  shape: gaussian
+  time_constant: 0
+  knee: 1.0 # Hz
+  efficiency: 0.5
+  gain_error: 0
+  NET_RJ: 20.e-3 # this is wrong but whatever

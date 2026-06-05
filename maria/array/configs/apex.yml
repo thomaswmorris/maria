@@ -1,0 +1,10 @@
+saboca:
+  file: data/apex/saboca.csv
+  bands: [apex/350um]
+  primary_size: 12
+
+
+artemis:
+  file: data/apex/artemis.csv
+  bands: [apex/350um]
+  primary_size: 12

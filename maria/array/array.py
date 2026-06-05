@@ -279,13 +279,19 @@ class Array:
         return not np.isnan(self.gamma).all()
 
     def filling(self):
-        return {
+        filling = {
             "n": self.n,
-            "FOV": self.field_of_view,
-            "baseline": self.max_baseline,
+            "field_of_view": self.field_of_view,
+            "max_baseline": self.max_baseline,
             "bands": f"[{','.join(self.bands.name)}]",
             "polarized": self.polarized,
         }
+
+        filling["primary_size"] = (
+            Quantity(self.primary_size[0], "m") if len(np.unique(self.primary_size)) > 0 else "multiple"
+        )
+
+        return filling
 
     def summary(self):
         series = pd.Series(self.filling())

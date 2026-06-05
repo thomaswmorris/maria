@@ -336,7 +336,7 @@ class Plan:
             annotate_kwargs = dict(
                 xycoords="data",
                 # textcoords="offset points",
-                bbox={"boxstyle": "round,pad=0.3", "fc": "w", "ec": "k", "alpha": 0.5, "lw": 1},
+                bbox={"boxstyle": "round,pad=0.3", "fc": "w", "ec": "k", "alpha": 0.75, "lw": 1},
             )
 
             start_loc, end_loc = list(

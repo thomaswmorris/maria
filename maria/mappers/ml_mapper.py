@@ -96,11 +96,12 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             resolution=self.resolution,
             frame=self.frame,
             tods=self.tods,  # already preprocessed
-            units=self.units,
+            units=self.tod_units,
             min_time=min_time,
             max_time=max_time,
             tod_preprocessing={
-                "remove_spline": {"knot_spacing": 10, "remove_el_gradient_order": 3},
+                "remove_modes": {"modes_to_remove": 1},
+                "remove_spline": {"knot_spacing": 60, "remove_el_gradient_order": 3},
             },
             timestep=timestep,
             degrees=False,
@@ -149,8 +150,8 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         loss1.backward()
         grad = self.sol.grad.data.clone()
 
-        map_scale = self.sol.detach().square().mean().sqrt()
-        self.step_size = 1e-1 * map_scale / grad.square().mean().sqrt()
+        map_scale = self.sol.detach().double().square().mean().sqrt()
+        self.step_size = 1e-1 * map_scale / grad.double().square().mean().sqrt()
 
         for _ in range(10):
             self.sol.data = self.sol.data - self.step_size * grad
@@ -175,8 +176,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         W = torch.tensor(WX * WY)
         TAPER = denom / denom.max()
 
-        # apodize by hits (doctors hate this one weird trick)
-        naive_map = (numer / denom).where(H > 0, 0.0) * TAPER * W
+        naive_map = (numer / denom).where(H > 0, 0.0)  # * TAPER * W
 
         init_sol = naive_map.where(naive_map.isfinite(), 0).ravel()
 
@@ -320,6 +320,12 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
     def forward(self, t):
         return t["PT"] @ self.apply_inverse_noise_covariance((t["P"] @ self.sol).reshape(t["d"].shape), t)
 
+    def apply_PNP(self, x):
+        PNPx = 0
+        for t in self.noise_model:
+            PNPx += t["PT"] @ self.apply_inverse_noise_covariance((t["P"] @ x).reshape(t["d"].shape), t)
+        return PNPx
+
     def ivar(self):
         return sum([t["ivar"] for t in self.noise_model])
 
@@ -350,7 +356,27 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             return self.ivar().numpy()
         return self.hits.numpy()
 
-    def fit(self, epochs: int = 4, steps_per_epoch: int = 64, plot: bool = False, plot_kwargs: dict = {}):
+    def fit(
+        self,
+        method: str = "conjugate_gradient",
+        epochs: int = 4,
+        steps_per_epoch: int = 64,
+        max_steps_per_epoch: int = 500,
+        plot: bool = False,
+        plot_kwargs: dict = {},
+        alpha_tol: float = 1e-3,
+    ):
+
+        if method == "gradient":
+            self._gradient_descent(epochs, steps_per_epoch, plot, plot_kwargs)
+
+        elif method == "conjugate_gradient":
+            self._conjugate_gradient_descent(epochs, max_steps_per_epoch, plot, plot_kwargs, alpha_tol)
+
+        else:
+            raise ValueError()
+
+    def _gradient_descent(self, epochs, max_steps_per_epoch, plot, plot_kwargs):
 
         self.grad_hist = {}
         self.step_hist = {}
@@ -453,6 +479,56 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             except KeyboardInterrupt:
                 logger.info("Stopped fitting routine")
                 break
+
+            if plot:
+                self.map.plot(**plot_kwargs)
+                plt.show()
+
+    def _conjugate_gradient_descent(self, epochs, max_steps_per_epoch, plot, plot_kwargs, alpha_tol):
+
+        for epoch in range(epochs):
+            self.update_noise_model()
+
+            y = sum([t["PNd"] for t in self.noise_model])
+
+            sol = self.sol.data.detach().clone()
+
+            with tqdm(
+                desc=f"Fitting map (epoch {epoch + 1}/{epochs})",
+                total=None,
+            ) as pbar:
+                try:
+                    alpha = []
+                    p = []
+                    Ap = []
+                    pAp = []
+
+                    step = 0
+                    while step < max_steps_per_epoch:
+                        r_k = y - self.apply_PNP(sol)
+                        p_k = r_k - sum([p_i * (r_k @ Ap_i) / pAp_i for p_i, Ap_i, pAp_i in zip(p, Ap, pAp)])
+                        Ap_k = self.apply_PNP(p_k)
+                        pAp_k = p_k @ Ap_k
+                        alpha_k = (p_k @ r_k) / pAp_k
+                        sol += alpha_k * p_k
+                        self.sol.data = sol
+
+                        alpha.append(alpha_k)
+                        p.append(p_k)
+                        Ap.append(Ap_k)
+                        pAp.append(pAp_k)
+
+                        if alpha_k < alpha_tol * np.median(alpha):
+                            logger.info("Finished conjugate gradient descent, terminating")
+                            break
+
+                        pbar.update(1)
+                        pbar.set_postfix(alpha=alpha_k.item())
+                        step += 1
+
+                except KeyboardInterrupt:
+                    logger.info("Stopped fitting routine")
+                    break
 
             if plot:
                 self.map.plot(**plot_kwargs)

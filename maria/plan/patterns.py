@@ -132,16 +132,18 @@ def daisy(
         b = a * miss_factor
         max_speed = 0.0
         dp_dt = (speed / radius) if radius > 0.0 else 0.0
+        dp = dp_dt * np.gradient(time)
+        # dp *= (1 + 0.5 * np.cos(time / (100 * np.pi)))
 
         for _ in range(4):
-            phase = dp_dt * time
+            phase = np.cumsum(dp)
             test_x, test_y = daisy_from_phase(phase, a=a, b=b, petals=petals, miss_freq=miss_freq)
             vx2 = (np.gradient(test_x) / np.gradient(time)) ** 2
             vy2 = (np.gradient(test_y) / np.gradient(time)) ** 2
             max_speed = np.sqrt(vx2 + vy2).max()
 
             if np.abs(np.log(max_speed / speed)) > 0.01:
-                dp_dt *= speed / max_speed
+                dp *= speed / max_speed
             else:
                 break
 

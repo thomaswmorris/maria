@@ -1,9 +1,9 @@
 import os
 
+import numpy as np
 import pandas as pd
-import yaml
 
-from ..errors import MissingConversionParametersError
+from ..errors import IncompatibleQuantityError, MissingCalibrationKwargs
 from ..spectrum import AtmosphericSpectrum
 from ..units import QUANTITY_DIMENSION_VECTORS, Quantity, parse_units
 from .conversion import conversions
@@ -38,8 +38,10 @@ def compute_quantities_chain(
     start_quantity, end_quantity, max_steps: int = 6, kwargs: dict = {}, enforce_kwargs: bool = True
 ):
     """
-    What the fuck
+    what the fuck
     """
+
+    shortest_chain_length = np.inf
     missing_kwargs = None
     walks_and_kwargs = [([start_quantity], set())]
     for _ in range(max_steps):
@@ -51,19 +53,24 @@ def compute_quantities_chain(
                 chain = [*walk, quantity]
 
                 if quantity == end_quantity:
-                    if all([kwarg in kwargs for kwarg in required_kwargs]) or not enforce_kwargs:
+                    missing_chain_kwargs = [kwarg for kwarg in required_kwargs if kwarg not in kwargs]
+                    if not missing_chain_kwargs:
                         return chain
-                    if missing_kwargs is None:
-                        missing_kwargs = required_kwargs
+                    if len(chain) < shortest_chain_length:
+                        shortest_chain_length = len(chain)
+                        missing_kwargs = missing_chain_kwargs
 
                 if quantity not in walk:
                     extended_walks_and_kwargs.append((chain, required_kwargs))
 
         walks_and_kwargs = extended_walks_and_kwargs
 
-    raise MissingConversionParametersError(
-        f"Conversion from '{start_quantity}' to '{end_quantity}' is missing kwargs {missing_kwargs}"
-    )
+    if missing_kwargs is not None:
+        raise MissingCalibrationKwargs(
+            f"Conversion from '{start_quantity}' to '{end_quantity}' is missing kwargs {missing_kwargs}"
+        )
+
+    raise IncompatibleQuantityError(f"Cannot convert from quantity '{start_quantity}' to quantity '{end_quantity}'")
 
 
 class Calibration:
@@ -88,6 +95,11 @@ class Calibration:
                 "elevation",
             ]:
                 raise ValueError(f"Invalid kwarg '{key}'.")
+
+        try:
+            compute_quantities_chain(self.in_quantity, self.out_quantity, kwargs=self.kwargs)
+        except MissingCalibrationKwargs as error:
+            pass
 
     def linear(self):
         qchain = compute_quantities_chain(self.in_quantity, self.out_quantity, enforce_kwargs=False)
@@ -152,7 +164,7 @@ class Calibration:
         if not hasattr(self, "_factor"):
             self._factor = f"{self(1e0):.03e}" if self.linear() else "None (nonlinear)"
 
-        return f"""Calibration({self.signature}):
+        return f"""Calibration({self.in_units} -> {self.out_units}):
   spectrum: {self.kwargs.get("spectrum")}
   band: {self.kwargs.get("band")}
   kwargs: {qkwargs}"""

@@ -51,7 +51,7 @@ def generate_noise_with_knee(
     return noise
 
 
-def generate_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, beta: float = 8 / 3):
+def generate_2d_fourier_noise(nx: float = 1024, ny: float = 1024, k0: float = 5e0, beta: float = 8 / 3):
     kx = np.fft.fftfreq(nx, d=1 / nx)
     ky = np.fft.fftfreq(ny, d=1 / ny)
     KY, KX = np.meshgrid(ky, kx)
