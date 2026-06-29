@@ -1,13 +1,13 @@
-.. _plans:
+.. _sites:
 
 =====
-Plans
+Sites
 =====
 
 .. toctree::
    :maxdepth: 2
 
-   plans/plans.rst
-   plans/example-plans
+   sites/sites.rst
+   sites/example-sites
 
    

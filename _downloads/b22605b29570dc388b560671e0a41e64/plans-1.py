@@ -10,7 +10,7 @@ planner = Planner(target=input_map,
                                "hour": (14, 15)})
 
 plan = planner.generate_plan(total_duration=600, # in seconds
-                             scan_options={"radius": input_map.width.deg / 3}, # in degrees
+                             scan_parameters={"radius": input_map.width.deg / 3}, # in degrees
                              sample_rate=50) # in Hz
 
 plan.plot()

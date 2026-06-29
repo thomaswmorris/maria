@@ -17,7 +17,7 @@
     "import maria\n",
     "from maria.io import fetch\n",
     "\n",
-    "input_map = maria.map.get(\"maps/cluster2.fits\", nu=90e9)\n",
+    "input_map = maria.map.get(\"maps/cluster2.fits\", nu=150e9)\n",
     "input_map.data *= 2e2\n",
     "\n",
     "input_map.plot(cmap=\"cmb\")\n",
@@ -33,17 +33,16 @@
     "from maria.instrument import Band\n",
     "\n",
     "f090 = Band(\n",
-    "    center=90e9,\n",
+    "    center=150e9,\n",
     "    width=30e9,\n",
-    "    NET_RJ=20e-6,\n",
-    "    knee=2e1)\n",
+    "    NET_RJ=10e-6,\n",
+    "    knee=5e1)\n",
     "\n",
     "array = {\"name\": \"my_custom_array\",\n",
-    "         \"field_of_view\": 3/60,\n",
-    "         \"primary_size\": 50,\n",
-    "         \"n\": 91,\n",
+    "         \"field_of_view\": 4 / 60,\n",
+    "         \"primary_size\": 30,\n",
+    "         \"n\": 121,\n",
     "         \"shape\": \"circle\",\n",
-    "         # \"packing\": \"sunflower\",\n",
     "         \"bands\": [f090]}\n",
     "\n",
     "instrument = maria.get_instrument(array=array)\n",
@@ -67,11 +66,11 @@
     "                  constraints={\"el\": (70, 90)})\n",
     "\n",
     "plans = planner.generate_plans(\n",
-    "                               total_duration=900,\n",
-    "                               max_chunk_duration=900,\n",
+    "                               total_duration=2400,\n",
+    "                               max_chunk_duration=2400,\n",
     "                               sample_rate=50, \n",
-    "                               scan_pattern=\"daisy\",\n",
-    "                               scan_options={\n",
+    "                               scan_type=\"daisy\",\n",
+    "                               scan_parameters={\n",
     "                                   \"radius\": 0.75 * input_map.width.deg,\n",
     "                                   \"speed\": 0.5,\n",
     "                               })\n",
@@ -92,7 +91,7 @@
     "    site=\"cerro_toco\",\n",
     "    map=input_map,\n",
     "    atmosphere=\"2d\",\n",
-    "    atmosphere_kwargs={\"weather\": {\"pwv\": 1.}},\n",
+    "    atmosphere_kwargs={\"weather\": {\"pwv\": 0.5}},\n",
     ")\n",
     "\n",
     "print(sim)"
@@ -112,7 +111,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "We can map the `TOD` with the ``MaximumLikelihoodMapper``. Here the ``k`` parameter controls how many detector-detector eigenmodes to use in the noise model. "
+    "We can map the `TOD` with the ``MaximumLikelihoodMapper``"
    ]
   },
   {
@@ -121,16 +120,23 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria.mappers.ml_mapper import *\n",
+    "from maria.mapping import MaximumLikelihoodMapper\n",
     "            \n",
     "ml_mapper = MaximumLikelihoodMapper(tods=tods,\n",
     "                                    tod_preprocessing={\n",
-    "                                        \"remove_spline\": {\"knot_spacing\": 60, \"remove_el_gradient_order\": 3},\n",
+    "                                        \"remove_polynomial\": {\"time\": 1, \"elevation\": 1},\n",
     "                                    },\n",
     "                                    init=\"bin\",\n",
-    "                                    units=\"compton_y\",\n",
-    "                                    bilinear=False,\n",
-    "                                    prior=False, k=1)\n"
+    "                                    units=\"compton_y\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%debug"
    ]
   },
   {
@@ -146,7 +152,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria.mappers import compute_residual_map\n",
+    "from maria.mapping import compute_residual_map\n",
     "\n",
     "print(ml_mapper.map)\n",
     "ml_mapper.map.plot()\n",
@@ -168,7 +174,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "ml_mapper.fit(epochs=2, max_steps_per_epoch=400, plot=True)"
+    "ml_mapper.fit(epochs=2, max_steps_per_epoch=50, plot=True)"
    ]
   },
   {

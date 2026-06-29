@@ -32,8 +32,8 @@
    "outputs": [],
    "source": [
     "plans = planner.generate_plans(total_duration=900, \n",
-    "                               scan_pattern=\"daisy\",\n",
-    "                               scan_options={\"radius\": 1e0, \"speed\": 2e-1})\n",
+    "                               scan_type=\"daisy\",\n",
+    "                               scan_parameters={\"radius\": 1e0, \"speed\": 2e-1})\n",
     "plans[0].plot()\n",
     "plans[0].plot_hits(instrument=\"test/1deg\")"
    ]
@@ -46,8 +46,8 @@
    "outputs": [],
    "source": [
     "plans = planner.generate_plans(total_duration=900, \n",
-    "                               scan_pattern=\"raster\",\n",
-    "                               scan_options={\"radius\": 1e0, \"n\": [(25, 1), (1, 26)], \"speed\": 2e-1})\n",
+    "                               scan_type=\"raster\",\n",
+    "                               scan_parameters={\"radius\": 1e0, \"n\": [(25, 1), (1, 26)], \"speed\": 2e-1})\n",
     "plans[0].plot()\n",
     "plans[0].plot_hits(instrument=\"test/1deg\")\n"
    ]
@@ -60,8 +60,8 @@
    "outputs": [],
    "source": [
     "plans = planner.generate_plans(total_duration=900, \n",
-    "                               scan_pattern=\"double_circle\",\n",
-    "                               scan_options={\"radius\": 1e0, \n",
+    "                               scan_type=\"double_circle\",\n",
+    "                               scan_parameters={\"radius\": 1e0, \n",
     "                                             \"ratio\": 0.75, \n",
     "                                             \"speed\": 2e-1})\n",
     "plans[0].plot()\n",
@@ -76,8 +76,8 @@
    "outputs": [],
    "source": [
     "plans = planner.generate_plans(total_duration=900, \n",
-    "                               scan_pattern=\"lissajous\",\n",
-    "                               scan_options={\"x_throw\": 1e0, \n",
+    "                               scan_type=\"lissajous\",\n",
+    "                               scan_parameters={\"x_throw\": 1e0, \n",
     "                                             \"y_throw\": 0.75,\n",
     "                                             \"speed\": 2e-1})\n",
     "plans[0].plot()\n",
