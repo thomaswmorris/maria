@@ -8,9 +8,10 @@ import dask.array as da
 import numpy as np
 import scipy as sp
 
+from ..array import Array
 from ..calibration import Calibration
 from ..constants import MARIA_MAX_NU_HZ, MARIA_MIN_NU_HZ, c
-from ..coords import Frame
+from ..coords import Coordinates, Frame
 from ..errors import FrequencyOutOfBoundsError, ShapeError
 from ..io import leftpad, parse_nu, parse_stokes, parse_t, parse_v
 from ..units import Quantity, parse_units
