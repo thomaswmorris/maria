@@ -317,8 +317,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:21:18.031 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
-Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 130MB/s]
+2026-06-29 22:06:39.431 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
+Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 87.3MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -436,7 +436,7 @@ Instrument(1 array)
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt; [astropy.utils.iers.iers]
-2026-06-29 05:21:37.194 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
+2026-06-29 22:06:58.247 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -479,7 +479,9 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Constructing atmosphere: 100%|██████████| 8/8 [00:11&lt;00:00,  1.50s/it]
+2026-06-29 22:07:03.220 INFO: Initializing Observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:11&lt;00:00,  1.44s/it]
+2026-06-29 22:07:17.418 INFO: Initialized Observation in 14.19 s.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -534,13 +536,13 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:21:57.548 INFO: Simulating observation 1 of 1
-Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  4.56it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.69it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.08it/s, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:08&lt;00:00,  8.75s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.50s/it, band=f150]
-2026-06-29 05:22:19.595 INFO: Simulated observation 1 of 1 in 22.04 s
+2026-06-29 22:07:17.938 INFO: Simulating observation 1 of 1
+Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  4.62it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.73it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.09it/s, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:08&lt;00:00,  8.51s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.49s/it, band=f150]
+2026-06-29 22:07:39.551 INFO: Simulated observation 1 of 1 in 21.6 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -571,13 +573,13 @@ Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.5
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:22:24.189 INFO: Inferring resolution = 8.748” from detector FWHM
-2026-06-29 05:22:26.450 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.95ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.37”&#39;} for mapper
-2026-06-29 05:22:26.463 INFO: Inferring mapper width 1.552° for mapper from observation patch
-2026-06-29 05:22:26.464 INFO: Inferring mapper height 1.552° to match supplied width
-2026-06-29 05:22:33.139 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:06&lt;00:00,  6.35s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.28s/it]
+2026-06-29 22:07:43.977 INFO: Inferring resolution = 8.748” from detector FWHM
+2026-06-29 22:07:46.222 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ19ᵐ59.95ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.37”&#39;} for mapper
+2026-06-29 22:07:46.234 INFO: Inferring mapper width 1.55° for mapper from observation patch
+2026-06-29 22:07:46.234 INFO: Inferring mapper height 1.55° to match supplied width
+2026-06-29 22:07:52.714 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:06&lt;00:00,  6.31s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.26s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -593,7 +595,7 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:22:46.473 ERROR: No traceback has been produced, nothing to debug.
+2026-06-29 22:08:06.011 ERROR: No traceback has been produced, nothing to debug.
 </pre></div></div>
 </div>
 <p>The initial solution is just a binning of the data, which has some noise artifacts and is missing some power (especially at large scales):</p>
@@ -617,25 +619,25 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(1, 638, 638):
-    min: -5.198e-04
-    max: 6.125e-04
+  data(1, 637, 637):
+    min: -6.190e-04
+    max: 4.699e-04
     units: compton_y
     quantity: compton_y
   nu(1):
     values: [150.] GHz
-  eta(638):
-    height: 1.548°
+  eta(637):
+    height: 1.545°
     res: -8.748”
-  xi(638):
-    width: 1.548°
+  xi(637):
+    width: 1.545°
     res: 8.748”
   frame: ra/dec
   center:
     ra: 17ʰ19ᵐ59.95ˢ
     dec: -9°59’59.37”
   beam(maj, min, psi): (17.5”, 17.5”, 0 rad)
-  memory: 3.256 MB
+  memory: 3.246 MB
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -666,8 +668,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.99s/it, tod=1/1]
-Fitting map (epoch 1/2): 50it [01:47,  2.15s/it, alpha=77.1]
+Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.68s/it, tod=1/1]
+Fitting map (epoch 1/2): 50it [01:47,  2.15s/it, alpha=77.9]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -682,8 +684,8 @@ Fitting map (epoch 1/2): 50it [01:47,  2.15s/it, alpha=77.1]
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.97s/it, tod=1/1]
-Fitting map (epoch 2/2): 50it [01:47,  2.14s/it, alpha=78.3]
+Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.70s/it, tod=1/1]
+Fitting map (epoch 2/2): 50it [01:47,  2.15s/it, alpha=79.3]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

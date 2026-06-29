@@ -309,7 +309,7 @@
 <span class="n">f090</span> <span class="o">=</span> <span class="n">Band</span><span class="p">(</span>
     <span class="n">center</span><span class="o">=</span><span class="mf">90e9</span><span class="p">,</span>  <span class="c1"># in Hz</span>
     <span class="n">width</span><span class="o">=</span><span class="mf">20e9</span><span class="p">,</span>  <span class="c1"># in Hz</span>
-    <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">40e-6</span><span class="p">,</span>  <span class="c1"># in K sqrt(s)</span>
+    <span class="n">NET_RJ</span><span class="o">=</span><span class="mf">40e-6</span><span class="p">,</span>  <span class="c1"># in K sqrt(s)?</span>
     <span class="n">knee</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span>    <span class="c1"># in Hz</span>
     <span class="n">gain_error</span><span class="o">=</span><span class="mf">5e-2</span><span class="p">)</span>
 
@@ -406,8 +406,8 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:19:58.915 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
-Downloading: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 153MB/s]
+2026-06-29 22:05:33.015 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
+Downloading: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 108MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -433,7 +433,7 @@ Downloading: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 1
 <span class="n">input_map</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">5e1</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
-<span class="n">input_map</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">input_map</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;K_RJ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -442,8 +442,8 @@ Downloading: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 1
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:20:00.405 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/30dor.fits
-Downloading: 100%|██████████| 259k/259k [00:00&lt;00:00, 18.5MB/s]
+2026-06-29 22:05:34.269 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/30dor.fits
+Downloading: 100%|██████████| 259k/259k [00:00&lt;00:00, 18.6MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -509,7 +509,7 @@ ProjectionMap:
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt; [astropy.utils.iers.iers]
-2026-06-29 05:20:18.019 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
+2026-06-29 22:05:51.181 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -535,48 +535,13 @@ chunk
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">input_map</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-ProjectionMap:
-  data(1, 251, 251):
-    min: 1.287e+02
-    max: 3.473e+04
-    units: MJy sr^-1
-    quantity: spectral_radiance
-  nu(1):
-    values: [150.] GHz
-  eta(251):
-    height: 9’
-    res: 2.16”
-  xi(251):
-    width: 9’
-    res: 2.16”
-  frame: ra/dec
-  center:
-    ra: 19ʰ24ᵐ37.44ˢ
-    dec: -31°13’48.00”
-  beam(maj, min, psi): (0 rad, 0 rad, 0 rad)
-  memory: 252 kB
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
     <span class="n">instrument</span><span class="p">,</span>
     <span class="n">plans</span><span class="o">=</span><span class="n">plans</span><span class="p">,</span>
     <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">,</span>
     <span class="n">atmosphere</span><span class="o">=</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span>
-    <span class="n">atmosphere_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;weather&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;pwv&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}},</span>
+    <span class="n">atmosphere_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;weather&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;pwv&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
+                       <span class="s2">&quot;layers&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;boundaries&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">,</span> <span class="mf">2e3</span><span class="p">]}},</span>
     <span class="nb">map</span><span class="o">=</span><span class="n">input_map</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
@@ -588,12 +553,16 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:20:23.766 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/chajnantor.h5
-Downloading: 100%|██████████| 32.9M/32.9M [00:00&lt;00:00, 189MB/s]
-2026-06-29 05:20:25.007 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5
-Downloading: 100%|██████████| 4.05M/4.05M [00:00&lt;00:00, 87.7MB/s]
-Constructing atmosphere: 100%|██████████| 8/8 [00:02&lt;00:00,  2.89it/s]
-Constructing atmosphere: 100%|██████████| 8/8 [00:02&lt;00:00,  3.30it/s]
+2026-06-29 22:05:55.728 INFO: Initializing Observation 1 of 2
+2026-06-29 22:05:56.763 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/chajnantor.h5
+Downloading: 100%|██████████| 32.9M/32.9M [00:00&lt;00:00, 151MB/s]
+2026-06-29 22:05:58.138 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/chajnantor.h5
+Downloading: 100%|██████████| 4.05M/4.05M [00:00&lt;00:00, 94.3MB/s]
+Constructing atmosphere: 100%|██████████| 2/2 [00:00&lt;00:00,  4.35it/s]
+2026-06-29 22:05:59.875 INFO: Initialized Observation in 4.135 s.
+2026-06-29 22:05:59.876 INFO: Initializing Observation 2 of 2
+Constructing atmosphere: 100%|██████████| 2/2 [00:00&lt;00:00,  5.69it/s]
+2026-06-29 22:06:01.925 INFO: Initialized Observation in 2.034 s.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -625,7 +594,7 @@ Simulation
 │ chunk
 │ 0      2024-08-07 01:31:15.000 +00:00    600 s       10 Hz  (291.2°, -31.23°)  (119.7°, 71.13°)
 │ 1      2024-08-07 01:41:52.500 +00:00    600 s       10 Hz  (291.2°, -31.23°)  (122.6°, 73.23°)
-├ Atmosphere(8 processes with 8 layers):
+├ Atmosphere(2 processes with 2 layers):
 │ ├ spectrum:
 │ │   region: chajnantor
 │ └ weather:
@@ -636,17 +605,9 @@ Simulation
 
 </pre></div></div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
-</div>
 <p>We run the simulation, which spits out a <code class="docutils literal notranslate"><span class="pre">TOD</span></code> object (which stands for time-ordered data). We can then plot the <code class="docutils literal notranslate"><span class="pre">TOD</span></code>:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -661,20 +622,20 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:20:34.056 INFO: Simulating observation 1 of 2
-Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 18.36it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.84it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:01&lt;00:00,  1.12it/s, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:06&lt;00:00,  3.08s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  2.96it/s, band=f150]
-2026-06-29 05:20:48.724 INFO: Simulated observation 1 of 2 in 14.66 s
-2026-06-29 05:20:48.725 INFO: Simulating observation 2 of 2
-Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 18.52it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.99it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:01&lt;00:00,  1.08it/s, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:01&lt;00:00,  1.48it/s, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  8.69it/s, band=f150]
-2026-06-29 05:20:57.808 INFO: Simulated observation 2 of 2 in 9.073 s
+2026-06-29 22:06:02.624 INFO: Simulating observation 1 of 2
+Generating turbulence: 100%|██████████| 2/2 [00:00&lt;00:00, 25.83it/s]
+Sampling turbulence: 100%|██████████| 2/2 [00:01&lt;00:00,  1.13it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:01&lt;00:00,  1.13it/s, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:05&lt;00:00,  2.98s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  3.11it/s, band=f150]
+2026-06-29 22:06:14.031 INFO: Simulated observation 1 of 2 in 11.4 s
+2026-06-29 22:06:14.032 INFO: Simulating observation 2 of 2
+Generating turbulence: 100%|██████████| 2/2 [00:00&lt;00:00, 25.42it/s]
+Sampling turbulence: 100%|██████████| 2/2 [00:01&lt;00:00,  1.18it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:01&lt;00:00,  1.27it/s, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:01&lt;00:00,  1.53it/s, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  8.44it/s, band=f150]
+2026-06-29 22:06:20.082 INFO: Simulated observation 2 of 2 in 6.041 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -682,18 +643,18 @@ Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  8.6
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-29T05:20:47.646282+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.616}), TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-29T05:20:56.796866+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.594})]
+[TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-29T22:06:12.998191+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.616}), TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-06-29T22:06:19.091503+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;base_temperature&#39;: 272.594})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_15_2.png" src="../_images/tutorials_custom-map-simulations_15_2.png" />
+<img alt="../_images/tutorials_custom-map-simulations_13_2.png" src="../_images/tutorials_custom-map-simulations_13_2.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;uK_CMB&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -704,15 +665,15 @@ Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  8.6
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_16_0.png" src="../_images/tutorials_custom-map-simulations_16_0.png" />
+<img alt="../_images/tutorials_custom-map-simulations_14_0.png" src="../_images/tutorials_custom-map-simulations_14_0.png" />
 </div>
 </div>
 <p>We can then map the <code class="docutils literal notranslate"><span class="pre">TOD</span></code> using the built-in mapper.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinMapper</span>
 
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span>
     <span class="n">target</span><span class="o">=</span><span class="n">input_map</span><span class="p">,</span>
@@ -731,15 +692,15 @@ Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  8.6
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:21:03.765 INFO: Inferring resolution = 5.249” from detector FWHM
-2026-06-29 05:21:05.945 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 2/2 [00:02&lt;00:00,  1.33s/it]
-Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.43it/s, tod=1/2]
+2026-06-29 22:06:26.111 INFO: Inferring resolution = 5.249” from detector FWHM
+2026-06-29 22:06:28.230 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:02&lt;00:00,  1.29s/it]
+Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.49it/s, tod=1/2]
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">nu</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
@@ -751,7 +712,7 @@ Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.43it/s, to
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_custom-map-simulations_20_0.png" src="../_images/tutorials_custom-map-simulations_20_0.png" />
+<img alt="../_images/tutorials_custom-map-simulations_18_0.png" src="../_images/tutorials_custom-map-simulations_18_0.png" />
 </div>
 </div>
 </section>
