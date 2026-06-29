@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 
+from ..constants import z_CMB
 from ..io import fetch
-from ..map import ProjectionMap
+from ..map import HEALPixMap, ProjectionMap
 from ..units import Quantity
-from .cmb import CMB
 
 # shut up healpy I don't care about the resolution
 logging.getLogger("healpy").setLevel(logging.WARNING)
@@ -48,12 +48,12 @@ def generate_cmb(nside: int = 1024, lmax: int = None, source: str = "lensed", se
     alm = hp.synalm((cl.TT, cl.EE, cl.BB, cl.TE), lmax=lmax, new=True)
     cmb_data = hp.alm2map(alm, nside=nside, lmax=lmax)
 
-    return CMB(
+    return HEALPixMap(
         data=cmb_data[:, None, None, :],
         stokes="IQU",
         units="K_CMB",
         frame="galactic",
-        nu=148e9,
+        z=z_CMB,
     )
 
 

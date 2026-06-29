@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 
 import h5py
@@ -10,8 +11,11 @@ from jax import scipy as jsp
 from ..io import fetch
 from ..site import REGIONS, InvalidRegionError, all_regions
 from ..units import Quantity
+from ..utils import is_numeric
 
 here, this_filename = os.path.split(__file__)
+
+logger = logging.getLogger("maria")
 
 
 class AtmosphericSpectrum:
@@ -20,7 +24,18 @@ class AtmosphericSpectrum:
             raise InvalidRegionError(region)
 
         self.region = region
-        self.altitude = altitude or REGIONS.loc[self.region, "altitude"]
+
+        min_altitude = Quantity(REGIONS.loc[region].min_altitude, "m")
+        max_altitude = Quantity(REGIONS.loc[region].max_altitude, "m")
+
+        self.altitude = Quantity(altitude or REGIONS.loc[self.region, "altitude"], "m")
+
+        if (self.altitude < min_altitude) or (self.altitude > max_altitude):
+            logger.warning(
+                f"Supplied altitude {self.altitude} is outside the altitude range ({min_altitude} - {max_altitude}) "
+                f"for region '{region}', extrapolated spectrum may be inaccurate"
+            )
+
         self.source = source
 
         self.cache_path = fetch(
@@ -53,7 +68,9 @@ class AtmosphericSpectrum:
                 setattr(
                     self,
                     mapping,
-                    sp.interpolate.interp1d(self.side_altitude, d, axis=0)(self.altitude),
+                    sp.interpolate.interp1d(
+                        self.side_altitude, d, kind="linear", bounds_error=False, fill_value="extrapolate", axis=0
+                    )(self.altitude.m),
                 )
 
     @property
@@ -67,7 +84,7 @@ class AtmosphericSpectrum:
     def __repr__(self):
         return f"""AtmosphericSpectrum({self.nu_min} - {self.nu_max}):
   region: {self.region}
-  altitude: {Quantity(self.altitude, "m")}"""
+  altitude: {self.altitude}"""
 
     def _interpolate_quantity(self, quantity, nu, pwv=None, base_temperature=None, elevation=None):
         pwv = pwv if pwv is not None else np.median(self.side_zenith_pwv)

@@ -4,7 +4,7 @@ import maria
 import matplotlib.pyplot as plt
 from maria.instrument import Band
 from maria.io import fetch
-from maria.mappers import BinMapper
+from maria.mapping import BinMapper
 
 
 def test_bin_mapper():
@@ -26,7 +26,7 @@ def test_bin_mapper():
     planner = maria.Planner(target=input_map, site="cerro_toco", constraints={"el": (45, 90)})
 
     plans = planner.generate_plans(
-        total_duration=60, sample_rate=50, scan_pattern="daisy", scan_options={"radius": input_map.width.deg / 3}
+        total_duration=60, sample_rate=50, scan_type="daisy", scan_parameters={"radius": input_map.width.deg / 3}
     )
 
     sim = maria.Simulation(

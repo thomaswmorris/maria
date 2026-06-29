@@ -108,6 +108,9 @@ class TOD:
         Convert to a different set of units.
         """
 
+        if units == self.units:
+            return self
+
         u = parse_units(units)
         if u["physical_quantity"] not in VALID_TOD_QUANTITIES:
             raise ValueError(
@@ -130,10 +133,11 @@ class TOD:
                 continue
 
             # this is to handle transmission
-            cal = band.cal(f"{self.units} -> {units}", **self.calibration_kwargs(band))
+            cal1 = band.cal(f"{self.units} -> fW", **self.calibration_kwargs(band))
+            cal2 = band.cal(f"fW -> {units}", **self.calibration_kwargs(band))
 
             for field in self.fields:
-                content["data"][field][..., band_mask, :] = cal(self.data[field][..., band_mask, :])
+                content["data"][field][..., band_mask, :] = cal1(cal2(self.data[field][..., band_mask, :]))
 
         content["units"] = units
 
@@ -510,6 +514,23 @@ class TOD:
         Copy yourself.
         """
         return TOD(**self.content())
+
+    def downsample(self, factor: int):
+
+        content = self.content()
+
+        *_, n_samples = self.shape
+
+        new_n_samples = n_samples // factor
+        trim_n_samples = new_n_samples * factor
+
+        content["data"] = {
+            field: self.data[field][..., :trim_n_samples].reshape(-1, new_n_samples, factor).mean(axis=-1).rechunk()
+            for field in self.fields
+        }
+        content["coords"] = self.coords.downsample(factor=factor)[..., :new_n_samples]
+
+        return TOD(**content)
 
 
 def check_nested_keys(keys_found, data, keys):

@@ -22,7 +22,7 @@ from ..coords import Coordinates, frames
 from ..io import DEFAULT_TIME_FORMAT, read_yaml, repr_lat_lon, repr_phi_theta
 from ..units import Quantity
 from ..utils import compute_diameter
-from .patterns import get_scan_pattern_generator, scan_patterns
+from .patterns import get_scan_type_generator, scan_types
 from .plan import Plan
 from .plan_list import PlanList  # noqa
 from .planner import Planner  # noqa
@@ -30,7 +30,7 @@ from .planner import Planner  # noqa
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
-all_patterns = list(scan_patterns.index.values)
+all_patterns = list(scan_types.index.values)
 
 MAX_VELOCITY_WARN = 10  # in deg/s
 MAX_ACCELERATION_WARN = 10  # in deg/s
@@ -79,8 +79,8 @@ PLAN_FIELDS = {
     "frame": str,
     "degrees": bool,
     "scan_center": float,
-    "scan_pattern": float,
-    "scan_options": Mapping,
+    "scan_type": float,
+    "scan_parameters": Mapping,
 }
 
 

@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 from ..atmosphere import Atmosphere
-from ..cmb import CMB, generate_cmb, get_cmb
+from ..cmb import generate_cmb, get_cmb
 from ..coords import Coordinates
 from ..errors import PointingError
 from ..instrument import Instrument, get_instrument
@@ -163,6 +163,8 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
             duration_s = ttime.monotonic() - obs_start_s
             logger.debug(f"Initialized Observation in {humanize_time(duration_s)}.")
 
+        self.maps = {}
+
         if cmb:
             cmb_start_s = ttime.monotonic()
             self.cmb_kwargs = DEFAULT_CMB_SIM_KWARGS.copy()
@@ -198,7 +200,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         # logger.debug(f"Initialized simulation in {humanize_time(ttime.monotonic() - sim_start_s)}.")
 
-    def run(self, units: str = "K_RJ"):
+    def run(self, units: str = "uK_RJ"):
         tods = []
         for obs_index, obs in enumerate(self.obs_list):
             logger.info(f"Simulating observation {obs_index + 1} of {len(self.obs_list)}")
@@ -220,12 +222,12 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
             obs.loading["atmosphere"] = self._compute_atmospheric_loading(obs)
             logger.debug(f"Ran atmosphere simulation in {humanize_time(ttime.monotonic() - atmosphere_sim_start_s)}.")
 
-        if hasattr(self, "cmb"):
-            cmb_sim_start_s = ttime.monotonic()
-            obs.loading["cmb"] = self._compute_cmb_loading(obs)
-            logger.debug(f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}.")
+        # if hasattr(self, "cmb"):
+        #     cmb_sim_start_s = ttime.monotonic()
+        #     obs.loading["cmb"] = self._compute_cmb_loading(obs)
+        #     logger.debug(f"Ran CMB simulation in {humanize_time(ttime.monotonic() - cmb_sim_start_s)}.")
 
-        if hasattr(self, "map"):
+        if self.maps:
             map_sim_start_s = ttime.monotonic()
             self._sample_maps(obs)
             logger.debug(f"Ran map simulation in {humanize_time(ttime.monotonic() - map_sim_start_s)}.")

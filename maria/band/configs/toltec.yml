@@ -1,9 +1,9 @@
 f150:
   center: 150.e+9
   width: 40.e+9
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
-  NEP: 3.e-17 # W / sqrt(s)
+  NEP: 50.e-18 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -11,9 +11,9 @@ f150:
 f220:
   center: 220.e+9
   width: 40.e+9
-  shape: top_hat
+  shape: gaussian
   time_constant: 0
-  NEP: 3.e-17 # W / sqrt(s)
+  NEP: 72.e-18 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2
@@ -23,7 +23,7 @@ f270:
   width: 50.e+9
   shape: gaussian
   time_constant: 0
-  NEP: 3.e-17 # W / sqrt(s)
+  NEP: 95.e-18 # W / sqrt(s)
   knee: 1.0 # Hz
   efficiency: 0.5
   gain_error: 5.e-2

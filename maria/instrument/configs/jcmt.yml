@@ -1,0 +1,22 @@
+
+scuba2:
+  aliases: ["scuba2"]
+  description: Submillimetre Common-User Bolometer Array 2
+  documentation: https://arxiv.org/pdf/1301.3650
+  arrays:
+    a:
+      key: jcmt/scuba2-wafer
+      rotation: 0
+      focal_plane_offset: [0.09, 0.0711]
+    b:
+      key: jcmt/scuba2-wafer
+      rotation: 90
+      focal_plane_offset: [-0.0711, 0.09]
+    c:
+      key: jcmt/scuba2-wafer
+      rotation: 0
+      focal_plane_offset: [-0.09, -0.0711]
+    d:
+      key: jcmt/scuba2-wafer
+      rotation: 90
+      focal_plane_offset: [0.0711, -0.09]

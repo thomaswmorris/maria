@@ -1,3 +1,4 @@
+import copy
 import os
 
 import dask.array as da
@@ -28,6 +29,7 @@ class HEALPixMap(Map):
         t: float = None,
         z: float = None,
         v: float = None,
+        pixels: float = None,
         beam: tuple[float, float, float] = 0.0,
         frame: str = "ra/dec",
         units: str = "K_RJ",
@@ -40,9 +42,16 @@ class HEALPixMap(Map):
         else:
             weight = da.ones_like(data)
 
-        map_dims = {"npix": data.shape[-1]}
+        if pixels is None:
+            pixels = np.arange(data.shape[-1])
 
-        # beam = beam if beam is not None else 0.0
+        self.pixels = pixels
+
+        if not hp.pixelfunc.isnpixok(len(pixels)):
+            raise ValueError(f"Invalid pixel count {len(pixels)} (must be of the form 12 * (2^k)^2).")
+
+        self.nside = hp.pixelfunc.npix2nside(len(pixels))
+        self.frame = Frame(frame)
 
         super().__init__(
             data=data,
@@ -53,17 +62,11 @@ class HEALPixMap(Map):
             z=z,
             v=v,
             beam=beam,
-            map_dims=map_dims,
+            map_dims={"pixels": len(pixels)},
             units=units,
             degrees=degrees,
             dtype=dtype,
         )
-
-        if not hp.pixelfunc.isnpixok(self.npix):
-            raise ValueError(f"Invalid pixel count (n={self.npix}).")
-
-        self.nside = hp.pixelfunc.npix2nside(self.npix)
-        self.frame = Frame(frame)
 
         # if not hasattr(beam, "__len__"):
         #     beam = beam or self.resolution
@@ -74,16 +77,22 @@ class HEALPixMap(Map):
 
         # self.beam = tuple(np.radians(beam) if degrees else beam)
 
-    def pointing_matrix(self, coords: Coordinates):
-        pixel_index = hp.ang2pix(
-            nside=self.nside,
-            phi=getattr(coords, self.frame.phi_name).ravel(),
-            theta=np.pi / 2 - getattr(coords, self.frame.theta_name).ravel(),
-        ).ravel()
+    def _pointing_matrix_ingredients(self, coords: Coordinates, bilinear: bool = False):
 
-        return sp.sparse.csr_array(
-            (np.ones(coords.size, dtype=np.uint8), (np.arange(coords.size), pixel_index)), shape=(coords.size, self.npix)
-        )
+        n_pixels = self.dims["pixels"]
+        n_samples = coords.size
+
+        samples = np.arange(n_samples).reshape(coords.shape)
+        weights = np.ones_like(samples)
+
+        pixels = hp.pixelfunc.ang2pix(self.nside, theta=np.pi / 2 - coords.dec, phi=coords.ra)
+
+        # add time index
+        if self.dims.get("t", 0) > 1:
+            pixels += (np.digitize(coords._t, bins=self.t_bins) - 1) * self.dims["pixels"]
+            n_pixels *= self.dims["t"]
+
+        return samples, pixels, weights, n_pixels, n_samples
 
     @property
     def resolution(self):
@@ -95,22 +104,24 @@ class HEALPixMap(Map):
 
     @property
     def npix(self):
-        return self.dims["npix"]
+        return self.dims["pixels"]
 
     def package(self):
-        package = {
-            "data": self.data,
-            "weight": self.weight,
-            "stokes": self.stokes,
-            "nu": self.nu,
-            "t": self.t,
-            "frame": self.frame.name,
-            "units": self.units,
-        }
+        package = copy.deepcopy(
+            {
+                "data": self.data,
+                "frame": self.frame.name,
+                "units": self.units,
+                "beam": self.beam.deg,
+                "degrees": True,
+            }
+        )
 
-        for dim in ["stokes", "nu", "t"]:
-            if dim not in self.dims:
-                package.pop(dim)
+        if self._weight is not None:
+            package["weight"] = self._weight
+
+        for dim in self.dims:
+            package[dim] = getattr(self, dim)
 
         return package
 
@@ -122,15 +133,18 @@ class HEALPixMap(Map):
     # def Y(self):
     #     return np.meshgrid(self.x_side, self.y_side)[1]
 
-    def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False):
+    def smooth(self, sigma: float = None, fwhm: float = None, inplace: bool = False, degrees: bool = True):
         if not (sigma is None) ^ (fwhm is None):
             raise ValueError("You must supply exactly one of 'sigma' or 'fwhm'.")
 
         sigma = sigma if sigma is not None else fwhm / np.sqrt(8 * np.log(2))
 
-        data = np.stack([hp.sphtfunc.smoothing(m, sigma=sigma) for m in self.data.reshape(-1, self.npix)]).reshape(
-            self.data.shape
-        )
+        if not isinstance(sigma, Quantity):
+            sigma = Quantity(sigma, "deg" if degrees else "rad")
+
+        data = np.stack(
+            [hp.sphtfunc.smoothing(m.compute(), sigma=sigma.radians) for m in self.data.reshape(-1, self.npix)]
+        ).reshape(self.data.shape)
 
         if inplace:
             self.data = data

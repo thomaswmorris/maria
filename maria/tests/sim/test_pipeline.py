@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from maria import Simulation, all_sites
 from maria.instrument import test_instruments
-from maria.mappers import MaximumLikelihoodMapper
+from maria.mapping import MaximumLikelihoodMapper
 
 here, this_filename = os.path.split(__file__)
 
@@ -26,8 +26,8 @@ def test_pipeline(instrument, site, az, el):
     site = maria.get_site(site)
 
     plan = maria.Plan.generate(
-        scan_pattern="daisy",
-        scan_options={"radius": 0.5, "speed": 0.1},  # in degrees
+        scan_type="daisy",
+        scan_parameters={"radius": 0.5, "speed": 0.1},  # in degrees
         duration=60,  # in seconds
         sample_rate=15,  # in Hz
         scan_center=(az, el),

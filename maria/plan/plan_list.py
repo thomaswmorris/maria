@@ -26,6 +26,7 @@ class PlanList:
             entry = {
                 "start_time": p.start_time.format(DEFAULT_TIME_FORMAT),
                 "duration": p.duration,
+                "sample_rate": p.sample_rate,
                 # "site": "" if not p.naive else p.site,
                 f"target({p.frame.phi_name},{p.frame.theta_name})": c,
             }

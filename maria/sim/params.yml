@@ -20,9 +20,9 @@ plan: # defaults to a 45 degree stare due north
   pointing_frame: az/el
   degrees: True
   sample_rate: 20
-  scan_pattern: daisy
+  scan_type: daisy
   scan_center: [10, 4.5]
-  scan_options: mapping
+  scan_parameters: mapping
 
 site: # default to the ALMA site
   description: ''

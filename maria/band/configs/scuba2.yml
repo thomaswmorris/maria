@@ -1,0 +1,18 @@
+
+850um:
+  center: 350.e+9
+  width: 40.e+9
+  shape: gaussian
+  time_constant: 0
+  NEP: 1.5e-16 # W / sqrt(s)
+  knee: 1.0 # Hz
+  efficiency: 0.5
+
+450um:
+  center: 666.e+9
+  width: 60.e+9
+  shape: gaussian
+  time_constant: 0
+  NEP: 4.0e-16 # W / sqrt(s)
+  knee: 1.0 # Hz
+  efficiency: 0.5

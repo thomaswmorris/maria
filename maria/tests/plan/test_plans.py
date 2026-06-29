@@ -4,13 +4,13 @@ import maria
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-from maria.plan import scan_patterns
+from maria.plan import scan_types
 from maria.plan.patterns import parse_scan_kwargs
 
 
-@pytest.mark.parametrize("scan_pattern", scan_patterns.index)
-def test_pattern(scan_pattern):
-    plan = maria.Plan.generate(scan_pattern=scan_pattern)
+@pytest.mark.parametrize("scan_type", scan_types.index)
+def test_pattern(scan_type):
+    plan = maria.Plan.generate(scan_type=scan_type)
     print(plan)
 
     plan.plot()
@@ -19,21 +19,21 @@ def test_pattern(scan_pattern):
     plt.close("all")
 
 
-@pytest.mark.parametrize("scan_pattern", scan_patterns.index)
-def test_pattern_speed(scan_pattern):
-    #     plan = maria.Plan.generate(scan_pattern=scan_pattern)
+@pytest.mark.parametrize("scan_type", scan_types.index)
+def test_pattern_speed(scan_type):
+    #     plan = maria.Plan.generate(scan_type=scan_type)
     #     print(plan)
 
     #     plan.plot()
     #     plan.plot_hits()
 
-    #     from maria.plan import scan_patterns
+    #     from maria.plan import scan_types
 
     time = np.arange(0, 3600, 0.01)
 
-    # for index, entry in scan_patterns.iterrows():
+    # for index, entry in scan_types.iterrows():
 
-    if scan_pattern in ["stare"]:
+    if scan_type in ["stare"]:
         return
 
     for trial in range(16):
@@ -42,7 +42,7 @@ def test_pattern_speed(scan_pattern):
             "speed": np.random.choice(np.geomspace(1e-1, 1e0, 256)),  # in degrees
         }
 
-        x, y = scan_patterns.loc[scan_pattern].generator(time, **parse_scan_kwargs(scan_kwargs))
+        x, y = scan_types.loc[scan_type].generator(time, **parse_scan_kwargs(scan_kwargs)).T
         vx = np.diff(x) / np.diff(time)
         vy = np.diff(y) / np.diff(time)
 

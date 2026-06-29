@@ -82,6 +82,7 @@ def generate_2d_pattern(
     height_scale: float = 1.0,
     max_iterations: int = 16,
     tol: float = 1e-2,
+    center: float = False,
 ):
     """
     Generates an [x,y] array of 2D points to serve as an array.
@@ -167,4 +168,8 @@ def generate_2d_pattern(
 
         if max_diameter:
             return max_diameter * X / compute_diameter(X)
+
+        if center:
+            X -= X.mean(axis=0, keepdims=True)
+
         return spacing * X

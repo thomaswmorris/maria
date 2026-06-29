@@ -7,7 +7,7 @@ import pytest
 from maria.instrument import Band
 from maria.io import fetch
 from maria.map import all_maps
-from maria.mappers import BinMapper
+from maria.mapping import BinMapper
 from maria.plan import Planner
 
 plt.close("all")
@@ -25,7 +25,7 @@ def test_time_ordered_map_sim():
 
     plans = Planner(target=input_map, site="cerro_chajnantor").generate_plans(
         total_duration=60,
-        scan_options={"radius": 0.25},
+        scan_parameters={"radius": 0.25},
     )
 
     sim = maria.Simulation(instrument="test/1deg", site="cerro_toco", plans=plans, map=input_map)

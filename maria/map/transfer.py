@@ -6,7 +6,7 @@ import numpy as np
 import scipy as sp
 
 from ..units import Quantity
-from .projection import ProjectionMap
+from .projection_map import ProjectionMap
 
 
 def _extract_2d(m: ProjectionMap, stokes: str = "I", nu_index: int = 0, t_index: int = 0) -> np.ndarray:
@@ -114,7 +114,7 @@ def compute_transfer_function(
                 raise ValueError(f"Unsupported window type: {window}")
             win = np.outer(wy, wx)
         win /= np.nanmax(win)
-        
+
         f_in = f_in * win
         f_out = f_out * win
 

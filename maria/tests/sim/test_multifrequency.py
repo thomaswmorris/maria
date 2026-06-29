@@ -6,7 +6,7 @@ import numpy as np
 from maria import Planner, Simulation
 from maria.io import fetch, read_yaml
 from maria.map import ProjectionMap
-from maria.mappers import BinMapper
+from maria.mapping import BinMapper
 
 
 def test_polarized_map_sim():

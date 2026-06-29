@@ -1,0 +1,10 @@
+scuba2-wafer:
+  primary_size: 15
+  beam_spacing: 1
+  n_row: 32
+  n_col: 40
+  packing: "square"
+  center: true
+  bands:
+    - scuba2/450um
+    - scuba2/850um

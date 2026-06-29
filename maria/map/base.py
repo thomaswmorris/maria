@@ -14,7 +14,7 @@ from ..coords import Frame
 from ..errors import FrequencyOutOfBoundsError, ShapeError
 from ..io import leftpad, parse_nu, parse_stokes, parse_t, parse_v
 from ..units import Quantity, parse_units
-from ..utils import compute_resolution_precision, is_numeric
+from ..utils import compute_resolution_precision, unpack_implicit_slice
 
 logger = logging.getLogger("maria")
 
@@ -434,6 +434,41 @@ class Map:
         package["units"] = units
         return type(self)(**package)
 
+    def _stokes_weighted_pointing_matrix_ingredients(self, coords: Coordinates, dets: Array, bilinear: bool = False):
+
+        M = dets.mueller()
+        samples, pixels, weights, n_pixels, n_samples = self._pointing_matrix_ingredients(coords=coords, bilinear=bilinear)
+
+        # this is really only used in backwards projection during mapping
+        if "nu" in self.dims:
+            for nu_index, nu in enumerate(self.nu):
+                pixels[:, dets.band_center == nu.Hz] += nu_index * n_pixels
+            n_pixels *= self.dims["nu"]
+
+        stokes_list = self.stokes if "stokes" in self.dims else "I"
+
+        samples_list, pixels_list, weights_list = [], [], []
+        for stokes_index, stokes in enumerate(stokes_list):
+            samples_list.append(samples)
+            pixels_list.append(pixels + n_pixels * stokes_index)
+            weights_list.append(weights * M[:, 0, "IQUV".index(stokes)][:, None])
+
+        return (
+            np.concatenate(weights_list).ravel(),
+            np.concatenate(samples_list).ravel(),
+            np.concatenate(pixels_list).ravel(),
+            n_samples,
+            len(stokes_list) * n_pixels,
+        )
+
+    def stokes_weighted_pointing_matrix(self, coords: Coordinates, dets: Array, bilinear: bool = False):
+
+        weights, samples, pixels, n_samples, n_pixels = self._stokes_weighted_pointing_matrix_ingredients(
+            coords=coords, dets=dets, bilinear=bilinear
+        )
+
+        return sp.sparse.csr_array((weights, (samples, pixels)), shape=(n_samples, n_pixels))
+
     def sample_nu(self, nu):
         map_nu_interpolator = sp.interpolate.interp1d(self.nu.Hz, self.data, axis=1, kind="linear")
 
@@ -450,8 +485,11 @@ class Map:
 
     @property
     def nu_bin_bounds(self):
-        nu_boundaries = [0, *(self.nu.Hz[:-1] + self.nu.Hz[1:]) / 2, np.inf]
-        return [(Quantity(nu1, "Hz"), Quantity(nu2, "Hz")) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]
+        if self.dims.get("nu", 0) > 1:
+            nu_boundaries = [0, *(self.nu.Hz[:-1] + self.nu.Hz[1:]) / 2, np.inf]
+        else:
+            nu_boundaries = [0, np.inf]
+        return [(nu1, nu2) for nu1, nu2 in zip(nu_boundaries[:-1], nu_boundaries[1:])]
 
     def copy(self):
         return type(self)(**self.package().copy())
@@ -466,6 +504,34 @@ class Map:
             "max": np.max(d).compute(),
             "rms": np.sqrt(np.sum(np.square(d - md) * w / w.sum())).compute(),
         }
+
+    def __getitem__(self, key):
+        key = key if isinstance(key, tuple) else (key,)
+
+        explicit_slices = unpack_implicit_slice(key, ndims=self.ndim)
+        package = self.package()
+
+        package["data"] = package["data"][key]
+        if self._weight is not None:
+            package["weight"] = package["weight"][key]
+        package["beam"] = package["beam"][explicit_slices[: -len(self.map_dims)]]
+
+        for axis, (dim, naxis) in enumerate(self.dims.items()):
+            if isinstance(explicit_slices[axis], int):
+                package.pop(dim)
+            else:
+                package[dim] = package[dim][explicit_slices[axis]]
+
+        if "xi" in self.dims:
+            xi_res_factor = explicit_slices[-1].step or 1.0
+            eta_res_factor = explicit_slices[-2].step or 1.0
+
+            # downsampling changes the pixel area, so we might have to adjust
+            package["data"] *= (xi_res_factor * eta_res_factor) ** parse_units(self.units)["dimension_vector"].pixel
+
+        # if "pixel" in self.dims:
+
+        return type(self)(**package)
 
     def __getattr__(self, attr):
         broadcasted_attrs = ["STOKES", "NU", "T", "Y", "X"]

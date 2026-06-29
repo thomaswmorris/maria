@@ -168,12 +168,12 @@ class Planner:
         return chunks
 
     def generate_plans(
-        self, total_duration: float, max_chunk_duration: float = 600, scan_options: Mapping = {}, **plan_kwargs
+        self, total_duration: float, max_chunk_duration: float = 1800, scan_parameters: Mapping = {}, **plan_kwargs
     ):
 
-        scan_options = parse_scan_kwargs(scan_options, default_radius=self.target.width.deg / 2)
+        scan_parameters = parse_scan_kwargs(scan_parameters, default_radius=self.target.width.deg / 2)
 
-        # scan_options["radius"] = scan_options.get("radius", self.target.width.deg / 2)
+        # scan_parameters["radius"] = scan_parameters.get("radius", self.target.width.deg / 2)
 
         chunks = self.generate_obs_intervals(total_duration=total_duration, max_chunk_duration=max_chunk_duration)
         total_duration_of_chunks = sum([chunk["duration"] for chunk in chunks])
@@ -193,12 +193,15 @@ class Planner:
                 "'max_lookahead' parameter"
             )
 
+        scan_center = {
+            f"{self.target.frame.phi['name']}_center": self.target.center[0].deg,
+            f"{self.target.frame.theta['name']}_center": self.target.center[1].deg,
+        }
+
         plans = [
             Plan.generate(
-                scan_center=self.target.center,
-                frame=self.target.frame,
                 site=self.site,
-                scan_options=scan_options,
+                scan_parameters={**scan_parameters, **scan_center},
                 **plan_kwargs,
                 **chunk,
             )

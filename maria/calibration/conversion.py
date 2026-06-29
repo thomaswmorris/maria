@@ -10,6 +10,11 @@ conversions = {}
 conversions["brightness_temperature"] = {
     "power": {"f": brightness_temperature_to_power, "linear": False, "required_kwargs": ["band"]},
     "cmb_temperature_anisotropy": {"f": brightness_temperature_to_cmb_temperature_anisotropy, "linear": False},
+    "rayleigh_jeans_temperature": {
+        "f": brightness_temperature_to_rayleigh_jeans_temperature,
+        "linear": False,
+        "required_kwargs": ["nu"],
+    },
 }
 
 conversions["power"] = {
@@ -19,6 +24,12 @@ conversions["power"] = {
 }
 conversions["rayleigh_jeans_temperature"] = {
     "power": {"f": rayleigh_jeans_temperature_to_power, "linear": True, "required_kwargs": ["band"]},
+    "brightness_temperature": {
+        "f": rayleigh_jeans_temperature_to_brightness_temperature,
+        "linear": False,
+        "required_kwargs": ["nu"],
+    },
+    "spectral_radiance": {"f": rayleigh_jeans_temperature_to_spectral_radiance, "linear": True, "required_kwargs": ["nu"]},
     "cmb_temperature_anisotropy": {
         "f": rayleigh_jeans_temperature_to_cmb_temperature_anisotropy,
         "linear": False,
@@ -26,10 +37,12 @@ conversions["rayleigh_jeans_temperature"] = {
     },
     "spectral_flux_density_per_pixel": {
         "f": rayleigh_jeans_temperature_to_spectral_flux_density_per_pixel,
+        "linear": True,
         "required_kwargs": ["nu", "pixel_area"],
     },
     "spectral_flux_density_per_beam": {
         "f": rayleigh_jeans_temperature_to_spectral_flux_density_per_beam,
+        "linear": True,
         "required_kwargs": ["nu", "beam_area"],
     },
 }
@@ -76,8 +89,12 @@ conversions["spectral_flux_density_per_beam"] = {
     },
 }
 
-
 conversions["spectral_radiance"] = {
+    "rayleigh_jeans_temperature": {
+        "f": spectral_radiance_to_rayleigh_jeans_temperature,
+        "linear": True,
+        "required_kwargs": ["nu"],
+    },
     "spectral_flux_density_per_pixel": {
         "f": spectral_radiance_to_spectral_flux_density_per_pixel,
         "linear": True,
@@ -89,9 +106,8 @@ conversions["compton_y"] = {
     "cmb_temperature_anisotropy": {"f": compton_y_to_cmb_temperature_anisotropy, "linear": False, "required_kwargs": ["nu"]},
 }
 
-# quantities = list(conversions.keys())
-# for q in quantities:
-#     conversions[q][q] = {"f": identity, "linear": True}
+for q in conversions:
+    conversions[q][q] = {"f": identity, "linear": True}
 
 # walks_dict = {}
 # paths_dict = {}

@@ -45,10 +45,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         min_time: float = None,
         max_time: float = None,
         timestep: float = None,
-        tod_preprocessing: dict = {
-            # "remove_modes": {"modes_to_remove": 1},
-            "remove_spline": {"knot_spacing": 30, "remove_el_gradient": True},
-        },
+        tod_preprocessing: dict = {},
         map_postprocessing: dict = {},
         progress_bars: bool = True,
         bilinear: bool = False,
@@ -100,8 +97,8 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             min_time=min_time,
             max_time=max_time,
             tod_preprocessing={
+                "remove_spline": {"knot_spacing": 60, "remove_el_gradient_order": 1},
                 "remove_modes": {"modes_to_remove": 1},
-                "remove_spline": {"knot_spacing": 60, "remove_el_gradient_order": 3},
             },
             timestep=timestep,
             degrees=False,

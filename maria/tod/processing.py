@@ -8,7 +8,7 @@ import scipy as sp
 
 from .. import utils
 from ..io import humanize_time
-from ..utils import remove_slope
+from ..utils import normalize, remove_slope
 from .tod import TOD
 
 logger = logging.getLogger("maria")
@@ -27,6 +27,11 @@ OPERATION_KWARGS = {
     },
     "remove_modes": {
         "modes_to_remove": {"dtype": int, "aliases": ["modes_to_remove"]},
+    },
+    "remove_polynomial": {
+        "time": {"dtype": int},
+        "azimuth": {"dtype": int},
+        "elevation": {"dtype": int},
     },
     "remove_spline": {
         "knot_spacing": {"dtype": float, "aliases": ["remove_spline_knot_spacing"]},
@@ -103,6 +108,15 @@ def process_tod(tod, config=None, **kwargs):
         logger.debug(f'Completed tod operation "remove_slope in {humanize_time(ttime.monotonic() - remove_slope_start_s)}.')
         if np.isnan(D).any():
             raise ValueError("tod operation 'remove_slope' introduced NaNs")
+
+    if "remove_polynomial" in config:
+        time_poly = normalize(tod.time) ** np.arange(config["remove_polynomial"].get("time", 0) + 1)[..., None]
+        az_poly = normalize(tod.boresight.az) ** np.arange(config["remove_polynomial"].get("azimuth", 0) + 1)[..., None]
+        el_poly = normalize(tod.boresight.el) ** np.arange(config["remove_polynomial"].get("elevation", 0) + 1)[..., None]
+
+        B = (time_poly * az_poly[..., None, :] * el_poly[..., None, None, :]).reshape(-1, D.shape[-1])
+        A = (np.linalg.inv(B @ B.T) @ B @ D.swapaxes(-2, -1)).swapaxes(-2, -1)
+        D -= A @ B
 
     if "remove_spline" in config:
         remove_spline_start_s = ttime.monotonic()

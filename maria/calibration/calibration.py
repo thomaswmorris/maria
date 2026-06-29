@@ -1,10 +1,6 @@
 import os
 
-import numpy as np
-import pandas as pd
-
-from ..errors import IncompatibleQuantityError, MissingCalibrationKwargs
-from ..spectrum import AtmosphericSpectrum
+from ..errors import IncompatibleQuantityError
 from ..units import QUANTITY_DIMENSION_VECTORS, Quantity, parse_units
 from .conversion import conversions
 
@@ -24,63 +20,57 @@ def parse_calibration_signature(s: str):
     raise ValueError("Calibration must have signature 'units1 -> units2'.")
 
 
-KWARGS_UNITS = {
-    "nu": "Hz",
-    "pixel_area": "sr",
-    "beam_area": "sr",
-    "zenith_pwv": "mm",
-    "base_temperature": "K",
-    "elevation": "rad",
-}
-
-
 def compute_quantities_chain(
-    start_quantity, end_quantity, max_steps: int = 6, kwargs: dict = {}, enforce_kwargs: bool = True
+    start_quantity,
+    end_quantity,
+    max_steps: int = 6,
+    enforce_kwargs: bool = True,
+    kwargs: dict = {},
 ):
     """
-    what the fuck
+    Return a list of the chain of functions required to convert 'start_quantity' to 'end_quantity',
+    and find the required kwargs (frequency, etc.)
     """
 
-    shortest_chain_length = np.inf
-    missing_kwargs = None
-    walks_and_kwargs = [([start_quantity], set())]
+    walks_and_required_kwargs = [([start_quantity], set())]
     for _ in range(max_steps):
-        extended_walks_and_kwargs = []
-        while len(walks_and_kwargs):
-            walk, walk_required_kwargs = walks_and_kwargs.pop(0)
+        extended_walks_and_required_kwargs = []
+        while len(walks_and_required_kwargs):
+            walk, required_kwargs = walks_and_required_kwargs.pop(0)
             for quantity, quantity_config in conversions.get(walk[-1], {}).items():
-                required_kwargs = set(quantity_config.get("required_kwargs", [])) | walk_required_kwargs
-                chain = [*walk, quantity]
+                quantity_required_kwargs = set(quantity_config.get("required_kwargs", []))
+
+                if enforce_kwargs:
+                    if not all([kwarg in kwargs for kwarg in quantity_required_kwargs]):
+                        continue
+
+                extended_walk = [*walk, quantity]
+                extended_required_kwargs = quantity_required_kwargs | required_kwargs
 
                 if quantity == end_quantity:
-                    missing_chain_kwargs = [kwarg for kwarg in required_kwargs if kwarg not in kwargs]
-                    if not missing_chain_kwargs:
-                        return chain
-                    if len(chain) < shortest_chain_length:
-                        shortest_chain_length = len(chain)
-                        missing_kwargs = missing_chain_kwargs
+                    return extended_walk, list(extended_required_kwargs)
 
                 if quantity not in walk:
-                    extended_walks_and_kwargs.append((chain, required_kwargs))
+                    extended_walks_and_required_kwargs.append((extended_walk, extended_required_kwargs))
 
-        walks_and_kwargs = extended_walks_and_kwargs
+        walks_and_required_kwargs = extended_walks_and_required_kwargs
 
-    if missing_kwargs is not None:
-        raise MissingCalibrationKwargs(
-            f"Conversion from '{start_quantity}' to '{end_quantity}' is missing kwargs {missing_kwargs}"
-        )
+    # if missing_kwargs is not None:
+    #     raise MissingCalibrationKwargs(
+    #         f"Conversion from '{start_quantity}' to '{end_quantity}' is missing kwargs {missing_kwargs}"
+    #     )
 
     raise IncompatibleQuantityError(f"Cannot convert from quantity '{start_quantity}' to quantity '{end_quantity}'")
 
 
 class Calibration:
-    def __init__(self, signature: str, spectrum: AtmosphericSpectrum = None, **kwargs):
+    def __init__(self, signature: str, enforce_kwargs: bool = False, **kwargs):
         if not isinstance(signature, str):
             raise ValueError("'signature' must be a string.")
 
-        self.config = pd.DataFrame(parse_calibration_signature(signature))
+        self.config = parse_calibration_signature(signature)
         self.signature = signature
-        self.kwargs = {"spectrum": spectrum, **kwargs}
+        self.kwargs = kwargs
 
         for key in kwargs:
             if key not in [
@@ -96,80 +86,83 @@ class Calibration:
             ]:
                 raise ValueError(f"Invalid kwarg '{key}'.")
 
-        try:
-            compute_quantities_chain(self.in_quantity, self.out_quantity, kwargs=self.kwargs)
-        except MissingCalibrationKwargs as error:
-            pass
+        self.qchain, self.required_kwargs = compute_quantities_chain(
+            self.in_quantity, self.out_quantity, kwargs=self.kwargs, enforce_kwargs=enforce_kwargs
+        )
 
-    def linear(self):
-        qchain = compute_quantities_chain(self.in_quantity, self.out_quantity, enforce_kwargs=False)
-        return all([conversions[q1][q2]["linear"] for q1, q2 in zip(qchain[:-1], qchain[1:])])
+        self.is_linear = all([conversions[q1][q2]["linear"] for q1, q2 in zip(self.qchain[:-1], self.qchain[1:])])
+
+        if self.is_linear:
+            if all([kwarg in self.kwargs for kwarg in self.required_kwargs]):
+                self.factor = self(1e0)
+
+    def uchain(self):
+        return " -> ".join([self.in_units, *[QUANTITIES.loc[q, "base_unit"] for q in self.qchain][1:-1], self.out_units])
 
     def __call__(self, x, **kwargs) -> float:
+
+        if self.is_linear and hasattr(self, "factor"):
+            return self.factor * x
+
         y = Quantity(x, self.in_units).base_units_value
 
         calibration_kwargs = self.kwargs.copy()
         calibration_kwargs.update(kwargs)
-        quantities_chain = compute_quantities_chain(self.in_quantity, self.out_quantity, kwargs=calibration_kwargs)
 
-        for q1, q2 in zip(quantities_chain[:-1], quantities_chain[1:]):
+        for q1, q2 in zip(self.qchain[:-1], self.qchain[1:]):
             y = conversions[q1][q2]["f"](y, **calibration_kwargs)
 
-        return Quantity(y, QUANTITY_DIMENSION_VECTORS.loc[quantities_chain[-1]]).to(self.out_units)
+        return Quantity(y, QUANTITY_DIMENSION_VECTORS.loc[self.qchain[-1]]).to(self.out_units)
 
     @property
-    def in_units(self) -> float:
-        return self.config.loc["units", "in"]
+    def in_units(self) -> str:
+        return self.config["in"]["units"]
 
     @property
-    def out_units(self) -> float:
-        return self.config.loc["units", "out"]
+    def out_units(self) -> str:
+        return self.config["out"]["units"]
 
     @property
     def in_factor(self) -> float:
-        return self.config.loc["factor", "in"]
+        return self.config["in"]["factor"]
 
     @property
     def out_factor(self) -> float:
-        return self.config.loc["factor", "out"]
+        return self.config["out"]["factor"]
 
     @property
-    def in_quantity(self) -> float:
-        return self.config.loc["physical_quantity", "in"]
+    def in_quantity(self) -> str:
+        return self.config["in"]["physical_quantity"]
 
     @property
-    def out_quantity(self) -> float:
-        return self.config.loc["physical_quantity", "out"]
-
-    @property
-    def in_to_K_RJ(self) -> float:
-        return self.config.loc["from", "in"]
-
-    @property
-    def K_RJ_to_out(self) -> float:
-        return self.config.loc["to", "out"]
+    def out_quantity(self) -> str:
+        return self.config["out"]["physical_quantity"]
 
     def leftpad(thing, n: int = 2, char=" "):
         return "\n".join([n * char + line for line in str(thing).splitlines()])
 
     def __repr__(self):
-        KWARGS_UNITS = {"nu": "Hz", "pixel_area": "sr", "zenith_pwv": "mm", "base_temperature": "K", "elevation": "rad"}
 
-        qkwargs = {}
-        for k, v in self.kwargs.items():
-            if k in ["spectrum", "band", "polarized"]:
-                continue
-            qkwargs[k] = str(Quantity(v, KWARGS_UNITS[k]))
+        if self.is_linear:
+            if hasattr(self, "factor"):
+                factor = self.factor
+            else:
+                factor = "missing kwargs"
+        else:
+            factor = "nonlinear"
 
-        if not hasattr(self, "_factor"):
-            self._factor = f"{self(1e0):.03e}" if self.linear() else "None (nonlinear)"
+        conversions = "\n    ".join([f"{q1} -> {q2}" for q1, q2 in zip(self.qchain[:-1], self.qchain[1:])])
 
-        return f"""Calibration({self.in_units} -> {self.out_units}):
-  spectrum: {self.kwargs.get("spectrum")}
-  band: {self.kwargs.get("band")}
-  kwargs: {qkwargs}"""
-
-    # def __repr__(self):
-    #     filling = copy.deepcopy(self.kwargs.items())
-    #     fill_string = ", ".join([self.signature, *[f"{k}={v}" for k, v in self.kwargs.items()]])
-    #     return f"Calibration({stuffing})"
+        return f"""Calibration({self.signature}):
+  factor: {factor}
+  in:
+    units: {self.in_units}
+    quantity: {self.in_quantity}
+  out:
+    units: {self.out_units}
+    quantity: {self.out_quantity}
+  conversions:
+    {conversions}
+  kwargs:
+    required: {self.required_kwargs}
+    supplied: {self.kwargs}"""

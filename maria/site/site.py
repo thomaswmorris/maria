@@ -14,26 +14,10 @@ from matplotlib import pyplot as plt
 from ..constants import EARTH_RADIUS
 from ..io import fetch, repr_lat_lon
 from ..units import Quantity
+from .height_map import get_height_map
+from .region import REGIONS, InvalidRegionError, all_regions  # noqa
 
 here, this_filename = os.path.split(__file__)
-
-REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude", "timezone"]
-REGIONS = pd.read_csv(f"{here}/regions.csv", index_col=0)
-all_regions = list(REGIONS.index.values)
-
-
-class InvalidRegionError(Exception):
-    def __init__(self, invalid_region):
-        super().__init__(
-            f"The region '{invalid_region}' is not supported. "
-            f"Supported regions are:\n\n{REGIONS.loc[:, REGION_DISPLAY_COLUMNS].to_string()}",
-        )
-
-
-def get_height_map():
-    with h5py.File(fetch("world_heightmap.h5"), "r") as f:
-        height_map = f["data"][:].astype(np.uint16)
-    return 32 * np.where(height_map < 255, height_map, np.nan)
 
 
 class Site:

@@ -12,13 +12,11 @@ def test_generate_cmb(nside):
 
 def test_cmb_calibration():
     plan = maria.Plan.generate(
-        scan_pattern="daisy",
-        scan_options={"radius": 10, "speed": 1},  # in degrees
+        scan_type="daisy",
+        scan_parameters={"az_center": 150, "el_center": 50, "radius": 10, "speed": 1},  # in degrees
         duration=120,  # in seconds
         sample_rate=50,  # in Hz
-        scan_center=(150, 50),
         jitter=0,
-        frame="az/el",
     )
 
     sim = maria.Simulation(

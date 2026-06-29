@@ -9,7 +9,7 @@ import numpy as np
 import scipy as sp
 from tqdm import tqdm
 
-from ..cmb import CMB, generate_cmb, get_cmb
+from ..cmb import generate_cmb, get_cmb
 from ..constants import T_CMB, k_B
 from ..functions.radiometry import (
     inverse_planck_spectrum,
@@ -18,6 +18,7 @@ from ..functions.radiometry import (
     rayleigh_jeans_spectrum,
 )  # noqa
 from ..io import DEFAULT_BAR_FORMAT, humanize_time
+from ..map import HEALPixMap
 from .observation import Observation
 
 logger = logging.getLogger("maria")
@@ -26,7 +27,7 @@ DEFAULT_CMB_SIM_KWARGS = {"nside": 1024}
 
 
 class CMBMixin:
-    def _init_cmb(self, cmb: str | CMB, **cmb_kwargs):
+    def _init_cmb(self, cmb: str | HEALPixMap, **cmb_kwargs):
         self.cmb_kwargs = DEFAULT_CMB_SIM_KWARGS.copy()
         self.cmb_kwargs.update(cmb_kwargs)
 
@@ -35,6 +36,7 @@ class CMBMixin:
                 range(1),
                 desc=f"Generating CMB (nside={self.cmb_kwargs['nside']})",
                 disable=self.disable_progress_bars,
+                bar_format=DEFAULT_BAR_FORMAT,
             ):
                 self.cmb = generate_cmb(**self.cmb_kwargs)
         elif cmb in ["real", "planck"]:
@@ -44,6 +46,8 @@ class CMBMixin:
 
         if self.cmb.units != "K_CMB":
             self.cmb = self.cmb.to("K_CMB")
+
+        self.maps["cmb"] = self.cmb.unsqueeze("nu")
 
     def _compute_cmb_loading(self, obs: Observation, eps: float = 1e-6):
         cmb_loading = np.zeros(obs.shape, dtype=self.dtype)

@@ -103,7 +103,7 @@ class Coordinates:
         t_ordered_center_phi_theta = np.c_[get_center_phi_theta(self._phi, self._theta, keep_dims=keep_dims)]
 
         # (nt) t samples on which to explicitly compute the transformation from astropy
-        t_samples_min_res_seconds = 60
+        t_samples_min_res_seconds = 600
         t_samples_min = np.min(self.t) - 1e0
         t_samples_max = np.max(self.t) + 1e0
         n_t_samples = int(

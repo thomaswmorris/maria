@@ -16,6 +16,9 @@ k_B = 1.380649e-23
 # CMB temperature (K)
 T_CMB = 2.72548
 
+# CMB redshift (K)
+z_CMB = 1089.92
+
 # equatorial radius of the earth (m)
 EARTH_RADIUS = 6.378137e6
 

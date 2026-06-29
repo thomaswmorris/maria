@@ -7,7 +7,7 @@ import pytest
 from maria.instrument import Band
 from maria.io import fetch
 from maria.map import all_maps
-from maria.mappers import BinMapper
+from maria.mapping import BinMapper
 
 plt.close("all")
 

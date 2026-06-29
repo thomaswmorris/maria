@@ -13,19 +13,18 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib import pyplot as plt
 
-from .. import coords
-from ..coords import Coordinates, Frame, frames, get_center_phi_theta, phi_theta_to_offsets
+from ..coords import Coordinates, Frame, frames, get_center_phi_theta, offsets_to_phi_theta, phi_theta_to_offsets
 from ..instrument import Instrument, get_instrument
 from ..io import DEFAULT_TIME_FORMAT, read_yaml, repr_lat_lon, repr_phi_theta
 from ..site import Site, get_site
 from ..units import Quantity
 from ..utils import compute_diameter
-from .patterns import get_scan_pattern_generator, parse_scan_kwargs, scan_patterns
+from .patterns import get_scan_type_generator, scan_types
 
 here, this_filename = os.path.split(__file__)
 logger = logging.getLogger("maria")
 
-all_patterns = list(scan_patterns.index.values)
+all_patterns = list(scan_types.index.values)
 
 MAX_VELOCITY_WARN = 10  # in deg/s
 MAX_ACCELERATION_WARN = 10  # in deg/s
@@ -46,33 +45,111 @@ plan_data = pd.DataFrame(PLAN_CONFIGS).T
 all_plans = list(plan_data.index.values)
 
 
-class Plan:
-    """
-    A dataclass containing time-ordered plan data.
-    """
+def parse_scan_parameters(parameters):
 
+    params = parameters.copy()
+
+    units = "deg" if params.pop("degrees", True) else "rad"
+
+    scan_kwargs = {"offsets": True}
+    scan_pattern_kwargs = {"x_throw": 0, "y_throw": 0}
+
+    if "radius" in params:
+        scan_pattern_kwargs["x_throw"] = Quantity(params["radius"], units).rad
+        scan_pattern_kwargs["y_throw"] = Quantity(params["radius"], units).rad
+        params.pop("radius")
+
+    for dim, coord in zip(["x", "y"], ["phi", "theta"]):
+        for spec in ["center", "throw"]:
+            for frame, entry in frames.T.iterrows():
+                key = f"{entry[coord]}_{spec}"
+                if key in params:
+                    if scan_pattern_kwargs.get("frame", frame) == frame:
+                        params["frame"] = frame
+                    else:
+                        raise ValueError("Multiple frames!")
+                    params[f"{dim}_{spec}"] = params.pop(key)
+
+                    if spec == "throw":
+                        params["offsets"] = False
+
+    if "frame" not in params:
+        logger.warning("Could not infer frame from scan parameters, assuming frame 'ra/dec'")
+
+    params["center"] = np.array(
+        [Quantity(params.pop("x_center", 0), units).rad, Quantity(params.pop("y_center", 0), units).rad]
+    )
+
+    for param in ["x_throw", "y_throw"]:
+        if param in params:
+            scan_pattern_kwargs[param] = Quantity(params.pop(param), units).rad
+
+    for param in ["speed"]:
+        if param in params:
+            scan_pattern_kwargs[param] = Quantity(params.pop(param), f"{units}/s").to("rad/s")
+
+    for param in list(params):
+        if param in ["offsets", "frame", "center"]:
+            scan_kwargs[param] = params.pop(param)
+        else:
+            scan_pattern_kwargs[param] = params.pop(param)
+
+    if "frame" not in scan_kwargs:
+        logger.warning("Could not infer frame from scan parameters, assuming frame 'ra/dec'")
+        scan_kwargs["frame"] = "ra/dec"
+
+    if "speed" not in scan_pattern_kwargs:
+        default_speed = min(max(scan_pattern_kwargs["x_throw"], scan_pattern_kwargs["y_throw"]) / 2, np.radians(3))
+        scan_pattern_kwargs["speed"] = default_speed if default_speed != 0 else 1
+
+    return scan_kwargs, scan_pattern_kwargs
+
+
+class Plan:
     @classmethod
     def generate(
         cls,
+        instrument: Instrument | str = None,
         site: Site | str = None,
-        description: str = "",
         start_time: str | int = None,
         duration: float = 60.0,
-        sample_rate: float = 50.0,
-        frame: str = "ra/dec",
-        degrees: bool = True,
+        sample_rate: float = None,
         jitter: float = 0.0,
         roll: float = 0.0,
-        scan_center: tuple[float, float] = (0.0, 0.0),
-        scan_pattern: str = "daisy",
-        scan_options: dict = {},
+        scan_type: str = "daisy",
+        scan_parameters: dict = {},
+        frame: str = None,
+        scan_center: tuple[float, float] = None,
     ):
+
         duration = Quantity(duration, "s")
+
+        if frame is not None and scan_center is not None:
+            # warnings.warn("deprecated", DeprecationWarning)
+
+            frame = Frame(frame)
+
+            scan_parameters[f"{frame.phi['name']}_center"] = scan_center[0]
+            scan_parameters[f"{frame.theta['name']}_center"] = scan_center[1]
+
+        infer_sample_rate = False
+        if sample_rate is None:
+            if instrument is None:
+                logger.warning("No sample rate passed, assuming 100 Hz")
+                sample_rate = 100
+            elif isinstance(instrument, str):
+                instrument = get_instrument(instrument)
+            elif not isinstance(instrument, Instrument):
+                raise TypeError()
+
+            sample_rate = 1000
+            infer_sample_rate = True
+
         sample_rate = Quantity(sample_rate, "Hz")
 
-        # for k, v in PLAN_CONFIGS[self.scan_pattern]["scan_options"].items():
-        #     if k not in self.scan_options.keys():
-        #         self.scan_options[k] = v
+        # for k, v in PLAN_CONFIGS[self.scan_type]["scan_parameters"].items():
+        #     if k not in self.scan_parameters.keys():
+        #         self.scan_parameters[k] = v
 
         if start_time is None:
             start_time = arrow.now().timestamp()
@@ -84,19 +161,41 @@ class Plan:
         time = np.arange(time_min, time_max, 1 / sample_rate.Hz)
 
         # # convert radius to width / height
-        # if "width" in self.scan_options:
-        #     self.scan_options["radius"] = 0.5 * self.scan_options.pop("width")
+        # if "width" in self.scan_parameters:
+        #     self.scan_parameters["radius"] = 0.5 * self.scan_parameters.pop("width")
 
         # this is in pointing_units
 
-        scan_offsets = get_scan_pattern_generator(scan_pattern)(
+        scan_kwargs, scan_pattern_kwargs = parse_scan_parameters(scan_parameters)
+
+        scan_offsets = get_scan_type_generator(scan_type)(
             time,
-            **parse_scan_kwargs(scan_options),
+            **scan_pattern_kwargs,
         )
+
+        logger.debug(f"Generating '{scan_type}' scan with kwargs {scan_kwargs}")
+        logger.debug(f"Generating scan with parameters {scan_pattern_kwargs}")
+
+        scan_offsets += np.radians(jitter) * np.random.standard_normal(size=scan_offsets.shape)  # noqa
 
         assert not np.isnan(scan_offsets).any()
 
-        scan_offsets = Quantity(scan_offsets, units=("deg" if degrees else "rad")).rad
+        if scan_kwargs["offsets"]:
+            pt = offsets_to_phi_theta(scan_offsets, *scan_kwargs["center"])
+        else:
+            pt = scan_offsets + scan_kwargs["center"]
+
+        # if len(scan_center) == 2:
+        #     units = "deg" if degrees else "rad"
+        #     scan_center = (Quantity(scan_center[0], units=units), Quantity(scan_center[1], units=units))
+        # else:
+        #     raise ValueError("'scan_center' must be a 2-tuple of numbers")
+
+        self = cls(time, phi=pt[..., 0], theta=pt[..., 1], roll=roll, frame=scan_kwargs["frame"], site=site)
+
+        self.generation_kwargs = {"scan_type": scan_type, "scan_parameters": scan_parameters}
+
+        return self
 
         # TODO: scan speed checks in az/el frame
 
@@ -132,26 +231,6 @@ class Plan:
         #         ),
         #         stacklevel=2,
         #     )
-
-        if len(scan_center) == 2:
-            units = "deg" if degrees else "rad"
-            scan_center = (Quantity(scan_center[0], units=units), Quantity(scan_center[1], units=units))
-        else:
-            raise ValueError("'scan_center' must be a 2-tuple of numbers")
-
-        scan_offsets += np.radians(jitter) * np.random.standard_normal(size=scan_offsets.shape)  # noqa
-
-        pt = coords.offsets_to_phi_theta(
-            scan_offsets.T,
-            scan_center[0].rad,
-            scan_center[1].rad,
-        )
-
-        self = cls(time, phi=pt[..., 0], theta=pt[..., 1], roll=roll, frame=frame, site=site)
-
-        self.generation_kwargs = {"scan_pattern": scan_pattern, "scan_options": scan_options}
-
-        return self
 
     def __init__(
         self,
@@ -201,6 +280,9 @@ class Plan:
         elif self.frame.name == "az/el":
             self.az = self.phi = phi
             self.el = self.theta = theta
+        elif self.frame.name == "galactic":
+            self.glon = self.phi = phi
+            self.glat = self.theta = theta
         else:
             raise ValueError("Not a valid pointing frame!")
 
@@ -269,7 +351,7 @@ class Plan:
     def plot(self, frames: list[str] | None = None, ax_size: float = 5):
 
         if frames is None:
-            frames = ["az/el", "ra/dec"] if self.earth_location is not None else [self.frame]
+            frames = ["az/el", "ra/dec", "galactic"] if self.earth_location is not None else [self.frame.name]
 
         fig = plt.figure(figsize=(len(frames) * ax_size, ax_size), dpi=256, constrained_layout=True)
 
@@ -285,13 +367,16 @@ class Plan:
             eta = q_frame_offsets.human_value[:, 1]
 
             header = fits.header.Header()
-            header["CTYPE1"] = f"{Frame(frame).fits['phi']}"
+
+            CTYPE1 = Frame(frame).fits["phi"]
+            header["CTYPE1"] = f"{CTYPE1}{(5 - len(CTYPE1)) * '-'}SIN" if frame != "az/el" else "GLON-SIN"
             header["CRVAL1"] = frame_center[0].deg
             header["CDELT1"] = -np.degrees(q_frame_offsets.hu["base_units_factor"])
             header["CRPIX1"] = 1
             header["CUNIT1"] = "deg     "
 
-            header["CTYPE2"] = f"{Frame(frame).fits['theta']}"
+            CTYPE2 = Frame(frame).fits["theta"]
+            header["CTYPE2"] = f"{CTYPE2}{(5 - len(CTYPE2)) * '-'}SIN" if frame != "az/el" else "GLAT-SIN"
             header["CRVAL2"] = frame_center[1].deg
             header["CDELT2"] = np.degrees(q_frame_offsets.hu["base_units_factor"])
             header["CRPIX2"] = 1
@@ -307,22 +392,19 @@ class Plan:
 
             # ax.legend(loc="upper right")
 
-            ax.set_aspect("equal")
-
             ax.tick_params(axis="x", bottom=True, top=False)
             ax.tick_params(axis="y", left=True, right=False, rotation=90)
 
             ax2 = ax.secondary_xaxis("top")
             ax2.set_xlabel(rf"$\Delta \, \theta_x$ [${q_frame_offsets.hu['math_name']}$]")
-            ax.set_xlabel(rf"{Frame(frame).phi_long_name}")
-            ax.set_ylabel(rf"{Frame(frame).theta_long_name}")
 
             xmin, ymin = q_frame_offsets.human_value.min(axis=0)
             xmax, ymax = q_frame_offsets.human_value.max(axis=0)
             xcen, ycen = (xmin + xmax) / 2, (ymin + ymax) / 2
             radius = 0.5 * 1.05 * max(ymax - ymin, xmax - xmin)
-            ax.set_xlim(xcen - radius, xcen + radius)
-            ax.set_ylim(ycen - radius, ycen + radius)
+
+            if radius == 0:
+                radius = Quantity(1, "arcsec").to(q_frame_offsets.human_units)
 
             ax.scatter(xi[0], eta[0], color="g", marker="+")
             ax.scatter(xi[-1], eta[-1], color="r", marker="+")
@@ -375,6 +457,15 @@ class Plan:
                 **annotate_kwargs,
                 arrowprops={"facecolor": "red", **arrowprops},
             )
+
+            ax.set_xlim(xcen - radius, xcen + radius)
+            ax.set_ylim(ycen - radius, ycen + radius)
+
+            ax.grid()
+            ax.set_aspect("equal")
+
+            ax.set_xlabel(rf"{Frame(frame).phi_long_name}")
+            ax.set_ylabel(rf"{Frame(frame).theta_long_name}")
 
     def map_counts(self, instrument: Instrument | str = None, x_bins=64, y_bins=64):
         if isinstance(instrument, str):

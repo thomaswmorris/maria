@@ -35,6 +35,14 @@ def brightness_temperature_to_cmb_temperature_anisotropy(T_b, **kwargs):
     return T_b - T_CMB
 
 
+def rayleigh_jeans_temperature_to_spectral_radiance(T_RJ, nu, **kwargs):
+    return rayleigh_jeans_spectrum(T_RJ=T_RJ, nu=nu)
+
+
+def spectral_radiance_to_rayleigh_jeans_temperature(I_nu, nu, **kwargs):
+    return inverse_rayleigh_jeans_spectrum(I_nu=I_nu, nu=nu)
+
+
 def rayleigh_jeans_temperature_to_brightness_temperature(T_RJ, nu, **kwargs):
     I_nu = rayleigh_jeans_spectrum(T_RJ=T_RJ, nu=nu)
     return inverse_planck_spectrum(I_nu=I_nu, nu=nu)

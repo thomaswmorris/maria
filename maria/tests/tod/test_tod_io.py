@@ -8,7 +8,7 @@ import pytest
 from maria import Plan, Simulation, all_sites, get_instrument
 from maria.instrument import test_instruments
 from maria.io import read_yaml
-from maria.mappers import BinMapper
+from maria.mapping import BinMapper
 
 here, this_filename = os.path.split(__file__)
 
@@ -26,8 +26,8 @@ test_sites = np.random.choice(a=all_sites, size=n_sims)
 )
 def test_tod_write_and_load(instrument, site):
     plan = Plan.generate(
-        scan_pattern="daisy",  # scanning pattern
-        scan_options={"radius": 2 / 60, "speed": 0.5 / 60},  # in degrees
+        scan_type="daisy",  # scanning pattern
+        scan_parameters={"radius": 2 / 60, "speed": 0.5 / 60},  # in degrees
         duration=60,  # integration time in seconds
         sample_rate=10,  # in Hz
         scan_center=(202.27211, 47.195277),  # position in the sky

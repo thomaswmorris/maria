@@ -7,7 +7,8 @@ import pandas as pd
 from astropy.coordinates import EarthLocation
 
 from ..io import read_yaml
-from .site import REGIONS, InvalidRegionError, Site, all_regions  # noqa
+from .region import REGIONS, InvalidRegionError, all_regions, plot_all_regions  # noqa
+from .site import Site  # noqa
 
 here, this_filename = os.path.split(__file__)
 

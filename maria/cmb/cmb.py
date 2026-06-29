@@ -5,6 +5,7 @@ import os
 import healpy as hp
 import numpy as np
 
+from ..constants import z_CMB
 from ..io import fetch
 from ..map import HEALPixMap
 
@@ -24,20 +25,6 @@ CMB_SOURCES = {
     "planck": {"spectrum": "cmb/spectra/planck.csv"},
     "camb": {"spectrum": "/Users/tom/maria/data/cmb/spectra/camb.csv"},
 }
-
-
-class CMB(HEALPixMap):
-    def __init__(
-        self,
-        data: float,
-        weight: float = None,
-        stokes: float = None,
-        frame: str = "galactic",
-        nu: float = None,
-        units: str = "K_CMB",
-        **kwargs,
-    ):
-        super().__init__(data=data, weight=weight, stokes=stokes, nu=nu, z=1100.0, units=units, frame=frame, **kwargs)
 
 
 def get_cmb(**kwargs):
@@ -61,4 +48,4 @@ def get_cmb(**kwargs):
     maps["Q"] = np.where(maps["P_mask"], maps["Q"], np.nan)
     maps["U"] = np.where(maps["P_mask"], maps["U"], np.nan)
 
-    return CMB(data=np.stack([maps["T"], maps["Q"], maps["U"]], axis=0)[:, None, None], stokes="IQU", nu=143e9)
+    return HEALPixMap(data=np.stack([maps["T"], maps["Q"], maps["U"]], axis=0)[:, None, None], stokes="IQU", z=z_CMB)

@@ -13,7 +13,7 @@ def test_planner():
     )
 
     plans = planner.generate_plans(
-        total_duration=900, scan_pattern="daisy", scan_options={"radius": input_map.width.deg / 3}, sample_rate=50
+        total_duration=900, scan_type="daisy", scan_parameters={"radius": input_map.width.deg / 3}, sample_rate=50
     )
 
     plans[0].plot()

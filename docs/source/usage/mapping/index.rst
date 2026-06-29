@@ -8,7 +8,7 @@ We can map a ``TOD`` (or several of them) with a ``Mapper``. The simplest possib
 
 .. code-block:: python
 
-    from maria.mappers import MaximumLikelihoodMapper
+    from maria.mapping import MaximumLikelihoodMapper
 
     ml_mapper = MaximumLikelihoodMapper(tods=[tod1, tod2, ...],
                                         tod_preprocessing={

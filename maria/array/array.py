@@ -45,6 +45,7 @@ ALLOWED_ARRAY_KWARGS = [
     "baseline_spacing",
     "bath_temp",
     "beam_spacing",
+    "center",
     "degrees",
     "field_of_view",
     "file",
@@ -449,6 +450,7 @@ class Array:
                 shape=c.get("shape", "hexagon"),
                 packing=c.get("packing", "triangular"),
                 rotation=c.get("rotation", 0),
+                center=c.get("center", False),
             )
 
             if mode == "focal_plane":

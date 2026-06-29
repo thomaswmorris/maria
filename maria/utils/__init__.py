@@ -37,6 +37,11 @@ def is_integer(val):
         return False
 
 
+def normalize(x):
+    x_min = np.min(x)
+    return (x - x_min) / (x.max() - x_min)
+
+
 def unpack_implicit_slice(key, ndims):
     key = key if isinstance(key, tuple) else tuple(key)
     explicit_slices = []

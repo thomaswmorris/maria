@@ -1,29 +1,30 @@
-TolTEC:
+toltec:
   aliases: ["toltec"]
   description: TolTEC
+  documentation: http://toltec.astro.umass.edu/
   arrays:
     array-1:
-      n: 586
-      shape: hexagon
+      n: 450
+      shape: circle
       bands: [toltec/f150]
       polarized: True
       bath_temp: 100.e-3 # in K
       field_of_view: 0.07 # in degrees
       primary_size: 50 # in meters
     array-2:
-      n: 1266
-      shape: hexagon
+      n: 900
+      shape: circle
       bands: [toltec/f220]
       polarized: True
       bath_temp: 100.e-3 # in K
       field_of_view: 0.07 # in degrees
       primary_size: 50 # in meters
     array-3:
-      n: 2006
-      shape: hexagon
+      n: 1800
+      shape: circle
       bands: [toltec/f270]
       polarized: True
       bath_temp: 100.e-3 # in K
       field_of_view: 0.07 # in degrees
       primary_size: 50 # in meters
-  documentation: http://toltec.astro.umass.edu/
+  
