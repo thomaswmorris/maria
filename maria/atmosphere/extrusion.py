@@ -31,12 +31,11 @@ def generate_layers(
     site: Site,
     mode: str = "2d",
     angular: bool = True,
-    max_height: float = 2e3,  # in meters
     min_res: float = None,  # in meters
     min_res_per_beam: float = None,
     min_res_per_fov: float = None,
-    layer_spacing: float = 500,
     pwv_rms_frac: float = 3e-2,
+    boundaries: list[float] = None,
 ) -> DataFrame:
     """
     Generate atmospheric layers.
@@ -63,34 +62,40 @@ def generate_layers(
         return sp.interpolate.interp1d(h_samples, res_samples)(h)
 
     if mode == "2d":
-        h_boundaries = np.array([0.0, 500.0, 1000.0, 1500.0, 2000.0, 3000.0, 5000.0, 8000.0, 12000.0])
-        # h_boundaries = layer_boundaries or np.arange(0, max_height + layer_spacing, layer_spacing)
-        process_index = np.arange(len(h_boundaries) - 1)
+        layer_boundaries = np.array(
+            boundaries if boundaries is not None else [0.0, 500.0, 1000.0, 1500.0, 2000.0, 3000.0, 5000.0, 8000.0, 12000.0]
+        )
+        process_index = np.arange(len(layer_boundaries) - 1)
     elif mode == "3d":
-        h_boundaries = [0]
+        layer_boundaries = np.array(boundaries if boundaries is not None else [0.0, 3000.0])
+        if layer_boundaries is None:
+            layer_boundaries = np.array([0, 3000])
+        if len(layer_boundaries) > 2:
+            raise ValueError("Must have len(layer_boundaries) = 2 when model = '3d'")
+        sublayer_heights = [0]
         while True:
-            new_h = h_boundaries[-1] + res_func(h_boundaries[-1])
-            if new_h > max_height:
+            new_h = sublayer_heights[-1] + res_func(sublayer_heights[-1])
+            if new_h > layer_boundaries[-1]:
                 break
-            h_boundaries.append(h_boundaries[-1] + res_func(h_boundaries[-1]))
-        h_boundaries = np.array(h_boundaries)
+            sublayer_heights.append(sublayer_heights[-1] + res_func(sublayer_heights[-1]))
+        layer_boundaries = np.array(sublayer_heights)
         process_index = 0
 
-    h_centers = (h_boundaries[1:] + h_boundaries[:-1]) / 2
+    h_centers = (layer_boundaries[1:] + layer_boundaries[:-1]) / 2
 
     weather_values = weather(altitude=site.altitude.m + h_centers)
 
     layers = pd.DataFrame(weather_values)
     layers.insert(0, "process_index", process_index)
     layers.insert(1, "h", h_centers)
-    layers.insert(2, "dh", np.diff(h_boundaries))
+    layers.insert(2, "dh", np.diff(layer_boundaries))
     layers.insert(3, "res", res_func(layers.h))
     layers.insert(4, "z", h_centers / np.sin(min_el))
     layers.insert(5, "angular", angular)
 
-    h_boundaries = [0, *(layers.h.values[:-1] + layers.h.values[1:]) / 2, 1e5]
+    layer_boundaries = [0, *(layers.h.values[:-1] + layers.h.values[1:]) / 2, 1e5]
 
-    for layer_index, (h1, h2) in enumerate(zip(h_boundaries[:-1], h_boundaries[1:])):
+    for layer_index, (h1, h2) in enumerate(zip(layer_boundaries[:-1], layer_boundaries[1:])):
         dummy_h = site.altitude.m + np.linspace(h1, h2, 1024)
         h = weather.altitude
         w = weather.absolute_humidity

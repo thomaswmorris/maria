@@ -35,7 +35,7 @@ class Atmosphere:
         timestamp: float = arrow.now().timestamp(),
         region: str = "princeton",
         altitude: float = None,
-        weather: dict = {},
+        kwargs: dict = {},
         weather_quantiles: dict = {},
         weather_source: str = "era5",
         spectrum_source: str = "am",
@@ -55,11 +55,13 @@ class Atmosphere:
             source=spectrum_source,
         )
 
+        self.kwargs = kwargs
+
         self.weather = Weather(
             time=timestamp,
             region=region,
             altitude=altitude,
-            override=weather,
+            override=self.kwargs.get("weather", {}),
             quantiles=weather_quantiles,
             source=weather_source,
         )
@@ -90,7 +92,7 @@ class Atmosphere:
             site=obs.site,
             mode=self.model,
             angular=self.angular,
-            max_height=self.max_height,
+            **self.kwargs.get("layers", {}),
         )
 
         if self.timestep is None:

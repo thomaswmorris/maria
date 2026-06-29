@@ -141,7 +141,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         self.obs_list = []
         for obs_index, plan in enumerate(self.plans):
-            logger.debug(f"Initializing Observation {obs_index + 1} of {len(self.plans)}")
+            logger.info(f"Initializing Observation {obs_index + 1} of {len(self.plans)}")
 
             obs_start_s = ttime.monotonic()
 
@@ -161,7 +161,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
             self.obs_list.append(obs)
 
             duration_s = ttime.monotonic() - obs_start_s
-            logger.debug(f"Initialized Observation in {humanize_time(duration_s)}.")
+            logger.info(f"Initialized Observation in {humanize_time(duration_s)}.")
 
         self.maps = {}
 

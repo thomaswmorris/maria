@@ -92,7 +92,7 @@ class Observation:
                 timestamp=self.plan.time.mean(),
                 region=self.site.region,
                 altitude=self.site.altitude,
-                **self.atmosphere_kwargs,
+                kwargs=self.atmosphere_kwargs,
             )
 
         self.loading = {}
