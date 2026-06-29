@@ -20,15 +20,15 @@
     "f090 = get_band(\"act/pa5/f090\")\n",
     "f150 = get_band(\"act/pa5/f150\")\n",
     "\n",
-    "f090.NET_RJ = 50e-6\n",
-    "f150.NET_RJ = 50e-6\n",
+    "f090.NET_RJ = 20e-6\n",
+    "f150.NET_RJ = 20e-6\n",
     "\n",
-    "f090.knee = 1e2\n",
-    "f150.knee = 1e2\n",
+    "f090.knee = 1e1\n",
+    "f150.knee = 1e1\n",
     "\n",
-    "array = {\"field_of_view\": 0.3,\n",
+    "array = {\"field_of_view\": 0.25,\n",
     "         \"primary_size\": 10,\n",
-    "         \"n\": 100,\n",
+    "         \"n\": 80,\n",
     "         \"packing\": \"sunflower\",\n",
     "         \"shape\": \"circle\",\n",
     "         \"polarized\": True,\n",
@@ -48,19 +48,29 @@
    "source": [
     "from maria import Plan\n",
     "\n",
-    "plan = Plan.generate(duration=1800, \n",
+    "plan1 = Plan.generate(duration=1200, \n",
     "                     sample_rate=25, \n",
     "                     start_time=\"2026-08-05T06:00:00\",\n",
-    "                     scan_type=\"raster\",\n",
-    "                     scan_parameters={\"n\": [(25, 1), (1, 26)], \n",
-    "                                       \"ra_center\": 0,\n",
-    "                                       \"dec_center\": -60,\n",
-    "                                       \"x_throw\": 2,\n",
-    "                                       \"y_throw\": 2\n",
+    "                     scan_type=\"back-and-forth\",\n",
+    "                     scan_parameters={\"az_center\": 90,\n",
+    "                                      \"el_center\": 45,\n",
+    "                                      \"az_throw\": 4,\n",
     "                                     },\n",
     "                     site=\"cerro_toco\")\n",
     "\n",
-    "plan.plot(frames=[\"az/el\", \"ra/dec\", \"glon/glat\"])"
+    "plan1.plot(frames=[\"az/el\", \"ra/dec\", \"glon/glat\"])\n",
+    "\n",
+    "plan2 = Plan.generate(duration=1200, \n",
+    "                     sample_rate=25, \n",
+    "                     start_time=\"2026-08-05T12:18:00\",\n",
+    "                     scan_type=\"back-and-forth\",\n",
+    "                     scan_parameters={\"az_center\": -90,\n",
+    "                                      \"el_center\": 45,\n",
+    "                                      \"az_throw\": 4,\n",
+    "                                     },\n",
+    "                     site=\"cerro_toco\")\n",
+    "\n",
+    "plan2.plot(frames=[\"az/el\", \"ra/dec\", \"glon/glat\"])"
    ]
   },
   {
@@ -71,31 +81,13 @@
    "source": [
     "sim = maria.Simulation(\n",
     "    instrument=instrument,\n",
-    "    plans=[plan],\n",
+    "    plans=[plan1, plan2],\n",
     "    site=\"cerro_toco\",\n",
     "    cmb=\"generate\",\n",
-    "    cmb_kwargs={\"nside\": 256},\n",
+    "    cmb_kwargs={\"nside\": 1024},\n",
     ")\n",
     "\n",
     "print(sim)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "sim.maps[\"cmb\"].nu"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "instrument.bands[0].nu"
    ]
   },
   {
@@ -121,13 +113,13 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria.mapping import *\n",
+    "from maria.mappers import *\n",
     "\n",
     "plot_kwargs = {\"slices\": dict(stokes=[\"I\", \"Q\", \"U\"], nu=[[0], [1]]), \"contrast\": 1e-2}\n",
     "\n",
     "bin_mapper = BinMapper(tods=tods,\n",
     "                       units=\"uK_CMB\",\n",
-    "                       resolution=2 / 60,\n",
+    "                       resolution=2/60,\n",
     "                       frame=\"ra/dec\",\n",
     "                       tod_preprocessing={\n",
     "                        \"remove_polynomial\": {\"time\": 3, \"elevation\": 3},\n",
@@ -148,7 +140,7 @@
     "\n",
     "ml_mapper = MaximumLikelihoodMapper(tods=tods,\n",
     "                                    units=\"uK_CMB\",\n",
-    "                                    resolution=2 / 60,\n",
+    "                                    resolution=1/60,\n",
     "                                    frame=\"ra/dec\",\n",
     "                                    tod_preprocessing={\n",
     "                                    \"remove_polynomial\": {\"time\": 3, \"elevation\": 3},\n",

@@ -410,7 +410,7 @@ Instrument(1 array)
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt; [astropy.utils.iers.iers]
-2026-06-29 06:02:34.880 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
+2026-06-29 22:48:41.249 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -463,8 +463,10 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Constructing atmosphere: 100%|██████████| 8/8 [00:43&lt;00:00,  5.46s/it]
-2026-06-29 06:03:26.935 INFO: Simulating observation 1 of 1
+2026-06-29 22:48:46.035 INFO: Initializing Observation 1 of 1
+Constructing atmosphere: 100%|██████████| 8/8 [00:47&lt;00:00,  5.97s/it]
+2026-06-29 22:49:36.603 INFO: Initialized Observation in 50.54 s.
+2026-06-29 22:49:37.268 INFO: Simulating observation 1 of 1
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -511,12 +513,12 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.73it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:07&lt;00:00,  1.06it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:02&lt;00:00,  1.17s/it, band=f270]
-Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:14&lt;00:00,  7.04s/it, band=f270, message=Sampling channel (210 GHz, 330 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.07s/it, band=f270]
-2026-06-29 06:04:01.565 INFO: Simulated observation 1 of 1 in 34.62 s
+Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.91it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:06&lt;00:00,  1.18it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:02&lt;00:00,  1.11s/it, band=f270]
+Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:13&lt;00:00,  6.71s/it, band=f270, message=Sampling channel (210 GHz, 330 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.04s/it, band=f270]
+2026-06-29 22:50:10.013 INFO: Simulated observation 1 of 1 in 32.74 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -557,11 +559,11 @@ Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 06:04:11.433 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.17ˢ&#39;, &#39;dec&#39;: &#39;-23°00’7.80”&#39;} for mapper
-2026-06-29 06:04:11.445 INFO: Inferring mapper width 1.241° for mapper from observation patch
-2026-06-29 06:04:11.445 INFO: Inferring mapper height 1.241° to match supplied width
-Preprocessing TODs: 100%|██████████| 1/1 [00:10&lt;00:00, 10.12s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:04&lt;00:00,  4.20s/it]
+2026-06-29 22:50:19.784 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.17ˢ&#39;, &#39;dec&#39;: &#39;-23°00’7.80”&#39;} for mapper
+2026-06-29 22:50:19.798 INFO: Inferring mapper width 1.231° for mapper from observation patch
+2026-06-29 22:50:19.799 INFO: Inferring mapper height 1.231° to match supplied width
+Preprocessing TODs: 100%|██████████| 1/1 [00:09&lt;00:00,  9.56s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:04&lt;00:00,  4.02s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -612,8 +614,8 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:04&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.12s/it, tod=1/1]
-Fitting map (epoch 1/2): 50it [02:48,  3.38s/it, alpha=0.000155]
+Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.77s/it, tod=1/1]
+Fitting map (epoch 1/2): 50it [02:39,  3.18s/it, alpha=0.000159]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -628,8 +630,8 @@ Fitting map (epoch 1/2): 50it [02:48,  3.38s/it, alpha=0.000155]
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.98s/it, tod=1/1]
-Fitting map (epoch 2/2): 50it [02:48,  3.38s/it, alpha=0.000143]
+Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.74s/it, tod=1/1]
+Fitting map (epoch 2/2): 50it [02:39,  3.19s/it, alpha=0.00014]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -661,8 +663,8 @@ TransferFunction:
   channels: 2
   nu: [150. 270.] GHz
   bins: 20
-  u: [51.7, 3.09e+03] cycles/rad
-  T: [0.106, 0.985]
+  u: [52.1, 3.09e+03] cycles/rad
+  T: [0.117, 0.984]
 </pre></div></div>
 </div>
 <p>To visualize the transfer function, it is possible to use the built-in <code class="docutils literal notranslate"><span class="pre">plot()</span></code> method. Solid curves show the measured <span class="math notranslate nohighlight">\(T(u)\)</span>, while dashed curves show the Gaussian beam per channel. The large-scale rolloff reflects the TOD filtering above, while the small-scale rolloff tracks the beam.</p>

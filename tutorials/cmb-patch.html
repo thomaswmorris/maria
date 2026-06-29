@@ -307,15 +307,15 @@
 <span class="n">f090</span> <span class="o">=</span> <span class="n">get_band</span><span class="p">(</span><span class="s2">&quot;act/pa5/f090&quot;</span><span class="p">)</span>
 <span class="n">f150</span> <span class="o">=</span> <span class="n">get_band</span><span class="p">(</span><span class="s2">&quot;act/pa5/f150&quot;</span><span class="p">)</span>
 
-<span class="n">f090</span><span class="o">.</span><span class="n">NET_RJ</span> <span class="o">=</span> <span class="mf">50e-6</span>
-<span class="n">f150</span><span class="o">.</span><span class="n">NET_RJ</span> <span class="o">=</span> <span class="mf">50e-6</span>
+<span class="n">f090</span><span class="o">.</span><span class="n">NET_RJ</span> <span class="o">=</span> <span class="mf">20e-6</span>
+<span class="n">f150</span><span class="o">.</span><span class="n">NET_RJ</span> <span class="o">=</span> <span class="mf">20e-6</span>
 
-<span class="n">f090</span><span class="o">.</span><span class="n">knee</span> <span class="o">=</span> <span class="mf">1e2</span>
-<span class="n">f150</span><span class="o">.</span><span class="n">knee</span> <span class="o">=</span> <span class="mf">1e2</span>
+<span class="n">f090</span><span class="o">.</span><span class="n">knee</span> <span class="o">=</span> <span class="mf">1e1</span>
+<span class="n">f150</span><span class="o">.</span><span class="n">knee</span> <span class="o">=</span> <span class="mf">1e1</span>
 
-<span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+<span class="n">array</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_of_view&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
          <span class="s2">&quot;primary_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-         <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+         <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
          <span class="s2">&quot;packing&quot;</span><span class="p">:</span> <span class="s2">&quot;sunflower&quot;</span><span class="p">,</span>
          <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;circle&quot;</span><span class="p">,</span>
          <span class="s2">&quot;polarized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -336,12 +336,12 @@
 Instrument(1 array)
 ├ arrays:
 │            n field_of_view max_baseline                        bands polarized primary_size
-│  array1  400           18’          0 m  [act/pa5/f090,act/pa5/f150]      True         10 m
+│  array1  320           15’          0 m  [act/pa5/f090,act/pa5/f150]      True         10 m
 │
 └ bands:
               name   center   width    η         NEP      NET_RJ         NET_CMB    FWHM
-   0  act/pa5/f090   90 GHz  20 GHz  0.5  7.345 aW√s  50 uK_RJ√s  61.44 uK_CMB√s  1.458’
-   1  act/pa5/f150  150 GHz  30 GHz  0.5  11.02 aW√s  50 uK_RJ√s  86.67 uK_CMB√s  52.49”
+   0  act/pa5/f090   90 GHz  20 GHz  0.5  2.938 aW√s  20 uK_RJ√s  24.58 uK_CMB√s  1.458’
+   1  act/pa5/f150  150 GHz  30 GHz  0.5  4.407 aW√s  20 uK_RJ√s  34.67 uK_CMB√s  52.49”
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -357,19 +357,29 @@ Instrument(1 array)
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plan</span>
 
-<span class="n">plan</span> <span class="o">=</span> <span class="n">Plan</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">1800</span><span class="p">,</span>
+<span class="n">plan1</span> <span class="o">=</span> <span class="n">Plan</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>
                      <span class="n">sample_rate</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                      <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2026-08-05T06:00:00&quot;</span><span class="p">,</span>
-                     <span class="n">scan_type</span><span class="o">=</span><span class="s2">&quot;raster&quot;</span><span class="p">,</span>
-                     <span class="n">scan_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">26</span><span class="p">)],</span>
-                                       <span class="s2">&quot;ra_center&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                                       <span class="s2">&quot;dec_center&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">60</span><span class="p">,</span>
-                                       <span class="s2">&quot;x_throw&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-                                       <span class="s2">&quot;y_throw&quot;</span><span class="p">:</span> <span class="mi">2</span>
+                     <span class="n">scan_type</span><span class="o">=</span><span class="s2">&quot;back-and-forth&quot;</span><span class="p">,</span>
+                     <span class="n">scan_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;az_center&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
+                                      <span class="s2">&quot;el_center&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
+                                      <span class="s2">&quot;az_throw&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
                                      <span class="p">},</span>
                      <span class="n">site</span><span class="o">=</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">)</span>
 
-<span class="n">plan</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;az/el&quot;</span><span class="p">,</span> <span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span> <span class="s2">&quot;glon/glat&quot;</span><span class="p">])</span>
+<span class="n">plan1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;az/el&quot;</span><span class="p">,</span> <span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span> <span class="s2">&quot;glon/glat&quot;</span><span class="p">])</span>
+
+<span class="n">plan2</span> <span class="o">=</span> <span class="n">Plan</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>
+                     <span class="n">sample_rate</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+                     <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2026-08-05T12:18:00&quot;</span><span class="p">,</span>
+                     <span class="n">scan_type</span><span class="o">=</span><span class="s2">&quot;back-and-forth&quot;</span><span class="p">,</span>
+                     <span class="n">scan_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;az_center&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
+                                      <span class="s2">&quot;el_center&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
+                                      <span class="s2">&quot;az_throw&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                                     <span class="p">},</span>
+                     <span class="n">site</span><span class="o">=</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">)</span>
+
+<span class="n">plan2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;az/el&quot;</span><span class="p">,</span> <span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span> <span class="s2">&quot;glon/glat&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -379,14 +389,21 @@ Instrument(1 array)
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt; [astropy.utils.iers.iers]
-2026-06-29 05:12:41.024 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
+2026-06-29 21:57:20.012 WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/finals2000A.all: &lt;urlopen error timed out&gt;
 </pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cmb-patch_2_1.png" src="../_images/tutorials_cmb-patch_2_1.png" />
+</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_cmb-patch_2_1.png" src="../_images/tutorials_cmb-patch_2_1.png" />
+<img alt="../_images/tutorials_cmb-patch_2_2.png" src="../_images/tutorials_cmb-patch_2_2.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -395,10 +412,10 @@ WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/fina
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
     <span class="n">instrument</span><span class="o">=</span><span class="n">instrument</span><span class="p">,</span>
-    <span class="n">plans</span><span class="o">=</span><span class="p">[</span><span class="n">plan</span><span class="p">],</span>
+    <span class="n">plans</span><span class="o">=</span><span class="p">[</span><span class="n">plan1</span><span class="p">,</span> <span class="n">plan2</span><span class="p">],</span>
     <span class="n">site</span><span class="o">=</span><span class="s2">&quot;cerro_toco&quot;</span><span class="p">,</span>
     <span class="n">cmb</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">,</span>
-    <span class="n">cmb_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;nside&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">},</span>
+    <span class="n">cmb_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;nside&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">},</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
@@ -410,10 +427,14 @@ WARNING: IERSWarning: failed to download https://datacenter.iers.org/data/9/fina
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating CMB (nside=256):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-06-29 05:12:48.138 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
+2026-06-29 21:57:26.548 INFO: Initializing Observation 1 of 2
+2026-06-29 21:57:27.165 INFO: Initialized Observation in 608 ms.
+2026-06-29 21:57:27.166 INFO: Initializing Observation 2 of 2
+2026-06-29 21:57:27.334 INFO: Initialized Observation in 159.4 ms.
+Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-06-29 21:57:28.133 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
 
-Downloading: |          | 3.72M/? [00:00&lt;00:00, 101MB/s]
-Generating CMB (nside=256): 100%|██████████| 1/1 [00:01&lt;00:00,  1.56s/it]
+Downloading: |          | 3.72M/? [00:00&lt;00:00, 99.2MB/s]
+Generating CMB (nside=1024): 100%|██████████| 1/1 [00:09&lt;00:00,  9.67s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -425,12 +446,12 @@ Simulation
 ├ Instrument(1 array)
 │ ├ arrays:
 │ │            n field_of_view max_baseline                        bands polarized primary_size
-│ │  array1  400           18’          0 m  [act/pa5/f090,act/pa5/f150]      True         10 m
+│ │  array1  320           15’          0 m  [act/pa5/f090,act/pa5/f150]      True         10 m
 │ │
 │ └ bands:
 │               name   center   width    η         NEP      NET_RJ         NET_CMB    FWHM
-│    0  act/pa5/f090   90 GHz  20 GHz  0.5  7.345 aW√s  50 uK_RJ√s  61.44 uK_CMB√s  1.458’
-│    1  act/pa5/f150  150 GHz  30 GHz  0.5  11.02 aW√s  50 uK_RJ√s  86.67 uK_CMB√s  52.49”
+│    0  act/pa5/f090   90 GHz  20 GHz  0.5  2.938 aW√s  20 uK_RJ√s  24.58 uK_CMB√s  1.458’
+│    1  act/pa5/f150  150 GHz  30 GHz  0.5  4.407 aW√s  20 uK_RJ√s  34.67 uK_CMB√s  52.49”
 ├ Site:
 │   region: chajnantor
 │   timezone: America/Santiago
@@ -440,65 +461,32 @@ Simulation
 │     altitude: 5.19 km
 │   seasonal: True
 │   diurnal: True
-├ PlanList(1 plans, 1800 s):
-│                            start_time duration sample_rate target(ra,dec)   center(az,el)
+├ PlanList(2 plans, 2400 s):
+│                            start_time duration sample_rate   target(az,el)
 │ chunk
-│ 0      2026-08-05 06:00:00.000 +00:00   1800 s       25 Hz   (360°, -60°)  (164°, 50.37°)
+│ 0      2026-08-05 06:00:00.000 +00:00   1200 s       25 Hz   (90°, 45.03°)
+│ 1      2026-08-05 12:18:00.000 +00:00   1200 s       25 Hz  (270°, 45.03°)
 
 └ HEALPixMap:
-    data(3, 1, 786432):
-      min: -5.102e-04
-      max: 4.932e-04
+    data(3, 1, 12582912):
+      min: -5.602e-04
+      max: 5.685e-04
       units: K_CMB
       quantity: cmb_temperature_anisotropy
     stokes(3):
       components: [&#39;I&#39; &#39;Q&#39; &#39;U&#39;]
     z(1):
       values: [1089.92]
-    pixels(786432):
-      nside: 256
-      resolution: 13.74’
+    pixels(12582912):
+      nside: 1024
+      resolution: 3.435’
     frame: ra/dec
     beam(maj, min, rot): (0 rad, 0 rad, 0 rad)
-    memory: 18.87 MB
+    memory: 302 MB
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">maps</span><span class="p">[</span><span class="s2">&quot;cmb&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nu</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-[150.] GHz
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instrument</span><span class="o">.</span><span class="n">bands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nu</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-[ 60.      60.0587  60.1173 ... 119.8827 119.9413 120.    ] GHz
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -511,31 +499,35 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:12:49.045 INFO: Simulating observation 1 of 1
-Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:04&lt;00:00,  2.33s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.17it/s, band=act/pa5/f150]
-2026-06-29 05:12:55.872 INFO: Simulated observation 1 of 1 in 6.817 s
+2026-06-29 21:57:37.703 INFO: Simulating observation 1 of 2
+Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:10&lt;00:00,  5.22s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.73it/s, band=act/pa5/f150]
+2026-06-29 21:57:49.639 INFO: Simulated observation 1 of 2 in 11.93 s
+2026-06-29 21:57:49.639 INFO: Simulating observation 2 of 2
+Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:09&lt;00:00,  4.85s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  2.71it/s, band=act/pa5/f150]
+2026-06-29 21:58:00.351 INFO: Simulated observation 2 of 2 in 10.7 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_cmb-patch_6_1.png" src="../_images/tutorials_cmb-patch_6_1.png" />
+<img alt="../_images/tutorials_cmb-patch_4_1.png" src="../_images/tutorials_cmb-patch_4_1.png" />
 </div>
 </div>
 <p>Binning the data gives us a</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">plot_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;slices&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">stokes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="s2">&quot;U&quot;</span><span class="p">],</span> <span class="n">nu</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]),</span> <span class="s2">&quot;contrast&quot;</span><span class="p">:</span> <span class="mf">1e-2</span><span class="p">}</span>
 
 <span class="n">bin_mapper</span> <span class="o">=</span> <span class="n">BinMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
                        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_CMB&quot;</span><span class="p">,</span>
-                       <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span>
+                       <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>
                        <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span>
                        <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">&quot;remove_polynomial&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;elevation&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
@@ -552,30 +544,30 @@ Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.1
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:13:03.974 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ57.83ˢ&#39;, &#39;dec&#39;: &#39;-60°00’0.23”&#39;} for mapper
-2026-06-29 05:13:03.986 INFO: Inferring mapper width 4.306° for mapper from observation patch
-2026-06-29 05:13:03.987 INFO: Inferring mapper height 4.306° to match supplied width
-2026-06-29 05:13:04.398 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:01&lt;00:00,  1.14s/it]
-Mapping: 100%|██████████| 1/1 [00:02&lt;00:00,  2.98s/it, tod=1/1]
+2026-06-29 21:58:07.963 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ42ᵐ20.18ˢ&#39;, &#39;dec&#39;: &#39;-16°09’33.98”&#39;} for mapper
+2026-06-29 21:58:07.975 INFO: Inferring mapper width 7.059° for mapper from observation patch
+2026-06-29 21:58:07.975 INFO: Inferring mapper height 7.059° to match supplied width
+2026-06-29 21:58:08.500 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:01&lt;00:00,  1.81it/s]
+Mapping: 100%|██████████| 2/2 [00:02&lt;00:00,  1.35s/it, tod=1/2]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_cmb-patch_8_1.png" src="../_images/tutorials_cmb-patch_8_1.png" />
+<img alt="../_images/tutorials_cmb-patch_6_1.png" src="../_images/tutorials_cmb-patch_6_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mapping.ml_mapper</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">ml_mapper</span> <span class="o">=</span> <span class="n">MaximumLikelihoodMapper</span><span class="p">(</span><span class="n">tods</span><span class="o">=</span><span class="n">tods</span><span class="p">,</span>
                                     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;uK_CMB&quot;</span><span class="p">,</span>
-                                    <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span>
+                                    <span class="n">resolution</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>
                                     <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;ra/dec&quot;</span><span class="p">,</span>
                                     <span class="n">tod_preprocessing</span><span class="o">=</span><span class="p">{</span>
                                     <span class="s2">&quot;remove_polynomial&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;elevation&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
@@ -589,16 +581,16 @@ Mapping: 100%|██████████| 1/1 [00:02&lt;00:00,  2.98s/it, to
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-06-29 05:13:12.698 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ57.83ˢ&#39;, &#39;dec&#39;: &#39;-60°00’0.23”&#39;} for mapper
-2026-06-29 05:13:12.711 INFO: Inferring mapper width 4.302° for mapper from observation patch
-2026-06-29 05:13:12.712 INFO: Inferring mapper height 4.302° to match supplied width
-2026-06-29 05:13:13.123 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:00&lt;00:00,  1.98it/s]
-Computing pointing matrices: 100%|██████████| 1/1 [00:09&lt;00:00,  9.01s/it]
+2026-06-29 21:58:16.411 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ42ᵐ20.18ˢ&#39;, &#39;dec&#39;: &#39;-16°09’33.98”&#39;} for mapper
+2026-06-29 21:58:16.422 INFO: Inferring mapper width 7.066° for mapper from observation patch
+2026-06-29 21:58:16.423 INFO: Inferring mapper height 7.066° to match supplied width
+2026-06-29 21:58:16.951 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  3.15it/s]
+Computing pointing matrices: 100%|██████████| 2/2 [00:09&lt;00:00,  4.96s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">map</span><span class="p">)</span>
@@ -612,38 +604,38 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:09&lt;
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ProjectionMap:
-  data(3, 2, 129, 129):
-    min: -5.287e+03
-    max: 5.287e+03
+  data(3, 2, 423, 423):
+    min: -2.146e+03
+    max: 1.890e+03
     units: uK_CMB
     quantity: cmb_temperature_anisotropy
   stokes(3):
     components: [&#39;I&#39; &#39;Q&#39; &#39;U&#39;]
   nu(2):
     values: [ 90. 150.] GHz
-  eta(129):
-    height: 4.267°
-    res: -2’
-  xi(129):
-    width: 4.267°
-    res: 2’
+  eta(423):
+    height: 7.033°
+    res: -60”
+  xi(423):
+    width: 7.033°
+    res: 60”
   frame: ra/dec
   center:
-    ra: 23ʰ59ᵐ57.83ˢ
-    dec: -60°00’0.23”
+    ra: 01ʰ42ᵐ20.18ˢ
+    dec: -16°09’33.98”
   beam(maj, min, psi): ragged
-  memory: 798.8 kB
+  memory: 8.589 MB
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_cmb-patch_10_1.png" src="../_images/tutorials_cmb-patch_10_1.png" />
+<img alt="../_images/tutorials_cmb-patch_8_1.png" src="../_images/tutorials_cmb-patch_8_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -658,15 +650,15 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:12&lt;00:00, 12.12s/it, tod=1/1]
-Fitting map (epoch 1/1): 50it [06:05,  7.31s/it, alpha=4.33e+6]
+Updating noise model: 100%|██████████| 2/2 [00:12&lt;00:00,  6.12s/it, tod=2/2]
+Fitting map (epoch 1/1): 50it [06:32,  7.85s/it, alpha=4.46e+8]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_cmb-patch_11_1.png" src="../_images/tutorials_cmb-patch_11_1.png" />
+<img alt="../_images/tutorials_cmb-patch_9_1.png" src="../_images/tutorials_cmb-patch_9_1.png" />
 </div>
 </div>
 </section>
