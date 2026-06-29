@@ -31,30 +31,21 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "import numpy as np\n",
-    "import matplotlib.pyplot as plt\n",
     "import maria\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
     "from maria.io import fetch\n",
     "\n",
     "map_filename = fetch(\"maps/cluster2.fits\")\n",
     "\n",
-    "nu = np.array([150e9, 270e9])\n",
-    "\n",
-    "m1 = maria.map.load(filename=map_filename, nu=nu[0], width=20.00/60.00)\n",
-    "m2 = maria.map.load(filename=map_filename, nu=nu[1], width=20.00/60.00)\n",
-    "\n",
-    "# Arbitrary signal boost to improve the SNR of the output map\n",
-    "m1.data *= -5.0e3\n",
-    "m2.data *= -5.0e3\n",
-    "\n",
-    "maps = maria.map.concatenate([m1, m2], dim=\"nu\")\n",
-    "print(maps)\n",
-    "maps.to(\"K_RJ\").plot(slices=dict(nu=[0, 1]), cmap=\"RdYlBu_r\")"
+    "input_map = maria.map.load(filename=map_filename, center=(0, -23))\n",
+    "input_map.data *= 1e4\n",
+    "input_map.plot(slices=\"all\", cmap=\"RdYlBu_r\")"
    ]
   },
   {
    "cell_type": "markdown",
-   "id": "13de8738",
+   "id": "3",
    "metadata": {},
    "source": [
     "## Instrument and observation plan\n",
@@ -65,15 +56,23 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "5",
+   "id": "4",
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria.instrument import get_instrument_config, Instrument\n",
+    "import maria\n",
+    "from maria.instrument import Band\n",
     "\n",
-    "config = get_instrument_config(\"TolTEC\")\n",
-    "config[\"arrays\"] = {k: config[\"arrays\"][k] for k in [\"array-1\", \"array-3\"]}\n",
-    "instrument = Instrument.from_config(config)\n",
+    "f090 = Band(center=150e9, width=20e9, NET_RJ=100e-6)\n",
+    "f150 = Band(center=270e9, width=40e9, NET_RJ=100e-6)\n",
+    "\n",
+    "array = {\"field_of_view\": 0.25, \n",
+    "         \"beam_spacing\": 1.8,\n",
+    "         \"primary_size\": 12, \n",
+    "         \"shape\": \"circle\",\n",
+    "         \"bands\": [f090, f150]}\n",
+    "\n",
+    "instrument = maria.get_instrument(array=array)\n",
     "\n",
     "print(instrument)\n",
     "instrument.plot()"
@@ -82,43 +81,43 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "6",
+   "id": "5",
    "metadata": {},
    "outputs": [],
    "source": [
     "from maria import Planner\n",
     "\n",
     "planner = Planner(\n",
-    "    target=maps,\n",
+    "    target=input_map,\n",
     "    start_time=\"2024-01-01T22:00:00\",\n",
     "    site=\"llano_de_chajnantor\",\n",
     "    constraints={\"el\": (60, 90)},\n",
     ")\n",
     "\n",
     "plans = planner.generate_plans(\n",
-    "    total_duration=0.1 * 3600,\n",
-    "    max_chunk_duration=3600,\n",
-    "    scan_options={\"radius\": 6.5 / 60.0, \"miss_factor\": 0.3},\n",
+    "    total_duration=1800,\n",
+    "    sample_rate=50,\n",
+    "    scan_type=\"daisy\",\n",
     ")\n",
     "\n",
-    "print(plans)\n",
-    "plans[0].plot()"
+    "plans[0].plot()\n",
+    "plans"
    ]
   },
   {
    "cell_type": "markdown",
-   "id": "7",
+   "id": "6",
    "metadata": {},
    "source": [
     "## Simulation\n",
     "\n",
-    "Passing `map=maps` attaches the ground-truth sky to each output TOD so the mapper can propagate it to the output map automatically."
+    "Passing `map=input_map` attaches the ground-truth sky to each output TOD so the mapper can propagate it to the output map automatically."
    ]
   },
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "8",
+   "id": "7",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -126,8 +125,11 @@
     "    instrument,\n",
     "    plans=plans,\n",
     "    site=\"llano_de_chajnantor\",\n",
-    "    map=maps,\n",
+    "    map=input_map,\n",
     "    atmosphere=\"2d\",\n",
+    "    atmosphere_kwargs={\"weather\": {\"pwv\": 0.5}},\n",
+    "    # cmb=\"generate\",\n",
+    "    # cmb_kwargs={\"nside\": 256},\n",
     ")\n",
     "\n",
     "print(sim)\n",
@@ -138,7 +140,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9",
+   "id": "8",
    "metadata": {},
    "source": [
     "## Mapmaking\n",
@@ -151,25 +153,32 @@
   {
    "cell_type": "code",
    "execution_count": null,
+   "id": "9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from maria.mapping import MaximumLikelihoodMapper\n",
+    "\n",
+    "ml_mapper = MaximumLikelihoodMapper(\n",
+    "    tods=tods,\n",
+    "    units=\"K_RJ\",\n",
+    "    stokes=\"I\",\n",
+    "    resolution=0.5 / 60,\n",
+    "    tod_preprocessing={\n",
+    "        \"remove_spline\": {\"knot_spacing\": 60, \"remove_el_gradient_order\": 1},\n",
+    "    },\n",
+    "    map_postprocessing={},\n",
+    ")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
    "id": "10",
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria.mappers import BinMapper\n",
-    "\n",
-    "mapper = BinMapper(\n",
-    "    tods=tods,\n",
-    "    units=\"uK_RJ\",\n",
-    "    stokes=\"I\",\n",
-    "    resolution=maps.resolution,\n",
-    "    tod_preprocessing={\n",
-    "        \"remove_modes\": {\"modes_to_remove\": 1},\n",
-    "        \"remove_spline\": {\"knot_spacing\": 60, \"remove_el_gradient\": True},\n",
-    "    },\n",
-    "    map_postprocessing={},\n",
-    ")\n",
-    "\n",
-    "output_map = mapper.run()"
+    "ml_mapper.binner.tods[0].plot()"
    ]
   },
   {
@@ -179,12 +188,27 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "output_map.plot(slices=dict(nu=[0, 1]), cmap=\"RdYlBu_r\")"
+    "ml_mapper.map.plot(slices=\"all\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "12",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ml_mapper.fit(epochs=2, \n",
+    "              max_steps_per_epoch=50, \n",
+    "              plot=True,\n",
+    "              plot_kwargs={\"slices\": \"all\"})\n",
+    "\n",
+    "output_map = ml_mapper.map"
    ]
   },
   {
    "cell_type": "markdown",
-   "id": "12",
+   "id": "13",
    "metadata": {},
    "source": [
     "## Transfer function\n",
@@ -195,17 +219,17 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "001f2d38",
+   "id": "14",
    "metadata": {},
    "outputs": [],
    "source": [
-    "tf = output_map.transfer_function(window=True)\n",
+    "tf = output_map.transfer_function(window=True, input_map=input_map)\n",
     "print(tf)"
    ]
   },
   {
    "cell_type": "markdown",
-   "id": "aae0aa07",
+   "id": "15",
    "metadata": {},
    "source": [
     "To visualize the transfer function, it is possible to use the built-in `plot()` method. Solid curves show the measured $T(u)$, while dashed curves show the Gaussian beam per channel. The large-scale rolloff reflects the TOD filtering above, while the small-scale rolloff tracks the beam."
@@ -214,7 +238,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "13",
+   "id": "16",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -223,7 +247,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "14",
+   "id": "17",
    "metadata": {},
    "source": [
     "Finally, individual channels can be selected with `slices=dict(nu=[...])`, consistent with how `slices` is used in `.plot()`:"
@@ -232,7 +256,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "15",
+   "id": "18",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -241,7 +265,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "windowing-options",
+   "id": "19",
    "metadata": {},
    "source": [
     "## Apodization window\n",
@@ -263,20 +287,20 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "windowing-comparison",
+   "id": "20",
    "metadata": {},
    "outputs": [],
    "source": [
     "fig, ax = plt.subplots(figsize=(6, 4), constrained_layout=True)\n",
     "\n",
     "windows = [\n",
-    "    (\"tukey\",  dict(window=\"tukey\", taper=0.1)),\n",
-    "    (\"hann\",   dict(window=\"hann\")),\n",
-    "    (\"none\",   dict(window=False)),\n",
+    "    (\"tukey\", dict(window=\"tukey\", taper=0.1)),\n",
+    "    (\"hann\", dict(window=\"hann\")),\n",
+    "    (\"none\", dict(window=False)),\n",
     "]\n",
     "\n",
     "for i, (label, kwargs) in enumerate(windows):\n",
-    "    tf_w = output_map.transfer_function(slices=dict(nu=[0]), **kwargs)\n",
+    "    tf_w = output_map.transfer_function(slices=dict(nu=[0]), input_map=input_map, **kwargs)\n",
     "    tf_w.plot(ax=ax, x_unit=\"arcmin\", add_beam=False)\n",
     "    ax.lines[-1].set_label(label)\n",
     "    ax.lines[-1].set_color(f\"C{i}\")\n",
@@ -288,7 +312,7 @@
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "maria",
+   "display_name": "Python 3 (ipykernel)",
    "language": "python",
    "name": "python3"
   },
@@ -302,7 +326,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.13.13"
+   "version": "3.14.3"
   }
  },
  "nbformat": 4,

@@ -1,20 +1,13 @@
-.. _sites:
+.. _plans:
 
-#####
-Sites
-#####
+=====
+Plans
+=====
 
-Overview
-========
+.. toctree::
+   :maxdepth: 2
 
-The observing site is represented by a ``Site``. For example:
+   plans/plans.rst
+   plans/example-plans
 
-.. plot:: 
-   :include-source: True
-
-    import maria
-
-    cerro_toco = maria.get_site("cerro_toco")
-    cerro_toco.plot()
-
-.. hint:: To see all available pre-defined sites, run ``print(maria.all_sites)``.
+   

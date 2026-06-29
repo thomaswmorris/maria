@@ -30,7 +30,7 @@ We can generate plans with the ``Planner`` as
                                    "hour": (14, 15)})
 
     plan = planner.generate_plan(total_duration=600, # in seconds
-                                 scan_options={"radius": input_map.width.deg / 3}, # in degrees
+                                 scan_parameters={"radius": input_map.width.deg / 3}, # in degrees
                                  sample_rate=50) # in Hz
 
     plan.plot()
@@ -47,20 +47,22 @@ A 60-second zenith stare would be instantiated as
 .. code-block:: python
 
     stare = maria.get_plan(start_time="2022-02-10T06:00:00",
-                           scan_pattern="stare"
+                           scan_type="stare",
+                           scan_parameters={"el_center": 0},
                            duration=60, # in seconds
                            sample_rate=20, # in Hz
-                           pointing_frame="az/el",
-                           scan_center=(0, 90)) # in degrees
+                           ) # in degrees
 
 We might also do a daisy scan on some given point on the sky, which the telescope will track:
 
 .. code-block:: python
 
     tracking_daisy = maria.get_plan(start_time="2022-02-10T06:00:00",
-                                    scan_pattern="daisy",
-                                    scan_options={"radius": 0.5, "speed": 0.1}, # in degrees
+                                    scan_type="daisy",
+                                    scan_parameters={"ra_center": 150,
+                                                     "dec_center": 10,
+                                                     "radius": 0.5, 
+                                                     "speed": 0.1,}, # in degrees
                                     duration=600, # in seconds
                                     sample_rate=50, # in Hz
-                                    frame="ra/dec"
-                                    scan_center=(150, 10)) # in degrees
+                                    ) # in degrees

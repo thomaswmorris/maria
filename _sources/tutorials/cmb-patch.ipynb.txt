@@ -20,16 +20,15 @@
     "f090 = get_band(\"act/pa5/f090\")\n",
     "f150 = get_band(\"act/pa5/f150\")\n",
     "\n",
+    "f090.NET_RJ = 50e-6\n",
+    "f150.NET_RJ = 50e-6\n",
     "\n",
-    "f090.NET_RJ = 10e-6\n",
-    "f150.NET_RJ = 10e-6\n",
+    "f090.knee = 1e2\n",
+    "f150.knee = 1e2\n",
     "\n",
-    "f090.knee = 1e1\n",
-    "f150.knee = 1e1\n",
-    "\n",
-    "array = {\"field_of_view\": 0.7,\n",
-    "         \"beam_spacing\": 1.5,\n",
+    "array = {\"field_of_view\": 0.3,\n",
     "         \"primary_size\": 10,\n",
+    "         \"n\": 100,\n",
     "         \"packing\": \"sunflower\",\n",
     "         \"shape\": \"circle\",\n",
     "         \"polarized\": True,\n",
@@ -47,17 +46,18 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "import numpy as np\n",
     "from maria import Plan\n",
-    "from maria.plan import *\n",
     "\n",
-    "plan = Plan.generate(duration=600, \n",
-    "                     sample_rate=20, \n",
-    "                     start_time=\"2026-03-05T12:00:00\",\n",
-    "                     scan_center=(45, 45), \n",
-    "                     scan_pattern=\"back-and-forth\",\n",
-    "                     scan_options={\"x_throw\": 2, \"y_throw\": 0, \"speed\": 1e0},\n",
-    "                     frame=\"az/el\", \n",
+    "plan = Plan.generate(duration=1800, \n",
+    "                     sample_rate=25, \n",
+    "                     start_time=\"2026-08-05T06:00:00\",\n",
+    "                     scan_type=\"raster\",\n",
+    "                     scan_parameters={\"n\": [(25, 1), (1, 26)], \n",
+    "                                       \"ra_center\": 0,\n",
+    "                                       \"dec_center\": -60,\n",
+    "                                       \"x_throw\": 2,\n",
+    "                                       \"y_throw\": 2\n",
+    "                                     },\n",
     "                     site=\"cerro_toco\")\n",
     "\n",
     "plan.plot(frames=[\"az/el\", \"ra/dec\", \"glon/glat\"])"
@@ -74,10 +74,28 @@
     "    plans=[plan],\n",
     "    site=\"cerro_toco\",\n",
     "    cmb=\"generate\",\n",
-    "    cmb_kwargs={\"nside\": 1024},\n",
+    "    cmb_kwargs={\"nside\": 256},\n",
     ")\n",
     "\n",
     "print(sim)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sim.maps[\"cmb\"].nu"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "instrument.bands[0].nu"
    ]
   },
   {
@@ -91,21 +109,51 @@
    ]
   },
   {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Binning the data gives us a "
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria.mappers.ml_mapper import *\n",
+    "from maria.mapping import *\n",
+    "\n",
+    "plot_kwargs = {\"slices\": dict(stokes=[\"I\", \"Q\", \"U\"], nu=[[0], [1]]), \"contrast\": 1e-2}\n",
+    "\n",
+    "bin_mapper = BinMapper(tods=tods,\n",
+    "                       units=\"uK_CMB\",\n",
+    "                       resolution=2 / 60,\n",
+    "                       frame=\"ra/dec\",\n",
+    "                       tod_preprocessing={\n",
+    "                        \"remove_polynomial\": {\"time\": 3, \"elevation\": 3},\n",
+    "                       },\n",
+    "                      )\n",
+    "\n",
+    "bin_mapper.run()\n",
+    "bin_mapper.map.plot(**plot_kwargs)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from maria.mapping.ml_mapper import *\n",
     "\n",
     "ml_mapper = MaximumLikelihoodMapper(tods=tods,\n",
+    "                                    units=\"uK_CMB\",\n",
+    "                                    resolution=2 / 60,\n",
     "                                    frame=\"ra/dec\",\n",
-    "                                    resolution=2 / 60,  # degrees\n",
     "                                    tod_preprocessing={\n",
-    "                                        \"remove_spline\": {\"knot_spacing\": 60, \"remove_el_gradient_order\": 3},\n",
-    "                                    },\n",
-    "                                    bilinear=False,\n",
-    "                                    k=0)"
+    "                                    \"remove_polynomial\": {\"time\": 3, \"elevation\": 3},\n",
+    "                                   },\n",
+    "                                   )"
    ]
   },
   {
@@ -115,8 +163,19 @@
    "outputs": [],
    "source": [
     "print(ml_mapper.map)\n",
-    "ml_mapper.map.plot(slices=dict(stokes=[\"I\", \"Q\", \"U\"], nu=[[0], [1]]), \n",
-    "                   cmap=\"cmb\", contrast=1e-4)"
+    "ml_mapper.map.plot(**plot_kwargs)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ml_mapper.fit(epochs=1, \n",
+    "              max_steps_per_epoch=50, \n",
+    "              plot=True, \n",
+    "              plot_kwargs=plot_kwargs)"
    ]
   }
  ],
