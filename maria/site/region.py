@@ -28,7 +28,7 @@ def plot_all_regions():
 
     height_map = get_height_map()
 
-    moll_proj = hp.projector.CartesianProj(rot=0, xsize=2000)
+    moll_proj = hp.projector.CartesianProj(rot=0, xsize=3000)
     moll_proj.set_flip("geo")
 
     vec2pix_func = lambda x, y, z: hp.pixelfunc.vec2pix(2048, x, y, z)  # noqa
@@ -53,8 +53,18 @@ def plot_all_regions():
         "south_pole": ("center", "bottom"),
     }
 
+    box_offsets_x = 0.25 * np.array([-1, 1, 1, -1, -1])
+    box_offsets_y = 0.25 * np.array([1, 1, -1, -1, 1])
+
     for region_name, region in REGIONS.iterrows():
-        ax.scatter(region.longitude, region.latitude, c="r", s=4)
+        ax.plot(
+            np.round(4 * region.longitude) / 4 + box_offsets_x,
+            np.round(4 * region.latitude) / 4 + box_offsets_y,
+            color="b",
+            lw=0.25,
+        )
+
+        ax.scatter(region.longitude, region.latitude, facecolor="none", edgecolor="r", lw=0.5, s=8)
 
         ha, va = override_region_alignment.get(region_name, ("left", "bottom"))
 

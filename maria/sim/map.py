@@ -187,8 +187,8 @@ class MapMixin:
                         channel_map_data, weights=channel_map.weight.compute(), method="inverted_cdf", q=[0, 100]
                     )
 
-                    # the calibration might need these to compute T_RJ
-                    map_calibration_kwargs = {"pixel_area": m.pixel_area, "beam_area": m.beam_area}
+                    # the calibration might need these to compute T_RJ, so give them just to be safe
+                    map_calibration_kwargs = {"pixel_area": channel_map.pixel_area.sr, "beam_area": channel_map.beam_area.sr}
 
                     map_values_trj_spectrum = Calibration(f"{channel_map.units} -> K_RJ", **map_calibration_kwargs)(
                         map_values[:, None], nu=channel_nu

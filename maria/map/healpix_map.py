@@ -35,6 +35,7 @@ class HEALPixMap(Map):
         units: str = "K_RJ",
         degrees: bool = True,
         dtype: type = np.float32,
+        enforce_valid_map_quantity: bool = True,
     ):
         if weight is not None:
             if weight.shape != data.shape:
@@ -66,6 +67,7 @@ class HEALPixMap(Map):
             units=units,
             degrees=degrees,
             dtype=dtype,
+            enforce_valid_map_quantity=enforce_valid_map_quantity,
         )
 
         # if not hasattr(beam, "__len__"):

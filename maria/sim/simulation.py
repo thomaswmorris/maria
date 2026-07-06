@@ -13,7 +13,7 @@ from ..cmb import generate_cmb, get_cmb
 from ..coords import Coordinates
 from ..errors import PointingError
 from ..instrument import Instrument, get_instrument
-from ..io import fetch, humanize_time, read_yaml
+from ..io import DEFAULT_BAR_FORMAT, fetch, humanize_time, read_yaml
 from ..map import Map, load
 from ..plan import Plan, PlanList, get_plan
 from ..site import Site, get_site
@@ -140,9 +140,13 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
         logger.debug(f"Initialized plans in {humanize_time(ttime.monotonic() - plan_init_s)}.")
 
         self.obs_list = []
-        for obs_index, plan in enumerate(self.plans):
-            logger.info(f"Initializing Observation {obs_index + 1} of {len(self.plans)}")
-
+        for obs_index, plan in tqdm(
+            enumerate(self.plans),
+            desc="Initializing observations",
+            disable=self.disable_progress_bars,
+            bar_format=DEFAULT_BAR_FORMAT,
+            total=len(self.plans),
+        ):
             obs_start_s = ttime.monotonic()
 
             obs = Observation(
@@ -161,7 +165,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
             self.obs_list.append(obs)
 
             duration_s = ttime.monotonic() - obs_start_s
-            logger.info(f"Initialized Observation in {humanize_time(duration_s)}.")
+            logger.debug(f"Initialized Observation in {humanize_time(duration_s)}.")
 
         self.maps = {}
 

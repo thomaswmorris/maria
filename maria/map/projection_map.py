@@ -54,6 +54,7 @@ class ProjectionMap(Map):
         frame: str = "ra/dec",
         degrees: bool = True,
         dtype: type = np.float32,
+        enforce_valid_map_quantity: bool = True,
     ):
         # give it five dimensions
 
@@ -94,6 +95,7 @@ class ProjectionMap(Map):
             frame=frame,
             degrees=degrees,
             dtype=dtype,
+            enforce_valid_map_quantity=enforce_valid_map_quantity,
         )
 
         # from the inputs, construct xi and eta
@@ -225,7 +227,7 @@ class ProjectionMap(Map):
   beam(maj, min, psi): {self.beam_repr()}
   memory: {Quantity(self.data.nbytes + (self._weight.nbytes if self._weight is not None else 0), "B")}"""
 
-    def package(self):
+    def package(self, compute: bool = False):
         package = copy.deepcopy(
             {
                 "data": self.data,
@@ -237,8 +239,13 @@ class ProjectionMap(Map):
             }
         )
 
+        if compute:
+            package["data"] = package["data"].compute()
+
         if self._weight is not None:
             package["weight"] = self._weight
+            if compute:
+                package["weight"] = package["weight"].compute()
 
         for dim in self.dims:
             package[dim] = getattr(self, dim)
@@ -542,6 +549,7 @@ class ProjectionMap(Map):
     def plot(
         self,
         slices: dict = {},
+        attr: str = "data",
         cmap: str = "cmb",
         units: str = None,
         filename: str = None,
@@ -586,8 +594,22 @@ class ProjectionMap(Map):
             units = Quantity(self.data, self.units).human_units
             logger.debug(f"Plotting with units '{units}'")
 
-        map_data = self.to(units).data.compute()
-        u = parse_units(units)
+        plot_map = self.to(units)
+
+        if attr == "data":
+            map_data = plot_map.data
+            map_weight = plot_map.weight
+            map_units_repr = plot_map.u["math_name"]
+
+        elif attr == "weight":
+            map_data = plot_map.weight
+            map_weight = da.ones_like(map_data)
+            map_units_repr = f"({plot_map.u['math_name']})^{{-2}}"
+
+        else:
+            raise ValueError("'attr' must be either 'data' or 'weight'")
+
+        # u = parse_units(units)
 
         grid_hu = Quantity(np.r_[self.xi.rad, self.eta.rad], "rad").hu
 
@@ -630,14 +652,14 @@ class ProjectionMap(Map):
                             raise ValueError(f"Map does not have stokes parameter '{stokes}'")
                         ax_slices["stokes"] = list(self.stokes).index(stokes)
 
-                map_slice_data = map_data[tuple(ax_slices.values())]
-                map_slice_weights = self.weight[tuple(ax_slices.values())].compute()
+                map_slice_data = map_data[tuple(ax_slices.values())].compute()
+                map_slice_weight = map_weight[tuple(ax_slices.values())].compute()
 
                 if vmin is None or vmax is None:
                     subset = np.random.choice(map_slice_data.size, size=min(map_slice_data.size, 100000), replace=False)
                     slice_vmin, slice_vmax = np.nanquantile(
                         map_slice_data.ravel()[subset],
-                        weights=map_slice_weights.ravel()[subset],
+                        weights=map_slice_weight.ravel()[subset],
                         q=(rel_vmin, rel_vmax),
                         method="inverted_cdf",
                     )
@@ -679,7 +701,7 @@ class ProjectionMap(Map):
                 if "t" in ax_slices:
                     slice_info.append(f"{self.t[ax_slices['t']]}")
 
-                cbar.set_label(rf"${u['math_name']}$ ({', '.join(slice_info)})", fontsize=10)
+                cbar.set_label(rf"${map_units_repr}$ ({', '.join(slice_info)})", fontsize=10)
 
                 ax.tick_params(axis="x", bottom=True, top=False)
                 ax.tick_params(axis="y", left=True, right=False, rotation=90)

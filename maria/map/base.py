@@ -71,15 +71,17 @@ class Map:
         frame: str = "ra/dec",
         degrees: bool = True,  # noqa
         dtype: type = np.float32,
+        enforce_valid_map_quantity: bool = True,
     ):
         # check that map units are valid
         u = parse_units(units)
 
-        if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
-            raise ValueError(
-                f"Passed units '{units}' (with dimension {u['base_units']}) are not valid map units. "
-                f"Acceptable map units have the same dimension as one of {VALID_MAP_QUANTITIES}"
-            )
+        if enforce_valid_map_quantity:
+            if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
+                raise ValueError(
+                    f"Passed units '{units}' (with dimension {u['base_units']}) are not valid map units. "
+                    f"Acceptable map units have the same dimension as one of {VALID_MAP_QUANTITIES}"
+                )
 
         self.units = u["units"]
         self.frame = Frame(frame)
@@ -390,22 +392,32 @@ class Map:
 
         return type(self)(**package)
 
-    def to(self, units: str, only_return_data: bool = False, **calibration_kwargs: Mapping):
+    def to(
+        self,
+        units: str,
+        only_return_data: bool = False,
+        enforce_valid_map_quantity: bool = True,
+        **calibration_kwargs: Mapping,
+    ):
         if units == self.units:
             return self
 
         u = parse_units(units)
 
-        if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
-            raise ValueError(
-                f"Units '{units}' (with associated physical quantity '{u['physical_quantity']}') are not valid map units"
-            )
+        if enforce_valid_map_quantity:
+            if u["physical_quantity"] not in VALID_MAP_QUANTITIES:
+                raise ValueError(
+                    f"Units '{units}' (with associated physical quantity '{u['physical_quantity']}') are not valid map units"
+                )
 
-        package = self.package().copy()
+        package = self.package(compute=True)
 
         # this is just a scaling by some factor
         if u["physical_quantity"] == self.u["physical_quantity"]:
             package["data"] *= self.u["base_units_factor"] / u["base_units_factor"]
+
+            if "weight" in package:
+                package["weight"] *= (self.u["base_units_factor"] / u["base_units_factor"]) ** -2
 
         else:
             if "nu" not in self.dims:
@@ -425,9 +437,12 @@ class Map:
                     beam_area=self.beam_area[nu_key].sr,
                     **calibration_kwargs,
                 )
+
                 package["data"][nu_key] = cal(package["data"][nu_key])
 
-            # package["data"] = data.swapaxes(0, self.dims_list.index("nu"))  # swap the axes back
+                if "weight" in package:
+                    with np.errstate(divide="ignore"):
+                        package["weight"][nu_key] = cal(package["weight"][nu_key] ** (-0.5)) ** (-2.0)
 
         if only_return_data:
             return package["data"]
