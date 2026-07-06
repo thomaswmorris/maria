@@ -73,4 +73,4 @@ Subsequent runs will each return another ``TOD`` where the last simulation left 
 
 Each ``TOD`` can be fed into ``maria``'s native mapping code (see :ref:`mapping`) or exported as a file to be used by some other package or software.
 
-For more documentation on working with a ``TOD``, see the :ref:`tod` sections.
+For more documentation on working with a ``TOD``, see the :ref:`tods` sections.

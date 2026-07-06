@@ -40,7 +40,7 @@ The ``Instrument`` is based on a list of arrays (see :ref:`arrays`), which are i
 
     from maria import Instrument, Band
 
-    band1 = {"center": 150, "width": 30, "NET_RJ": 1e-5}
+    band1 = {"center": 150e9, "width": 30e9, "NET_RJ": 1e-5}
     band2 = "act/pa5/f150"
 
     array1 = {"n": 1000,

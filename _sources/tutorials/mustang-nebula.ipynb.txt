@@ -91,7 +91,7 @@
     "mapper = MaximumLikelihoodMapper(\n",
     "    units=\"K_RJ\",\n",
     "    tods=tods,\n",
-    "    resolution=input_map.resolution,\n",
+    "    resolution=2 * input_map.resolution,\n",
     ")\n",
     "\n",
     "mapper.map.plot()"
@@ -103,7 +103,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "mapper.fit(epochs=1, steps_per_epoch=200, plot=True)"
+    "mapper.fit(epochs=1, max_steps_per_epoch=100, plot=True)"
    ]
   },
   {
@@ -114,7 +114,7 @@
    "source": [
     "from maria.mappers import compute_residual_map\n",
     "\n",
-    "residual_map = compute_residual_map(input_map[:, 0], mapper.map)\n",
+    "residual_map = compute_residual_map(input_map.to(\"K_RJ\")[:, 0], mapper.map)\n",
     "residual_map.plot()"
    ]
   }
