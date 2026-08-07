@@ -387,8 +387,8 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-08-07 08:31:02.734 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
-Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 41.9MB/s]
+2026-08-07 14:37:44.023 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/einstein.h5
+Downloading: 100%|██████████| 932k/932k [00:00&lt;00:00, 20.0MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -459,7 +459,7 @@ ProjectionMap:
 PlanList(1 plans, 1800 s):
                            start_time duration sample_rate target(ra,dec)     center(az,el)
 chunk
-0      2026-08-07 12:21:44.505 +00:00   1800 s       50 Hz   (360°, -23°)  (165.9°, 46.08°)
+0      2026-08-08 12:17:10.813 +00:00   1800 s       50 Hz   (360°, -23°)  (165.7°, 46.04°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -490,24 +490,26 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Initializing observations:   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-08-07 08:31:13.918 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/mauna_kea.h5
+Initializing observations:   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-08-07 14:37:55.129 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/mauna_kea.h5
 
 Downloading:   0%|          | 0.00/22.0M [00:00&lt;?, ?B/s]
-Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 138MB/s]
-2026-08-07 08:31:15.230 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/mauna_kea.h5
+Downloading:  13%|█▎        | 2.94M/22.0M [00:00&lt;00:00, 29.4MB/s]
+Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 77.5MB/s]
+2026-08-07 14:37:56.565 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/mauna_kea.h5
 
-Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 123MB/s]
+Downloading:   0%|          | 0.00/8.62M [00:00&lt;?, ?B/s]
+Downloading: 100%|██████████| 8.62M/8.62M [00:00&lt;00:00, 46.0MB/s]
 
 Constructing atmosphere:   0%|          | 0/8 [00:00&lt;?, ?it/s]
-Constructing atmosphere:  12%|█▎        | 1/8 [00:04&lt;00:28,  4.11s/it]
-Constructing atmosphere:  25%|██▌       | 2/8 [00:08&lt;00:25,  4.32s/it]
-Constructing atmosphere:  38%|███▊      | 3/8 [00:14&lt;00:24,  4.89s/it]
-Constructing atmosphere:  50%|█████     | 4/8 [00:20&lt;00:21,  5.43s/it]
-Constructing atmosphere:  62%|██████▎   | 5/8 [00:25&lt;00:16,  5.38s/it]
-Constructing atmosphere:  75%|███████▌  | 6/8 [00:30&lt;00:10,  5.02s/it]
-Constructing atmosphere:  88%|████████▊ | 7/8 [00:34&lt;00:04,  4.84s/it]
-Constructing atmosphere: 100%|██████████| 8/8 [00:41&lt;00:00,  5.22s/it]
-Initializing observations: 100%|██████████| 1/1 [00:45&lt;00:00, 45.43s/it]
+Constructing atmosphere:  12%|█▎        | 1/8 [00:04&lt;00:30,  4.35s/it]
+Constructing atmosphere:  25%|██▌       | 2/8 [00:10&lt;00:31,  5.20s/it]
+Constructing atmosphere:  38%|███▊      | 3/8 [00:15&lt;00:26,  5.24s/it]
+Constructing atmosphere:  50%|█████     | 4/8 [00:21&lt;00:22,  5.52s/it]
+Constructing atmosphere:  62%|██████▎   | 5/8 [00:26&lt;00:16,  5.34s/it]
+Constructing atmosphere:  75%|███████▌  | 6/8 [00:31&lt;00:10,  5.34s/it]
+Constructing atmosphere:  88%|████████▊ | 7/8 [00:36&lt;00:05,  5.19s/it]
+Constructing atmosphere: 100%|██████████| 8/8 [00:40&lt;00:00,  5.09s/it]
+Initializing observations: 100%|██████████| 1/1 [00:44&lt;00:00, 44.60s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -536,15 +538,15 @@ Simulation
 ├ PlanList(1 plans, 1800 s):
 │                            start_time duration sample_rate target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-08-07 12:21:44.505 +00:00   1800 s       50 Hz   (360°, -23°)  (165.9°, 46.08°)
+│ 0      2026-08-08 12:17:10.813 +00:00   1800 s       50 Hz   (360°, -23°)  (165.7°, 46.04°)
 ├ Atmosphere(8 processes with 8 layers):
 │ ├ spectrum:
 │ │   region: mauna_kea
 │ └ weather:
 │     region: mauna_kea
 │     altitude: 4.092 km
-│     time: Aug 7 02:36:44 -10:00
-│     pwv[mean, rms]: (2.473 mm, 74.2 um)
+│     time: Aug 8 02:32:10 -10:00
+│     pwv[mean, rms]: (2.479 mm, 74.37 um)
 
 </pre></div></div>
 </div>
@@ -564,13 +566,13 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-08-07 08:31:58.813 INFO: Simulating observation 1 of 1
-Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  2.98it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.67it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.06s/it, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:06&lt;00:00,  6.73s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.02it/s, band=f150]
-2026-08-07 08:32:17.393 INFO: Simulated observation 1 of 1 in 18.57 s
+2026-08-07 14:38:39.239 INFO: Simulating observation 1 of 1
+Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  2.90it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:04&lt;00:00,  1.63it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:01&lt;00:00,  1.07s/it, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:06&lt;00:00,  6.64s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=f150]
+2026-08-07 14:38:57.943 INFO: Simulated observation 1 of 1 in 18.69 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -578,7 +580,7 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(88, 90000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2026-08-07 12:51:44.484 +00:00, duration=1800.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-08-07T08:32:15.475749+00:00]&gt;, &#39;altitude&#39;: 4092.0, &#39;region&#39;: &#39;mauna_kea&#39;, &#39;pwv&#39;: 2.473, &#39;base_temperature&#39;: 279.656})]
+[TOD(shape=(88, 90000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2026-08-08 12:47:10.792 +00:00, duration=1800.0s, sample_rate=50.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-08-07T14:38:55.964364+00:00]&gt;, &#39;altitude&#39;: 4092.0, &#39;region&#39;: &#39;mauna_kea&#39;, &#39;pwv&#39;: 2.479, &#39;base_temperature&#39;: 279.693})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -613,12 +615,12 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-08-07 08:32:22.740 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.17”&#39;} for mapper
-2026-08-07 08:32:22.752 INFO: Inferring mapper width 1.198° for mapper from observation patch
-2026-08-07 08:32:22.753 INFO: Inferring mapper height 1.198° to match supplied width
-2026-08-07 08:32:26.132 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:03&lt;00:00,  3.28s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.69s/it]
+2026-08-07 14:39:03.409 INFO: Inferring center {&#39;ra&#39;: &#39;23ʰ59ᵐ59.39ˢ&#39;, &#39;dec&#39;: &#39;-22°59’58.16”&#39;} for mapper
+2026-08-07 14:39:03.422 INFO: Inferring mapper width 1.197° for mapper from observation patch
+2026-08-07 14:39:03.422 INFO: Inferring mapper height 1.197° to match supplied width
+2026-08-07 14:39:06.909 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:03&lt;00:00,  3.97s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.84s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -647,9 +649,9 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.08s/it, tod=1/1]
-Fitting map (epoch 1/2): 263it [15:08,  3.64s/it, alpha=0.0243]2026-08-07 08:47:57.879 INFO: Finished conjugate gradient descent, terminating
-Fitting map (epoch 1/2): 263it [15:11,  3.47s/it, alpha=0.0243]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.54s/it, tod=1/1]
+Fitting map (epoch 1/2): 248it [14:31,  3.76s/it, alpha=0.0155]2026-08-07 14:54:04.604 INFO: Finished conjugate gradient descent, terminating
+Fitting map (epoch 1/2): 248it [14:35,  3.53s/it, alpha=0.0155]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -664,9 +666,9 @@ Fitting map (epoch 1/2): 263it [15:11,  3.47s/it, alpha=0.0243]
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.79s/it, tod=1/1]
-Fitting map (epoch 2/2): 256it [14:18,  3.48s/it, alpha=0.00232]2026-08-07 09:02:26.934 INFO: Finished conjugate gradient descent, terminating
-Fitting map (epoch 2/2): 256it [14:21,  3.37s/it, alpha=0.00232]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.87s/it, tod=1/1]
+Fitting map (epoch 2/2): 261it [15:00,  3.65s/it, alpha=0.00512]2026-08-07 15:09:16.914 INFO: Finished conjugate gradient descent, terminating
+Fitting map (epoch 2/2): 261it [15:04,  3.47s/it, alpha=0.00512]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
