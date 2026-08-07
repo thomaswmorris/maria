@@ -318,8 +318,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-07-06 17:29:12.090 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M1.h5
-Downloading: 100%|██████████| 21.8M/21.8M [00:00&lt;00:00, 129MB/s]
+2026-08-07 08:28:17.698 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/M1.h5
+Downloading: 100%|██████████| 21.8M/21.8M [00:00&lt;00:00, 135MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -380,7 +380,7 @@ ProjectionMap:
 PlanList(1 plans, 600 s):
                            start_time duration sample_rate    target(ra,dec)     center(az,el)
 chunk
-0      2026-07-07 13:57:25.731 +00:00    600 s       50 Hz  (83.63°, 22.02°)  (116.6°, 61.17°)
+0      2026-08-07 11:54:38.874 +00:00    600 s       50 Hz  (83.63°, 22.02°)  (116.4°, 61.01°)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -444,20 +444,20 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Initializing observations:   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-07-06 17:29:25.696 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
+Initializing observations:   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-08-07 08:28:31.164 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v3/green_bank.h5
 
 Downloading:   0%|          | 0.00/22.0M [00:00&lt;?, ?B/s]
-Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 136MB/s]
-2026-07-06 17:29:26.451 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
+Downloading: 100%|██████████| 22.0M/22.0M [00:00&lt;00:00, 131MB/s]
+2026-08-07 08:28:31.980 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/green_bank.h5
 
-Downloading: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 151MB/s]
+Downloading: 100%|██████████| 12.0M/12.0M [00:00&lt;00:00, 122MB/s]
 
 Constructing atmosphere:   0%|          | 0/8 [00:00&lt;?, ?it/s]
-Constructing atmosphere:  25%|██▌       | 2/8 [00:00&lt;00:00, 13.29it/s]
-Constructing atmosphere:  50%|█████     | 4/8 [00:00&lt;00:00, 13.00it/s]
-Constructing atmosphere:  75%|███████▌  | 6/8 [00:00&lt;00:00, 13.26it/s]
-Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 13.12it/s]
-Initializing observations: 100%|██████████| 1/1 [00:03&lt;00:00,  3.97s/it]
+Constructing atmosphere:  25%|██▌       | 2/8 [00:00&lt;00:00, 16.73it/s]
+Constructing atmosphere:  50%|█████     | 4/8 [00:00&lt;00:00, 13.95it/s]
+Constructing atmosphere:  75%|███████▌  | 6/8 [00:00&lt;00:00, 13.99it/s]
+Constructing atmosphere: 100%|██████████| 8/8 [00:00&lt;00:00, 13.24it/s]
+Initializing observations: 100%|██████████| 1/1 [00:03&lt;00:00,  3.84s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -486,15 +486,15 @@ Simulation
 ├ PlanList(1 plans, 600 s):
 │                            start_time duration sample_rate    target(ra,dec)     center(az,el)
 │ chunk
-│ 0      2026-07-07 13:57:25.731 +00:00    600 s       50 Hz  (83.63°, 22.02°)  (116.6°, 61.17°)
+│ 0      2026-08-07 11:54:38.874 +00:00    600 s       50 Hz  (83.63°, 22.02°)  (116.4°, 61.01°)
 ├ Atmosphere(8 processes with 8 layers):
 │ ├ spectrum:
 │ │   region: green_bank
 │ └ weather:
 │     region: green_bank
 │     altitude: 825 m
-│     time: Jul 7 10:02:25 -04:00
-│     pwv[mean, rms]: (27.79 mm, 833.7 um)
+│     time: Aug 7 07:59:38 -04:00
+│     pwv[mean, rms]: (28.87 mm, 866.1 um)
 
 </pre></div></div>
 </div>
@@ -512,13 +512,13 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-07-06 17:29:29.025 INFO: Simulating observation 1 of 1
-Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 49.73it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:03&lt;00:00,  2.05it/s]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.47it/s, band=m2/f093]
-Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:06&lt;00:00,  6.11s/it, band=m2/f093, message=Sampling channel (74 GHz, 105 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.04it/s, band=m2/f093]
-2026-07-06 17:29:42.836 INFO: Simulated observation 1 of 1 in 13.8 s
+2026-08-07 08:28:34.539 INFO: Simulating observation 1 of 1
+Generating turbulence: 100%|██████████| 8/8 [00:00&lt;00:00, 43.71it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:03&lt;00:00,  2.07it/s]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  1.21it/s, band=m2/f093]
+Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:06&lt;00:00,  6.21s/it, band=m2/f093, message=Sampling channel (74 GHz, 105 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.07it/s, band=m2/f093]
+2026-08-07 08:28:48.587 INFO: Simulated observation 1 of 1 in 14.04 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -549,12 +549,12 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-07-06 17:29:47.769 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ32.21ˢ&#39;, &#39;dec&#39;: &#39;22°00’56.30”&#39;} for mapper
-2026-07-06 17:29:47.781 INFO: Inferring mapper width 23.98’ for mapper from observation patch
-2026-07-06 17:29:47.782 INFO: Inferring mapper height 23.98’ to match supplied width
-2026-07-06 17:29:50.620 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:02&lt;00:00,  2.49s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:01&lt;00:00,  1.55s/it]
+2026-08-07 08:28:53.357 INFO: Inferring center {&#39;ra&#39;: &#39;05ʰ34ᵐ32.21ˢ&#39;, &#39;dec&#39;: &#39;22°00’56.33”&#39;} for mapper
+2026-08-07 08:28:53.369 INFO: Inferring mapper width 23.97’ for mapper from observation patch
+2026-08-07 08:28:53.370 INFO: Inferring mapper height 23.97’ to match supplied width
+2026-08-07 08:28:56.303 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:02&lt;00:00,  2.59s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:01&lt;00:00,  1.47s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -577,8 +577,8 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:01&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:01&lt;00:00,  1.57s/it, tod=1/1]
-Fitting map (epoch 1/1): 100it [01:42,  1.02s/it, alpha=0.15]
+Updating noise model: 100%|██████████| 1/1 [00:01&lt;00:00,  1.61s/it, tod=1/1]
+Fitting map (epoch 1/1): 100it [01:47,  1.08s/it, alpha=0.151]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
