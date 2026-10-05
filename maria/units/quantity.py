@@ -5,7 +5,7 @@ import arrow
 import numpy as np
 import pandas as pd
 
-from ..utils import compute_resolution_precision, deg_to_signed_dms, deg_to_signed_hms
+from ..utils import compute_resolution_precision, deg_to_signed_dms, deg_to_signed_hms, is_numeric
 from .prefixes import PREFIXES
 from .units import UNITS, UnitError, parse_units, repr_dim_vec
 
@@ -61,7 +61,7 @@ class Quantity:
             raise ValueError("'units' must be a string")
 
         if (self.u["dimension_vector"] == 0).all():
-            return self.base_units_value
+            return float(self.base_units_value) if np.ndim(self.base_units_value) == 0 else self.base_units_value
 
         return self
 
@@ -73,7 +73,7 @@ class Quantity:
             physical_quantity_units = UNITS.loc[UNITS.physical_quantity == self.u["physical_quantity"]]
 
             if np.isfinite(self.base_units_value).any():
-                fid_x = lazy_nanquantile(np.abs(self.base_units_value), q=0.99)
+                fid_x = np.median(np.abs(self.base_units_value))
 
                 if fid_x > 0:
                     total_factor = 1
@@ -115,13 +115,10 @@ class Quantity:
         else:
             raise ValueError(f"Cannot convert Quantity with units {self.units} to units {units}")
 
-    def pin(self, units, inplace=False):
-        if inplace:
-            self.pinned_units = units
-        else:
-            pinned_quantity = type(self)(self.base_units_value, self.base_units)
-            pinned_quantity.pin(units, inplace=True)
-            return pinned_quantity
+    def pin(self, units):        
+        self.human_value = self.to(units)
+        self.human_units = units
+        return self
 
     def __repr__(self, prec: int = None) -> str:
         repr_spec = self.metadata.get("repr_spec")
@@ -143,10 +140,18 @@ class Quantity:
         return type(self)(-self.base_units_value, units=self.dimension_vector)
 
     def __add__(self, other):
-        if (self.dimension_vector == other.dimension_vector).all():
-            return type(self)(self.base_units_value + other.base_units_value, units=self.dimension_vector)
-        else:
-            raise UnitError(f"Cannot add units {self} and {other}")
+        if isinstance(other, Quantity):
+            if (self.dimension_vector == other.dimension_vector).all():
+                return type(self)(self.base_units_value + other.base_units_value, units=self.dimension_vector)
+            else:
+                raise UnitError(f"Cannot add two Quantity objects with units {self.units} and {other.units}")
+        elif is_numeric(other):
+            if np.all(other == 0):
+                return self
+        raise ValueError("Nonzero numbers cannot be added to a Quantity.")
+
+    def __radd__(self, other):
+        return self.__add__(other)
 
     def __sub__(self, other):
         return self + -other
@@ -156,8 +161,9 @@ class Quantity:
             return type(self)(
                 self.base_units_value * other.base_units_value, units=self.dimension_vector + other.dimension_vector
             )
-        else:
+        elif is_numeric(other):
             return type(self)(self.base_units_value * other, units=self.dimension_vector)
+        raise ValueError("A Quantity can only be multiplied by another Quantity or a number.")
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -175,6 +181,10 @@ class Quantity:
 
     def __pow__(self, power):
         return type(self)(self.base_units_value**power, units=self.dimension_vector * power, metadata=self.metadata)
+
+
+
+
 
     # def __iter__(self):
     #     u = self.units
@@ -236,6 +246,10 @@ class Quantity:
                 raise ValueError("string format 'deg' is only for angles")
             return f"{self.deg:.04f}°"
 
+
+
+        
+
     def mean(self, axis=None, *args, **kwargs):
         return Quantity(
             np.mean(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
@@ -261,6 +275,16 @@ class Quantity:
             np.std(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
         )
 
+    def var(self, axis=None, *args, **kwargs):
+        return Quantity(
+            np.var(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
+    
+    def sum(self, axis=None, *args, **kwargs):
+        return Quantity(
+            np.sum(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
+        )
+
     def ptp(self, axis=None, *args, **kwargs):
         return Quantity(
             np.ptp(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
@@ -281,12 +305,14 @@ class Quantity:
     def ndim(self):
         return np.ndim(self.base_units_value)
 
+
     def __getattr__(self, attr):
         if attr in ["human_value", "human_units", "hu"]:
             if not hasattr(self, f"_{attr}"):
                 self.humanize()
                 self._hu = parse_units(self._human_units)
             return getattr(self, f"_{attr}")
+            
         try:
             return self.to(attr)
         except Exception:

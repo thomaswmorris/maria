@@ -6,7 +6,7 @@ def compute_resolution_precision(x):
         dx = np.gradient(np.sort([0, *np.ravel(x)]))
         min_dx = np.nanmin(np.where(dx > 0, dx, np.nan))
         if min_dx > 0:
-            return max(4, int(-np.floor(np.log10(min_dx))) + 1)
+            return min(max(4, int(-np.floor(np.log10(min_dx))) + 1), 16)
     return 4
 
 

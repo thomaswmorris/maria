@@ -6,7 +6,7 @@ import healpy as hp
 import numpy as np
 
 from ..constants import z_CMB
-from ..io import fetch
+from ..io import fetch, get_local_cache_dir 
 from ..map import HEALPixMap
 
 CMB_SPECTRUM_SOURCE_URL = (
@@ -29,8 +29,7 @@ CMB_SOURCES = {
 
 def get_cmb(**kwargs):
 
-    cmb_cache_dir = os.environ.get("MARIA_CACHE_DIR", f"/tmp/maria-data")
-    cmb_path = fetch(source_url=CMB_MAP_SOURCE_URL, cache_path=f"{cmb_cache_dir}/maps/planck_cmb.fits")
+    cmb_path = fetch(source_url=CMB_MAP_SOURCE_URL, cache_path=f"{get_local_cache_dir()}/maps/planck_cmb.fits")
 
     field_dtypes = {
         "T": np.float32,
