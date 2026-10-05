@@ -119,3 +119,22 @@ solid_angle:
       math_name: \text{sr}
       min_prefix_power: 0
       max_prefix_power: 0
+
+
+
+pressure:
+  long_name: pressure
+  short_name: P
+  math_name: P
+  base_unit: Pa
+  base_unit_prefix: ""
+  vector:
+    kg: 1
+    m: -2
+  units:
+    Pa:
+      factor: 1
+      long_name: Pascals
+      math_name: \text{Pa}
+      min_prefix_power: -30
+      max_prefix_power: 30

@@ -14,6 +14,7 @@ from .rotations import *  # noqa
 from .rounding import *  # noqa
 from .signal import *  # noqa
 from .time import *  # noqa
+from .weather import *  # noqa
 
 
 @jax.jit

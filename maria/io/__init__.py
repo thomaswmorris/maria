@@ -15,6 +15,7 @@ from .fits import *  # noqa
 from .logging import *  # noqa
 from .parsing import *  # noqa
 from .repr import *  # noqa
+from .weather import *  # noqa
 
 logger = logging.getLogger("maria")
 

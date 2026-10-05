@@ -17,9 +17,18 @@ logger = logging.getLogger("maria")
 here, this_filename = os.path.split(__file__)
 
 
-def set_cache_dir(directory):
-    os.environ["MARIA_CACHE_DIR"] = directory
+def set_local_cache_dir(directory):
+    os.environ["MARIA_LOCAL_CACHE_DIR"] = directory
 
+
+def get_local_cache_dir():
+    return os.environ.get("MARIA_LOCAL_CACHE_DIR", "/tmp/maria-data")
+
+def set_data_repo(url):
+    os.environ["MARIA_DATA_REPO"] = url
+
+def get_data_repo():
+    return os.environ.get("MARIA_DATA_REPO", "https://github.com/thomaswmorris/maria-data/raw/master")
 
 def copy_file(source, destination):
     dest_dir, _ = os.path.split(destination)
@@ -115,12 +124,10 @@ def download_from_url(
 
 
 def fetch(
-    source_path: str = None,
-    source_url: str = None,
-    cache_path: str = None,
-    max_age: float = 7 * 86400,
+    path: str = None,
+    url: str = None,
+    max_age: float = None,
     refresh: bool = False,
-    url_base: str = "https://github.com/thomaswmorris/maria-data/raw/master",
     max_attempts: int = 7,
     **download_kwargs,
 ):
@@ -128,42 +135,52 @@ def fetch(
     Fetch a file from the repo.
     """
 
-    cache_dir = os.environ.get("MARIA_CACHE_DIR", f"/tmp/maria-data")
-    cache_path = cache_path or f"{cache_dir}/{source_path}"
+    max_age = max_age or float(os.environ.get("MARIA_CACHE_MAX_AGE", 30 * 86400))
 
-    if source_path:
-        source_url = f"{url_base}/{source_path}"
-        cache_path = cache_path or f"{cache_dir}/{source_path}"
-    elif source_url is not None:
-        _, tail = os.path.split(source_url)
-        cache_path = cache_path or f"{cache_dir}/{tail}"
+    if path:
+        url = f"{get_data_repo()}/{path}"
+    elif url:
+        path = f"misc/{os.path.split(url)[-1]}"
     else:
-        raise RuntimeError("You must supply either 'source_url' or 'source_path'.")
+        raise ValueError("You must pass one of 'path' or 'url'.")
+
+
+    local_cache_dir = get_local_cache_dir()
+    local_cache_path = f"{local_cache_dir}/{path}"
+
+    # if source_path:
+    #     source_url = f"{url_base}/{source_path}"
+    #     local_cache_path = local_cache_path or f"{local_cache_dir}/{source_path}"
+    # elif source_url is not None:
+    #     _, tail = os.path.split(source_url)
+    #     local_cache_path = local_cache_path or f"{local_cache_dir}/{tail}"
+    # else:
+    #     raise RuntimeError("You must supply either 'source_url' or 'source_path'.")
 
     # do we need to do anything?
-    status = cache_status(cache_path, max_age=max_age, refresh=refresh)
+    status = cache_status(local_cache_path, max_age=max_age, refresh=refresh)
 
     if status == "ok":
-        return cache_path
+        return local_cache_path
 
     # do we have a potential backup?
     if status == "stale":
-        stale_cache_path = f"{cache_dir}/stale/{source_path}"
-        copy_file(cache_path, stale_cache_path)
+        stale_cache_path = f"{local_cache_dir}/stale/{path}"
+        copy_file(local_cache_path, stale_cache_path)
     else:
         stale_cache_path = None
 
     attempt = 0
     while attempt < max_attempts:
-        status = download_from_url(source_url, cache_path=cache_path, max_age=max_age, **download_kwargs)
+        status = download_from_url(url, cache_path=local_cache_path, max_age=max_age, **download_kwargs)
         if status == "ok":
-            return cache_path
+            return local_cache_path
         attempt += 1
-        logger.warning(f"Could not download {source_url} on try {attempt} (status = {status})")
+        logger.warning(f"Could not download {url} on try {attempt} (status = {status})")
         ttime.sleep(2e0)
 
     if stale_cache_path:
-        logger.warning(f"Could not download {source_url}, using stale cache at {stale_cache_path}")
+        logger.warning(f"Could not download {url}, using stale cache at {stale_cache_path}")
         return stale_cache_path
 
-    raise RuntimeError(f"Could not download {source_url} after {max_attempts} retries (status = {status})")
+    raise RuntimeError(f"Could not download {url} after {max_attempts} retries (status = {status})")
