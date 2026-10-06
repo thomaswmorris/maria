@@ -24,11 +24,14 @@ def set_local_cache_dir(directory):
 def get_local_cache_dir():
     return os.environ.get("MARIA_LOCAL_CACHE_DIR", "/tmp/maria-data")
 
+
 def set_data_repo(url):
     os.environ["MARIA_DATA_REPO"] = url
 
+
 def get_data_repo():
     return os.environ.get("MARIA_DATA_REPO", "https://github.com/thomaswmorris/maria-data/raw/master")
+
 
 def copy_file(source, destination):
     dest_dir, _ = os.path.split(destination)
@@ -144,7 +147,6 @@ def fetch(
     else:
         raise ValueError("You must pass one of 'path' or 'url'.")
 
-
     local_cache_dir = get_local_cache_dir()
     local_cache_path = f"{local_cache_dir}/{path}"
 
@@ -184,3 +186,23 @@ def fetch(
         return stale_cache_path
 
     raise RuntimeError(f"Could not download {url} after {max_attempts} retries (status = {status})")
+
+
+def cache_all_data():
+    fetch("world_heightmap.h5")
+
+    for map_path in all_maps:
+        fetch(map_path)
+
+    for region in all_regions:
+        try:
+            weather_path = f"atmosphere/weather/era5/v2/{region}.h5"
+            fetch(weather_path)
+        except:
+            logger.warning(f"Could not find weather file {weather_path}")
+
+        try:
+            spectrum_path = f"atmosphere/spectra/am/v3/{region}.h5"
+            fetch(spectrum_path)
+        except:
+            logger.warning(f"Could not find spectrum file {spectrum_path}")

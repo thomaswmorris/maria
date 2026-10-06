@@ -12,7 +12,15 @@ import scipy as sp
 from ..io import fetch, read_weather_quantile_data
 from ..site import REGIONS, InvalidRegionError, all_regions
 from ..units import Quantity
-from ..utils import get_utc_day_hour, get_utc_year_day, relative_to_absolute_humidity, absolute_to_relative_humidity, dew_point, compute_air_density, vapor_pressure
+from ..utils import (
+    get_utc_day_hour,
+    get_utc_year_day,
+    relative_to_absolute_humidity,
+    absolute_to_relative_humidity,
+    dew_point,
+    compute_air_density,
+    vapor_pressure,
+)
 
 here, this_filename = os.path.split(__file__)
 
@@ -24,6 +32,7 @@ WEATHER_SOURCE_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/at
 
 g = Quantity(9.81, "m s^-2")
 water_density = Quantity(1e3, "kg m^-3")
+
 
 class Weather:
     def __init__(
@@ -39,10 +48,9 @@ class Weather:
         source: str = "era5",
         refresh_cache: bool = False,
     ):
-
         if region not in all_regions:
             raise InvalidRegionError(region)
-            
+
         self.region = region
         self.quantiles = quantiles
         self.override = override
@@ -83,35 +91,37 @@ class Weather:
 
         self.data = {"levels": {}}
         for field in self.qdata["levels"].keys():
-
             field_data = self.qdata["levels"][field].copy()
 
             # interpolate by quantile
-            field_data = sp.interpolate.interp1d(self.qdata["metadata"]["side_quantile"][:], 
-                                                 field_data, axis=0)(quantiles.get(field, 0.5))
+            field_data = sp.interpolate.interp1d(self.qdata["metadata"]["side_quantile"][:], field_data, axis=0)(
+                quantiles.get(field, 0.5)
+            )
 
             # interpolate by year day
             if seasonal:
-                field_data = sp.interpolate.interp1d(year_day_wrapped_values, 
-                                                     np.take(field_data, indices=year_day_wrap_index, axis=0),
-                                                     axis=0,
-                                                     )(self.utc_year_day)
+                field_data = sp.interpolate.interp1d(
+                    year_day_wrapped_values,
+                    np.take(field_data, indices=year_day_wrap_index, axis=0),
+                    axis=0,
+                )(self.utc_year_day)
             else:
                 field_data = np.median(field_data, axis=0)
 
             # interpolate by year day
             if diurnal:
-                field_data = sp.interpolate.interp1d(day_hour_wrapped_values, 
-                                                     np.take(field_data, indices=day_hour_wrap_index, axis=0),
-                                                     axis=0,
-                                                     )(self.utc_day_hour)
+                field_data = sp.interpolate.interp1d(
+                    day_hour_wrapped_values,
+                    np.take(field_data, indices=day_hour_wrap_index, axis=0),
+                    axis=0,
+                )(self.utc_day_hour)
             else:
                 field_data = np.median(field_data, axis=0)
 
             self.data["levels"][field] = Quantity(field_data, self.qdata["metadata"]["units"][field])
 
         # do some adjustments
-        wind_factor = self.wind_speed / (self.wind_east**2 + self.wind_north**2)**0.5
+        wind_factor = self.wind_speed / (self.wind_east**2 + self.wind_north**2) ** 0.5
         self.data["levels"]["wind_east"] *= wind_factor
         self.data["levels"]["wind_north"] *= wind_factor
 
@@ -125,17 +135,17 @@ class Weather:
             if pressure_level is not None:
                 logger.warning("Ignoring argument 'pressure_level'")
 
-
         if "pwv" in self.override:
             self.water_factor = Quantity(self.override["pwv"], "mm") / self.pwv
             new_water_vapor = self.water_factor * self.water_vapor.to("kg m^-3")
-            self.data["levels"]["humidity"] = absolute_to_relative_humidity(temperature=self.temperature.K,
-                                                                            abs_hum=new_water_vapor)
+            self.data["levels"]["humidity"] = absolute_to_relative_humidity(
+                temperature=self.temperature.K, abs_hum=new_water_vapor
+            )
 
     @property
     def z(self):
         return self.data["levels"]["geopotential"] / g
-    
+
     @property
     def altitude(self):
         return self._altitude.pin("m")
@@ -144,8 +154,14 @@ class Weather:
     def altitude(self, value):
         self._altitude = Quantity(value, "meters").pin("m")
 
-        
-        self._pressure_level = Quantity(np.exp(sp.interpolate.interp1d(self.z.m, np.log(self.pressure.Pa), bounds_error=False, fill_value="extrapolate")(self._altitude.m)), "Pa")
+        self._pressure_level = Quantity(
+            np.exp(
+                sp.interpolate.interp1d(self.z.m, np.log(self.pressure.Pa), bounds_error=False, fill_value="extrapolate")(
+                    self._altitude.m
+                )
+            ),
+            "Pa",
+        )
 
         if self._altitude.m > 50000:
             logger.warning("Extrapolated weather parameters may be inaccurate for altitudes greater than 50 km")
@@ -157,10 +173,17 @@ class Weather:
     @pressure_level.setter
     def pressure_level(self, value):
         self._pressure_level = Quantity(value, "hPa")
-        self._altitude = Quantity(sp.interpolate.interp1d(np.log(self.pressure.Pa), self.z.m, bounds_error=False, fill_value="extrapolate")(np.log(self._pressure_level.Pa)), "m")
+        self._altitude = Quantity(
+            sp.interpolate.interp1d(np.log(self.pressure.Pa), self.z.m, bounds_error=False, fill_value="extrapolate")(
+                np.log(self._pressure_level.Pa)
+            ),
+            "m",
+        )
 
         if self._pressure_level.hPa > 1100 or self._pressure_level.hPa < 1:
-            logger.warning("Extrapolated weather parameters may be inaccurate pressure levels greater than 1100 hPa or less than 1 hPa.")
+            logger.warning(
+                "Extrapolated weather parameters may be inaccurate pressure levels greater than 1100 hPa or less than 1 hPa."
+            )
 
     @property
     def pressure(self):
@@ -168,10 +191,9 @@ class Weather:
 
     @property
     def water_vapor(self):
-        return Quantity(relative_to_absolute_humidity(humidity=self.humidity,
-                                                      temperature=self.temperature.K), units="kg m^-3")
-    
-
+        return Quantity(
+            relative_to_absolute_humidity(humidity=self.humidity, temperature=self.temperature.K), units="kg m^-3"
+        )
 
     def z_samples(self, dz: float = 1e1):
         return np.arange(self.altitude.m, self.z.m.max(), 1e1)
@@ -187,7 +209,7 @@ class Weather:
         z_samples = self.z_samples(dz=10)
         values = self(altitude=z_samples, fields=["air_density", "temperature"])
         return (values["temperature"] * values["air_density"]).sum() / values["air_density"].sum()
-        
+
     @property
     def dew_point(self):
         return Quantity(dew_point(temperature=self.temperature.K, humidity=self.humidity), "K")
@@ -202,14 +224,14 @@ class Weather:
 
     @property
     def air_density(self):
-        return Quantity(compute_air_density(pressure=self.pressure.Pa, 
-                                    temperature=self.temperature.K, 
-                                    humidity=self.humidity), "kg m^-3")
+        return Quantity(
+            compute_air_density(pressure=self.pressure.Pa, temperature=self.temperature.K, humidity=self.humidity), "kg m^-3"
+        )
 
     @property
     def base_pressure_index(self):
         return np.where(self.pressure >= self.pressure_level)[0][-1]
-    
+
     def __getattr__(self, attr):
         for kind in ["levels"]:
             if attr in self.data[kind]:
@@ -218,17 +240,14 @@ class Weather:
         raise AttributeError()
 
     def layers(self):
-
         df = pd.DataFrame(index=np.arange(len(self.qdata["metadata"]["side_pressure"])))
 
         for field in [*list(self.data["levels"].keys())]:
-
             df.loc[:, field] = [repr(v) for v in getattr(self, field)]
 
         return df
 
-    def compute_base_global_quantiles(self, fields = None):
-
+    def compute_base_global_quantiles(self, fields=None):
         if fields is None:
             fields = self.data["levels"].keys()
 
@@ -237,23 +256,21 @@ class Weather:
         base_pressure_index = self.base_pressure_index
 
         for field in fields:
-            
             base_field_value = self.data["levels"][field][base_pressure_index].to(self.qdata["metadata"]["units"][field])
             base_global_quantile_values = np.median(self.qdata["levels"][field][..., base_pressure_index], axis=(-2, -1))
 
-            base_global_quantiles[field] = sp.interpolate.interp1d(base_global_quantile_values, 
-                                                                self.qdata["metadata"]["side_quantile"])(base_field_value)
+            base_global_quantiles[field] = sp.interpolate.interp1d(
+                base_global_quantile_values, self.qdata["metadata"]["side_quantile"]
+            )(base_field_value)
 
         return base_global_quantiles
 
-
     def am_config(self, nu_min: float = 1e9, nu_max: float = 1e12, nu_step: float = 1e9, el: float = 45):
-
         nu_min = Quantity(nu_min, "Hz")
         nu_max = Quantity(nu_max, "Hz")
         nu_step = Quantity(nu_step, "Hz")
         el = Quantity(el, "deg")
-        
+
         config_header = f"""f {nu_min.Hz} Hz {nu_max.Hz} Hz {nu_step.Hz} Hz
 output f Hz Trj K tau neper L m
 tol 0
@@ -261,16 +278,15 @@ za {90 - el.deg} deg
 T0 0 K
 """
         pressure_levels = [self.pressure_level, *self.pressure[self.pressure < self.pressure_level]][::-1]
-        
+
         layer_data = self(pressure_level=pressure_levels)
         pwv_derivative = 0.5 * (layer_data["water_vapor"][:-1] + layer_data["water_vapor"][1:])
         layer_data["pwv"] = Quantity([0, *pwv_derivative / water_density * np.diff(layer_data["z"].m)], "m")
         if layer_data["pwv"].sum() > 0:
             layer_data["pwv"] *= self.pwv / layer_data["pwv"].sum()
-        
+
         config_parts = [config_header]
         for level_index, pressure_level in enumerate(pressure_levels):
-
             layer_config = f"""layer
 Pbase {layer_data["pressure"][level_index].Pa:.03f} Pa
 Tbase {layer_data["temperature"][level_index].K:.03f} K
@@ -282,16 +298,17 @@ column dry_air vmr"""
 
         return "\n\n".join(config_parts)
 
-    def compute_am_spectrum(self,
-                            am_path: str,
-                            nu_min: Quantity | float = 1e9,
-                            nu_max: Quantity | float = 1e12,
-                            nu_step: Quantity | float = 1e9,
-                            el: str | Quantity | float = 45,
-                            config_path: str = "/tmp/config.amc"):
-
+    def compute_am_spectrum(
+        self,
+        am_path: str,
+        nu_min: Quantity | float = 1e9,
+        nu_max: Quantity | float = 1e12,
+        nu_step: Quantity | float = 1e9,
+        el: str | Quantity | float = 45,
+        config_path: str = "/tmp/config.amc",
+    ):
         c = self.am_config(nu_min=nu_min, nu_max=nu_max, nu_step=nu_step, el=el)
-        
+
         with open(config_path, "w") as f:
             f.write(c)
 
@@ -299,30 +316,34 @@ column dry_air vmr"""
         spec_values = np.array(proc.stdout.split()).reshape(-1, 4).astype(float)
 
         return {
-            "nu": Quantity(spec_values[:, 0], "Hz"), 
+            "nu": Quantity(spec_values[:, 0], "Hz"),
             "temperature_rayleigh_jeans": Quantity(spec_values[:, 1], "K_RJ"),
             "opacity": spec_values[:, 2],
             "path_delay": Quantity(spec_values[:, 3], "m"),
             "stderr": proc.stderr,
         }
 
-
     def __call__(self, altitude=None, pressure_level=None, fields: list = None):
-
         if fields is None:
             fields = ["z", "pressure", *list(self.data["levels"].keys()), "water_vapor", "air_density", "dew_point"]
 
         if pressure_level:
-            altitude = sp.interpolate.interp1d(self.pressure.Pa, self.z.m, bounds_error=False, fill_value="extrapolate")(Quantity(pressure_level, "hPa").Pa)
+            altitude = sp.interpolate.interp1d(self.pressure.Pa, self.z.m, bounds_error=False, fill_value="extrapolate")(
+                Quantity(pressure_level, "hPa").Pa
+            )
 
         altitude = Quantity(altitude, "m").m
 
         res = {}
         for field in fields:
-            
             values = getattr(self, field)
             if isinstance(values, Quantity):
-                res[field] = Quantity(sp.interpolate.interp1d(self.z.m, values.human_value, bounds_error=False, fill_value="extrapolate")(altitude), values.human_units)
+                res[field] = Quantity(
+                    sp.interpolate.interp1d(self.z.m, values.human_value, bounds_error=False, fill_value="extrapolate")(
+                        altitude
+                    ),
+                    values.human_units,
+                )
             else:
                 res[field] = sp.interpolate.interp1d(self.z.m, values)(altitude)
 
@@ -331,10 +352,9 @@ column dry_air vmr"""
     def __repr__(self):
         return f"""Weather:
   region: {self.region}
-  time: {self.local_time.format('MMM D HH:mm:ss ZZ')} ({self.timezone})
+  time: {self.local_time.format("MMM D HH:mm:ss ZZ")} ({self.timezone})
   altitude: {self.altitude}
   pressure_level: {self.pressure_level}
   base_temperature: {self(altitude=self.altitude, fields=["temperature"])["temperature"]}
   effective_temperature: {self.effective_temperature}
   pwv: {self.pwv}"""
-    

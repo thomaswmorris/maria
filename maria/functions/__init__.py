@@ -74,21 +74,20 @@ def approximate_normalized_matern(r, nu=1 / 3, r0=1e0, n_test_points=1024):
     return res
 
 
-
 def torch_approximate_matern(r, nu):
     """
     BesselK[nu,z] is not easily computable and therefore difficult to backpropagate.
     So we approximate it here with a linear hence differentiable sort of thing.
     """
 
-    r_min = r[r>0].detach().min()
+    r_min = r[r > 0].detach().min()
     r_max = r.detach().max()
-    
+
     r_samples = torch.tensor([0, *np.geomspace(r_min, 2 * r_max, 1000)], dtype=torch.double)
     arctanh2xm1_f_samples = (2 * normalized_matern(r_samples, nu=nu) - 1).arctanh()
     sample_index = np.digitize(r.detach(), bins=r_samples) - 1
     part = (r - r_samples[sample_index]) / torch.diff(r_samples)[sample_index]
-    
+
     arctanh2xm1_f = arctanh2xm1_f_samples[sample_index] * (1 - part) + arctanh2xm1_f_samples[sample_index + 1] * part
-    
+
     return (arctanh2xm1_f.tanh() + 1) / 2

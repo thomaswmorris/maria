@@ -2,6 +2,7 @@ import numpy as np
 
 from ..constants import DRY_AIR_SPECIFIC_GAS_CONSTANT, WATER_VAPOR_SPECIFIC_GAS_CONSTANT, g
 
+
 def vapor_pressure(temperature, humidity):  # units are (°K, %)
     T = temperature - 273.15  # in °C
     a, b, c = 611.21, 17.67, 238.88  # units are Pa, ., °C
@@ -40,4 +41,3 @@ def relative_to_absolute_humidity(temperature, humidity):
 
 def absolute_to_relative_humidity(temperature, abs_hum):
     return 461.5 * temperature * abs_hum / saturation_pressure(temperature)
-

@@ -42,3 +42,23 @@ def debug():
 
 def undebug():
     logger.setLevel(logging.INFO)
+
+
+def cache_all_data():
+    fetch("world_heightmap.h5")
+
+    for map_path in all_maps:
+        fetch(map_path)
+
+    for region in all_regions:
+        try:
+            weather_path = f"atmosphere/weather/era5/v2/{region}.h5"
+            fetch(weather_path)
+        except:
+            logger.warning(f"Could not find weather file {weather_path}")
+
+        try:
+            spectrum_path = f"atmosphere/spectra/am/v3/{region}.h5"
+            fetch(spectrum_path)
+        except:
+            logger.warning(f"Could not find spectrum file {spectrum_path}")

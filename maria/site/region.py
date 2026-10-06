@@ -25,7 +25,6 @@ class InvalidRegionError(Exception):
 
 
 def plot_all_regions():
-
     height_map = get_height_map()
 
     moll_proj = hp.projector.CartesianProj(rot=0, xsize=3000)
