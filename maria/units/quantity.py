@@ -115,7 +115,7 @@ class Quantity:
         else:
             raise ValueError(f"Cannot convert Quantity with units {self.units} to units {units}")
 
-    def pin(self, units):        
+    def pin(self, units):
         self.human_value = self.to(units)
         self.human_units = units
         return self
@@ -182,10 +182,6 @@ class Quantity:
     def __pow__(self, power):
         return type(self)(self.base_units_value**power, units=self.dimension_vector * power, metadata=self.metadata)
 
-
-
-
-
     # def __iter__(self):
     #     u = self.units
     #     for x in range(self.value):
@@ -246,10 +242,6 @@ class Quantity:
                 raise ValueError("string format 'deg' is only for angles")
             return f"{self.deg:.04f}°"
 
-
-
-        
-
     def mean(self, axis=None, *args, **kwargs):
         return Quantity(
             np.mean(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
@@ -279,7 +271,7 @@ class Quantity:
         return Quantity(
             np.var(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
         )
-    
+
     def sum(self, axis=None, *args, **kwargs):
         return Quantity(
             np.sum(self.base_units_value, axis=axis, *args, **kwargs), units=self.base_units, metadata=self.metadata
@@ -305,14 +297,13 @@ class Quantity:
     def ndim(self):
         return np.ndim(self.base_units_value)
 
-
     def __getattr__(self, attr):
         if attr in ["human_value", "human_units", "hu"]:
             if not hasattr(self, f"_{attr}"):
                 self.humanize()
                 self._hu = parse_units(self._human_units)
             return getattr(self, f"_{attr}")
-            
+
         try:
             return self.to(attr)
         except Exception:

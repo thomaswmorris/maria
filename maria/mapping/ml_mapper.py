@@ -143,7 +143,6 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         self.noise_model_is_current = False
 
     def reset_step_size(self):
-
         self.reset_sol()
         loss1 = self.loss()
         loss1.backward()
@@ -162,7 +161,6 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             self.step_size *= 1e-1
 
     def reset_sol(self):
-
         M = self.naive_map.reshape(self.map_shape)
         H = self.hits.reshape(self.map_shape)
         M = M.where(H > 0, 0.0)
@@ -189,7 +187,6 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         self.sol = torch.tensor(init_sol.numpy(), requires_grad=True, dtype=torch.float)
 
     def update_noise_model(self, subtract_map: bool = True):
-
         noise_model = []
 
         pbar = tqdm(enumerate(self.tods), desc="Updating noise model", total=len(self.tods), bar_format=DEFAULT_BAR_FORMAT)
@@ -302,7 +299,6 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         self.noise_model_is_current = True
 
     def apply_inverse_noise_covariance(self, d, t):
-
         fwd = torch.fft.fft(t["w"] * d)
         Nfwd = t["A_inv"] * fwd
 
@@ -341,7 +337,6 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         return -0.5 * (self.sol.square() / self.map_var).sum()
 
     def loss(self):
-
         # this is the negative marginal log likelihood
         loss = sum([(self.forward(t) - t["PNd"]).square().sum() for t in self.noise_model])
 
@@ -368,8 +363,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
         plot: bool = False,
         plot_kwargs: dict = {},
         alpha_tol: float = 1e-3,
-    ):        
-
+    ):
         if method == "gradient":
             self._gradient_descent(epochs, steps_per_epoch, plot, plot_kwargs)
 
@@ -380,13 +374,11 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
             raise ValueError()
 
     def _gradient_descent(self, epochs, steps_per_epoch, plot, plot_kwargs):
-
         self.grad_hist = {}
         self.step_hist = {}
         self.loss_hist = {}
 
         for epoch in range(epochs):
-
             if not self.noise_model_is_current:
                 self.update_noise_model()
 
@@ -492,9 +484,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                 plt.show()
 
     def _conjugate_gradient_descent(self, epochs, max_steps_per_epoch, plot, plot_kwargs, alpha_tol):
-
         for epoch in range(epochs):
-
             if not self.noise_model_is_current:
                 self.update_noise_model()
 

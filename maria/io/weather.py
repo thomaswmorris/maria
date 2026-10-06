@@ -2,11 +2,10 @@ import h5py
 
 import numpy as np
 
-def read_weather_quantile_data(path: str, fields: list[str] = None):
 
+def read_weather_quantile_data(path: str, fields: list[str] = None):
     qdata = {"metadata": {}, "levels": {}}
     with h5py.File(path, "r") as f:
-
         if fields is None:
             fields = list(f["levels"].keys())
 
@@ -18,7 +17,7 @@ def read_weather_quantile_data(path: str, fields: list[str] = None):
         qdata["metadata"]["units"] = {}
         for key in fields:
             qdata["levels"][key] = f["levels"][key][:]
-    
+
             if f["levels"][key].attrs["log"]:
                 qdata["levels"][key] = np.exp(qdata["levels"][key])
 

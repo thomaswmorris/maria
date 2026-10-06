@@ -70,7 +70,6 @@ units_pattern_case_insensitive = re.compile(
 
 
 def parse_units(units):
-
     factor = 1
     dimension_vector = pd.Series(0.0, index=QUANTITY_DIMENSION_VECTORS.columns, dtype=float)
 
@@ -124,7 +123,7 @@ def parse_units(units):
         "base_units_factor": factor,
         "base_units": repr_dim_vec(dimension_vector),
         "physical_quantity": physical_quantity,
-        "dimension_vector": dimension_vector.round(6), # floating point errors in the dimensions are nasty
+        "dimension_vector": dimension_vector.round(6),  # floating point errors in the dimensions are nasty
     }
 
 

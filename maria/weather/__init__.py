@@ -1,1 +1,1 @@
-from .weather import Weather # noqa
+from .weather import Weather  # noqa
