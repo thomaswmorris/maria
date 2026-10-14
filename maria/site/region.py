@@ -25,7 +25,6 @@ class InvalidRegionError(Exception):
 
 
 def plot_all_regions():
-
     height_map = get_height_map()
 
     moll_proj = hp.projector.CartesianProj(rot=0, xsize=3000)
@@ -44,13 +43,18 @@ def plot_all_regions():
     )
 
     override_region_alignment = {
+        "algonquin": ("right", "bottom"),
+        "chajnantor": ("right", "bottom"),
         "green_bank": ("right", "bottom"),
+        "kitt_peak": ("right", "top"),
         "mount_graham": ("left", "top"),
         "owens_valley": ("right", "bottom"),
         "pico_veleta": ("left", "top"),
         "princeton": ("left", "top"),
-        # 'san_agustin': ('left', 'center'),
-        "south_pole": ("center", "bottom"),
+        "san_antonio": ("left", "top"),
+        "teide": ("right", "bottom"),
+        "warkworth": ("right", "top"),
+        "yebes": ("right", "bottom"),
     }
 
     box_offsets_x = 0.25 * np.array([-1, 1, 1, -1, -1])
@@ -70,7 +74,7 @@ def plot_all_regions():
 
         ax.annotate(
             xy=(region.longitude, region.latitude),
-            fontsize=5,
+            fontsize=4.5,
             text=region_name,
             ha=ha,
             va=va,

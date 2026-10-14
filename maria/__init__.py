@@ -12,13 +12,14 @@ from ._version import __version__, __version_tuple__  # noqa
 from .array import Array, all_arrays, get_array  # noqa
 from .band import Band, all_bands, get_band  # noqa
 from .instrument import Instrument, all_instruments, get_instrument  # noqa
-from .io import fetch, set_cache_dir  # noqa
+from .io import fetch, get_local_cache_dir, set_local_cache_dir  # noqa
 from .map import TransferFunction, all_maps, compute_transfer_function, plot_transfer_function  # noqa
 from .plan import Plan, Planner, all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
 from .site import Site, all_regions, all_sites, get_site, plot_all_regions, site_data  # noqa
 from .tod import TOD  # noqa
 from .units import Quantity  # noqa
+from .weather import Weather  # noqa
 
 logging.getLogger("jax._src.xla_bridge").setLevel(logging.ERROR)
 
@@ -41,3 +42,23 @@ def debug():
 
 def undebug():
     logger.setLevel(logging.INFO)
+
+
+def cache_all_data():
+    fetch("world_heightmap.h5")
+
+    for map_path in all_maps:
+        fetch(map_path)
+
+    for region in all_regions:
+        try:
+            weather_path = f"atmosphere/weather/era5/v2/{region}.h5"
+            fetch(weather_path)
+        except Exception:
+            logger.warning(f"Could not find weather file {weather_path}")
+
+        try:
+            spectrum_path = f"atmosphere/spectra/am/v3/{region}.h5"
+            fetch(spectrum_path)
+        except Exception:
+            logger.warning(f"Could not find spectrum file {spectrum_path}")
