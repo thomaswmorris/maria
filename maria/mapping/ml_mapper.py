@@ -522,7 +522,7 @@ class MaximumLikelihoodMapper(BaseProjectionMapper):
                         pAp.append(pAp_k)
 
                         if alpha_k < alpha_tol * np.median(alpha):
-                            logger.info("Finished conjugate gradient descent, terminating")
+                            logger.info("Reached stopping condition for conjugate gradient descent, terminating")
                             break
 
                         pbar.update(1)

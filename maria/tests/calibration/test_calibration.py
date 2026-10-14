@@ -52,11 +52,11 @@ def test_cmb_atmosphere_reversability(region, band_name):
 
     calibration_kwargs = {
         "spectrum": spectrum,
-        "zenith_pwv": np.random.uniform(size=kwargs_shape, low=0, high=50),
-        "base_temperature": np.random.uniform(
+        "pwv": np.random.uniform(size=kwargs_shape, low=0, high=50),
+        "effective_temperature": np.random.uniform(
             size=kwargs_shape,
-            low=spectrum.side_base_temperature.min(),
-            high=spectrum.side_base_temperature.max(),
+            low=spectrum.side_effective_temperature.K.min(),
+            high=spectrum.side_effective_temperature.K.max(),
         ),
         "elevation": np.radians(np.random.uniform(size=kwargs_shape, low=10, high=90)),
         "polarized": polarized,

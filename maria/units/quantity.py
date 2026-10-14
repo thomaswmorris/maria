@@ -70,17 +70,19 @@ class Quantity:
         self._human_units = self.base_units
 
         if self.u["physical_quantity"] != "composite":
-            physical_quantity_units = UNITS.loc[UNITS.physical_quantity == self.u["physical_quantity"]]
+            self.compatible_units = UNITS.loc[UNITS.physical_quantity == self.u["physical_quantity"]]
 
-            if np.isfinite(self.base_units_value).any():
-                fid_x = np.median(np.abs(self.base_units_value))
+            nonzero_and_finite = np.abs(self.base_units_value) > 0
+
+            if nonzero_and_finite.any():
+                fid_x = np.median(np.abs(self.base_units_value[nonzero_and_finite]))
 
                 if fid_x > 0:
                     total_factor = 1
                     units = self.base_units
                     units_loss = np.inf
 
-                    for unit_name, unit in physical_quantity_units.iterrows():
+                    for unit_name, unit in self.compatible_units.iterrows():
                         if not unit.human:
                             continue
 

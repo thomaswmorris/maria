@@ -38,7 +38,6 @@ class Atmosphere:
         kwargs: dict = {},
         weather_quantiles: dict = {},
         weather_source: str = "era5",
-        spectrum_source: str = "am",
         pwv_rms_frac: float = 0.03,
         max_height: float = 5e3,
         timestep: float = None,
@@ -52,7 +51,6 @@ class Atmosphere:
 
         self.spectrum = AtmosphericSpectrum(
             region=region,
-            source=spectrum_source,
         )
 
         self.kwargs = kwargs
@@ -288,9 +286,9 @@ class Atmosphere:
 │   region: {self.spectrum.region}
 └ weather:
     region: {self.weather.region}
-    altitude: {Quantity(self.weather.base_altitude, "m")}
+    altitude: {self.weather.altitude}
     time: {self.weather.local_time.format("MMM D HH:mm:ss ZZ")}
-    pwv[mean, rms]: ({Quantity(self.weather.pwv, "mm")}, {Quantity(self.pwv_rms_frac * self.weather.pwv, "mm")})"""
+    pwv[mean, rms]: ({self.weather.pwv}, {self.pwv_rms_frac * self.weather.pwv})"""
 
     def simulate_pwv(self, instrument: Instrument = None):
         if not self._initialized:
@@ -308,7 +306,7 @@ class Atmosphere:
             process.run()
             logger.debug(f"Ran atmospheric process {k} in {humanize_time(ttime.monotonic() - process_s)}")
 
-        self.zenith_scaled_pwv = self.weather.pwv * np.ones(shape=pp.shape[:-1])
+        self.zenith_scaled_pwv = self.weather.pwv.mm * np.ones(shape=pp.shape[:-1])
 
         with tqdm(
             total=len(self.layers),
