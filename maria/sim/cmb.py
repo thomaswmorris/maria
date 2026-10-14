@@ -73,9 +73,9 @@ class CMBMixin:
             )
 
             if hasattr(obs, "atmosphere"):
-                opacity = sp.interpolate.interp1d(obs.atmosphere.spectrum.side_nu, obs.atmosphere.spectrum._opacity)(
-                    band.nu.Hz
-                )
+                opacity = sp.interpolate.interp1d(
+                    obs.atmosphere.spectrum.side_nu.Hz, obs.atmosphere.spectrum.fields["opacity"]
+                )(band.nu.Hz)
 
                 # the 1e12 is for picowatts
                 det_power_grid = (
@@ -91,7 +91,13 @@ class CMBMixin:
                 P = sp.interpolate.RegularGridInterpolator(
                     obs.atmosphere.spectrum.points[:3],
                     det_power_grid,
-                )((obs.atmosphere.weather.temperature[0], obs.zenith_scaled_pwv[band_mask], obs.coords.el[band_mask]))
+                )(
+                    (
+                        obs.atmosphere.weather.effective_temperature.K,
+                        obs.zenith_scaled_pwv[band_mask],
+                        1 / np.sin(obs.coords.el[band_mask]),
+                    )
+                )
 
             else:
                 P = (

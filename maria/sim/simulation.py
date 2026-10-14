@@ -209,7 +209,12 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
         for obs_index, obs in enumerate(self.obs_list):
             logger.info(f"Simulating observation {obs_index + 1} of {len(self.obs_list)}")
             obs_start_s = ttime.monotonic()
-            tods.append(self.run_obs(obs).to(units))
+
+            raw_obs = self.run_obs(obs)
+
+            assert np.isfinite(raw_obs.signal).all()
+
+            tods.append(raw_obs.to(units))
             logger.info(
                 f"Simulated observation {obs_index + 1} of {len(self.obs_list)} "
                 f"in {humanize_time(ttime.monotonic() - obs_start_s)}"
@@ -261,8 +266,8 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
 
         if hasattr(obs, "atmosphere"):
             metadata["atmosphere"] = True
-            metadata["pwv"] = float(np.round(obs.atmosphere.weather.pwv, 3))
-            metadata["base_temperature"] = float(np.round(obs.atmosphere.weather.temperature[0], 3))
+            metadata["pwv"] = float(np.round(obs.atmosphere.weather.pwv.mm, 3))
+            metadata["effective_temperature"] = float(np.round(obs.atmosphere.weather.effective_temperature.K, 3))
         else:
             metadata["atmosphere"] = False
 

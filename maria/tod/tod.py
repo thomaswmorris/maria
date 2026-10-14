@@ -95,8 +95,8 @@ class TOD:
         }
         if self.metadata["atmosphere"]:
             kwargs["spectrum"] = self.spectrum
-            kwargs["zenith_pwv"] = self.metadata["pwv"]
-            kwargs["base_temperature"] = self.metadata["base_temperature"]
+            kwargs["pwv"] = self.metadata["pwv"]
+            kwargs["effective_temperature"] = self.metadata["effective_temperature"]
 
         else:
             kwargs["spectrum"] = None
@@ -436,7 +436,7 @@ class TOD:
                 "altitude": float(site.altitude.m),
                 "region": site.region,
                 "Real_obs": True,
-                "base_temperature": f[index].header.get("TAMBIENT", None),
+                "effective_temperature": f[index].header.get("TAMBIENT", None),
             }
 
             tod = TOD(

@@ -67,8 +67,8 @@ def rayleigh_jeans_temperature_to_power(
     if spectrum:
         integral = band.compute_transmission_integral(
             spectrum=spectrum,
-            zenith_pwv=kwargs["zenith_pwv"],
-            base_temperature=kwargs["base_temperature"],
+            pwv=kwargs["pwv"],
+            effective_temperature=kwargs["effective_temperature"],
             elevation=kwargs["elevation"],
         )
 
@@ -87,8 +87,8 @@ def power_to_rayleigh_jeans_temperature(P, band, polarized: bool = False, spectr
     if spectrum:
         integral = band.compute_transmission_integral(
             spectrum=spectrum,
-            zenith_pwv=kwargs["zenith_pwv"],
-            base_temperature=kwargs["base_temperature"],
+            pwv=kwargs["pwv"],
+            effective_temperature=kwargs["effective_temperature"],
             elevation=kwargs["elevation"],
         )
 
@@ -108,7 +108,7 @@ def brightness_temperature_to_power_explicit(T_b, band, polarized: bool = False,
     if spectrum:
         # add dimensions to broadcast with the atmospheric spectrum
         shaped_T_b = np.expand_dims(shaped_T_b, axis=(0, 1, 2))
-        shaped_nu = np.expand_dims(spectrum.side_nu, -1)
+        shaped_nu = np.expand_dims(spectrum.side_nu.Hz, -1)
         sample_T_RJ = inverse_rayleigh_jeans_spectrum(
             planck_spectrum(T_b=shaped_T_b, nu=shaped_nu),
             nu=shaped_nu,
@@ -116,16 +116,16 @@ def brightness_temperature_to_power_explicit(T_b, band, polarized: bool = False,
 
         # this has shape (spectrum.shape, T_b.size)
         integral_samples = np.trapezoid(
-            y=sample_T_RJ * (np.exp(-np.expand_dims(spectrum._opacity, -1)) * band.passband(shaped_nu)),
-            x=spectrum.side_nu,
+            y=sample_T_RJ * (np.exp(-np.expand_dims(spectrum.fields["opacity"], -1)) * band.passband(shaped_nu)),
+            x=spectrum.side_nu.Hz,
             axis=-2,
         )
 
         points = spectrum.points[:3]
         xi = (
-            kwargs["base_temperature"],
-            kwargs["zenith_pwv"],
-            kwargs["elevation"],
+            kwargs["effective_temperature"],
+            kwargs["pwv"],
+            1 / np.sin(kwargs["elevation"]),
         )
         integral = sp.interpolate.RegularGridInterpolator(points, integral_samples)(xi)
 

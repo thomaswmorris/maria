@@ -93,7 +93,6 @@ class Band:
         name: str = None,
         shape: str = "gaussian",
         efficiency: float = 0.5,
-        sensitivity: float = None,
         NET_RJ: float = None,
         NET_CMB: float = None,
         NEP: float = None,
@@ -146,20 +145,13 @@ class Band:
         self.spectrum_kwargs = {}
         if spectrum_kwargs:
             self.spectrum = AtmosphericSpectrum(region=spectrum_kwargs["region"])
-            self.spectrum_kwargs["zenith_pwv"] = spectrum_kwargs.get("pwv", 1e0)
-            self.spectrum_kwargs["base_temperature"] = spectrum_kwargs.get(
-                "temperature", self.spectrum.side_base_temperature.mean()
+            self.spectrum_kwargs["pwv"] = spectrum_kwargs.get("pwv", 1e0)
+            self.spectrum_kwargs["effective_temperature"] = spectrum_kwargs.get(
+                "temperature", self.spectrum.side_effective_temperature.K.mean()
             )
             self.spectrum_kwargs["elevation"] = np.radians(spectrum_kwargs.get("elevation", 45))
         else:
             self.spectrum = None
-
-        if sensitivity:
-            logger.warning(
-                "The 'sensitivity' keyword is deprecated and will be removed in future releases. "
-                "To specify noise levels in terms of sky temperature, use the 'NET_RJ' or 'NET_CMB' keywords instead."
-            )
-            NET_RJ = sensitivity
 
         if NEP is not None:
             self.NEP = Quantity(NEP, "W√s")
@@ -248,10 +240,12 @@ class Band:
             return np.trapezoid(y=self.passband(nu), x=nu, axis=-1)
 
         else:
-            nu_mask = (spectrum.side_nu >= nu_min_Hz) & (spectrum.side_nu < nu_max_Hz)
-            nu = spectrum.side_nu[nu_mask]
-            integral_grid = np.trapezoid(y=self.passband(nu) * np.exp(-spectrum._opacity[..., nu_mask]), x=nu, axis=-1)
-            xi = (kwargs["base_temperature"], kwargs["zenith_pwv"], kwargs["elevation"])
+            nu_mask = (spectrum.side_nu.Hz >= nu_min_Hz) & (spectrum.side_nu.Hz < nu_max_Hz)
+            nu = spectrum.side_nu.Hz[nu_mask]
+            integral_grid = np.trapezoid(
+                y=self.passband(nu) * np.exp(-spectrum.fields["opacity"][..., nu_mask]), x=nu, axis=-1
+            )
+            xi = (kwargs["effective_temperature"], kwargs["pwv"], 1 / np.sin(kwargs["elevation"]))
             return np.array(jsp.interpolate.RegularGridInterpolator(points=spectrum.points[:3], values=integral_grid)(xi))
 
     def transmission(self, region="chajnantor", pwv=1, elevation=np.radians(90)) -> float:
@@ -264,8 +258,8 @@ class Band:
     def atmosphere_power(
         self,
         spectrum: AtmosphericSpectrum,
-        base_temperature: float,
-        zenith_pwv: float,
+        effective_temperature: float,
+        pwv: float,
         elevation: float,
         method: str = "linear",
     ):
@@ -273,17 +267,17 @@ class Band:
             1e12
             * k_B
             * np.trapezoid(
-                spectrum._emission * self.passband(spectrum.side_nu),
-                spectrum.side_nu,
+                spectrum.fields["temperature_rayleigh_jeans"] * self.passband(spectrum.side_nu.Hz),
+                spectrum.side_nu.Hz,
                 axis=-1,
             )
         )
 
         if method == "linear":
-            return jsp.interpolate.RegularGridInterpolator(
+            return sp.interpolate.RegularGridInterpolator(
                 spectrum.points[:3],
                 values,
-            )((base_temperature, zenith_pwv, elevation))
+            )((effective_temperature, pwv, 1 / np.sin(elevation)))
 
         else:
             temperature_interpolated_values = sp.interpolate.interp1d(
@@ -291,13 +285,13 @@ class Band:
                 values,
                 kind="linear",
                 axis=0,
-            )(base_temperature)
+            )(effective_temperature)
 
             return sp.interpolate.RegularGridInterpolator(
                 spectrum.points[1:3],
                 temperature_interpolated_values,
                 method="cubic",
-            )((zenith_pwv, elevation))
+            )((pwv, 1 / np.sin(elevation)))
 
     # @classmethod
     # def from_file(cls, filename, **kwargs):

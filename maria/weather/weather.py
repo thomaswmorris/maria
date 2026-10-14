@@ -1,24 +1,25 @@
 from __future__ import annotations
 
+import logging
 import os
+import subprocess
 
 import arrow
-import logging
-import subprocess
+import h5py
 import numpy as np
 import pandas as pd
 import scipy as sp
 
-from ..io import fetch, read_weather_quantile_data
+from ..io import fetch
 from ..site import REGIONS, InvalidRegionError, all_regions
 from ..units import Quantity
 from ..utils import (
+    absolute_to_relative_humidity,
+    compute_air_density,
+    dew_point,
     get_utc_day_hour,
     get_utc_year_day,
     relative_to_absolute_humidity,
-    absolute_to_relative_humidity,
-    dew_point,
-    compute_air_density,
     vapor_pressure,
 )
 
@@ -32,6 +33,29 @@ WEATHER_SOURCE_BASE = "https://github.com/thomaswmorris/maria-data/raw/master/at
 
 g = Quantity(9.81, "m s^-2")
 water_density = Quantity(1e3, "kg m^-3")
+
+
+def read_weather_quantile_data(path: str, fields: list[str] = None):
+    qdata = {"metadata": {}, "levels": {}}
+    with h5py.File(path, "r") as f:
+        if fields is None:
+            fields = list(f["levels"].keys())
+
+        qdata["metadata"]["side_quantile"] = f["metadata"]["side_quantile"][:]
+        qdata["metadata"]["side_year_day"] = f["metadata"]["side_year_day"][:]
+        qdata["metadata"]["side_day_hour"] = f["metadata"]["side_day_hour"][:]
+        qdata["metadata"]["side_pressure"] = f["metadata"]["side_pressure"][:]
+
+        qdata["metadata"]["units"] = {}
+        for key in fields:
+            qdata["levels"][key] = f["levels"][key][:]
+
+            if f["levels"][key].attrs["log"]:
+                qdata["levels"][key] = np.exp(qdata["levels"][key])
+
+            qdata["metadata"]["units"][key] = f["levels"][key].attrs["units"]
+
+    return qdata
 
 
 class Weather:
@@ -71,6 +95,15 @@ class Weather:
         self.utc_day_hour = get_utc_day_hour(self.time.timestamp())
 
         self.qdata = read_weather_quantile_data(self.cache_path)
+
+        self.default_units = {
+            **self.qdata["metadata"]["units"],
+            "air_density": "kg m^-3",
+            "dew_point": "K",
+            "pressure": "hPa",
+            "absolute_humidity": "kg m^-3",
+            "z": "m",
+        }
 
         n_year_day_side = len(self.qdata["metadata"]["side_year_day"])
         n_day_hour_side = len(self.qdata["metadata"]["side_day_hour"])
@@ -118,7 +151,7 @@ class Weather:
             else:
                 field_data = np.median(field_data, axis=0)
 
-            self.data["levels"][field] = Quantity(field_data, self.qdata["metadata"]["units"][field])
+            self.data["levels"][field] = Quantity(field_data, self.default_units[field])
 
         # do some adjustments
         wind_factor = self.wind_speed / (self.wind_east**2 + self.wind_north**2) ** 0.5
@@ -137,9 +170,9 @@ class Weather:
 
         if "pwv" in self.override:
             self.water_factor = Quantity(self.override["pwv"], "mm") / self.pwv
-            new_water_vapor = self.water_factor * self.water_vapor.to("kg m^-3")
+            new_absolute_humidity = self.water_factor * self.absolute_humidity.to("kg m^-3")
             self.data["levels"]["humidity"] = absolute_to_relative_humidity(
-                temperature=self.temperature.K, abs_hum=new_water_vapor
+                temperature=self.temperature.K, abs_hum=new_absolute_humidity
             )
 
     @property
@@ -190,7 +223,7 @@ class Weather:
         return Quantity(self.qdata["metadata"]["side_pressure"], units="Pa")
 
     @property
-    def water_vapor(self):
+    def absolute_humidity(self):
         return Quantity(
             relative_to_absolute_humidity(humidity=self.humidity, temperature=self.temperature.K), units="kg m^-3"
         )
@@ -201,8 +234,8 @@ class Weather:
     @property
     def pwv(self):
         z_samples = self.z_samples(dz=10)
-        values = self(altitude=z_samples, fields=["water_vapor"])
-        return Quantity(np.trapezoid(values["water_vapor"] / water_density, x=z_samples), "m")
+        values = self(altitude=z_samples, fields=["absolute_humidity"])
+        return Quantity(np.trapezoid(values["absolute_humidity"] / water_density, x=z_samples), "m")
 
     @property
     def effective_temperature(self):
@@ -280,7 +313,7 @@ T0 0 K
         pressure_levels = [self.pressure_level, *self.pressure[self.pressure < self.pressure_level]][::-1]
 
         layer_data = self(pressure_level=pressure_levels)
-        pwv_derivative = 0.5 * (layer_data["water_vapor"][:-1] + layer_data["water_vapor"][1:])
+        pwv_derivative = 0.5 * (layer_data["absolute_humidity"][:-1] + layer_data["absolute_humidity"][1:])
         layer_data["pwv"] = Quantity([0, *pwv_derivative / water_density * np.diff(layer_data["z"].m)], "m")
         if layer_data["pwv"].sum() > 0:
             layer_data["pwv"] *= self.pwv / layer_data["pwv"].sum()
@@ -323,9 +356,9 @@ column dry_air vmr"""
             "stderr": proc.stderr,
         }
 
-    def __call__(self, altitude=None, pressure_level=None, fields: list = None):
+    def __call__(self, altitude=None, pressure_level=None, fields: list = None, units: bool = True):
         if fields is None:
-            fields = ["z", "pressure", *list(self.data["levels"].keys()), "water_vapor", "air_density", "dew_point"]
+            fields = ["z", "pressure", *list(self.data["levels"].keys()), "absolute_humidity", "air_density", "dew_point"]
 
         if pressure_level:
             altitude = sp.interpolate.interp1d(self.pressure.Pa, self.z.m, bounds_error=False, fill_value="extrapolate")(
@@ -346,6 +379,9 @@ column dry_air vmr"""
                 )
             else:
                 res[field] = sp.interpolate.interp1d(self.z.m, values)(altitude)
+
+            if isinstance(res[field], Quantity) and not units:
+                res[field] = res[field].to(self.default_units[field])
 
         return res
 
