@@ -14,13 +14,14 @@ REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude", "timez
 REGIONS = pd.read_csv(f"{here}/regions.csv", index_col=0)
 all_regions = list(REGIONS.index.values)
 
-region_data = REGIONS.loc[:, REGION_DISPLAY_COLUMNS]
+region_table = REGIONS.loc[:, REGION_DISPLAY_COLUMNS]
+region_table.index.name = "name"
 
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         super().__init__(
-            f"The region '{invalid_region}' is not supported. Supported regions are:\n\n{region_data.to_string()}",
+            f"The region '{invalid_region}' is not supported. Supported regions are:\n\n{region_table.to_string()}",
         )
 
 

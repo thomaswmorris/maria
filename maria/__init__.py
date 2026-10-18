@@ -16,7 +16,7 @@ from .io import fetch, get_local_cache_dir, set_local_cache_dir  # noqa
 from .map import TransferFunction, all_maps, compute_transfer_function, plot_transfer_function  # noqa
 from .plan import Plan, Planner, all_plans, get_plan  # noqa
 from .sim import Simulation  # noqa
-from .site import Site, all_regions, all_sites, get_site, plot_all_regions, site_data  # noqa
+from .site import Site, all_regions, all_sites, get_site, plot_all_regions, region_table, site_table  # noqa
 from .tod import TOD  # noqa
 from .units import Quantity  # noqa
 from .weather import Weather  # noqa

@@ -1,13 +1,7 @@
 
-.. _maps:
-
-####
-Maps
-####
-
-++++++++
+########
 Overview
-++++++++
+########
 
 A map is represented by a ``Map`` object, that represents a two-dimensional slice (or many slices) of radiometric data. 
 

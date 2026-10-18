@@ -140,13 +140,20 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
         logger.debug(f"Initialized plans in {humanize_time(ttime.monotonic() - plan_init_s)}.")
 
         self.obs_list = []
-        for obs_index, plan in tqdm(
-            enumerate(self.plans),
-            desc="Initializing observations",
-            disable=self.disable_progress_bars,
-            bar_format=DEFAULT_BAR_FORMAT,
-            total=len(self.plans),
-        ):
+
+        plan_list = self.plans
+
+        # tqdm(
+        #     enumerate(self.plans),
+        #     desc="Initializing observations",
+        #     disable=self.disable_progress_bars,
+        #     bar_format=DEFAULT_BAR_FORMAT,
+        #     total=len(self.plans),
+        # ):
+
+        for obs_index, plan in enumerate(plan_list):
+            logger.info(f"Initializing observation {obs_index + 1}/{len(plan_list)}")
+
             obs_start_s = ttime.monotonic()
 
             obs = Observation(
@@ -165,7 +172,7 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
             self.obs_list.append(obs)
 
             duration_s = ttime.monotonic() - obs_start_s
-            logger.debug(f"Initialized Observation in {humanize_time(duration_s)}.")
+            logger.info(f"Initialized observation {obs_index + 1}/{len(plan_list)} in {humanize_time(duration_s)}")
 
         self.maps = {}
 
