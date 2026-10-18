@@ -656,16 +656,21 @@ class ProjectionMap(Map):
                 map_slice_weight = map_weight[tuple(ax_slices.values())].compute()
 
                 if vmin is None or vmax is None:
-                    subset = np.random.choice(map_slice_data.size, size=min(map_slice_data.size, 100000), replace=False)
-                    slice_vmin, slice_vmax = np.nanquantile(
-                        map_slice_data.ravel()[subset],
-                        weights=map_slice_weight.ravel()[subset],
-                        q=(rel_vmin, rel_vmax),
-                        method="inverted_cdf",
-                    )
-                    if center_zero:
-                        abs_max = max(slice_vmax, -slice_vmin)
-                        slice_vmin, slice_vmax = -abs_max, abs_max
+                    if attr == "weight":
+                        slice_vmin = 0
+                        slice_vmax = np.nanquantile(map_slice_data[1:-1, 1:-1], q=0.99)
+
+                    else:
+                        subset = np.random.choice(map_slice_data.size, size=min(map_slice_data.size, 100000), replace=False)
+                        slice_vmin, slice_vmax = np.nanquantile(
+                            map_slice_data.ravel()[subset],
+                            weights=map_slice_weight.ravel()[subset],
+                            q=(rel_vmin, rel_vmax),
+                            method="inverted_cdf",
+                        )
+                        if center_zero:
+                            abs_max = max(slice_vmax, -slice_vmin)
+                            slice_vmin, slice_vmax = -abs_max, abs_max
 
                     logger.debug(f"Inferring (vmin, vmax) = ({slice_vmin}, {slice_vmax})")
 

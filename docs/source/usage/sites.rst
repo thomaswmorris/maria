@@ -8,6 +8,7 @@ Sites
    :maxdepth: 2
 
    sites/sites.rst
-   sites/example-sites
+   sites/predefined-sites
+   sites/supported-regions
 
    

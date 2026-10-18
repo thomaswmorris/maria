@@ -7,7 +7,7 @@ import pandas as pd
 from astropy.coordinates import EarthLocation
 
 from ..io import read_yaml
-from .region import REGIONS, InvalidRegionError, all_regions, plot_all_regions  # noqa
+from .region import REGIONS, InvalidRegionError, all_regions, plot_all_regions, region_table  # noqa
 from .site import Site  # noqa
 
 here, this_filename = os.path.split(__file__)
@@ -21,22 +21,23 @@ for site in SITE_CONFIGS:
     SITE_CONFIGS[site]["instruments"] = ", ".join(config["instruments"]) if "instruments" in config else ""
 
 SITE_DISPLAY_COLUMNS = [
-    "description",
-    "instruments",
     "region",
     "latitude",
     "longitude",
     "altitude",
+    "instruments",
+    "description",
 ]
-site_data = pd.DataFrame(SITE_CONFIGS).T.sort_values("region")
-all_sites = list(site_data.index.values)
+site_table = pd.DataFrame(SITE_CONFIGS).T.sort_values("region")
+site_table.index.name = "name"
+all_sites = list(site_table.index.values)
 
 
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(
             f"The site '{invalid_site}' is not supported. "
-            f"Supported sites are:\n\n{site_data.loc[:, SITE_DISPLAY_COLUMNS].to_string()}",
+            f"Supported sites are:\n\n{site_table.loc[:, SITE_DISPLAY_COLUMNS].to_string()}",
         )
 
 

@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 project = "maria"
-copyright = "2025, Thomas W. Morris"
+copyright = "2026, Thomas W. Morris"
 author = "Thomas W. Morris"
 
 html_title = "maria"
