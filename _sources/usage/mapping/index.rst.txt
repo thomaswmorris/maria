@@ -1,8 +1,7 @@
-.. _mapping:
 
-#######
-Mapping
-#######
+########
+Overview
+########
 
 We can map a ``TOD`` (or several of them) with a ``Mapper``. The simplest possible mapper just bins the data:
 
