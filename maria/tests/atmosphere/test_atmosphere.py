@@ -8,7 +8,7 @@ from maria.atmosphere import Atmosphere, AtmosphericSpectrum
 
 
 @pytest.mark.parametrize("region_name", maria.all_regions)
-def test_atmosphere(region_name):
+def test_atmosphere_spectrum(region_name):
     atmosphere = Atmosphere(region=region_name)
     atmosphere.spectrum.emission(nu=90e9, elevation=1.1, pwv=1.5)
 

@@ -144,7 +144,7 @@ class MapMixin:
                     calibration_s = ttime.monotonic()
 
                     if hasattr(obs, "atmosphere"):
-                        nu = obs.atmosphere.spectrum.side_nu
+                        nu = obs.atmosphere.spectrum.side_nu.Hz
                         channel_nu_mask = (nu >= nu_min) & (nu <= nu_max)
                         channel_nu = nu[channel_nu_mask]
 
@@ -160,14 +160,14 @@ class MapMixin:
 
                         f_grid = (
                             instrument_transmission
-                            * np.exp(-obs.atmosphere.spectrum._opacity[..., channel_nu_mask])
+                            * np.exp(-obs.atmosphere.spectrum.fields["opacity"][..., channel_nu_mask])
                             * static_transmission
                         ).sum(axis=-1) / (static_transmission**2).sum(axis=-1)
 
                         xi = (
-                            obs.atmosphere.weather.temperature[0],
+                            obs.atmosphere.weather.effective_temperature.K,
                             obs.zenith_scaled_pwv[band_mask].compute(),
-                            obs.coords.el[band_mask],
+                            1 / np.sin(obs.coords.el[band_mask]),
                         )
 
                         f = jsp.interpolate.RegularGridInterpolator(
@@ -204,6 +204,9 @@ class MapMixin:
                     channel_power_map = np.interp(channel_map_data, map_values, map_values_power)
 
                     pW = 1e12 * f * (P @ channel_power_map.ravel()).reshape(band_coords.shape)
+
+                    if not np.isfinite(pW).all():
+                        assert False
 
                     map_loading[band_mask] += pW
 

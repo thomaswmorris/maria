@@ -14,18 +14,18 @@ REGION_DISPLAY_COLUMNS = ["location", "country", "latitude", "longitude", "timez
 REGIONS = pd.read_csv(f"{here}/regions.csv", index_col=0)
 all_regions = list(REGIONS.index.values)
 
-region_data = REGIONS.loc[:, REGION_DISPLAY_COLUMNS]
+region_table = REGIONS.loc[:, REGION_DISPLAY_COLUMNS]
+region_table.index.name = "name"
 
 
 class InvalidRegionError(Exception):
     def __init__(self, invalid_region):
         super().__init__(
-            f"The region '{invalid_region}' is not supported. Supported regions are:\n\n{region_data.to_string()}",
+            f"The region '{invalid_region}' is not supported. Supported regions are:\n\n{region_table.to_string()}",
         )
 
 
 def plot_all_regions():
-
     height_map = get_height_map()
 
     moll_proj = hp.projector.CartesianProj(rot=0, xsize=3000)
@@ -44,13 +44,18 @@ def plot_all_regions():
     )
 
     override_region_alignment = {
+        "algonquin": ("right", "bottom"),
+        "chajnantor": ("right", "bottom"),
         "green_bank": ("right", "bottom"),
+        "kitt_peak": ("right", "top"),
         "mount_graham": ("left", "top"),
         "owens_valley": ("right", "bottom"),
         "pico_veleta": ("left", "top"),
         "princeton": ("left", "top"),
-        # 'san_agustin': ('left', 'center'),
-        "south_pole": ("center", "bottom"),
+        "san_antonio": ("left", "top"),
+        "teide": ("right", "bottom"),
+        "warkworth": ("right", "top"),
+        "yebes": ("right", "bottom"),
     }
 
     box_offsets_x = 0.25 * np.array([-1, 1, 1, -1, -1])
@@ -70,7 +75,7 @@ def plot_all_regions():
 
         ax.annotate(
             xy=(region.longitude, region.latitude),
-            fontsize=5,
+            fontsize=4.5,
             text=region_name,
             ha=ha,
             va=va,

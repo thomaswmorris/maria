@@ -174,7 +174,7 @@ class BaseSimulation:
         if hasattr(self, "atmosphere"):
             metadata["atmosphere"] = True
             metadata["pwv"] = float(np.round(self.atmosphere.weather.pwv, 3))
-            metadata["base_temperature"] = float(np.round(self.atmosphere.weather.temperature[0], 3))
+            metadata["effective_temperature"] = float(np.round(self.atmosphere.weather.effective_temperature.K, 3))
 
         tod = TOD(
             data=self.loading,

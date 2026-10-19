@@ -80,8 +80,8 @@ class Calibration:
                 "beam_area",
                 "band",
                 "spectrum",
-                "zenith_pwv",
-                "base_temperature",
+                "pwv",
+                "effective_temperature",
                 "elevation",
             ]:
                 raise ValueError(f"Invalid kwarg '{key}'.")

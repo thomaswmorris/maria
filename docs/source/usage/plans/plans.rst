@@ -1,11 +1,7 @@
-.. _plans:
-
-#####
-Plans
-#####
-
+########
 Overview
---------
+########
+
 
 How an instrument observes is represented as a ``Plan``. Because it can be difficult to tell when a given source will be far enough above the horizon to observe, the easiest way to generate a plan is with a ``Planner``.
 
