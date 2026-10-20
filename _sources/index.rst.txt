@@ -2,9 +2,13 @@
 maria
 =====
 
-.. image:: ./_static/cloud.gif
-   :scale: 40%
-   :alt: StreamPlayer
+.. .. image:: https://thomaswmorris.com/assets/images/maria/cloud.gif
+..    :scale: 40%
+..    :alt: StreamPlayer
+
+.. raw:: html
+
+   <img src="https://thomaswmorris.com/assets/images/maria/cloud.gif" style="width: 2in;"></img>
 
 .. `Oh, maria blows the stars around / and sends the clouds
 .. a-flyin’ <https://youtu.be/qKxgfnoz2pk>`_
@@ -14,7 +18,7 @@ maria
 .. raw:: html
 
     <audio controls="controls" title="“They Call the Wind Maria” from Paint Your Wagon">
-      <source src="./_static/they_call_the_wind_maria.mp4" type="audio/wav">
+      <source src="https://thomaswmorris.com/assets/images/maria/they_call_the_wind_maria.mp4" type="audio/wav">
       Your browser does not support the <code>audio</code> element.
     </audio>
 
@@ -26,5 +30,4 @@ maria
    installation.rst
    usage.rst
    tutorials.rst
-   supported-sites.rst
    papers.rst

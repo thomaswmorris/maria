@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Supported sites" href="../supported-sites.html"><link rel="prev" title="Observing the CMB" href="cmb-patch.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Papers" href="../papers.html"><link rel="prev" title="Observing the CMB" href="cmb-patch.html">
 
     <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>Compute a transfer function - maria</title>
@@ -253,7 +253,6 @@
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Compute a transfer function</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../supported-sites.html">Supported sites</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../papers.html">Papers</a></li>
 </ul>
 
@@ -452,10 +451,10 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-20 01:46:17.035 INFO: Initializing observation 1/1
-Constructing atmosphere: 100%|██████████| 8/8 [00:37&lt;00:00,  4.67s/it]
-2026-10-20 01:46:56.856 INFO: Initialized observation 1/1 in 39.81 s
-2026-10-20 01:46:57.277 INFO: Simulating observation 1 of 1
+2026-10-20 03:51:21.788 INFO: Initializing observation 1/1
+Constructing atmosphere: 100%|██████████| 8/8 [00:49&lt;00:00,  6.23s/it]
+2026-10-20 03:52:14.774 INFO: Initialized observation 1/1 in 52.97 s
+2026-10-20 03:52:15.427 INFO: Simulating observation 1 of 1
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -502,12 +501,12 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Generating turbulence: 100%|██████████| 8/8 [00:01&lt;00:00,  5.34it/s]
-Sampling turbulence: 100%|██████████| 8/8 [00:05&lt;00:00,  1.53it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:00&lt;00:00,  3.16it/s, band=f270]
-Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:10&lt;00:00,  5.01s/it, band=f270, message=Sampling channel (210 GHz, 330 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.28it/s, band=f270]
-2026-10-20 01:47:21.685 INFO: Simulated observation 1 of 1 in 24.4 s
+Generating turbulence: 100%|██████████| 8/8 [00:02&lt;00:00,  3.86it/s]
+Sampling turbulence: 100%|██████████| 8/8 [00:06&lt;00:00,  1.20it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:00&lt;00:00,  2.36it/s, band=f270]
+Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:13&lt;00:00,  6.52s/it, band=f270, message=Sampling channel (210 GHz, 330 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:02&lt;00:00,  1.00s/it, band=f270]
+2026-10-20 03:52:47.217 INFO: Simulated observation 1 of 1 in 31.78 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -548,11 +547,11 @@ Generating noise: 100%|██████████| 2/2 [00:01&lt;00:00,  1.2
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-20 01:47:29.224 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.17ˢ&#39;, &#39;dec&#39;: &#39;-23°00’7.82”&#39;} for mapper
-2026-10-20 01:47:29.232 INFO: Inferring mapper width 1.228° for mapper from observation patch
-2026-10-20 01:47:29.233 INFO: Inferring mapper height 1.228° to match supplied width
-Preprocessing TODs: 100%|██████████| 1/1 [00:08&lt;00:00,  8.34s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.91s/it]
+2026-10-20 03:52:56.722 INFO: Inferring center {&#39;ra&#39;: &#39;00ʰ00ᵐ0.17ˢ&#39;, &#39;dec&#39;: &#39;-23°00’7.82”&#39;} for mapper
+2026-10-20 03:52:56.735 INFO: Inferring mapper width 1.235° for mapper from observation patch
+2026-10-20 03:52:56.735 INFO: Inferring mapper height 1.235° to match supplied width
+Preprocessing TODs: 100%|██████████| 1/1 [00:11&lt;00:00, 11.11s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:04&lt;00:00,  4.68s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -603,8 +602,8 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.97s/it, tod=1/1]
-Fitting map (epoch 1/2): 100%|██████████| 50/50 [02:20&lt;00:00,  2.81s/it, alpha=0.000153]
+Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.83s/it, tod=1/1]
+Fitting map (epoch 1/2): 100%|██████████| 50/50 [02:48&lt;00:00,  3.37s/it, alpha=0.000156]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -619,8 +618,8 @@ Fitting map (epoch 1/2): 100%|██████████| 50/50 [02:20&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:04&lt;00:00,  4.13s/it, tod=1/1]
-Fitting map (epoch 2/2): 100%|██████████| 50/50 [02:21&lt;00:00,  2.83s/it, alpha=0.000142]
+Updating noise model: 100%|██████████| 1/1 [00:05&lt;00:00,  5.03s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 50/50 [02:49&lt;00:00,  3.38s/it, alpha=0.000142]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -652,8 +651,8 @@ TransferFunction:
   channels: 2
   nu: [150. 270.] GHz
   bins: 20
-  u: [52.1, 3.09e+03] cycles/rad
-  T: [0.098, 0.982]
+  u: [51.7, 3.09e+03] cycles/rad
+  T: [0.092, 0.985]
 </pre></div></div>
 </div>
 <p>To visualize the transfer function, it is possible to use the built-in <code class="docutils literal notranslate"><span class="pre">plot()</span></code> method. Solid curves show the measured <span class="math notranslate nohighlight">\(T(u)\)</span>, while dashed curves show the Gaussian beam per channel. The large-scale rolloff reflects the TOD filtering above, while the small-scale rolloff tracks the beam.</p>
@@ -780,12 +779,12 @@ TransferFunction:
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../supported-sites.html">
+          <a class="next-page" href="../papers.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Supported sites</div>
+                <div class="title">Papers</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
