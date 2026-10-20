@@ -16,11 +16,21 @@ length:
       human: true
     miles:
       factor: 1609.34
-      long_name: mi
+      long_name: miles
       math_name: \text{mi}
       min_prefix_power: 0
       max_prefix_power: 0
       human: False
+    Å:
+      factor: 1.0e-7
+      long_name: angstrom
+      math_name: \text{Å}
+      min_prefix_power: 0
+      max_prefix_power: 0
+      human: False
+
+
+
 
 area:
   long_name: area

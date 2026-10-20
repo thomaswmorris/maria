@@ -28,7 +28,10 @@ SITE_DISPLAY_COLUMNS = [
     "instruments",
     "description",
 ]
+
 site_table = pd.DataFrame(SITE_CONFIGS).T.sort_values("region")
+site_table.loc[:, "timezone"] = region_table.loc[site_table.region, "timezone"].values
+site_table = site_table.loc[:, SITE_DISPLAY_COLUMNS]
 site_table.index.name = "name"
 all_sites = list(site_table.index.values)
 
@@ -36,8 +39,7 @@ all_sites = list(site_table.index.values)
 class InvalidSiteError(Exception):
     def __init__(self, invalid_site):
         super().__init__(
-            f"The site '{invalid_site}' is not supported. "
-            f"Supported sites are:\n\n{site_table.loc[:, SITE_DISPLAY_COLUMNS].to_string()}",
+            f"The site '{invalid_site}' is not supported. Supported sites are:\n\n{site_table.to_string()}",
         )
 
 

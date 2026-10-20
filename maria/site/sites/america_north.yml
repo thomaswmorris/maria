@@ -48,8 +48,19 @@ summit_station:
   documentation: https://geo-summit.org/
 
 very_large_array:
-  description: Very Large Array
+  description: Plains of San Agustin
   region: san_agustin
   latitude: 34.079
   longitude: -107.618
   altitude: 2124
+  instruments:
+  - Very Large Array
+
+kitt_peak:
+  description: Kitt Peak Observatory
+  region: san_agustin
+  latitude: 34.079
+  longitude: -107.618
+  altitude: 2124
+  instruments:
+  - DESI
