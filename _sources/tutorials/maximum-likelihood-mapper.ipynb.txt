@@ -30,17 +30,6 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from maria import Site\n",
-    "\n",
-    "Site(latitude=45, longitude=-45, altitude=400, region=\"chajnantor\")"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
     "from maria.instrument import Band\n",
     "\n",
     "f090 = Band(\n",

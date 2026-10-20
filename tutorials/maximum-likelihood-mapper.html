@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Observing the CMB" href="cmb-patch.html"><link rel="prev" title="Simulating observations with MUSTANG-2" href="mustang-nebula.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>Maximum likelihood mapmaking - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -315,8 +315,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:03:36.416 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
-Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 75.8MB/s]
+2026-10-20 01:28:12.697 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
+Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 24.1MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -355,33 +355,6 @@ ProjectionMap:
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria</span><span class="w"> </span><span class="kn">import</span> <span class="n">Site</span>
-
-<span class="n">Site</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=-</span><span class="mi">45</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">"chajnantor"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Site:
-  region: chajnantor
-  timezone: America/Santiago
-  location:
-    longitude: 45°00’0.00” W
-    latitude:  45°00’0.00” N
-    altitude: 400 m
-  seasonal: True
-  diurnal: True
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.instrument</span><span class="w"> </span><span class="kn">import</span> <span class="n">Band</span>
@@ -425,11 +398,11 @@ Instrument(1 array)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_3_1.png" src="../_images/tutorials_maximum-likelihood-mapper_3_1.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_2_1.png" src="../_images/tutorials_maximum-likelihood-mapper_2_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -470,11 +443,11 @@ chunk
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_4_1.png" src="../_images/tutorials_maximum-likelihood-mapper_4_1.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_3_1.png" src="../_images/tutorials_maximum-likelihood-mapper_3_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">maria</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span>
@@ -495,9 +468,9 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:03:43.325 INFO: Initializing observation 1/1
-Constructing atmosphere: 100%|██████████| 1/1 [00:01&lt;00:00,  1.37s/it]
-2026-10-19 21:03:47.146 INFO: Initialized observation 1/1 in 3.814 s
+2026-10-20 01:28:19.313 INFO: Initializing observation 1/1
+Constructing atmosphere: 100%|██████████| 1/1 [00:00&lt;00:00,  1.12it/s]
+2026-10-20 01:28:22.468 INFO: Initialized observation 1/1 in 3.148 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -539,7 +512,7 @@ Simulation
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tods</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -552,25 +525,25 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:03:47.504 INFO: Simulating observation 1 of 1
-Generating turbulence: 100%|██████████| 1/1 [00:00&lt;00:00, 10.39it/s]
-Sampling turbulence: 100%|██████████| 1/1 [00:01&lt;00:00,  1.20s/it]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  4.47it/s, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:08&lt;00:00,  8.62s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.05it/s, band=f150]
-2026-10-19 21:04:04.706 INFO: Simulated observation 1 of 1 in 17.19 s
+2026-10-20 01:28:22.824 INFO: Simulating observation 1 of 1
+Generating turbulence: 100%|██████████| 1/1 [00:00&lt;00:00, 10.18it/s]
+Sampling turbulence: 100%|██████████| 1/1 [00:01&lt;00:00,  1.12s/it]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  4.67it/s, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:05&lt;00:00,  5.65s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.13it/s, band=f150]
+2026-10-20 01:28:33.837 INFO: Simulated observation 1 of 1 in 11.01 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_6_1.png" src="../_images/tutorials_maximum-likelihood-mapper_6_1.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_5_1.png" src="../_images/tutorials_maximum-likelihood-mapper_5_1.png" />
 </div>
 </div>
 <p>We can map the <code class="docutils literal notranslate"><span class="pre">TOD</span></code> with the <code class="docutils literal notranslate"><span class="pre">MaximumLikelihoodMapper</span></code></p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaximumLikelihoodMapper</span>
@@ -590,17 +563,17 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:04:08.458 INFO: Inferring resolution = 10.5” from detector FWHM
-2026-10-19 21:04:09.892 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.26ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.36”&#39;} for mapper
-2026-10-19 21:04:09.897 INFO: Inferring mapper height 1.25° to match supplied width
-2026-10-19 21:04:20.342 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:10&lt;00:00, 10.40s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.82s/it]
+2026-10-20 01:28:37.418 INFO: Inferring resolution = 10.5” from detector FWHM
+2026-10-20 01:28:38.595 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.26ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.36”&#39;} for mapper
+2026-10-20 01:28:38.601 INFO: Inferring mapper height 1.25° to match supplied width
+2026-10-20 01:28:43.093 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:04&lt;00:00,  4.17s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.15s/it]
 </pre></div></div>
 </div>
 <p>The initial solution is just a binning of the data, which has some noise artifacts and is missing some power (especially at large scales):</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_residual_map</span>
@@ -620,8 +593,8 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;
 <div class="highlight"><pre>
 ProjectionMap:
   data(1, 428, 428):
-    min: -1.624e-04
-    max: 1.581e-04
+    min: -1.712e-04
+    max: 1.576e-04
     units: compton_y
     quantity: compton_y
   nu(1):
@@ -644,19 +617,19 @@ ProjectionMap:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_10_1.png" src="../_images/tutorials_maximum-likelihood-mapper_10_1.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_9_1.png" src="../_images/tutorials_maximum-likelihood-mapper_9_1.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_10_2.png" src="../_images/tutorials_maximum-likelihood-mapper_10_2.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_9_2.png" src="../_images/tutorials_maximum-likelihood-mapper_9_2.png" />
 </div>
 </div>
 <p>To improve the map, we build a noise model perform conjugate gradient descent to solve the mapmaking equation <span class="math notranslate nohighlight">\(m = (P^\top N^{-1} P)^{-1} P^\top N^{-1} d\)</span> where <span class="math notranslate nohighlight">\(m\)</span> is the map, <span class="math notranslate nohighlight">\(P\)</span> is the pointing matrix, <span class="math notranslate nohighlight">\(N = \langle n \otimes n \rangle\)</span> is the noise covariance, <span class="math notranslate nohighlight">\(d = Pm + n\)</span> is the data, and <span class="math notranslate nohighlight">\(n\)</span> is the noise.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_steps_per_epoch</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -668,15 +641,15 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.22s/it, tod=1/1]
-Fitting map (epoch 1/2): 100%|██████████| 50/50 [01:18&lt;00:00,  1.57s/it, alpha=1.92]
+Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.45s/it, tod=1/1]
+Fitting map (epoch 1/2): 100%|██████████| 50/50 [01:11&lt;00:00,  1.44s/it, alpha=1.8]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_12_1.png" src="../_images/tutorials_maximum-likelihood-mapper_12_1.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_11_1.png" src="../_images/tutorials_maximum-likelihood-mapper_11_1.png" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -684,19 +657,19 @@ Fitting map (epoch 1/2): 100%|██████████| 50/50 [01:18&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.93s/it, tod=1/1]
-Fitting map (epoch 2/2): 100%|██████████| 50/50 [01:18&lt;00:00,  1.58s/it, alpha=1.64]
+Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.50s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 50/50 [01:11&lt;00:00,  1.44s/it, alpha=1.61]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_12_3.png" src="../_images/tutorials_maximum-likelihood-mapper_12_3.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_11_3.png" src="../_images/tutorials_maximum-likelihood-mapper_11_3.png" />
 </div>
 </div>
 The map solution will improve and recover more large-scale signals as it continues to fit. Our residuals now look like<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">maria.mappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_residual_map</span>
@@ -710,12 +683,12 @@ The map solution will improve and recover more large-scale signals as it continu
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_14_0.png" src="../_images/tutorials_maximum-likelihood-mapper_14_0.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_13_0.png" src="../_images/tutorials_maximum-likelihood-mapper_13_0.png" />
 </div>
 </div>
 <p>and our inverse variance map looks like</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ml_mapper</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="s2">"weight"</span><span class="p">)</span>
@@ -726,7 +699,7 @@ The map solution will improve and recover more large-scale signals as it continu
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorials_maximum-likelihood-mapper_16_0.png" src="../_images/tutorials_maximum-likelihood-mapper_16_0.png" />
+<img alt="../_images/tutorials_maximum-likelihood-mapper_15_0.png" src="../_images/tutorials_maximum-likelihood-mapper_15_0.png" />
 </div>
 </div>
 </section>

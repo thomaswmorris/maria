@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Compute a transfer function" href="transfer-functions.html"><link rel="prev" title="Maximum likelihood mapmaking" href="maximum-likelihood-mapper.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>Observing the CMB - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -416,14 +416,15 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 20:59:27.157 INFO: Initializing observation 1/2
-2026-10-19 20:59:27.539 INFO: Initialized observation 1/2 in 375.8 ms
-2026-10-19 20:59:27.539 INFO: Initializing observation 2/2
-2026-10-19 20:59:27.606 INFO: Initialized observation 2/2 in 59.97 ms
-Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-10-19 20:59:28.832 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
+2026-10-20 01:24:15.753 INFO: Initializing observation 1/2
+2026-10-20 01:24:16.141 INFO: Initialized observation 1/2 in 381.2 ms
+2026-10-20 01:24:16.141 INFO: Initializing observation 2/2
+2026-10-20 01:24:16.199 INFO: Initialized observation 2/2 in 52.34 ms
+Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-10-20 01:24:17.427 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
 
-Downloading: |          | 3.72M/? [00:00&lt;00:00, 90.4MB/s]
-Generating CMB (nside=1024): 100%|██████████| 1/1 [00:08&lt;00:00,  8.69s/it]
+Downloading:   0%|          | 0.00/1.17M [00:00&lt;?, ?B/s]
+Downloading: |          | 3.72M/? [00:00&lt;00:00, 33.8MB/s]
+Generating CMB (nside=1024): 100%|██████████| 1/1 [00:08&lt;00:00,  8.73s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -488,14 +489,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 20:59:36.820 INFO: Simulating observation 1 of 2
-Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:13&lt;00:00,  6.82s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  2.77it/s, band=act/pa5/f150]
-2026-10-19 20:59:51.370 INFO: Simulated observation 1 of 2 in 14.54 s
-2026-10-19 20:59:51.371 INFO: Simulating observation 2 of 2
-Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:12&lt;00:00,  6.46s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  7.30it/s, band=act/pa5/f150]
-2026-10-19 21:00:04.727 INFO: Simulated observation 2 of 2 in 13.35 s
+2026-10-20 01:24:25.440 INFO: Simulating observation 1 of 2
+Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:13&lt;00:00,  6.78s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  3.42it/s, band=act/pa5/f150]
+2026-10-20 01:24:39.946 INFO: Simulated observation 1 of 2 in 14.5 s
+2026-10-20 01:24:39.946 INFO: Simulating observation 2 of 2
+Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:12&lt;00:00,  6.45s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  7.50it/s, band=act/pa5/f150]
+2026-10-20 01:24:53.269 INFO: Simulated observation 2 of 2 in 13.32 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -533,12 +534,12 @@ Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  7.3
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:00:08.972 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
-2026-10-19 21:00:08.979 INFO: Inferring mapper width 3.61° for mapper from observation patch
-2026-10-19 21:00:08.980 INFO: Inferring mapper height 3.61° to match supplied width
-2026-10-19 21:00:09.216 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  5.96it/s]
-Mapping: 100%|██████████| 2/2 [00:00&lt;00:00,  2.07it/s, tod=1/2]
+2026-10-20 01:24:57.016 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
+2026-10-20 01:24:57.023 INFO: Inferring mapper width 3.61° for mapper from observation patch
+2026-10-20 01:24:57.024 INFO: Inferring mapper height 3.61° to match supplied width
+2026-10-20 01:24:57.439 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  6.45it/s]
+Mapping: 100%|██████████| 2/2 [00:00&lt;00:00,  2.18it/s, tod=1/2]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -570,12 +571,12 @@ Mapping: 100%|██████████| 2/2 [00:00&lt;00:00,  2.07it/s, to
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:00:13.135 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
-2026-10-19 21:00:13.143 INFO: Inferring mapper width 3.592° for mapper from observation patch
-2026-10-19 21:00:13.143 INFO: Inferring mapper height 3.592° to match supplied width
-2026-10-19 21:00:13.382 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  7.41it/s]
-Computing pointing matrices: 100%|██████████| 2/2 [00:03&lt;00:00,  1.86s/it]
+2026-10-20 01:25:01.239 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
+2026-10-20 01:25:01.247 INFO: Inferring mapper width 3.592° for mapper from observation patch
+2026-10-20 01:25:01.247 INFO: Inferring mapper height 3.592° to match supplied width
+2026-10-20 01:25:01.479 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  7.61it/s]
+Computing pointing matrices: 100%|██████████| 2/2 [00:02&lt;00:00,  1.47s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -594,7 +595,7 @@ Computing pointing matrices: 100%|██████████| 2/2 [00:03&lt;
 <div class="highlight"><pre>
 ProjectionMap:
   data(3, 2, 215, 215):
-    min: -1.542e+03
+    min: -1.543e+03
     max: 1.678e+03
     units: uK_CMB
     quantity: cmb_temperature_anisotropy
@@ -639,8 +640,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 2/2 [00:04&lt;00:00,  2.27s/it, tod=2/2]
-Fitting map (epoch 1/1): 100%|██████████| 50/50 [02:14&lt;00:00,  2.68s/it, alpha=1.82e+8]
+Updating noise model: 100%|██████████| 2/2 [00:03&lt;00:00,  1.90s/it, tod=2/2]
+Fitting map (epoch 1/1): 100%|██████████| 50/50 [02:08&lt;00:00,  2.57s/it, alpha=1.83e+8]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

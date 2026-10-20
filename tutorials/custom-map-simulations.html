@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Polarized observations" href="polarized-observations.html"><link rel="prev" title="Tutorials" href="../tutorials.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>Custom map simulations - maria</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -404,8 +404,8 @@ Site:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:02:49.596 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
-Downloading: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 115MB/s]
+2026-10-20 01:27:29.862 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/world_heightmap.h5
+Downloading: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 39.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -440,8 +440,8 @@ Downloading: 100%|██████████| 7.34M/7.34M [00:00&lt;00:00, 1
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:02:50.883 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/30dor.fits
-Downloading: 100%|██████████| 259k/259k [00:00&lt;00:00, 11.6MB/s]
+2026-10-20 01:27:31.092 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/30dor.fits
+Downloading: 100%|██████████| 259k/259k [00:00&lt;00:00, 5.07MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -542,16 +542,16 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:02:56.133 INFO: Initializing observation 1/2
-2026-10-19 21:02:57.186 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/v2/chajnantor.h5
-Downloading: 100%|██████████| 15.6M/15.6M [00:00&lt;00:00, 171MB/s]
-2026-10-19 21:02:57.716 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v4/chajnantor.h5
-Downloading: 100%|██████████| 62.2M/62.2M [00:00&lt;00:00, 273MB/s]
-Constructing atmosphere: 100%|██████████| 2/2 [00:00&lt;00:00,  6.81it/s]
-2026-10-19 21:02:59.984 INFO: Initialized observation 1/2 in 3.843 s
-2026-10-19 21:02:59.985 INFO: Initializing observation 2/2
-Constructing atmosphere: 100%|██████████| 2/2 [00:00&lt;00:00,  5.92it/s]
-2026-10-19 21:03:02.105 INFO: Initialized observation 2/2 in 2.112 s
+2026-10-20 01:27:35.963 INFO: Initializing observation 1/2
+2026-10-20 01:27:36.737 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/weather/era5/v2/chajnantor.h5
+Downloading: 100%|██████████| 15.6M/15.6M [00:00&lt;00:00, 64.4MB/s]
+2026-10-20 01:27:37.399 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/atmosphere/spectra/am/v4/chajnantor.h5
+Downloading: 100%|██████████| 62.2M/62.2M [00:00&lt;00:00, 166MB/s]
+Constructing atmosphere: 100%|██████████| 2/2 [00:00&lt;00:00,  6.65it/s]
+2026-10-20 01:27:39.886 INFO: Initialized observation 1/2 in 3.915 s
+2026-10-20 01:27:39.886 INFO: Initializing observation 2/2
+Constructing atmosphere: 100%|██████████| 2/2 [00:00&lt;00:00,  6.02it/s]
+2026-10-20 01:27:41.916 INFO: Initialized observation 2/2 in 2.022 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -611,20 +611,20 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:03:02.594 INFO: Simulating observation 1 of 2
-Generating turbulence: 100%|██████████| 2/2 [00:00&lt;00:00, 35.96it/s]
-Sampling turbulence: 100%|██████████| 2/2 [00:01&lt;00:00,  1.61it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:00&lt;00:00,  7.51it/s, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:04&lt;00:00,  2.26s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  4.37it/s, band=f150]
-2026-10-19 21:03:10.312 INFO: Simulated observation 1 of 2 in 7.712 s
-2026-10-19 21:03:10.313 INFO: Simulating observation 2 of 2
-Generating turbulence: 100%|██████████| 2/2 [00:00&lt;00:00, 36.39it/s]
-Sampling turbulence: 100%|██████████| 2/2 [00:01&lt;00:00,  1.80it/s]
-Computing atmospheric emission: 100%|██████████| 2/2 [00:00&lt;00:00, 10.11it/s, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:01&lt;00:00,  1.76it/s, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00, 10.83it/s, band=f150]
-2026-10-19 21:03:14.157 INFO: Simulated observation 2 of 2 in 3.839 s
+2026-10-20 01:27:42.397 INFO: Simulating observation 1 of 2
+Generating turbulence: 100%|██████████| 2/2 [00:00&lt;00:00, 35.74it/s]
+Sampling turbulence: 100%|██████████| 2/2 [00:01&lt;00:00,  1.72it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:00&lt;00:00,  8.04it/s, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:04&lt;00:00,  2.05s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  3.42it/s, band=f150]
+2026-10-20 01:27:49.670 INFO: Simulated observation 1 of 2 in 7.267 s
+2026-10-20 01:27:49.671 INFO: Simulating observation 2 of 2
+Generating turbulence: 100%|██████████| 2/2 [00:00&lt;00:00, 36.21it/s]
+Sampling turbulence: 100%|██████████| 2/2 [00:01&lt;00:00,  1.96it/s]
+Computing atmospheric emission: 100%|██████████| 2/2 [00:00&lt;00:00,  9.95it/s, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 2/2 [00:01&lt;00:00,  1.83it/s, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00, 11.85it/s, band=f150]
+2026-10-20 01:27:53.277 INFO: Simulated observation 2 of 2 in 3.6 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -632,7 +632,7 @@ Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00, 10.8
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-10-19T21:03:09.264768+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;effective_temperature&#39;: 233.58}), TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-10-19T21:03:13.119013+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;effective_temperature&#39;: 233.584})]
+[TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:41:14.899 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-10-20T01:27:48.683515+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;effective_temperature&#39;: 233.58}), TOD(shape=(328, 6000), fields=[&#39;atmosphere&#39;, &#39;map&#39;, &#39;noise&#39;], units=&#39;uK_RJ&#39;, start=2024-08-07 01:51:52.399 +00:00, duration=599.9s, sample_rate=10.0Hz, metadata={&#39;atmosphere&#39;: True, &#39;sim_time&#39;: &lt;Arrow [2026-10-20T01:27:52.334265+00:00]&gt;, &#39;altitude&#39;: 5065.0, &#39;region&#39;: &#39;chajnantor&#39;, &#39;pwv&#39;: 0.5, &#39;effective_temperature&#39;: 233.584})]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -681,10 +681,10 @@ Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00, 10.8
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-19 21:03:19.355 INFO: Inferring resolution = 5.249” from detector FWHM
-2026-10-19 21:03:21.456 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 2/2 [00:02&lt;00:00,  1.25s/it]
-Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.93it/s, tod=1/2]
+2026-10-20 01:27:58.184 INFO: Inferring resolution = 5.249” from detector FWHM
+2026-10-20 01:28:00.028 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:02&lt;00:00,  1.14s/it]
+Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.98it/s, tod=1/2]
 </pre></div></div>
 </div>
 <p>We can see the recovered map with</p>
