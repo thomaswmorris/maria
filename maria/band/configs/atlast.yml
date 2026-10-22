@@ -28,6 +28,16 @@ f042:
   NEP: 3.e-17 # W / sqrt(s)
   knee: 1.0 # Hz
 
+f044:
+  center: 44.e+9
+  width: 16.e+9
+  shape: top_hat
+  time_constant: 0
+  efficiency: 0.5
+  gain_error: 5.e-2
+  NEP: 3.e-17 # W / sqrt(s)
+  knee: 1.0 # Hz
+
 f093:
   center: 91.5e+9
   width: 51.e+9
