@@ -102,3 +102,393 @@ AtLAST-SZ_mini:
       polarized: True,
       bands: [atlast/f650, atlast/f850]
   documentation: https://www.atlast.uio.no/
+
+
+AtLASTCam-37:
+  aliases: ["atlastcam-37"]
+  description: 37 modules
+  documentation: https://www.atlast.uio.no/
+  arrays:
+# central cam
+    ws0:
+      key: atlastcam/wafer_uhi_37
+      focal_plane_offset: [0.0, 0.0] 
+# 2nd circle
+    ws1:
+      key: atlastcam/wafer_hi_37
+      focal_plane_offset: [0.0, +0.285714]
+    ws2:
+      key: atlastcam/wafer_hi_37
+      focal_plane_offset: [0.0, -0.285714]
+    ws3:
+      key: atlastcam/wafer_hi_37
+      focal_plane_offset: [+0.2474356,+0.142857]
+    ws4:
+      key: atlastcam/wafer_hi_37
+      focal_plane_offset: [-0.2474356,+0.142857]
+    ws5:
+      key: atlastcam/wafer_hi_37
+      focal_plane_offset: [+0.2474356,-0.142857]
+    ws6:
+      key: atlastcam/wafer_hi_37
+      focal_plane_offset: [-0.2474356,-0.142857] 
+# 3rd circle
+    ws7:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [-0.2474356,-0.428571]
+    ws8:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [+0.2474356,-0.428571]
+    ws9:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [-0.2474356,+0.428571]
+    ws10:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [+0.2474356,+0.428571]
+    ws11:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [-0.494871,-0.0]
+    ws12:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [+0.494871,-0.0]
+    ws13:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [-0.494871,+0.285714]
+    ws14:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [+0.494871,+0.285714]
+    ws15:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [-0.494871,-0.285714]
+    ws16:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [+0.494871,-0.285714]
+    ws17:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [0.0, +0.571428]
+    ws18:
+      key: atlastcam/wafer_med_37
+      focal_plane_offset: [0.0, -0.571428] 
+# 4th circle
+    ws19:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [-0.2474356,-0.714285]
+    ws20:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [+0.2474356,-0.714285]
+    ws21:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [-0.2474356,+0.714285]
+    ws22:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [+0.2474356,+0.714285]
+    ws23:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [-0.494871,+0.571428]
+    ws24:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [+0.494871,+0.571428]
+    ws25:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [-0.494871,-0.571428]
+    ws26:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [+0.494871,-0.571428]
+    ws27:
+      key: atlastcam/wafer_ulo_37
+      focal_plane_offset: [0.0, +0.857142]
+    ws28:
+      key: atlastcam/wafer_ulo_37
+      focal_plane_offset: [0.0, -0.857142] 
+    ws29:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [-0.742307,-0.142857]
+    ws30:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [+0.742307,-0.142857]
+    ws31:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [-0.742307,+0.142857]
+    ws32:
+      key: atlastcam/wafer_lo_37
+      focal_plane_offset: [+0.742307,+0.142857]
+    ws33:
+      key: atlastcam/wafer_ulo_37
+      focal_plane_offset: [-0.742307,-0.428571]
+    ws34:
+      key: atlastcam/wafer_ulo_37
+      focal_plane_offset: [+0.742307,-0.428571]
+    ws35:
+      key: atlastcam/wafer_ulo_37
+      focal_plane_offset: [-0.742307,+0.428571]
+    ws36:
+      key: atlastcam/wafer_ulo_37
+      focal_plane_offset: [+0.742307,+0.428571] 
+
+
+
+AtLASTCam-85:
+  aliases: ["atlastcam-85"]
+  description: designed to be 85 modules like Gallardo 2024
+  documentation: https://www.atlast.uio.no/
+  arrays:
+# inner camera
+    ws0:
+      key: atlastcam/wafer_uhi
+      focal_plane_offset: [0.0, 0.0] 
+# 2nd circle
+    ws1:
+      key: atlastcam/wafer_hi
+      focal_plane_offset: [0.0, +0.2]
+    ws2:
+      key: atlastcam/wafer_hi
+      focal_plane_offset: [0.0, -0.2]
+    ws3:
+      key: atlastcam/wafer_hi
+      focal_plane_offset: [+0.1732,+0.1]
+    ws4:
+      key: atlastcam/wafer_hi
+      focal_plane_offset: [-0.1732,+0.1]
+    ws5:
+      key: atlastcam/wafer_hi
+      focal_plane_offset: [+0.1732,-0.1]
+    ws6:
+      key: atlastcam/wafer_hi
+      focal_plane_offset: [-0.1732,-0.1]
+# 3rd circle
+    ws7:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [-0.1732,-0.3]
+    ws8:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [+0.1732,-0.3]
+    ws9:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [-0.1732,+0.3]
+    ws10:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [+0.1732,+0.3]
+    ws11:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [-0.3464,-0.0]
+    ws12:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [+0.3464,-0.0]
+    ws13:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [-0.3464,+0.2]
+    ws14:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [+0.3464,+0.2]
+    ws15:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [-0.3464,-0.2]
+    ws16:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [+0.3464,-0.2]
+    ws17:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [0.0, +0.4]
+    ws18:
+      key: atlastcam/wafer_med
+      focal_plane_offset: [0.0, -0.4] 
+# 4th circle
+    ws19:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.1732,-0.5]
+    ws20:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.1732,-0.5]
+    ws21:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.1732,+0.5]
+    ws22:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.1732,+0.5]
+    ws23:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.3464,+0.4]
+    ws24:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.3464,+0.4]
+    ws25:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.3464,-0.4]
+    ws26:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.3464,-0.4]
+    ws27:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [0.0, +0.6]
+    ws28:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [0.0, -0.6] 
+    ws29:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,-0.1]
+    ws30:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,-0.1]
+    ws31:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,+0.1]
+    ws32:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,+0.1]
+    ws33:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,-0.3]
+    ws34:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,-0.3]
+    ws35:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,+0.3]
+    ws36:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,+0.3] 
+# 5th circle
+    ws37:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.692820,-0.0]
+    ws38:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.692820,-0.0]
+    ws39:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.692820,+0.2]
+    ws40:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.692820,+0.2]
+    ws41:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.692820,-0.2]
+    ws42:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.692820,-0.2]
+    ws43:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.692820,+0.4]
+    ws44:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.692820,+0.4]
+    ws45:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.692820,-0.4]
+    ws46:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.692820,-0.4]
+    ws47:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,-0.5]
+    ws48:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,-0.5]
+    ws49:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,+0.5]
+    ws50:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,+0.5] 
+    ws51:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.3464,+0.6]
+    ws52:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.3464,+0.6]
+    ws53:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.3464,-0.6]
+    ws54:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.3464,-0.6]
+    ws55:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.1732,-0.7]
+    ws56:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.1732,-0.7]
+    ws57:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.1732,+0.7]
+    ws58:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.1732,+0.7]
+    ws59:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [0.0, +0.8]
+    ws60:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [0.0, -0.8] 
+    ws61:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [-0.1732,+0.9]
+    ws62:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [+0.1732,+0.9]
+    ws63:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.3464,+0.8]
+    ws64:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.3464,+0.8]
+    ws65:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,+0.7]
+    ws66:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,+0.7] 
+    ws67:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [-0.692820,+0.6]
+    ws68:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [+0.692820,+0.6]
+    ws69:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.866025,-0.1]
+    ws70:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.866025,+0.1]
+    ws71:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [+0.866025,-0.3]
+    ws72:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [+0.866025,+0.3]
+    ws73:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.866025,-0.1]
+    ws74:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.866025,+0.1]
+    ws75:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [-0.866025,-0.3]
+    ws76:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [-0.866025,+0.3]
+    ws77:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [-0.692820,-0.6]
+    ws78:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [+0.692820,-0.6]
+    ws79:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.519615,-0.7]
+    ws80:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.519615,-0.7] 
+    ws81:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [-0.3464,-0.8]
+    ws82:
+      key: atlastcam/wafer_lo
+      focal_plane_offset: [+0.3464,-0.8]
+    ws83:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [-0.1732,-0.9]
+    ws84:
+      key: atlastcam/wafer_ulo
+      focal_plane_offset: [+0.1732,-0.9]
