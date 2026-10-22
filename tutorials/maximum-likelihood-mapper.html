@@ -314,8 +314,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:39:24.405 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
-Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 263MB/s]
+2026-10-22 15:37:19.067 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/maps/cluster2.fits
+Downloading: 100%|██████████| 4.20M/4.20M [00:00&lt;00:00, 39.4MB/s]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -467,9 +467,9 @@ chunk
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:39:31.000 INFO: Initializing observation 1/1
-Constructing atmosphere: 100%|██████████| 1/1 [00:01&lt;00:00,  1.47s/it]
-2026-10-22 15:39:34.805 INFO: Initialized observation 1/1 in 3.798 s
+2026-10-22 15:37:27.404 INFO: Initializing observation 1/1
+Constructing atmosphere: 100%|██████████| 1/1 [00:01&lt;00:00,  1.35s/it]
+2026-10-22 15:37:31.559 INFO: Initialized observation 1/1 in 4.145 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -524,13 +524,13 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:39:35.122 INFO: Simulating observation 1 of 1
-Generating turbulence: 100%|██████████| 1/1 [00:00&lt;00:00, 10.41it/s]
-Sampling turbulence: 100%|██████████| 1/1 [00:01&lt;00:00,  1.18s/it]
-Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  4.60it/s, band=f150]
-Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:08&lt;00:00,  8.62s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.06it/s, band=f150]
-2026-10-22 15:39:52.413 INFO: Simulated observation 1 of 1 in 17.29 s
+2026-10-22 15:37:32.018 INFO: Simulating observation 1 of 1
+Generating turbulence: 100%|██████████| 1/1 [00:00&lt;00:00,  7.48it/s]
+Sampling turbulence: 100%|██████████| 1/1 [00:01&lt;00:00,  1.32s/it]
+Computing atmospheric emission: 100%|██████████| 1/1 [00:00&lt;00:00,  3.83it/s, band=f150]
+Sampling source &#39;map&#39;: 100%|██████████| 1/1 [00:10&lt;00:00, 10.17s/it, band=f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 1/1 [00:01&lt;00:00,  1.17s/it, band=f150]
+2026-10-22 15:37:52.050 INFO: Simulated observation 1 of 1 in 20.02 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -562,12 +562,12 @@ Generating noise: 100%|██████████| 1/1 [00:00&lt;00:00,  1.0
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:39:56.044 INFO: Inferring resolution = 10.5” from detector FWHM
-2026-10-22 15:39:57.460 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.25ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.38”&#39;} for mapper
-2026-10-22 15:39:57.465 INFO: Inferring mapper height 1.25° to match supplied width
-2026-10-22 15:40:08.003 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 1/1 [00:10&lt;00:00, 10.06s/it]
-Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;00:00,  2.64s/it]
+2026-10-22 15:37:56.400 INFO: Inferring resolution = 10.5” from detector FWHM
+2026-10-22 15:37:58.251 INFO: Inferring center {&#39;ra&#39;: &#39;17ʰ20ᵐ0.25ˢ&#39;, &#39;dec&#39;: &#39;-9°59’59.39”&#39;} for mapper
+2026-10-22 15:37:58.259 INFO: Inferring mapper height 1.25° to match supplied width
+2026-10-22 15:38:10.331 INFO: Inferring stokes parameters &#39;I&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 1/1 [00:11&lt;00:00, 11.78s/it]
+Computing pointing matrices: 100%|██████████| 1/1 [00:03&lt;00:00,  3.14s/it]
 </pre></div></div>
 </div>
 <p>The initial solution is just a binning of the data, which has some noise artifacts and is missing some power (especially at large scales):</p>
@@ -592,8 +592,8 @@ Computing pointing matrices: 100%|██████████| 1/1 [00:02&lt;
 <div class="highlight"><pre>
 ProjectionMap:
   data(1, 428, 428):
-    min: -1.923e-04
-    max: 1.669e-04
+    min: -1.596e-04
+    max: 1.620e-04
     units: compton_y
     quantity: compton_y
   nu(1):
@@ -607,7 +607,7 @@ ProjectionMap:
   frame: ra/dec
   center:
     ra: 17ʰ20ᵐ0.25ˢ
-    dec: -9°59’59.38”
+    dec: -9°59’59.39”
   beam(maj, min, psi): (21”, 21”, 0 rad)
   memory: 1.465 MB
 </pre></div></div>
@@ -640,8 +640,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:02&lt;00:00,  2.86s/it, tod=1/1]
-Fitting map (epoch 1/2): 100%|██████████| 50/50 [01:18&lt;00:00,  1.57s/it, alpha=1.8]
+Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.57s/it, tod=1/1]
+Fitting map (epoch 1/2): 100%|██████████| 50/50 [01:33&lt;00:00,  1.87s/it, alpha=1.81]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -656,8 +656,8 @@ Fitting map (epoch 1/2): 100%|██████████| 50/50 [01:18&lt;00
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.39s/it, tod=1/1]
-Fitting map (epoch 2/2): 100%|██████████| 50/50 [01:18&lt;00:00,  1.57s/it, alpha=1.64]
+Updating noise model: 100%|██████████| 1/1 [00:03&lt;00:00,  3.43s/it, tod=1/1]
+Fitting map (epoch 2/2): 100%|██████████| 50/50 [01:33&lt;00:00,  1.87s/it, alpha=1.59]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

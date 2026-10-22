@@ -415,14 +415,14 @@ Instrument(1 array)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:34:55.358 INFO: Initializing observation 1/2
-2026-10-22 15:34:55.839 INFO: Initialized observation 1/2 in 474.4 ms
-2026-10-22 15:34:55.840 INFO: Initializing observation 2/2
-2026-10-22 15:34:55.936 INFO: Initialized observation 2/2 in 86.05 ms
-Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-10-22 15:34:57.405 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
+2026-10-22 15:32:41.667 INFO: Initializing observation 1/2
+2026-10-22 15:32:42.169 INFO: Initialized observation 1/2 in 493.7 ms
+2026-10-22 15:32:42.170 INFO: Initializing observation 2/2
+2026-10-22 15:32:42.267 INFO: Initialized observation 2/2 in 88.29 ms
+Generating CMB (nside=1024):   0%|          | 0/1 [00:00&lt;?, ?it/s]2026-10-22 15:32:43.393 INFO: Fetching https://github.com/thomaswmorris/maria-data/raw/master/cmb/spectra/lensed.csv
 
-Downloading: |          | 3.72M/? [00:00&lt;00:00, 145MB/s]
-Generating CMB (nside=1024): 100%|██████████| 1/1 [00:10&lt;00:00, 10.07s/it]
+Downloading: |          | 3.72M/? [00:00&lt;00:00, 44.9MB/s]
+Generating CMB (nside=1024): 100%|██████████| 1/1 [00:09&lt;00:00,  9.95s/it]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -487,14 +487,14 @@ Simulation
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:35:06.571 INFO: Simulating observation 1 of 2
-Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:17&lt;00:00,  8.59s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  3.48it/s, band=act/pa5/f150]
-2026-10-22 15:35:24.532 INFO: Simulated observation 1 of 2 in 17.95 s
-2026-10-22 15:35:24.533 INFO: Simulating observation 2 of 2
-Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:15&lt;00:00,  7.87s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
-Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  3.71it/s, band=act/pa5/f150]
-2026-10-22 15:35:41.006 INFO: Simulated observation 2 of 2 in 16.47 s
+2026-10-22 15:32:52.912 INFO: Simulating observation 1 of 2
+Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:10&lt;00:00,  5.19s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  2.66it/s, band=act/pa5/f150]
+2026-10-22 15:33:04.289 INFO: Simulated observation 1 of 2 in 11.37 s
+2026-10-22 15:33:04.290 INFO: Simulating observation 2 of 2
+Sampling source &#39;cmb&#39;: 100%|██████████| 2/2 [00:09&lt;00:00,  4.58s/it, band=act/pa5/f150, message=Sampling channel (105 GHz, 195 GHz)]
+Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  5.45it/s, band=act/pa5/f150]
+2026-10-22 15:33:14.011 INFO: Simulated observation 2 of 2 in 9.712 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -532,12 +532,12 @@ Generating noise: 100%|██████████| 2/2 [00:00&lt;00:00,  3.7
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:35:46.063 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
-2026-10-22 15:35:46.071 INFO: Inferring mapper width 3.61° for mapper from observation patch
-2026-10-22 15:35:46.072 INFO: Inferring mapper height 3.61° to match supplied width
-2026-10-22 15:35:46.348 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  5.28it/s]
-Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.84it/s, tod=1/2]
+2026-10-22 15:33:19.473 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
+2026-10-22 15:33:19.484 INFO: Inferring mapper width 3.61° for mapper from observation patch
+2026-10-22 15:33:19.484 INFO: Inferring mapper height 3.61° to match supplied width
+2026-10-22 15:33:19.805 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  4.70it/s]
+Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.32it/s, tod=1/2]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -569,12 +569,12 @@ Mapping: 100%|██████████| 2/2 [00:01&lt;00:00,  1.84it/s, to
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2026-10-22 15:35:50.843 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
-2026-10-22 15:35:50.851 INFO: Inferring mapper width 3.592° for mapper from observation patch
-2026-10-22 15:35:50.852 INFO: Inferring mapper height 3.592° to match supplied width
-2026-10-22 15:35:51.139 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
-Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  6.71it/s]
-Computing pointing matrices: 100%|██████████| 2/2 [00:04&lt;00:00,  2.22s/it]
+2026-10-22 15:33:25.525 INFO: Inferring center {&#39;ra&#39;: &#39;01ʰ37ᵐ19.10ˢ&#39;, &#39;dec&#39;: &#39;-16°09’0.44”&#39;} for mapper
+2026-10-22 15:33:25.535 INFO: Inferring mapper width 3.592° for mapper from observation patch
+2026-10-22 15:33:25.536 INFO: Inferring mapper height 3.592° to match supplied width
+2026-10-22 15:33:25.847 INFO: Inferring stokes parameters &#39;IQU&#39; for mapper from detector sensitivities
+Preprocessing TODs: 100%|██████████| 2/2 [00:00&lt;00:00,  5.85it/s]
+Computing pointing matrices: 100%|██████████| 2/2 [00:04&lt;00:00,  2.21s/it]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -638,8 +638,8 @@ ProjectionMap:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Updating noise model: 100%|██████████| 2/2 [00:05&lt;00:00,  2.77s/it, tod=2/2]
-Fitting map (epoch 1/1): 100%|██████████| 50/50 [02:26&lt;00:00,  2.94s/it, alpha=1.82e+8]
+Updating noise model: 100%|██████████| 2/2 [00:05&lt;00:00,  2.86s/it, tod=2/2]
+Fitting map (epoch 1/1): 100%|██████████| 50/50 [02:32&lt;00:00,  3.05s/it, alpha=1.83e+8]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
