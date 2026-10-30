@@ -358,7 +358,7 @@ class Map:
         """
         Returns the beam area in steradians
         """
-        area = (np.pi / 4) * self.beam[..., 0].radians * self.beam[..., 1].radians
+        area = np.pi / (4 * np.log(2)) * self.beam[..., 0].radians * self.beam[..., 1].radians
         area = np.expand_dims(area, axis=(-1, -2)[: len(self.map_dims)])
         return Quantity(area, "sr")
 
