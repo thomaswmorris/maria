@@ -18,9 +18,10 @@ class NoiseMixin:
     def _simulate_noise(self, obs):
 
         noise_loading = np.zeros(shape=obs.shape, dtype=self.dtype)
+        dets = obs.instrument.dets
 
         bands_pbar = tqdm(
-            obs.instrument.dets.bands,
+            dets.bands,
             desc="Generating noise",
             disable=self.disable_progress_bars,
             bar_format=DEFAULT_BAR_FORMAT,
@@ -30,13 +31,13 @@ class NoiseMixin:
         for band in bands_pbar:
             bands_pbar.set_postfix({"band": band.name})
 
-            band_mask = obs.instrument.dets.band_name == band.name
+            band_mask = dets.band_name == band.name
 
-            total_NEP = band.NEP.to("W√s") + band.NEP_per_loading.to("W√s") * sum(
+            total_NEP = dets.NEP[band_mask][:, None] + band.NEP_per_loading.to("W√s") * sum(
                 [d[band_mask].compute() for d in obs.loading.values()]
             )
 
-            band_offsets = obs.instrument.dets.offsets[band_mask]
+            band_offsets = dets.offsets[band_mask]
             fov = compute_diameter(band_offsets)
 
             if (fov > 0) and (band_mask.sum() > 16):

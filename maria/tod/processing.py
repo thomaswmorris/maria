@@ -97,7 +97,7 @@ def process_tod(tod, config=None, **kwargs):
     config = validate_process_config(config or process_operation_kwargs(**kwargs))
 
     D = tod.signal.compute()
-    W = np.ones(D.shape)
+    W = np.array(tod.weight, dtype=float)
 
     n_dets, n_samples = D.shape
 
@@ -153,8 +153,9 @@ def process_tod(tod, config=None, **kwargs):
     if "window" in config:
         window_start_s = ttime.monotonic()
         window_function = getattr(sp.signal.windows, config["window"]["name"])
-        W *= window_function(D.shape[-1], **config["window"].get("kwargs", {}))
-        D *= W
+        window = window_function(D.shape[-1], **config["window"].get("kwargs", {}))
+        W *= window
+        D *= window
         logger.debug(f'Completed tod operation "window" in {humanize_time(ttime.monotonic() - window_start_s)}.')
         if np.isnan(D).any():
             raise ValueError("tod operation 'window' introduced NaNs")
