@@ -51,3 +51,19 @@ The ``Instrument`` is based on a list of arrays (see :ref:`arrays`), which are i
     array2 = "act/pa5"
 
     my_instrument = Instrument(arrays=[array1, array2])
+
+
+Saving and loading instruments
+------------------------------
+
+We can save an instrument (all of its arrays, detectors, and bands) to a FITS file with
+
+.. code-block:: python
+
+    my_instrument.to_fits("my_instrument.fits")
+
+and load it back with
+
+.. code-block:: python
+
+    my_instrument = Instrument.from_fits("my_instrument.fits")

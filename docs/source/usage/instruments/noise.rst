@@ -42,8 +42,17 @@ Since the sensitivity on the sky in temperature units depends on both the instru
                    efficiency=0.5,
                    NET_RJ=1e-5, # in K_RJ√s
                    spectrum_kwargs={"region": "chajnantor", 
-                                    "zenith_pwv": 1e0, # in mm
+                                    "pwv": 1e0, # in mm
                                     "elevation": 45}) # in degrees
+
+
+++++++++++++++++++
+Per-detector noise
+++++++++++++++++++
+
+The noise level of a band applies to every detector in that band, unless the detectors have their own sensitivities (see
+:ref:`arrays`). Simulated TODs are weighted by the inverse noise variance of each detector (relative to the median detector
+in its band), so that noisy detectors count less when we make maps.
 
 
 +++++++++++++++
