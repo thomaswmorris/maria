@@ -101,5 +101,3 @@ wafer_ulo_37:
   shape: hexagon
   bands: [atlast/f027, atlast/f044]
   polarized: True
-
-
