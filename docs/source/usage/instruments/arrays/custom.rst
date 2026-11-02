@@ -40,18 +40,4 @@ Each detector can also have its own sensitivity, by supplying a per-detector ``N
 ``NET_CMB`` (in K_CMB√s), or ``NEFD`` (in Jy√s, for a point source). These are converted to an NEP for each detector
 using its band (see :ref:`noise`).
 
-
-Loading detectors from a file
------------------------------
-
-We can also load the detectors from a table, where each column is a per-detector parameter. Headerless tables (separated
-by commas or whitespace) need the ``columns`` parameter, and the ``units`` parameter converts each column from the given
-units. For a table with azimuth and elevation offsets in arcseconds and a sensitivity in mJy√s for each detector, we can do
-
-.. code-block:: python
-
-    array = {"file": "sensitivity.dat",
-             "columns": ["xi", "eta", "NEFD"],
-             "units": {"xi": "arcsec", "eta": "arcsec", "NEFD": "mJy√s"},
-             "bands": [my_band],
-             "primary_size": 12}
+All of these parameters can also be loaded from a table of detectors (see :ref:`loading-instruments`).
