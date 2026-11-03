@@ -596,6 +596,12 @@ class Array:
                 raise ValueError("Detector sensitivities must be finite and positive.")
             dets.loc[:, "NEP"] = NEP
 
+        # a band with a NaN NEP leaves the noise level to its detectors, so they all need one
+        has_NEP = dets.NEP.notna().values if "NEP" in dets.columns else np.zeros(len(dets), dtype=bool)
+        for band in bands:
+            if np.isnan(band.NEP.to("W√s")) and not has_NEP[dets.band_name.values == band.name].all():
+                raise ValueError(f"Band '{band.name}' has no noise level, so each of its detectors needs a sensitivity.")
+
         for col in dets.columns:
             dets[col] = dets[col].astype(DET_COLUMN_TYPES.get(col, str))
 

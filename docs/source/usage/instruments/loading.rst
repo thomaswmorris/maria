@@ -27,9 +27,11 @@ We can make an instrument from this table with
 
 .. code-block:: python
 
+    import numpy as np
     from maria import Band, Instrument
 
-    my_band = Band(name="my_band", center=350e9, width=38e9, efficiency=0.5)
+    # each detector has its own sensitivity, so the band doesn't need one
+    my_band = Band(name="my_band", center=350e9, width=38e9, efficiency=0.5, NEP=np.nan)
 
     array = {"name": "my_array",
              "file": "my_detectors.dat",
@@ -47,7 +49,8 @@ We can make an instrument from this table with
 Tables with a header row of parameter names don't need ``columns``. Without ``units``, offsets are in degrees, and
 sensitivities are in W√s (``NEP``), K_RJ√s (``NET_RJ``), K_CMB√s (``NET_CMB``), or Jy√s (``NEFD``, assuming a Gaussian
 beam). Each sensitivity is converted to an NEP using the band of its detector (see :ref:`noise`), so an array with more than
-one band needs a ``band_name`` column.
+one band needs a ``band_name`` column. Without ``NEP=np.nan``, the band would assume (and warn about) a default noise
+level, which would only be used for detectors without their own sensitivity.
 
 
 Saving and loading

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from maria.instrument import Instrument
+from maria.units import Quantity
 
 plt.close("all")
 
@@ -101,3 +102,14 @@ def test_instrument_fits_round_trip_with_spectrum(tmp_path):
     )
     instrument = maria.get_instrument(array={"n": 100, "field_of_view": 0.1, "primary_size": 5, "bands": [band]})
     assert_fits_round_trip(instrument, tmp_path / "instrument.fits")
+
+
+def test_instrument_repr_shows_median_detector():
+    band = maria.Band(name="f150", center=150e9, width=30e9, NEP=np.nan)
+    NEP = np.geomspace(1e-17, 1e-16, 65)
+    offsets = np.random.uniform(low=0, high=0.1, size=(65, 2))
+    array = {"bands": [band], "primary_size": 5, "xi": offsets[:, 0], "eta": offsets[:, 1], "NEP": NEP}
+    instrument = Instrument(arrays=[array])
+
+    assert str(Quantity(np.median(NEP), "W√s")) in repr(instrument)
+    assert np.isnan(band.NEP.to("W√s"))

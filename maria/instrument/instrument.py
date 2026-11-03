@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import glob
 import json
 import os
@@ -211,8 +212,15 @@ class Instrument:
         #     self.units = "degrees"
 
     def __repr__(self):
-        band_summary = self.arrays.bands.summary()
-        band_summary.loc[:, "FWHM"] = [Quantity(self.dets(band=b.name).fwhm.mean(), "rad") for b in self.bands]
+        dets = self.dets
+        band_summaries = []
+        for band in self.bands:
+            band_dets = dets(band=band.name)
+            # detectors can have their own sensitivities, so we show those of the median detector
+            median_band = copy.copy(band)
+            median_band.NEP = Quantity(np.median(band_dets.NEP), "W√s")
+            band_summaries.append({**median_band.summary(), "FWHM": Quantity(band_dets.fwhm.mean(), "rad")})
+        band_summary = pd.DataFrame(band_summaries)
 
         arrays_repr = "\n".join([f"│  {s}" for s in str(self.arrays.summary().__repr__()).split("\n")])
         bands_repr = "\n".join([f"   {s}" for s in str(band_summary.__repr__()).split("\n")])

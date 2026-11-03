@@ -89,3 +89,14 @@ def test_per_detector_sensitivity():
             eta=offsets[:, 1],
             NET_RJ=np.full(100, 5e-5),
         )
+
+
+def test_band_without_noise_level():
+    band = maria.Band(name="f150", center=150e9, width=30e9, NEP=np.nan)
+    offsets = np.random.uniform(low=0, high=1, size=(100, 2))
+    array = {"bands": [band], "primary_size": 5, "xi": offsets[:, 0], "eta": offsets[:, 1]}
+
+    # the detectors supply the noise level, so they all need one
+    assert np.all(maria.Array.from_kwargs(**array, NEP=np.full(100, 1e-17)).NEP == 1e-17)
+    with pytest.raises(ValueError):
+        maria.Array.from_kwargs(**array)

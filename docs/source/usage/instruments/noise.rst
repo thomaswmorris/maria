@@ -51,7 +51,8 @@ Per-detector noise
 ++++++++++++++++++
 
 The noise level of a band applies to every detector in that band, unless the detectors have their own sensitivities (see
-:ref:`arrays`). Simulated TODs are weighted by the inverse noise variance of each detector (relative to the median detector
+:ref:`arrays`). A band can leave the noise level to its detectors with ``NEP=np.nan``, in which case every detector in it
+needs its own sensitivity. An instrument shows the sensitivities of the median detector in each band. Simulated TODs are weighted by the inverse noise variance of each detector (relative to the median detector
 in its band), so that noisy detectors count less when we make maps.
 
 
