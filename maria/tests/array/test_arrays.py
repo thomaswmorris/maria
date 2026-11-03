@@ -66,6 +66,16 @@ def test_array_from_text_file(tmp_path):
     assert np.allclose(1e3 * array_nefd, nefd, rtol=1e-9)
 
 
+def test_array_config_with_file(tmp_path):
+    table = np.c_[np.random.uniform(-600, 600, size=(256, 2)), np.random.uniform(50, 500, size=256)]
+    np.savetxt(tmp_path / "dets.dat", table, fmt="%8.1f")
+
+    # the config supplies the columns, units, and band of the table
+    instrument = maria.Instrument(arrays=[{"key": "apex/amkid_lfa", "file": tmp_path / "dets.dat"}])
+    assert np.allclose(np.degrees(instrument.dets.xi) * 3600, np.loadtxt(tmp_path / "dets.dat")[:, 0], rtol=1e-9)
+    assert np.all(np.isfinite(instrument.dets.NEP))
+
+
 def test_per_detector_sensitivity():
     band = maria.Band(name="f150", center=150e9, width=30e9, NET_RJ=5e-5)
     offsets = np.random.uniform(low=0, high=1, size=(100, 2))

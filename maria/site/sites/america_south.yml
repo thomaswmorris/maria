@@ -34,3 +34,14 @@ llano_de_chajnantor:
   longitude: -67.7548
   altitude: 5064
   documentation: https://www.almaobservatory.org/en/home/
+
+apex:
+  description: Atacama Pathfinder Experiment
+  instruments:
+  - APEX
+  region: chajnantor
+  timezone: America/Santiago
+  latitude: -23.00578
+  longitude: -67.75917
+  altitude: 5105
+  documentation: https://www.apex-telescope.org/
