@@ -55,3 +55,24 @@ noise_equivalent_power:
       min_prefix_power: -30
       max_prefix_power: 30
       composite: true
+
+
+noise_equivalent_flux_density:
+  long_name: noise equivalent flux density
+  short_name: NEFD
+  math_name: \text{NEFD}
+  base_unit: Jy√s
+  base_unit_prefix: ""
+  vector:
+    kg: 1
+    s: -1.5
+    Hz: -1
+  units:
+    Jy√s:
+      factor: 1e-26
+      long_name: janskies per square root hertz
+      math_name: \text{Jy}\sqrt{\text{s}}
+      human: true
+      min_prefix_power: -30
+      max_prefix_power: 30
+      composite: true

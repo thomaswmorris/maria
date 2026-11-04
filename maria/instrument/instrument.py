@@ -1,16 +1,21 @@
 from __future__ import annotations
 
+import copy
 import glob
+import json
 import os
 from typing import Mapping
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from astropy.io import fits
+from astropy.table import Table
 from matplotlib.collections import EllipseCollection
 from matplotlib.patches import Patch
 
 from ..array import Array, ArrayList, get_array_config  # noqa
+from ..array.array import DET_COLUMN_UNITS
 from ..band import BAND_CONFIGS, Band, BandList, parse_band  # noqa
 from ..beam import compute_angular_fwhm
 from ..io import flatten_config, read_yaml
@@ -46,6 +51,14 @@ passband_params_to_inherit = {
     "shape": "top_hat",
 }
 
+BAND_COLUMN_UNITS = {"NEP": "W√s", "NEP_per_loading": "W√s", "knee": "Hz", "time_constant": "s", "nu": "Hz"}
+
+
+def fits_units(units):
+    # fits units can't have a square root symbol
+    return units.replace("√s", " s(1/2)")
+
+
 allowed_subarray_params = {
     "n": "int",
     "array_packing": "float",
@@ -77,6 +90,54 @@ class Instrument:
                 c.pop(key)
 
         return cls(**c)
+
+    @classmethod
+    def from_fits(cls, fname):
+        arrays = []
+        with fits.open(fname) as f:
+            header = f[0].header
+            bands = Table.read(f["BANDS"], character_as_bytes=False, mask_invalid=False)
+
+            for hdu in f[1:]:
+                if hdu.name != "DETS":
+                    continue
+
+                array_name = hdu.header["ARRNAME"]
+                dets = Table.read(hdu, character_as_bytes=False, mask_invalid=False).to_pandas()
+
+                array_bands = []
+                for row in bands[bands["array_name"] == array_name]:
+                    spectrum_kwargs = json.loads(row["spectrum"])
+                    band = Band(
+                        name=row["name"],
+                        nu=np.array(row["nu"]),
+                        tau=np.array(row["tau"]),
+                        shape=row["shape"],
+                        NEP=row["NEP"],
+                        NEP_per_loading=row["NEP_per_loading"],
+                        knee=row["knee"],
+                        time_constant=row["time_constant"],
+                        gain_error=row["gain_error"],
+                        spectrum_kwargs={"region": spectrum_kwargs.pop("region")} if spectrum_kwargs else {},
+                    )
+
+                    # supplying nu and tau renormalizes them, so put back the exact values
+                    band.tau = np.array(row["tau"])
+                    band.efficiency = float(row["efficiency"])
+                    if spectrum_kwargs:
+                        band.spectrum_kwargs = spectrum_kwargs
+
+                    array_bands.append(band)
+
+                arrays.append(Array(name=array_name, dets=dets, bands=array_bands))
+
+        return cls(
+            arrays=arrays,
+            description=header["DESCRIP"],
+            documentation=header["DOCS"],
+            az_vel_limit=header["VELLIM"],
+            acc_limit=header["ACCLIM"],
+        )
 
     def __init__(
         self,
@@ -151,8 +212,15 @@ class Instrument:
         #     self.units = "degrees"
 
     def __repr__(self):
-        band_summary = self.arrays.bands.summary()
-        band_summary.loc[:, "FWHM"] = [Quantity(self.dets(band=b.name).fwhm.mean(), "rad") for b in self.bands]
+        dets = self.dets
+        band_summaries = []
+        for band in self.bands:
+            band_dets = dets(band=band.name)
+            # detectors can have their own sensitivities, so we show those of the median detector
+            median_band = copy.copy(band)
+            median_band.NEP = Quantity(np.median(band_dets.NEP), "W√s")
+            band_summaries.append({**median_band.summary(), "FWHM": Quantity(band_dets.fwhm.mean(), "rad")})
+        band_summary = pd.DataFrame(band_summaries)
 
         arrays_repr = "\n".join([f"│  {s}" for s in str(self.arrays.summary().__repr__()).split("\n")])
         bands_repr = "\n".join([f"   {s}" for s in str(band_summary.__repr__()).split("\n")])
@@ -224,3 +292,55 @@ class Instrument:
 
     def plot(self, z=np.inf, plot_gammas=False):
         self.dets.plot(z=z, plot_gammas=plot_gammas)
+
+    def to_fits(self, fname, overwrite=False):
+        header = fits.header.Header()
+        header["DESCRIP"] = (self.description, "Instrument description")
+        header["DOCS"] = (self.documentation, "Instrument documentation")
+        header["VELLIM"] = (self.az_vel_limit, "Azimuth velocity limit (deg/s)")
+        header["ACCLIM"] = (self.acc_limit, "Acceleration limit (deg/s^2)")
+        header["NARRAYS"] = len(self.arrays)
+
+        hdus = [fits.PrimaryHDU(header=header)]
+
+        band_rows = []
+        for array_index, array in enumerate(self.arrays):
+            dets = Table.from_pandas(array.dets)
+            for col in dets.columns:
+                if col in DET_COLUMN_UNITS:
+                    dets[col].unit = fits_units(DET_COLUMN_UNITS[col])
+
+            dets_hdu = fits.table_to_hdu(dets)
+            dets_hdu.header["EXTNAME"] = "DETS"
+            dets_hdu.header["EXTVER"] = array_index + 1
+            dets_hdu.header["ARRNAME"] = array.name
+            hdus.append(dets_hdu)
+
+            for band in array.bands:
+                spectrum_kwargs = {"region": band.spectrum.region, **band.spectrum_kwargs} if band.spectrum else {}
+                band_rows.append(
+                    {
+                        "array_name": array.name,
+                        "name": band.name,
+                        "shape": band.shape,
+                        "efficiency": float(band.efficiency),
+                        "NEP": float(band.NEP.to("W√s")),
+                        "NEP_per_loading": float(band.NEP_per_loading.to("W√s")),
+                        "knee": float(band.knee),
+                        "time_constant": float(band.time_constant),
+                        "gain_error": float(band.gain_error),
+                        "nu": band.nu.Hz,
+                        "tau": band.tau,
+                        "spectrum": json.dumps(spectrum_kwargs, default=float),
+                    }
+                )
+
+        bands = Table(rows=band_rows)
+        for col, units in BAND_COLUMN_UNITS.items():
+            bands[col].unit = fits_units(units)
+
+        bands_hdu = fits.table_to_hdu(bands)
+        bands_hdu.header["EXTNAME"] = "BANDS"
+        hdus.append(bands_hdu)
+
+        fits.HDUList(hdus).writeto(fname, overwrite=overwrite)

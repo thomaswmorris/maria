@@ -34,6 +34,10 @@ PER_DET_KWARGS = [
     "gamma",
     "band_name",
     "bath_temp",
+    "NEP",
+    "NET_RJ",
+    "NET_CMB",
+    "NEFD",
 ]
 
 
@@ -46,6 +50,7 @@ ALLOWED_ARRAY_KWARGS = [
     "bath_temp",
     "beam_spacing",
     "center",
+    "columns",
     "degrees",
     "field_of_view",
     "file",
@@ -60,6 +65,7 @@ ALLOWED_ARRAY_KWARGS = [
     "primary_size",
     "rotation",
     "shape",
+    "units",
     *PER_DET_KWARGS,
 ]
 
@@ -83,7 +89,28 @@ DET_COLUMN_TYPES = {
     "white_noise": float,
     "pink_noise": float,
     "efficiency": float,
+    "NEP": float,
 }
+
+# the units that per-detector parameters are stored in
+DET_COLUMN_UNITS = {
+    "xi": "rad",
+    "eta": "rad",
+    "gamma": "rad",
+    "baseline_x": "m",
+    "baseline_y": "m",
+    "baseline_z": "m",
+    "primary_size": "m",
+    "bath_temp": "K",
+    "time_constant": "s",
+    "NEP": "W√s",
+    "NET_RJ": "K_RJ√s",
+    "NET_CMB": "K_CMB√s",
+    "NEFD": "Jy√s",
+}
+
+# per-detector sensitivities that get converted to an NEP, and the units to calibrate from
+SENSITIVITY_CALIBRATION_UNITS = {"NET_RJ": "K_RJ", "NET_CMB": "K_CMB", "NEFD": "Jy/beam"}
 
 
 ARRAY_CONFIGS = {}
@@ -118,6 +145,10 @@ class Array:
 
         self.bands = BandList([band for band in bands if band.name in self.dets.band_name.values])
         self.config = config
+
+        # detectors with a NaN NEP inherit the NEP of their band
+        if "NEP" not in self.dets.columns:
+            self.dets.loc[:, "NEP"] = np.nan
 
         # for band_attr, det_attr in {
         #     "center": "band_center",
@@ -254,6 +285,23 @@ class Array:
             PB[self.band_name == band.name] = band.passband(_nu)
         return PB
 
+    @property
+    def NEP(self):
+        NEP = self.dets.NEP.values.astype(float)
+        for band in self.bands:
+            band_mask = (self.band_name == band.name) & np.isnan(NEP)
+            NEP[band_mask] = band.NEP.to("W√s")
+        return NEP
+
+    def noise_weight(self):
+        # inverse noise variance, relative to the median detector in each band
+        NEP = self.NEP
+        weight = np.ones(self.n)
+        for band in self.bands:
+            band_mask = self.band_name == band.name
+            weight[band_mask] = (np.median(NEP[band_mask]) / NEP[band_mask]) ** 2
+        return weight
+
     def __call__(self, band: str = None):
         mask = True
         if band:
@@ -324,15 +372,33 @@ class Array:
         if disallowed_array_kwargs:
             raise ValueError(f"Invalid array kwargs {disallowed_array_kwargs}.")
 
+        units = c.pop("units", {})
+
         if "file" in c:
             file = c.pop("file")
-            try:
-                dets = pd.read_csv(f"{here}/{file}")
-            except FileNotFoundError:
-                dets = pd.read_csv(file)
+            path = f"{here}/{file}" if os.path.exists(f"{here}/{file}") else file
+
+            # headerless files need column names, which must be per-detector parameters
+            columns = c.pop("columns", None)
+            if columns is not None:
+                bad_columns = [col for col in columns if col not in PER_DET_KWARGS]
+                if bad_columns:
+                    raise ValueError(f"Invalid columns {bad_columns} (must be some of {PER_DET_KWARGS}).")
+
+            # this handles both csv files and whitespace-separated tables
+            with open(path) as f:
+                first_line = next(line for line in f if line.strip() and not line.startswith("#"))
+            sep = "," if "," in first_line else r"\s+"
+
+            dets = pd.read_csv(path, sep=sep, comment="#", header=None if columns else "infer", names=columns)
 
             for col in dets.columns:
                 c[col] = dets[col].values
+
+        for param, param_units in units.items():
+            if param not in DET_COLUMN_UNITS:
+                raise ValueError(f"Cannot supply units for parameter '{param}' (must be one of {list(DET_COLUMN_UNITS)}).")
+            c[param] = np.atleast_1d(Quantity(c[param], param_units).to(DET_COLUMN_UNITS[param]))
 
         bands = None
         if "bands" in c:
@@ -361,7 +427,7 @@ class Array:
 
         if degrees:
             for param in ["xi", "eta", "field_of_view", "gamma", "rotation"]:
-                if param in c:
+                if (param in c) and (param not in units):
                     c[param] = np.radians(c[param])
 
         if ("xi" in c) and ("eta" in c):
@@ -495,7 +561,17 @@ class Array:
             else:
                 dets.loc[:, "gamma"] = np.nan
 
+        sensitivity_params = [param for param in ["NEP", *SENSITIVITY_CALIBRATION_UNITS] if param in dets.columns]
+        if len(sensitivity_params) > 1:
+            raise ValueError(f"Only one of the parameters {sensitivity_params} can be supplied.")
+
         if "band_name" not in dets.columns:
+            # a sensitivity is band-specific, so we can't copy it to each band
+            if (len(bands) > 1) and any(np.ndim(c[param]) > 0 for param in sensitivity_params):
+                raise ValueError(
+                    f"Per-detector '{sensitivity_params[0]}' is ambiguous for an array with multiple bands "
+                    f"(supply 'band_name' for each detector)."
+                )
             band_dets_list = []
             for band in bands:
                 band_dets = dets.copy()
@@ -503,7 +579,28 @@ class Array:
                 band_dets_list.append(band_dets)
             dets = pd.concat(band_dets_list)
 
-        dets = dets.sort_values(["band_name", "base_det_index"], ascending=True)
+        dets = dets.sort_values(["band_name", "base_det_index"], ascending=True).reset_index(drop=True)
+
+        for param in sensitivity_params:
+            NEP = dets.loc[:, param].values.astype(float)
+            if param in SENSITIVITY_CALIBRATION_UNITS:
+                for band in bands:
+                    band_mask = dets.band_name.values == band.name
+                    cal_kwargs = {"spectrum": band.spectrum, **band.spectrum_kwargs}
+                    if param == "NEFD":
+                        fwhm = compute_angular_fwhm(fwhm_0=dets.primary_size.values[band_mask], z=np.inf, nu=band.center.Hz)
+                        cal_kwargs.update({"nu": band.center.Hz, "beam_area": np.pi * fwhm**2 / (4 * np.log(2))})
+                    NEP[band_mask] = band.cal(f"{SENSITIVITY_CALIBRATION_UNITS[param]} -> W", **cal_kwargs)(NEP[band_mask])
+                dets = dets.drop(columns=param)
+            if not (np.isfinite(NEP) & (NEP > 0)).all():
+                raise ValueError("Detector sensitivities must be finite and positive.")
+            dets.loc[:, "NEP"] = NEP
+
+        # a band with a NaN NEP leaves the noise level to its detectors, so they all need one
+        has_NEP = dets.NEP.notna().values if "NEP" in dets.columns else np.zeros(len(dets), dtype=bool)
+        for band in bands:
+            if np.isnan(band.NEP.to("W√s")) and not has_NEP[dets.band_name.values == band.name].all():
+                raise ValueError(f"Band '{band.name}' has no noise level, so each of its detectors needs a sensitivity.")
 
         for col in dets.columns:
             dets[col] = dets[col].astype(DET_COLUMN_TYPES.get(col, str))

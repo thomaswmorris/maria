@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import maria
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import pytest
+from maria.instrument import Instrument
 
 plt.close("all")
 
@@ -65,3 +68,17 @@ def test_get_instrument(instrument_name):
 # )
 # def test_get_custom_array(dets):
 #     instrument = maria.get_instrument(dets=dets)
+
+
+def test_instrument_fits_round_trip(tmp_path):
+    instrument = maria.get_instrument("act/AdvACT")
+    instrument.to_fits(tmp_path / "instrument.fits")
+    new_instrument = Instrument.from_fits(tmp_path / "instrument.fits")
+
+    for array, new_array in zip(instrument.arrays, new_instrument.arrays):
+        pd.testing.assert_frame_equal(array.dets, new_array.dets)
+        for band, new_band in zip(array.bands, new_array.bands):
+            assert np.array_equal(band.nu.Hz, new_band.nu.Hz)
+            assert np.array_equal(band.tau, new_band.tau)
+            for attr in ["name", "efficiency", "knee", "time_constant", "gain_error", "NEP", "NET_RJ", "center", "width"]:
+                assert getattr(band, attr) == getattr(new_band, attr)

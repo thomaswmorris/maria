@@ -281,10 +281,13 @@ class Simulation(AtmosphereMixin, CMBMixin, MapMixin, NoiseMixin):
         if hasattr(self, "map"):
             metadata["input_map"] = self.map
 
+        dets = obs.instrument.dets
+
         return TOD(
             data=obs.loading,
-            dets=obs.instrument.dets,
+            dets=dets,
             coords=obs.coords,
+            weight=dets.noise_weight()[:, None] * np.ones(obs.shape),
             units="pW",
             metadata=metadata,
         )

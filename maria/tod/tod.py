@@ -137,7 +137,13 @@ class TOD:
             cal2 = band.cal(f"fW -> {units}", **self.calibration_kwargs(band))
 
             for field in self.fields:
-                content["data"][field][..., band_mask, :] = cal1(cal2(self.data[field][..., band_mask, :]))
+                field_data = content["data"][field]
+                if isinstance(field_data, da.Array) and len(field_data.chunks[-1]) > 1:
+                    # dask setitem with a boolean mask mis-broadcasts the value when
+                    # the last axis spans multiple chunks, so collapse it to one chunk
+                    field_data = field_data.rechunk({-1: -1})
+                    content["data"][field] = field_data
+                field_data[..., band_mask, :] = cal1(cal2(self.data[field][..., band_mask, :]))
 
         content["units"] = units
 

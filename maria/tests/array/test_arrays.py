@@ -40,3 +40,23 @@ array_configs_to_test = [arrays1, arrays2, arrays3]
 @pytest.mark.parametrize("array_config", array_configs_to_test)
 def test_generate_array(array_config):
     instrument = maria.Instrument(arrays=array_config)
+
+
+def test_array_from_text_file(tmp_path):
+    table = np.c_[np.random.uniform(-600, 600, size=(256, 2)), np.random.uniform(50, 500, size=256)]
+    np.savetxt(tmp_path / "dets.dat", table, fmt="%8.1f")
+    xi, eta, nefd = np.loadtxt(tmp_path / "dets.dat").T
+
+    # the config supplies the columns, units, and band of the table
+    instrument = maria.Instrument(arrays=[{"key": "apex/amkid_lfa", "file": tmp_path / "dets.dat"}])
+    array = instrument.arrays[0]
+
+    assert np.allclose(np.degrees(array.xi) * 3600, xi, rtol=1e-9)
+    assert np.allclose(np.degrees(array.eta) * 3600, eta, rtol=1e-9)
+
+    # converting the NEP back with the same beam should give the NEFD
+    band = array.bands[0]
+    fwhm = array.fwhm.rad
+    beam_area = np.pi * fwhm**2 / (4 * np.log(2))
+    array_nefd = band.cal("W -> Jy/beam", nu=band.center.Hz, beam_area=beam_area)(array.NEP)
+    assert np.allclose(1e3 * array_nefd, nefd, rtol=1e-9)

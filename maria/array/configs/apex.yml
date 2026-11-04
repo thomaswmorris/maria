@@ -8,3 +8,18 @@ artemis:
   file: data/apex/artemis.csv
   bands: [apex/350um]
   primary_size: 12
+
+
+# these take a table of detectors with the 'file' parameter
+amkid_lfa:
+  columns: [xi, eta, NEFD]
+  units: {xi: arcsec, eta: arcsec, NEFD: mJy√s}
+  bands: [amkid/lfa]
+  primary_size: 12
+
+
+amkid_hfa:
+  columns: [xi, eta, NEFD]
+  units: {xi: arcsec, eta: arcsec, NEFD: mJy√s}
+  bands: [amkid/hfa]
+  primary_size: 12

@@ -48,6 +48,8 @@ class ArrayList:
         for array in self.arrays:
             df = copy.deepcopy(array.dets)
             df.loc[:, "array_name"] = array.name
+            # resolve the NEP here, since different arrays can have different bands with the same name
+            df.loc[:, "NEP"] = array.NEP
             array_dets.append(df)
         return Array(name="", dets=pd.concat(array_dets), bands=self.bands)
 

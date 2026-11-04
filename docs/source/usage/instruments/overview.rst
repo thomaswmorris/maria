@@ -51,3 +51,5 @@ The ``Instrument`` is based on a list of arrays (see :ref:`arrays`), which are i
     array2 = "act/pa5"
 
     my_instrument = Instrument(arrays=[array1, array2])
+
+We can also load instruments from tables of detectors, and save them to files (see :ref:`loading-instruments`).

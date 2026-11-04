@@ -365,7 +365,9 @@ class Coordinates:
 
     def hull(self, frame: str, center=None, lazy: bool = None):
         center = center if center is not None else self.center(frame=frame)
-        offsets = self.offsets(frame=frame, center=center).reshape(-1, 2)
+        # jax indexes with int32 by default, which overflows for arrays with more
+        # than 2**31 entries; numpy conversion is zero-copy on the CPU backend
+        offsets = np.asarray(self.offsets(frame=frame, center=center)).reshape(-1, 2)
 
         lazy = lazy if lazy is not None else len(offsets) > 20000
         if lazy:
