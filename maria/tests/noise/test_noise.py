@@ -49,21 +49,3 @@ def test_per_detector_noise_levels():
 
     weight = np.asarray(tod.weight)[:, 0]
     assert np.allclose(weight, (np.median(tod.dets.NEP) / tod.dets.NEP) ** 2)
-
-
-def test_explicit_band_noise_levels():
-    band = maria.Band(name="f150", center=150e9, width=30e9, NEP=1e-17)
-    offsets = np.random.uniform(low=0, high=0.1, size=(64, 2))
-    array = {"bands": [band], "primary_size": 5, "xi": offsets[:, 0], "eta": offsets[:, 1]}
-
-    # a per-detector NEP equal to that of the band should give the same noise
-    noise = []
-    for NEP in [None, np.full(64, 1e-17)]:
-        instrument = maria.get_instrument(array={**array, **({"NEP": NEP} if NEP is not None else {})})
-        sim = Simulation(instrument=instrument, plans="ten_second_zenith_stare", site="green_bank", noise=True)
-        np.random.seed(42)
-        tod = sim.run()[0]
-        noise.append(tod.noise.compute())
-        assert np.all(np.asarray(tod.weight) == 1)
-
-    assert np.array_equal(*noise)

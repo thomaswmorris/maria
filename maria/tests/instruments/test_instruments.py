@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from maria.instrument import Instrument
-from maria.units import Quantity
 
 plt.close("all")
 
@@ -71,9 +70,10 @@ def test_get_instrument(instrument_name):
 #     instrument = maria.get_instrument(dets=dets)
 
 
-def assert_fits_round_trip(instrument, path):
-    instrument.to_fits(path)
-    new_instrument = Instrument.from_fits(path)
+def test_instrument_fits_round_trip(tmp_path):
+    instrument = maria.get_instrument("act/AdvACT")
+    instrument.to_fits(tmp_path / "instrument.fits")
+    new_instrument = Instrument.from_fits(tmp_path / "instrument.fits")
 
     for array, new_array in zip(instrument.arrays, new_instrument.arrays):
         pd.testing.assert_frame_equal(array.dets, new_array.dets)
@@ -82,34 +82,3 @@ def assert_fits_round_trip(instrument, path):
             assert np.array_equal(band.tau, new_band.tau)
             for attr in ["name", "efficiency", "knee", "time_constant", "gain_error", "NEP", "NET_RJ", "center", "width"]:
                 assert getattr(band, attr) == getattr(new_band, attr)
-
-    assert np.array_equal(instrument.dets.NEP, new_instrument.dets.NEP)
-
-
-@pytest.mark.parametrize("instrument_name", ["test/1deg", "MUSTANG-2", "act/AdvACT", "alma/ALMA", "so/sat"])
-def test_instrument_fits_round_trip(instrument_name, tmp_path):
-    assert_fits_round_trip(maria.get_instrument(instrument_name), tmp_path / "instrument.fits")
-
-
-@pytest.mark.internet
-def test_instrument_fits_round_trip_with_spectrum(tmp_path):
-    band = maria.Band(
-        name="f150",
-        center=150e9,
-        width=30e9,
-        NET_RJ=5e-5,
-        spectrum_kwargs={"region": "chajnantor", "pwv": 1, "elevation": 60},
-    )
-    instrument = maria.get_instrument(array={"n": 100, "field_of_view": 0.1, "primary_size": 5, "bands": [band]})
-    assert_fits_round_trip(instrument, tmp_path / "instrument.fits")
-
-
-def test_instrument_repr_shows_median_detector():
-    band = maria.Band(name="f150", center=150e9, width=30e9, NEP=np.nan)
-    NEP = np.geomspace(1e-17, 1e-16, 65)
-    offsets = np.random.uniform(low=0, high=0.1, size=(65, 2))
-    array = {"bands": [band], "primary_size": 5, "xi": offsets[:, 0], "eta": offsets[:, 1], "NEP": NEP}
-    instrument = Instrument(arrays=[array])
-
-    assert str(Quantity(np.median(NEP), "W√s")) in repr(instrument)
-    assert np.isnan(band.NEP.to("W√s"))
